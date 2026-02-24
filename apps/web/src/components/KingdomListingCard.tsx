@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
@@ -11,6 +11,7 @@ import { generateTransferListingDiscordMessage, generateTransferListingCard, cop
 import { isReferralEligible } from '../utils/constants';
 import { supabase } from '../lib/supabase';
 import { AllianceDetailsGrid, AllianceInfoGrid } from './AllianceInfoSection';
+import { reviewService, Review } from '../services/reviewService';
 
 // =============================================
 // TYPES (shared with TransferBoard)
@@ -139,6 +140,21 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState(false);
+  const [topReviews, setTopReviews] = useState<Review[]>([]);
+  const [topReviewsLoaded, setTopReviewsLoaded] = useState(false);
+
+  // Lazy-load top 5 helpful reviews when details section is expanded
+  const loadTopReviews = useCallback(async () => {
+    if (topReviewsLoaded || !reviewSummary || reviewSummary.review_count === 0) return;
+    try {
+      const reviews = await reviewService.getTopHelpfulReviews(kingdom.kingdom_number, 5);
+      setTopReviews(reviews);
+    } catch (err) {
+      logger.error('Error loading top reviews:', err);
+    } finally {
+      setTopReviewsLoaded(true);
+    }
+  }, [kingdom.kingdom_number, reviewSummary, topReviewsLoaded]);
 
   const fundTier = fund?.tier || 'standard';
   const tierColor = TIER_COLORS[fundTier];
@@ -164,7 +180,11 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
   }, [kingdom.kingdom_number, user, isOwnKingdom]);
 
   const toggleSection = (section: string) => {
-    setExpandedSection(expandedSection === section ? null : section);
+    const newSection = expandedSection === section ? null : section;
+    setExpandedSection(newSection);
+    if (newSection === 'details') {
+      loadTopReviews();
+    }
   };
 
   const renderStars = (rating: number) => {
@@ -892,10 +912,10 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
               <AllianceDetailsGrid alliances={fund.alliance_events.alliances} allianceDetails={fund.alliance_details} />
             )}
 
-            {/* Community Reviews — moved here from primary view */}
+            {/* Community Reviews — top 5 most helpful */}
             {reviewSummary && reviewSummary.review_count > 0 && (
               <div style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '0.5rem', marginTop: '0.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
                   <div style={{ display: 'flex', gap: '0.1rem', fontSize: '0.8rem' }}>
                     {renderStars(reviewSummary.avg_rating)}
                   </div>
@@ -906,7 +926,47 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                     ({t('listing.reviewCount', '{{count}} review(s)', { count: reviewSummary.review_count })})
                   </span>
                 </div>
-                {reviewSummary.top_review_comment && (
+                {/* Top helpful reviews */}
+                {topReviewsLoaded && topReviews.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                    {topReviews.map(review => (
+                      <div key={review.id} style={{
+                        padding: '0.35rem 0.5rem',
+                        backgroundColor: colors.surface,
+                        borderRadius: '6px',
+                        borderLeft: '3px solid #fbbf24',
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.15rem' }}>
+                          <span style={{ color: '#fbbf24', fontSize: '0.6rem' }}>
+                            {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+                          </span>
+                          {review.helpful_count > 0 && (
+                            <span style={{ fontSize: '0.55rem', color: '#22d3ee' }}>
+                              👍 {review.helpful_count}
+                            </span>
+                          )}
+                        </div>
+                        <p style={{ color: colors.textSecondary, fontSize: '0.7rem', margin: 0, fontStyle: 'italic', lineHeight: 1.4 }}>
+                          &ldquo;{review.comment}&rdquo;
+                        </p>
+                        {review.author_linked_username && (
+                          <span style={{ color: colors.textMuted, fontSize: '0.6rem' }}>— {review.author_linked_username}</span>
+                        )}
+                      </div>
+                    ))}
+                    {reviewSummary.review_count > topReviews.length && (
+                      <div style={{ textAlign: 'center', marginTop: '0.25rem' }}>
+                        <span style={{ fontSize: '0.65rem', color: colors.textMuted }}>
+                          {t('listing.showingTopReviews', 'Showing top {{count}} of {{total}} reviews', { count: topReviews.length, total: reviewSummary.review_count })}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ) : !topReviewsLoaded ? (
+                  <div style={{ textAlign: 'center', padding: '0.35rem' }}>
+                    <span style={{ fontSize: '0.7rem', color: colors.textMuted }}>{t('reviews.loading', 'Loading reviews...')}</span>
+                  </div>
+                ) : reviewSummary.top_review_comment ? (
                   <div style={{
                     padding: '0.35rem 0.5rem',
                     backgroundColor: colors.surface,
@@ -920,7 +980,21 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                       <span style={{ color: colors.textMuted, fontSize: '0.6rem' }}>— {reviewSummary.top_review_author}</span>
                     )}
                   </div>
-                )}
+                ) : null}
+                {/* See all reviews link */}
+                <div style={{ textAlign: 'center', marginTop: '0.4rem' }}>
+                  <Link
+                    to={`/kingdom/${kingdom.kingdom_number}#reviews`}
+                    style={{
+                      fontSize: '0.7rem',
+                      color: '#22d3ee',
+                      textDecoration: 'none',
+                      fontWeight: '500',
+                    }}
+                  >
+                    {t('listing.seeAllReviews', 'See all reviews on kingdom profile →')}
+                  </Link>
+                </div>
               </div>
             )}
           </div>

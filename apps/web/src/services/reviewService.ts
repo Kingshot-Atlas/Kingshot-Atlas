@@ -134,6 +134,28 @@ export const reviewService = {
   },
 
   /**
+   * Get top N most helpful reviews for a kingdom (for transfer listings)
+   */
+  async getTopHelpfulReviews(
+    kingdomNumber: number,
+    limit: number = 5
+  ): Promise<Review[]> {
+    const { data, error } = await getSupabase()
+      .from('kingdom_reviews')
+      .select('*')
+      .eq('kingdom_number', kingdomNumber)
+      .order('helpful_count', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      logger.error('Error fetching top helpful reviews:', error);
+      return [];
+    }
+    return data || [];
+  },
+
+  /**
    * Create a new review
    */
   async createReview(

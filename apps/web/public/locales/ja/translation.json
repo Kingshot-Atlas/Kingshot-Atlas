@@ -2188,7 +2188,14 @@
     "gracePeriodWarning": "ティア猶予期間中 — {{date}}までに寄付して現在のティアを維持しましょう",
     "fundActivityTitle": "ファンド活動",
     "moreTransactions": "+ {{count}}件の取引",
-    "noActivity": "まだファンド活動がありません。最初の寄付者になりましょう！"
+    "noActivity": "まだファンド活動がありません。最初の寄付者になりましょう！",
+    "progressToTier": "{{tier}}への進捗",
+    "needed": "必要",
+    "recentContributors": "最近の寄付者",
+    "viewAll": "全{{count}}件の取引を表示",
+    "shareFundLink": "ファンドリンクを共有",
+    "share": "共有",
+    "copied": "コピー済み！"
   },
   "reportData": {
     "title": "データの誤りを報告",
@@ -3030,7 +3037,15 @@
     "becomeSupporter": "サポーターになる",
     "tryDesigner": "デザイナーを試す",
     "accessDelegate": "{{name}} からアクセス権付与",
-    "delegateBadge": "{{name}} からの委任アクセス"
+    "delegateBadge": "{{name}} からの委任アクセス",
+    "navigate": "ナビゲート",
+    "coordX": "X",
+    "coordY": "Y",
+    "go": "移動",
+    "focusOnBase": "基地にフォーカス",
+    "startWithBanners": "まずバナーまたは本部を配置",
+    "territoryPrompt": "バナーまたは本部を配置して同盟領土を定義してください。都市、罠、特殊建物は領土ゾーン（緑色）内にのみ配置できます。",
+    "territoryPromptShort": "バナー/本部で領土を定義。他の建物は領土ゾーン内に配置する必要があります。"
   },
   "toolDelegates": {
     "title": "ツール委任",

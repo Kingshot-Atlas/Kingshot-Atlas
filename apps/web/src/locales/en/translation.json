@@ -811,7 +811,9 @@
     "other": "Other",
     "detailsOptional": "Details (optional)",
     "additionalContext": "Any additional context...",
-    "submitReport": "Submit Report"
+    "submitReport": "Submit Report",
+    "showingOf": "Showing {{visible}} of {{total}}",
+    "viewMore": "View More"
   },
   "scoreBreakdown": {
     "title": "Atlas Score Breakdown",
@@ -1578,6 +1580,8 @@
     "availableSlots": "Available Slots",
     "detail": "Detail",
     "reviewCount": "{{count}} review(s)",
+    "showingTopReviews": "Showing top {{count}} of {{total}} reviews",
+    "seeAllReviews": "See all reviews on kingdom profile →",
     "fundedListingsPromo": "✨ Funded listings get shimmer borders, glow effects & more visibility",
     "share": "Share",
     "linkCopied": "Link Copied!",
@@ -2188,7 +2192,14 @@
     "gracePeriodWarning": "Tier grace period active — contribute to maintain the current tier before {{date}}",
     "fundActivityTitle": "Fund Activity",
     "moreTransactions": "+ {{count}} more transactions",
-    "noActivity": "No fund activity yet. Be the first to contribute!"
+    "noActivity": "No fund activity yet. Be the first to contribute!",
+    "progressToTier": "Progress to {{tier}}",
+    "needed": "needed",
+    "recentContributors": "Recent Contributors",
+    "viewAll": "View All {{count}} Transactions",
+    "shareFundLink": "Share fund link",
+    "share": "Share",
+    "copied": "Copied!"
   },
   "reportData": {
     "title": "Report Incorrect Data",
@@ -3052,7 +3063,15 @@
     "becomeSupporter": "Become a Supporter",
     "tryDesigner": "Try the Designer",
     "accessDelegate": "Access granted by {{name}}",
-    "delegateBadge": "Delegated access from {{name}}"
+    "delegateBadge": "Delegated access from {{name}}",
+    "navigate": "Navigate",
+    "coordX": "X",
+    "coordY": "Y",
+    "go": "Go",
+    "focusOnBase": "Focus on Base",
+    "startWithBanners": "Place Banners or HQ First",
+    "territoryPrompt": "Define your alliance territory by placing Banners or HQ. Cities, Traps, and Special buildings can only be placed within territory zones (shown in green).",
+    "territoryPromptShort": "Define territory with Banners/HQ. Other buildings must be placed within territory zones."
   },
   "toolDelegates": {
     "title": "Tool Delegates",

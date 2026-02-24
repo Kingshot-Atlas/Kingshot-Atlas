@@ -2188,7 +2188,14 @@
     "gracePeriodWarning": "Tier-Kulanzfrist aktiv — tragen Sie bei, um das aktuelle Tier vor dem {{date}} zu halten",
     "fundActivityTitle": "Fondsaktivität",
     "moreTransactions": "+ {{count}} weitere Transaktionen",
-    "noActivity": "Noch keine Fondsaktivität. Seien Sie der Erste, der beiträgt!"
+    "noActivity": "Noch keine Fondsaktivität. Seien Sie der Erste, der beiträgt!",
+    "progressToTier": "Fortschritt zu {{tier}}",
+    "needed": "benötigt",
+    "recentContributors": "Letzte Beitragende",
+    "viewAll": "Alle {{count}} Transaktionen anzeigen",
+    "shareFundLink": "Fondslink teilen",
+    "share": "Teilen",
+    "copied": "Kopiert!"
   },
   "reportData": {
     "title": "Falsche Daten melden",
@@ -3030,7 +3037,15 @@
     "becomeSupporter": "Supporter werden",
     "tryDesigner": "Designer ausprobieren",
     "accessDelegate": "Zugang gewährt von {{name}}",
-    "delegateBadge": "Delegierter Zugang von {{name}}"
+    "delegateBadge": "Delegierter Zugang von {{name}}",
+    "navigate": "Navigieren",
+    "coordX": "X",
+    "coordY": "Y",
+    "go": "Los",
+    "focusOnBase": "Auf Basis fokussieren",
+    "startWithBanners": "Zuerst Banner oder HQ platzieren",
+    "territoryPrompt": "Definiere dein Allianzterritorium durch das Platzieren von Bannern oder dem HQ. Städte, Fallen und Spezialgebäude können nur innerhalb von Territoriumszonen (grün) platziert werden.",
+    "territoryPromptShort": "Territorium mit Bannern/HQ definieren. Andere Gebäude müssen in Territoriumszonen platziert werden."
   },
   "toolDelegates": {
     "title": "Tool-Delegierte",

@@ -73,6 +73,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
   const [reportingReviewId, setReportingReviewId] = useState<string | null>(null);
   const [reportReason, setReportReason] = useState<ReportReason>('inappropriate');
   const [reportDetails, setReportDetails] = useState('');
+  const [visibleCount, setVisibleCount] = useState(10);
   const [submittingReport, setSubmittingReport] = useState(false);
   const [reportSuccess, setReportSuccess] = useState<string | null>(null);
 
@@ -807,7 +808,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
           ] as { value: SortOption; label: string }[]).map(option => (
             <button
               key={option.value}
-              onClick={() => setSortBy(option.value)}
+              onClick={() => { setSortBy(option.value); setVisibleCount(10); }}
               style={{
                 padding: isMobile ? '0.5rem 0.75rem' : '0.25rem 0.5rem',
                 minHeight: isMobile ? '44px' : 'auto',
@@ -833,7 +834,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
               {t('reviews.beFirst', 'No reviews yet. Be the first to share your experience!')}
             </div>
           ) : (
-            sortedReviews.slice(0, 10).map(review => {
+            sortedReviews.slice(0, visibleCount).map(review => {
               // Get tier for display - use linked username for admin check
               const displayTier = getDisplayTier(review.author_subscription_tier, review.author_linked_username, review.author_linked_kingdom, goldKingdoms);
               const usernameColor = getUsernameColor(displayTier);
@@ -1289,6 +1290,34 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                 </div>
               );
             })
+          )}
+          {/* Showing x of y + View More */}
+          {sortedReviews.length > 0 && (
+            <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
+              <span style={{ fontSize: '0.75rem', color: colors.textMuted }}>
+                {t('reviews.showingOf', 'Showing {{visible}} of {{total}}', { visible: Math.min(visibleCount, sortedReviews.length), total: sortedReviews.length })}
+              </span>
+              {visibleCount < sortedReviews.length && (
+                <button
+                  onClick={() => setVisibleCount(prev => prev + 10)}
+                  style={{
+                    display: 'block',
+                    margin: '0.5rem auto 0',
+                    padding: isMobile ? '0.6rem 1.5rem' : '0.4rem 1.25rem',
+                    minHeight: isMobile ? '44px' : 'auto',
+                    backgroundColor: '#22d3ee15',
+                    border: '1px solid #22d3ee40',
+                    borderRadius: '6px',
+                    color: '#22d3ee',
+                    fontSize: '0.75rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {t('reviews.viewMore', 'View More')}
+                </button>
+              )}
+            </div>
           )}
         </div>
       )}

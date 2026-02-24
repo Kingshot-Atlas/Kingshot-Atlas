@@ -811,7 +811,9 @@
     "other": "Autre",
     "detailsOptional": "Détails (facultatif)",
     "additionalContext": "Tout contexte supplémentaire...",
-    "submitReport": "Soumettre le Signalement"
+    "submitReport": "Soumettre le Signalement",
+    "showingOf": "Affichage de {{visible}} sur {{total}}",
+    "viewMore": "Voir Plus"
   },
   "scoreBreakdown": {
     "title": "Détail du Score Atlas",
@@ -1578,6 +1580,8 @@
     "availableSlots": "Places Disponibles",
     "detail": "Détail",
     "reviewCount": "{{count}} avis",
+    "showingTopReviews": "Affichage des {{count}} meilleurs sur {{total}} avis",
+    "seeAllReviews": "Voir tous les avis sur le profil du royaume →",
     "fundedListingsPromo": "✨ Les annonces financées obtiennent des bordures scintillantes, des effets de lumière et plus de visibilité",
     "share": "Partager",
     "linkCopied": "Lien Copié !",
@@ -2188,7 +2192,14 @@
     "gracePeriodWarning": "Période de grâce active — contribuez pour maintenir le niveau actuel avant le {{date}}",
     "fundActivityTitle": "Activité du Fonds",
     "moreTransactions": "+ {{count}} transactions supplémentaires",
-    "noActivity": "Aucune activité pour le moment. Soyez le premier à contribuer !"
+    "noActivity": "Aucune activité pour le moment. Soyez le premier à contribuer !",
+    "progressToTier": "Progression vers {{tier}}",
+    "needed": "nécessaire",
+    "recentContributors": "Contributeurs Récents",
+    "viewAll": "Voir les {{count}} Transactions",
+    "shareFundLink": "Partager le lien du fonds",
+    "share": "Partager",
+    "copied": "Copié !"
   },
   "reportData": {
     "title": "Signaler des Données Incorrectes",
@@ -3030,7 +3041,15 @@
     "becomeSupporter": "Devenir Supporter",
     "tryDesigner": "Essayer le Concepteur",
     "accessDelegate": "Accès accordé par {{name}}",
-    "delegateBadge": "Accès délégué de {{name}}"
+    "delegateBadge": "Accès délégué de {{name}}",
+    "navigate": "Naviguer",
+    "coordX": "X",
+    "coordY": "Y",
+    "go": "Aller",
+    "focusOnBase": "Centrer sur la Base",
+    "startWithBanners": "Placez d'abord les Bannières ou le QG",
+    "territoryPrompt": "Définissez le territoire de votre alliance en plaçant des Bannières ou le QG. Les Villes, Pièges et Bâtiments spéciaux ne peuvent être placés que dans les zones de territoire (en vert).",
+    "territoryPromptShort": "Définissez le territoire avec Bannières/QG. Les autres bâtiments doivent être dans les zones de territoire."
   },
   "toolDelegates": {
     "title": "Délégués d'outils",

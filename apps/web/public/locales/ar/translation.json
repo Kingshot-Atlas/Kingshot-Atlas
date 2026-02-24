@@ -2188,7 +2188,14 @@
     "gracePeriodWarning": "فترة السماح نشطة — ساهم للحفاظ على المستوى الحالي قبل {{date}}",
     "fundActivityTitle": "نشاط الصندوق",
     "moreTransactions": "+ {{count}} معاملات إضافية",
-    "noActivity": "لا يوجد نشاط بعد. كن أول من يساهم!"
+    "noActivity": "لا يوجد نشاط بعد. كن أول من يساهم!",
+    "progressToTier": "التقدم نحو {{tier}}",
+    "needed": "مطلوب",
+    "recentContributors": "المساهمون الأخيرون",
+    "viewAll": "عرض جميع المعاملات ({{count}})",
+    "shareFundLink": "مشاركة رابط الصندوق",
+    "share": "مشاركة",
+    "copied": "تم النسخ!"
   },
   "reportData": {
     "title": "الإبلاغ عن بيانات خاطئة",
@@ -3030,7 +3037,15 @@
     "becomeSupporter": "كن مؤيداً",
     "tryDesigner": "جرّب المصمم",
     "accessDelegate": "تم منح الوصول بواسطة {{name}}",
-    "delegateBadge": "وصول مفوّض من {{name}}"
+    "delegateBadge": "وصول مفوّض من {{name}}",
+    "navigate": "تنقل",
+    "coordX": "X",
+    "coordY": "Y",
+    "go": "انتقل",
+    "focusOnBase": "التركيز على القاعدة",
+    "startWithBanners": "ضع الرايات أو المقر أولاً",
+    "territoryPrompt": "حدّد أراضي تحالفك بوضع الرايات أو المقر. لا يمكن وضع المدن والفخاخ والمباني الخاصة إلا ضمن مناطق الأراضي (باللون الأخضر).",
+    "territoryPromptShort": "حدّد الأراضي بالرايات/المقر. يجب وضع المباني الأخرى ضمن مناطق الأراضي."
   },
   "toolDelegates": {
     "title": "مفوّضو الأدوات",

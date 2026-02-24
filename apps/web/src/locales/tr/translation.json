@@ -811,7 +811,9 @@
     "other": "Diğer",
     "detailsOptional": "Detaylar (isteğe bağlı)",
     "additionalContext": "Ek bağlam...",
-    "submitReport": "Bildir"
+    "submitReport": "Bildir",
+    "showingOf": "{{total}} üzerinden {{visible}} gösteriliyor",
+    "viewMore": "Daha Fazla Göster"
   },
   "scoreBreakdown": {
     "title": "Atlas Puanı Detayları",
@@ -1578,6 +1580,8 @@
     "availableSlots": "Mevcut Yerler",
     "detail": "Detay",
     "reviewCount": "{{count}} yorum",
+    "showingTopReviews": "{{total}} yorumun en iyi {{count}} tanesi gösteriliyor",
+    "seeAllReviews": "Krallık profilinde tüm yorumları gör →",
     "fundedListingsPromo": "✨ Fonlanmış ilanlar parıltılı kenarlık, parlama efektleri ve daha fazla görünürlük alır",
     "share": "Paylaş",
     "linkCopied": "Bağlantı Kopyalandı!",
@@ -2188,7 +2192,14 @@
     "gracePeriodWarning": "Seviye ek süresi aktif — {{date}} tarihinden önce katkıda bulunarak mevcut seviyenizi koruyun",
     "fundActivityTitle": "Fon Aktivitesi",
     "moreTransactions": "+ {{count}} işlem daha",
-    "noActivity": "Henüz fon aktivitesi yok. İlk katkıda bulunan siz olun!"
+    "noActivity": "Henüz fon aktivitesi yok. İlk katkıda bulunan siz olun!",
+    "progressToTier": "{{tier}} seviyesine ilerleme",
+    "needed": "gerekli",
+    "recentContributors": "Son Katkıda Bulunanlar",
+    "viewAll": "Tüm {{count}} İşlemi Görüntüle",
+    "shareFundLink": "Fon bağlantısını paylaş",
+    "share": "Paylaş",
+    "copied": "Kopyalandı!"
   },
   "reportData": {
     "title": "Yanlış Veri Bildir",
@@ -3030,7 +3041,15 @@
     "becomeSupporter": "Destekçi Ol",
     "tryDesigner": "Tasarımcıyı Dene",
     "accessDelegate": "{{name}} tarafından erişim verildi",
-    "delegateBadge": "{{name}} tarafından yetkilendirilmiş erişim"
+    "delegateBadge": "{{name}} tarafından yetkilendirilmiş erişim",
+    "navigate": "Gezin",
+    "coordX": "X",
+    "coordY": "Y",
+    "go": "Git",
+    "focusOnBase": "Üsse Odaklan",
+    "startWithBanners": "Önce Bayrak veya Karargâh Yerleştirin",
+    "territoryPrompt": "Bayrak veya Karargâh yerleştirerek ittifak bölgenizi tanımlayın. Şehirler, Tuzaklar ve Özel binalar yalnızca bölge alanları içine (yeşil) yerleştirilebilir.",
+    "territoryPromptShort": "Bayrak/Karargâh ile bölge tanımlayın. Diğer binalar bölge alanları içine yerleştirilmelidir."
   },
   "toolDelegates": {
     "title": "Araç Temsilcileri",

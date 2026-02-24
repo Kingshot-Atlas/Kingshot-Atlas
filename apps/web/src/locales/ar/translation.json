@@ -811,7 +811,9 @@
     "other": "أخرى",
     "detailsOptional": "التفاصيل (اختياري)",
     "additionalContext": "أي سياق إضافي...",
-    "submitReport": "إرسال البلاغ"
+    "submitReport": "إرسال البلاغ",
+    "showingOf": "عرض {{visible}} من {{total}}",
+    "viewMore": "عرض المزيد"
   },
   "scoreBreakdown": {
     "title": "تفصيل نقاط Atlas",
@@ -1578,6 +1580,8 @@
     "availableSlots": "الأماكن المتاحة",
     "detail": "التفاصيل",
     "reviewCount": "{{count}} مراجعة",
+    "showingTopReviews": "عرض أفضل {{count}} من {{total}} مراجعة",
+    "seeAllReviews": "عرض جميع المراجعات في صفحة المملكة →",
     "fundedListingsPromo": "✨ القوائم الممولة تحصل على إطارات لامعة وتوهجات ورؤية أكثر",
     "share": "مشاركة",
     "linkCopied": "تم نسخ الرابط!",
@@ -2188,7 +2192,14 @@
     "gracePeriodWarning": "فترة السماح نشطة — ساهم للحفاظ على المستوى الحالي قبل {{date}}",
     "fundActivityTitle": "نشاط الصندوق",
     "moreTransactions": "+ {{count}} معاملات إضافية",
-    "noActivity": "لا يوجد نشاط بعد. كن أول من يساهم!"
+    "noActivity": "لا يوجد نشاط بعد. كن أول من يساهم!",
+    "progressToTier": "التقدم نحو {{tier}}",
+    "needed": "مطلوب",
+    "recentContributors": "المساهمون الأخيرون",
+    "viewAll": "عرض جميع المعاملات ({{count}})",
+    "shareFundLink": "مشاركة رابط الصندوق",
+    "share": "مشاركة",
+    "copied": "تم النسخ!"
   },
   "reportData": {
     "title": "الإبلاغ عن بيانات خاطئة",
@@ -3030,7 +3041,15 @@
     "becomeSupporter": "كن مؤيداً",
     "tryDesigner": "جرّب المصمم",
     "accessDelegate": "تم منح الوصول بواسطة {{name}}",
-    "delegateBadge": "وصول مفوّض من {{name}}"
+    "delegateBadge": "وصول مفوّض من {{name}}",
+    "navigate": "تنقل",
+    "coordX": "X",
+    "coordY": "Y",
+    "go": "انتقل",
+    "focusOnBase": "التركيز على القاعدة",
+    "startWithBanners": "ضع الرايات أو المقر أولاً",
+    "territoryPrompt": "حدّد أراضي تحالفك بوضع الرايات أو المقر. لا يمكن وضع المدن والفخاخ والمباني الخاصة إلا ضمن مناطق الأراضي (باللون الأخضر).",
+    "territoryPromptShort": "حدّد الأراضي بالرايات/المقر. يجب وضع المباني الأخرى ضمن مناطق الأراضي."
   },
   "toolDelegates": {
     "title": "مفوّضو الأدوات",

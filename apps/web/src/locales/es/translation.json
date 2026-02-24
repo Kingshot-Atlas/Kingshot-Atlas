@@ -811,7 +811,9 @@
     "other": "Otro",
     "detailsOptional": "Detalles (opcional)",
     "additionalContext": "Cualquier contexto adicional...",
-    "submitReport": "Enviar Reporte"
+    "submitReport": "Enviar Reporte",
+    "showingOf": "Mostrando {{visible}} de {{total}}",
+    "viewMore": "Ver Más"
   },
   "scoreBreakdown": {
     "title": "Desglose del Índice Atlas",
@@ -1578,6 +1580,8 @@
     "availableSlots": "Plazas Disponibles",
     "detail": "Detalle",
     "reviewCount": "{{count}} reseña(s)",
+    "showingTopReviews": "Mostrando las {{count}} mejores de {{total}} reseñas",
+    "seeAllReviews": "Ver todas las reseñas en el perfil del reino →",
     "fundedListingsPromo": "✨ Los listados financiados obtienen bordes brillantes, efectos de brillo y más visibilidad",
     "share": "Compartir",
     "linkCopied": "¡Enlace Copiado!",
@@ -2188,7 +2192,14 @@
     "gracePeriodWarning": "Período de gracia activo — contribuye para mantener el nivel actual antes del {{date}}",
     "fundActivityTitle": "Actividad del Fondo",
     "moreTransactions": "+ {{count}} transacciones más",
-    "noActivity": "Aún no hay actividad. ¡Sé el primero en contribuir!"
+    "noActivity": "Aún no hay actividad. ¡Sé el primero en contribuir!",
+    "progressToTier": "Progreso a {{tier}}",
+    "needed": "necesario",
+    "recentContributors": "Contribuyentes Recientes",
+    "viewAll": "Ver las {{count}} Transacciones",
+    "shareFundLink": "Compartir enlace del fondo",
+    "share": "Compartir",
+    "copied": "¡Copiado!"
   },
   "reportData": {
     "title": "Reportar Datos Incorrectos",
@@ -3030,7 +3041,15 @@
     "becomeSupporter": "Hazte Supporter",
     "tryDesigner": "Probar el Diseñador",
     "accessDelegate": "Acceso otorgado por {{name}}",
-    "delegateBadge": "Acceso delegado de {{name}}"
+    "delegateBadge": "Acceso delegado de {{name}}",
+    "navigate": "Navegar",
+    "coordX": "X",
+    "coordY": "Y",
+    "go": "Ir",
+    "focusOnBase": "Enfocar en la Base",
+    "startWithBanners": "Coloca Banderas o CG Primero",
+    "territoryPrompt": "Define el territorio de tu alianza colocando Banderas o CG. Las Ciudades, Trampas y edificios Especiales solo se pueden colocar dentro de zonas de territorio (en verde).",
+    "territoryPromptShort": "Define territorio con Banderas/CG. Los demás edificios deben colocarse dentro de las zonas de territorio."
   },
   "toolDelegates": {
     "title": "Delegados de Herramientas",
