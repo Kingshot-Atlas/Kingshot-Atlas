@@ -972,6 +972,14 @@
     "sec": "ثانية",
     "nextEvent": "حدث {{title}} القادم"
   },
+  "transferGroupUpdate": {
+    "title": "تم تحديث مجموعات النقل",
+    "new": "جديد",
+    "subtitle": "تم تحديد المجموعات لحدث النقل القادم. انضم إلى قناة مجموعتك على Discord للتنسيق.",
+    "ctaHub": "← Transfer Hub",
+    "ctaLink": "← ربط Discord",
+    "dismiss": "إغلاق الإشعار"
+  },
   "transferBanner": {
     "eventLive": "حدث الانتقال مباشر الآن",
     "lookingToTransfer": "تبحث عن الانتقال؟",

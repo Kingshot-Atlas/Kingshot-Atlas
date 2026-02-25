@@ -972,6 +972,14 @@
     "sec": "초",
     "nextEvent": "다음 {{title}} 이벤트"
   },
+  "transferGroupUpdate": {
+    "title": "이적 그룹 업데이트됨",
+    "new": "새소식",
+    "subtitle": "다가오는 이적 이벤트에 맞춰 그룹이 설정되었습니다. Discord에서 소속 그룹 전용 채널에 참여하여 조율하세요.",
+    "ctaHub": "Transfer Hub →",
+    "ctaLink": "Discord 연결 →",
+    "dismiss": "알림 닫기"
+  },
   "transferBanner": {
     "eventLive": "이적 이벤트 진행 중",
     "lookingToTransfer": "이적을 원하시나요?",

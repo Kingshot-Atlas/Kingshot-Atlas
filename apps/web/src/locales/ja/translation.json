@@ -972,6 +972,14 @@
     "sec": "秒",
     "nextEvent": "次の{{title}}イベント"
   },
+  "transferGroupUpdate": {
+    "title": "移転グループが更新されました",
+    "new": "新着",
+    "subtitle": "次の移転イベントに向けてグループが設定されました。Discordのグループ専用チャンネルに参加して連携しましょう。",
+    "ctaHub": "Transfer Hub →",
+    "ctaLink": "Discordを連携 →",
+    "dismiss": "通知を閉じる"
+  },
   "transferBanner": {
     "eventLive": "トランスファーイベント開催中",
     "lookingToTransfer": "移籍を考えている？",

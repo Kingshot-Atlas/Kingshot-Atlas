@@ -972,6 +972,14 @@
     "sec": "Sek.",
     "nextEvent": "Nächstes {{title}} Event"
   },
+  "transferGroupUpdate": {
+    "title": "Transfergruppen Aktualisiert",
+    "new": "NEU",
+    "subtitle": "Die Gruppen stehen für das nächste Transfer-Event fest. Tritt dem Kanal deiner Gruppe auf unserem Discord bei, um dich abzustimmen.",
+    "ctaHub": "Transfer Hub →",
+    "ctaLink": "Discord verknüpfen →",
+    "dismiss": "Benachrichtigung schließen"
+  },
   "transferBanner": {
     "eventLive": "Transfer-Event ist LIVE",
     "lookingToTransfer": "Transfer geplant?",

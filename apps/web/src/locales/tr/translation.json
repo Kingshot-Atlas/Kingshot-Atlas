@@ -972,6 +972,14 @@
     "sec": "Sn",
     "nextEvent": "Sonraki {{title}} Etkinliği"
   },
+  "transferGroupUpdate": {
+    "title": "Transfer Grupları Güncellendi",
+    "new": "YENİ",
+    "subtitle": "Gruplar yaklaşan Transfer Etkinliği için belirlendi. Koordinasyon için Discord'daki grubunuzun özel kanalına katılın.",
+    "ctaHub": "Transfer Hub →",
+    "ctaLink": "Discord Bağla →",
+    "dismiss": "Bildirimi kapat"
+  },
   "transferBanner": {
     "eventLive": "Transfer Etkinliği CANLI",
     "lookingToTransfer": "Transfer mi arıyorsunuz?",

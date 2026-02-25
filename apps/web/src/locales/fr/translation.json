@@ -972,6 +972,14 @@
     "sec": "Sec",
     "nextEvent": "Prochain Événement {{title}}"
   },
+  "transferGroupUpdate": {
+    "title": "Groupes de Transfert Mis à Jour",
+    "new": "NOUVEAU",
+    "subtitle": "Les groupes sont définis pour le prochain Événement de Transfert. Rejoignez le canal dédié de votre groupe sur notre Discord pour coordonner.",
+    "ctaHub": "Transfer Hub →",
+    "ctaLink": "Lier Discord →",
+    "dismiss": "Fermer la notification"
+  },
   "transferBanner": {
     "eventLive": "L'Événement de Transfert est EN DIRECT !",
     "lookingToTransfer": "Vous cherchez à transférer ?",

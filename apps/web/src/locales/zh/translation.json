@@ -972,6 +972,14 @@
     "sec": "秒",
     "nextEvent": "下一次 {{title}} 活动"
   },
+  "transferGroupUpdate": {
+    "title": "转服分组已更新",
+    "new": "新",
+    "subtitle": "分组已为即将到来的转服活动设定。加入 Discord 中你所在分组的专属频道来协调。",
+    "ctaHub": "Transfer Hub →",
+    "ctaLink": "关联 Discord →",
+    "dismiss": "关闭通知"
+  },
   "transferBanner": {
     "eventLive": "转服活动进行中",
     "lookingToTransfer": "想要转服？",

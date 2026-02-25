@@ -972,6 +972,14 @@
     "sec": "Sec",
     "nextEvent": "Next {{title}} Event"
   },
+  "transferGroupUpdate": {
+    "title": "Transfer Groups Updated",
+    "new": "NEW",
+    "subtitle": "Groups are set for the upcoming Transfer Event. Join your group's dedicated channel on our Discord to coordinate.",
+    "ctaHub": "Transfer Hub →",
+    "ctaLink": "Link Discord →",
+    "dismiss": "Dismiss notification"
+  },
   "transferBanner": {
     "eventLive": "Transfer Event is LIVE",
     "lookingToTransfer": "Looking to transfer or recruit?",
