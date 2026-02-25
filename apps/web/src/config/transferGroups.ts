@@ -18,23 +18,23 @@
 /**
  * Current transfer groups — update with each new Transfer Event.
  * Each entry is [minKingdom, maxKingdom].
- * Last updated for: Transfer Event #3 (January 2026)
+ * Last updated for: Transfer Event #4 (February 2026)
  */
 export const TRANSFER_GROUPS: Array<[number, number]> = [
-  [1, 6],
-  [7, 115],
-  [116, 417],
-  [418, 587],
-  [588, 674],
-  [675, 846],
-  [847, 99999],
+  [1, 25],
+  [26, 175],
+  [176, 417],
+  [418, 758],
+  [759, 927],
+  [928, 1007],
+  [1008, 1159],
 ];
 
 /**
  * When the groups above were last updated (ISO date string).
  * Used to determine if the "groups may change" disclaimer should show.
  */
-export const TRANSFER_GROUPS_UPDATED_AT = '2026-01-04';
+export const TRANSFER_GROUPS_UPDATED_AT = '2026-02-25';
 
 /**
  * Transfer events happen every 8 weeks.

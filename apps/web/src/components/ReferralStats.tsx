@@ -193,7 +193,7 @@ const ReferralStats: React.FC = () => {
             scout: 'First badge earned. You\'re on the radar.',
             recruiter: 'Proven recruiter. Your kingdom notices.',
             consul: 'Unlocks Consul Discord role. Recognized voice in the community.',
-            ambassador: 'Top tier. Ambassador role + badge, priority support, and #ambassadors-lounge access.',
+            ambassador: 'Top tier. Ambassador role + badge, priority support, and #vip-lounge access.',
           };
           return (
             <SmartTooltip

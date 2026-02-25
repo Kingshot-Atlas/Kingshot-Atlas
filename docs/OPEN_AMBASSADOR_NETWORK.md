@@ -197,7 +197,7 @@ Explorer (green, default)
 ```
 
 ### Ambassador Lounge
-- **Channel:** `#ambassadors-lounge` (already created)
+- **Channel:** `#vip-lounge` (already created)
 - Visible only to Ambassador role + Admin
 
 ---

@@ -281,7 +281,7 @@ const Ambassadors: React.FC = () => {
             <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.15rem' }}>{t('ambassadors.ambassadorTitle', 'Ambassador')}</div>
             <div style={{ color: REFERRAL_TIER_COLORS.ambassador, fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.5rem' }}>{t('ambassadors.ambassadorReq', '20 Referrals')}</div>
             <div style={{ color: '#9ca3af', fontSize: '0.68rem', lineHeight: 1.5 }}>
-              {t('ambassadors.ambassadorDesc', 'Ambassador Discord role + badge. Priority support, #ambassadors-lounge access, leaderboard spotlight, direct input on Atlas features, and Alliance Base Designer.')}
+              {t('ambassadors.ambassadorDesc', 'Ambassador Discord role + badge. Priority support, #vip-lounge access, leaderboard spotlight, direct input on Atlas features, and Alliance Base Designer.')}
             </div>
           </div>
         </div>

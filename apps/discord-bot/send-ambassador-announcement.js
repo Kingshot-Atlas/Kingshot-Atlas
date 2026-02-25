@@ -32,7 +32,7 @@ async function sendAmbassadorAnnouncement() {
         '**🏛️ Ambassador** — 20 referrals\n' +
         '*The top tier. Here\'s what you unlock:*\n\n' +
         '🟣 Ambassador Discord role + website badge\n' +
-        '🔒 Private **#ambassadors-lounge** channel access\n' +
+        '🔒 Private **#vip-lounge** channel access\n' +
         '⚡ Priority support from the Atlas team\n' +
         '🏆 Leaderboard spotlight\n' +
         '🎯 Direct input on what Atlas builds next'
