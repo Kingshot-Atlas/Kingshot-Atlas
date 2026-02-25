@@ -7,7 +7,7 @@ interface RecruiterOnboardingProps {
   fund: FundInfo | null;
   team: TeamMember[];
   onDismiss: () => void;
-  onNavigateTab: (tab: 'profile' | 'fund' | 'invites') => void;
+  onNavigateTab: (tab: 'profile' | 'fund' | 'team') => void;
 }
 
 const RecruiterOnboarding: React.FC<RecruiterOnboardingProps> = ({ fund, team, onDismiss, onNavigateTab }) => {
@@ -17,7 +17,7 @@ const RecruiterOnboarding: React.FC<RecruiterOnboardingProps> = ({ fund, team, o
     { step: '1', icon: '👑', title: 'Claim Kingdom', desc: "You're the editor — manage your listing.", done: true },
     { step: '2', icon: '🎨', title: 'Set Vibe & Bio', desc: 'Add kingdom vibe and recruitment pitch.', done: !!(fund?.kingdom_vibe || fund?.recruitment_pitch), action: () => onNavigateTab('profile') },
     { step: '3', icon: '💰', title: 'Fund Listing', desc: 'Boost visibility with a contribution.', done: (fund?.balance || 0) > 0, action: () => onNavigateTab('fund') },
-    { step: '4', icon: '👥', title: 'Invite Co-Editor', desc: 'Optional — add a co-editor to help.', done: team.some(t => t.role === 'co-editor' && (t.status === 'active' || t.status === 'pending')), action: () => onNavigateTab('invites') },
+    { step: '4', icon: '👥', title: 'Invite Co-Editor', desc: 'Optional — add a co-editor to help.', done: team.some(t => t.role === 'co-editor' && (t.status === 'active' || t.status === 'pending')), action: () => onNavigateTab('team') },
     { step: '5', icon: '📩', title: 'Start Recruiting', desc: 'Toggle recruiting on, send invites.', done: fund?.is_recruiting || false },
   ];
 

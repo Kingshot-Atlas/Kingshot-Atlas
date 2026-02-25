@@ -1,9 +1,10 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../../utils/styles';
 import { ApplicationCard } from './index';
 import type { IncomingApplication } from './types';
 import { formatTCLevel, inputStyle } from './types';
+import { supabase } from '../../lib/supabase';
 
 const downloadApprovedCSV = (apps: IncomingApplication[]) => {
   const headers = ['Player ID', 'Username', 'Kingdom', 'TC Level', 'Power', 'Language', 'KvK Availability', 'Applied At', 'Note'];
@@ -29,7 +30,7 @@ const downloadApprovedCSV = (apps: IncomingApplication[]) => {
 };
 
 interface InboxTabProps {
-  listingViews: number;
+  listingViews?: number;
   filterStatus: string;
   setFilterStatus: (status: string) => void;
   activeApps: IncomingApplication[];
@@ -45,7 +46,7 @@ interface InboxTabProps {
 }
 
 const InboxTab: React.FC<InboxTabProps> = ({
-  listingViews,
+  listingViews: _listingViews,
   filterStatus,
   setFilterStatus,
   activeApps,
@@ -64,6 +65,87 @@ const InboxTab: React.FC<InboxTabProps> = ({
   const [bulkUpdating, setBulkUpdating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'tc_desc' | 'power_desc'>('newest');
+
+  // External Recruits Tracker state
+  type ExternalRecruit = {
+    id: string;
+    type: 'individual' | 'group';
+    username?: string;
+    player_id?: string;
+    from_kingdom?: number;
+    power_million?: number;
+    tc_level?: number;
+    contact_username?: string;
+    contact_kingdom?: number;
+    player_count?: number;
+    note?: string;
+    created_at: string;
+  };
+  const [externalRecruits, setExternalRecruits] = useState<ExternalRecruit[]>([]);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addMode, setAddMode] = useState<'individual' | 'group'>('individual');
+  const [addForm, setAddForm] = useState({ username: '', player_id: '', from_kingdom: '', power_million: '', tc_level: '', contact_username: '', contact_kingdom: '', player_count: '', note: '' });
+  const [addingSaving, setAddingSaving] = useState(false);
+
+  // Fetch external recruits
+  useEffect(() => {
+    if (!supabase || !kingdomNumber) return;
+    supabase
+      .from('external_recruits')
+      .select('*')
+      .eq('kingdom_number', kingdomNumber)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) setExternalRecruits(data as ExternalRecruit[]);
+      });
+  }, [kingdomNumber]);
+
+  const externalPlayerCount = useMemo(() => {
+    return externalRecruits.reduce((sum, r) => sum + (r.type === 'group' ? (r.player_count || 0) : 1), 0);
+  }, [externalRecruits]);
+
+  const handleAddRecruit = useCallback(async () => {
+    if (!supabase || !kingdomNumber || addingSaving) return;
+    setAddingSaving(true);
+    try {
+      const row: Record<string, unknown> = {
+        kingdom_number: kingdomNumber,
+        type: addMode,
+      };
+      if (addMode === 'individual') {
+        if (!addForm.username.trim()) { setAddingSaving(false); return; }
+        row.username = addForm.username.trim();
+        if (addForm.player_id.trim()) row.player_id = addForm.player_id.trim();
+        if (addForm.from_kingdom) row.from_kingdom = parseInt(addForm.from_kingdom);
+        if (addForm.power_million) row.power_million = parseFloat(addForm.power_million);
+        if (addForm.tc_level) row.tc_level = parseInt(addForm.tc_level);
+      } else {
+        if (!addForm.contact_username.trim() || !addForm.player_count) { setAddingSaving(false); return; }
+        row.contact_username = addForm.contact_username.trim();
+        if (addForm.contact_kingdom) row.contact_kingdom = parseInt(addForm.contact_kingdom);
+        row.player_count = parseInt(addForm.player_count);
+      }
+      if (addForm.note.trim()) row.note = addForm.note.trim();
+      const { data, error } = await supabase.from('external_recruits').insert(row).select().single();
+      if (error) {
+        console.error('Failed to save external recruit:', error);
+        return;
+      }
+      if (data) {
+        setExternalRecruits(prev => [data as ExternalRecruit, ...prev]);
+        setAddForm({ username: '', player_id: '', from_kingdom: '', power_million: '', tc_level: '', contact_username: '', contact_kingdom: '', player_count: '', note: '' });
+        setShowAddForm(false);
+      }
+    } finally {
+      setAddingSaving(false);
+    }
+  }, [supabase, kingdomNumber, addMode, addForm, addingSaving]);
+
+  const handleDeleteRecruit = useCallback(async (id: string) => {
+    if (!supabase) return;
+    const { error } = await supabase.from('external_recruits').delete().eq('id', id);
+    if (!error) setExternalRecruits(prev => prev.filter(r => r.id !== id));
+  }, [supabase]);
 
   const visibleApps = useMemo(() => {
     let apps = [...filteredApps];
@@ -115,30 +197,6 @@ const InboxTab: React.FC<InboxTabProps> = ({
 
   return (
     <div>
-      {/* Editor Analytics Stats */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr',
-        gap: '0.5rem',
-        marginBottom: '0.75rem',
-      }}>
-        {[
-          { label: t('recruiter.profileViews', 'Profile Views'), value: listingViews, sub: t('recruiter.last30Days', 'last 30 days'), color: colors.pink, icon: '👁️' },
-        ].map((stat, i) => (
-          <div key={i} style={{
-            backgroundColor: colors.card,
-            borderRadius: '8px',
-            padding: '0.5rem 0.6rem',
-            border: '1px solid #1a1a1a',
-            textAlign: 'center',
-          }}>
-            <div style={{ fontSize: '0.6rem', color: '#4b5563', marginBottom: '0.15rem' }}>{stat.icon} {stat.label}</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700, color: stat.color }}>{stat.value}</div>
-            <div style={{ fontSize: '0.55rem', color: '#374151' }}>{stat.sub}</div>
-          </div>
-        ))}
-      </div>
-
       {/* Filter Tabs */}
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
         <button
@@ -238,6 +296,143 @@ const InboxTab: React.FC<InboxTabProps> = ({
           </svg>
           {t('recruiter.downloadCsv', 'Download CSV')} ({approvedApps.length} {t('recruiter.approved', 'approved')})
         </button>
+      )}
+
+      {/* External Recruits Tracker — only in Approved tab */}
+      {filterStatus === 'approved' && (
+        <div style={{ marginBottom: '0.75rem' }}>
+          {/* Summary Banner */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.4rem', marginBottom: '0.5rem',
+          }}>
+            <div style={{ backgroundColor: '#22d3ee08', border: '1px solid #22d3ee20', borderRadius: '8px', padding: '0.5rem', textAlign: 'center' }}>
+              <div style={{ fontSize: '0.5rem', color: '#22d3ee', fontWeight: '600', marginBottom: '0.1rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>{t('recruiter.atlasRecruits', 'Atlas')}</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#22d3ee' }}>{approvedApps.length}</div>
+            </div>
+            <div style={{ backgroundColor: '#a855f708', border: '1px solid #a855f720', borderRadius: '8px', padding: '0.5rem', textAlign: 'center' }}>
+              <div style={{ fontSize: '0.5rem', color: '#a855f7', fontWeight: '600', marginBottom: '0.1rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>{t('recruiter.externalRecruits', 'External')}</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#a855f7' }}>{externalPlayerCount}</div>
+            </div>
+            <div style={{ backgroundColor: '#22c55e08', border: '1px solid #22c55e20', borderRadius: '8px', padding: '0.5rem', textAlign: 'center' }}>
+              <div style={{ fontSize: '0.5rem', color: '#22c55e', fontWeight: '600', marginBottom: '0.1rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>{t('recruiter.totalRecruits', 'Total')}</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#22c55e' }}>{approvedApps.length + externalPlayerCount}</div>
+            </div>
+          </div>
+
+          {/* External Recruits Section */}
+          <div style={{ backgroundColor: colors.surface, border: `1px solid ${colors.border}`, borderRadius: '8px', padding: '0.6rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: externalRecruits.length > 0 || showAddForm ? '0.5rem' : '0' }}>
+              <span style={{ fontSize: '0.7rem', color: colors.textSecondary, fontWeight: '600' }}>
+                {t('recruiter.externalRecruitsLabel', 'External Recruits')}
+                {externalRecruits.length > 0 && <span style={{ color: colors.textMuted, fontWeight: '400' }}> ({externalPlayerCount})</span>}
+              </span>
+              <button
+                onClick={() => setShowAddForm(!showAddForm)}
+                style={{
+                  padding: '0.2rem 0.5rem', backgroundColor: showAddForm ? '#ef444412' : '#a855f712',
+                  border: `1px solid ${showAddForm ? '#ef444430' : '#a855f730'}`, borderRadius: '6px',
+                  color: showAddForm ? '#ef4444' : '#a855f7', fontSize: '0.65rem', fontWeight: '600', cursor: 'pointer', minHeight: '28px',
+                }}
+              >
+                {showAddForm ? t('common.cancel', 'Cancel') : `+ ${t('recruiter.addExternal', 'Add')}`}
+              </button>
+            </div>
+
+            {/* Add Form */}
+            {showAddForm && (
+              <div style={{ marginBottom: '0.5rem', padding: '0.5rem', backgroundColor: '#a855f706', border: '1px solid #a855f715', borderRadius: '8px' }}>
+                {/* Mode Toggle */}
+                <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.5rem' }}>
+                  {(['individual', 'group'] as const).map(m => (
+                    <button
+                      key={m}
+                      onClick={() => setAddMode(m)}
+                      style={{
+                        flex: 1, padding: '0.3rem', borderRadius: '6px', fontSize: '0.65rem', fontWeight: '600', cursor: 'pointer', minHeight: '32px',
+                        backgroundColor: addMode === m ? '#a855f715' : 'transparent',
+                        border: `1px solid ${addMode === m ? '#a855f740' : colors.border}`,
+                        color: addMode === m ? '#a855f7' : colors.textMuted,
+                      }}
+                    >
+                      {m === 'individual' ? `👤 ${t('recruiter.individual', 'Individual')}` : `👥 ${t('recruiter.group', 'Group')}`}
+                    </button>
+                  ))}
+                </div>
+
+                {addMode === 'individual' ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem' }}>
+                    <input value={addForm.username} onChange={e => setAddForm(p => ({ ...p, username: e.target.value }))} placeholder={t('recruiter.usernamePlaceholder', 'Username *')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px', gridColumn: '1 / -1' }} />
+                    <input value={addForm.from_kingdom} onChange={e => setAddForm(p => ({ ...p, from_kingdom: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.kingdomPlaceholder', 'From Kingdom')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} inputMode="numeric" />
+                    <input value={addForm.player_id} onChange={e => setAddForm(p => ({ ...p, player_id: e.target.value }))} placeholder={t('recruiter.playerIdPlaceholder', 'Player ID')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} />
+                    <input value={addForm.power_million} onChange={e => setAddForm(p => ({ ...p, power_million: e.target.value.replace(/[^0-9.]/g, '') }))} placeholder={t('recruiter.powerPlaceholder', 'Power (M)')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} inputMode="decimal" />
+                    <input value={addForm.tc_level} onChange={e => setAddForm(p => ({ ...p, tc_level: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.tcLevelPlaceholder', 'TC Level')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} inputMode="numeric" />
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem' }}>
+                    <input value={addForm.contact_username} onChange={e => setAddForm(p => ({ ...p, contact_username: e.target.value }))} placeholder={t('recruiter.contactNamePlaceholder', 'Contact name *')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px', gridColumn: '1 / -1' }} />
+                    <input value={addForm.contact_kingdom} onChange={e => setAddForm(p => ({ ...p, contact_kingdom: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.kingdomPlaceholder', 'From Kingdom')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} inputMode="numeric" />
+                    <input value={addForm.player_count} onChange={e => setAddForm(p => ({ ...p, player_count: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.playerCountPlaceholder', 'Players *')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} inputMode="numeric" />
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.35rem' }}>
+                  <input value={addForm.note} onChange={e => setAddForm(p => ({ ...p, note: e.target.value }))} placeholder={t('recruiter.notePlaceholder', 'Note (optional)')} maxLength={200} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px', flex: 1 }} />
+                  <button
+                    onClick={handleAddRecruit}
+                    disabled={addingSaving}
+                    style={{
+                      padding: '0.35rem 0.75rem', backgroundColor: '#a855f715', border: '1px solid #a855f740',
+                      borderRadius: '6px', color: '#a855f7', fontSize: '0.65rem', fontWeight: '700', cursor: addingSaving ? 'not-allowed' : 'pointer',
+                      opacity: addingSaving ? 0.5 : 1, minHeight: '34px', whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {addingSaving ? '...' : t('recruiter.save', 'Save')}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Recruits List */}
+            {externalRecruits.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                {externalRecruits.map(r => (
+                  <div key={r.id} style={{
+                    display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.5rem',
+                    backgroundColor: r.type === 'group' ? '#a855f706' : 'transparent',
+                    border: `1px solid ${colors.border}`, borderRadius: '6px',
+                  }}>
+                    <span style={{ fontSize: '0.7rem' }}>{r.type === 'group' ? '👥' : '👤'}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '0.7rem', color: colors.text, fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {r.type === 'individual' ? r.username : r.contact_username}
+                        {r.type === 'group' && <span style={{ color: '#a855f7', fontWeight: '700', marginLeft: '0.3rem' }}>×{r.player_count}</span>}
+                      </div>
+                      <div style={{ fontSize: '0.55rem', color: colors.textMuted, display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                        {(r.from_kingdom || r.contact_kingdom) && <span>K{r.from_kingdom || r.contact_kingdom}</span>}
+                        {r.power_million && <span>{r.power_million}M</span>}
+                        {r.tc_level && <span>TC{r.tc_level}</span>}
+                        {r.note && <span style={{ color: '#6b7280' }}>• {r.note}</span>}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteRecruit(r.id)}
+                      style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.7rem', cursor: 'pointer', padding: '0.2rem', opacity: 0.6, flexShrink: 0 }}
+                      title={t('common.delete', 'Delete')}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {externalRecruits.length === 0 && !showAddForm && (
+              <p style={{ fontSize: '0.6rem', color: colors.textMuted, margin: '0.25rem 0 0', textAlign: 'center' }}>
+                {t('recruiter.noExternalRecruits', 'Track recruits from outside Atlas here')}
+              </p>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Bulk Select Bar */}

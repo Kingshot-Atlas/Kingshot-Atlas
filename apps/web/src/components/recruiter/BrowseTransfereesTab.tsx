@@ -239,29 +239,6 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
         </div>
       )}
 
-      {/* Budget Banner */}
-      {fund && (
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0.5rem 0.75rem',
-          backgroundColor: '#111111',
-          borderRadius: '8px',
-          border: '1px solid #2a2a2a',
-          marginBottom: '0.75rem',
-        }}>
-          <span style={{ color: colors.textSecondary, fontSize: '0.75rem' }}>
-            {t('recruiter.inviteBudget', 'Invite Budget')}: <strong style={{ color: colors.text }}>{getInviteBudget().total - getInviteBudget().used}</strong> {t('recruiter.remaining', 'remaining')}
-            {getInviteBudget().bonus > 0 && <span style={{ color: colors.gold, fontSize: '0.6rem' }}> (+{getInviteBudget().bonus} Gold bonus)</span>}
-          </span>
-          <button onClick={() => queryClient.invalidateQueries({ queryKey: browseKeys.transferees(kingdomNumber, transferGroup, browseFilters) })} style={{
-            padding: '0.25rem 0.5rem', backgroundColor: '#22d3ee10', border: '1px solid #22d3ee25',
-            borderRadius: '6px', color: '#22d3ee', fontSize: '0.65rem', cursor: 'pointer', minHeight: '32px',
-          }}>
-            ↻ {t('recruiter.refresh', 'Refresh')}
-          </button>
-        </div>
-      )}
-
       {/* Bulk Invite Action Bar */}
       {selectedForInvite.size > 0 && (
         <div style={{
