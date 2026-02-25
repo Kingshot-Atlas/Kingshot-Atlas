@@ -77,7 +77,7 @@ const QualificationChecker: React.FC<{ campaign: Campaign }> = ({ campaign }) =>
 
   const checks = [
     { label: t('campaign.checkAtlas', 'Atlas account created'), done: true },
-    { label: t('campaign.checkKingshot', `Kingshot linked (TC ${campaign.min_tc_level}+)`), done: !!profile?.linked_player_id && (profile?.linked_tc_level ?? 0) >= campaign.min_tc_level },
+    { label: t('campaign.checkKingshot', { level: campaign.min_tc_level, defaultValue: 'Kingshot linked (TC {{level}}+)' }), done: !!profile?.linked_player_id && (profile?.linked_tc_level ?? 0) >= campaign.min_tc_level },
     { label: t('campaign.checkDiscord', 'Discord linked on Atlas'), done: !!profile?.discord_id },
     { label: t('campaign.checkServer', 'Joined Atlas Discord (Settler role)'), done: !!profile?.discord_id },
   ];
