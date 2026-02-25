@@ -173,7 +173,7 @@ const PrizeQueue: React.FC<PrizeQueueProps> = ({ rewards, winners, currentDrawOr
       <div style={{ color: '#6b7280', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4, fontWeight: 600 }}>
         Prize Queue
       </div>
-      {rewards.map((r) => {
+      {[...rewards].reverse().map((r) => {
         const winner = winnerMap.get(r.draw_order);
         const isCurrent = r.draw_order === currentDrawOrder;
         const isReRolling = r.draw_order === reRollingDraw;
@@ -266,7 +266,7 @@ const QualifiedKingdomsPanel: React.FC<{
 
   return (
     <div style={{
-      maxWidth: 900, margin: '1rem auto 0', padding: '0 1rem',
+      maxWidth: 480, margin: '1rem auto 0', padding: '0 1rem',
     }}>
       <button
         onClick={() => setExpanded(!expanded)}
@@ -313,21 +313,21 @@ const QualifiedKingdomsPanel: React.FC<{
         }}>
           {/* Header row */}
           <div style={{
-            display: 'flex', padding: '0.5rem 1rem',
+            display: 'flex', padding: '0.4rem 0.6rem',
             fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1,
             borderBottom: '1px solid rgba(255,255,255,0.06)',
           }}>
-            <span style={{ width: 40, textAlign: 'center' }}>#</span>
+            <span style={{ width: 28, textAlign: 'center' }}>#</span>
             <span style={{ flex: 1 }}>Kingdom</span>
-            <span style={{ width: 60, textAlign: 'right' }}>Tickets</span>
-            <span style={{ width: 60, textAlign: 'right' }}>Chance</span>
+            <span style={{ width: 55, textAlign: 'right' }}>Tickets</span>
+            <span style={{ width: 55, textAlign: 'right' }}>Chance</span>
           </div>
 
           {qualifying.map((k, i) => (
             <div
               key={k.kingdom_number}
               style={{
-                display: 'flex', alignItems: 'center', padding: '0.4rem 1rem',
+                display: 'flex', alignItems: 'center', padding: '0.35rem 0.6rem',
                 fontSize: '0.8rem',
                 borderBottom: i < qualifying.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
                 transition: 'background 0.15s',
@@ -335,16 +335,16 @@ const QualifiedKingdomsPanel: React.FC<{
               onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(34,211,238,0.05)'}
               onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
             >
-              <span style={{ width: 40, textAlign: 'center', color: '#6b7280', fontSize: '0.7rem' }}>
+              <span style={{ width: 28, textAlign: 'center', color: '#6b7280', fontSize: '0.7rem' }}>
                 {i + 1}
               </span>
               <span style={{ flex: 1, color: '#fff', fontWeight: 600 }}>
                 Kingdom {k.kingdom_number}
               </span>
-              <span style={{ width: 60, textAlign: 'right', color: '#22d3ee', fontWeight: 600, fontFamily: "'Orbitron', sans-serif", fontSize: '0.75rem' }}>
+              <span style={{ width: 55, textAlign: 'right', color: '#22d3ee', fontWeight: 600, fontFamily: "'Orbitron', sans-serif", fontSize: '0.75rem' }}>
                 {k.tickets}
               </span>
-              <span style={{ width: 60, textAlign: 'right', color: '#9ca3af', fontSize: '0.7rem' }}>
+              <span style={{ width: 55, textAlign: 'right', color: '#9ca3af', fontSize: '0.7rem' }}>
                 {totalTickets > 0 ? `${k.percentage.toFixed(1)}%` : '—'}
               </span>
             </div>
@@ -352,17 +352,17 @@ const QualifiedKingdomsPanel: React.FC<{
 
           {/* Total row */}
           <div style={{
-            display: 'flex', alignItems: 'center', padding: '0.5rem 1rem',
+            display: 'flex', alignItems: 'center', padding: '0.4rem 0.6rem',
             borderTop: '1px solid rgba(255,255,255,0.08)',
             background: 'rgba(255,255,255,0.02)',
             fontSize: '0.75rem', fontWeight: 700,
           }}>
-            <span style={{ width: 40 }} />
+            <span style={{ width: 28 }} />
             <span style={{ flex: 1, color: '#9ca3af' }}>Total</span>
-            <span style={{ width: 60, textAlign: 'right', color: '#22d3ee', fontFamily: "'Orbitron', sans-serif" }}>
+            <span style={{ width: 55, textAlign: 'right', color: '#22d3ee', fontFamily: "'Orbitron', sans-serif" }}>
               {totalTickets}
             </span>
-            <span style={{ width: 60, textAlign: 'right', color: '#9ca3af' }}>100%</span>
+            <span style={{ width: 55, textAlign: 'right', color: '#9ca3af' }}>100%</span>
           </div>
         </div>
       )}
@@ -460,7 +460,7 @@ const AdminCampaignDraw: React.FC = () => {
 
   // Audio context for sound effects
   const audioCtxRef = useRef<AudioContext | null>(null);
-  const spinSoundRef = useRef<{ osc: OscillatorNode; gain: GainNode; lfo: OscillatorNode } | null>(null);
+  const spinSoundRef = useRef<GainNode | null>(null);
 
   const getAudioCtx = useCallback(() => {
     if (!audioCtxRef.current) {
@@ -488,47 +488,66 @@ const AdminCampaignDraw: React.FC = () => {
     }
   }, [soundEnabled, getAudioCtx]);
 
-  // Continuous slot machine spinning sound
+  // Realistic slot machine sound - discrete clicks synced to reel easing
   const startSpinSound = useCallback(() => {
     if (!soundEnabled) return;
     try {
       const ctx = getAudioCtx();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const lfo = ctx.createOscillator();
-      const lfoGain = ctx.createGain();
+      const masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(1, ctx.currentTime);
+      masterGain.connect(ctx.destination);
 
-      // Main tone: low buzz
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(80, ctx.currentTime);
-      gain.gain.setValueAtTime(0.06, ctx.currentTime);
+      const totalClicks = 40; // matches reel sequence length
+      const totalSec = rollDuration;
 
-      // LFO for slot machine clicking/ticking effect
-      lfo.type = 'square';
-      lfo.frequency.setValueAtTime(12, ctx.currentTime); // 12 clicks/sec, speeds up feeling
-      lfoGain.gain.setValueAtTime(0.04, ctx.currentTime);
+      // Create reusable noise buffer for mechanical click sound
+      const clickLen = 128;
+      const noiseBuffer = ctx.createBuffer(1, clickLen, ctx.sampleRate);
+      const noise = noiseBuffer.getChannelData(0);
+      for (let j = 0; j < clickLen; j++) {
+        noise[j] = (Math.random() * 2 - 1) * Math.exp(-j / 18);
+      }
 
-      lfo.connect(lfoGain);
-      lfoGain.connect(gain.gain);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      lfo.start();
+      // Schedule clicks matching the cubic ease-out reel animation
+      for (let i = 0; i < totalClicks; i++) {
+        const easedPos = (i + 1) / totalClicks;
+        // Invert cubic ease-out to get real time: progress = 1 - (1 - eased)^(1/3)
+        const progress = 1 - Math.pow(1 - easedPos, 1 / 3);
+        const clickTime = ctx.currentTime + progress * totalSec;
 
-      spinSoundRef.current = { osc, gain, lfo };
+        const source = ctx.createBufferSource();
+        source.buffer = noiseBuffer;
+
+        const clickGain = ctx.createGain();
+        const slowFactor = i / totalClicks;
+        // Clicks get louder and punchier as the reel slows down
+        const intensity = 0.06 + slowFactor * 0.14;
+        clickGain.gain.setValueAtTime(intensity, clickTime);
+        clickGain.gain.exponentialRampToValueAtTime(0.001, clickTime + 0.04);
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'highpass';
+        // Higher pitch when fast, lower/chunkier when slow
+        filter.frequency.setValueAtTime(900 + (1 - slowFactor) * 2200, clickTime);
+
+        source.connect(filter);
+        filter.connect(clickGain);
+        clickGain.connect(masterGain);
+        source.start(clickTime);
+        source.stop(clickTime + 0.05);
+      }
+
+      spinSoundRef.current = masterGain;
     } catch {
       // Audio not available
     }
-  }, [soundEnabled, getAudioCtx]);
+  }, [soundEnabled, getAudioCtx, rollDuration]);
 
   const stopSpinSound = useCallback(() => {
     if (spinSoundRef.current) {
       try {
         const ctx = getAudioCtx();
-        const { osc, gain, lfo } = spinSoundRef.current;
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-        osc.stop(ctx.currentTime + 0.4);
-        lfo.stop(ctx.currentTime + 0.4);
+        spinSoundRef.current.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
       } catch { /* ignore */ }
       spinSoundRef.current = null;
     }
