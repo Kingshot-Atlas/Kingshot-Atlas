@@ -185,6 +185,7 @@ export const AdminTabNav: React.FC<AdminTabNavProps> = ({
         { id: 'discord-bot', label: 'Discord', count: 0 },
         { id: 'bot-telemetry', label: 'Bot Health', count: 0 },
         { id: 'discord-roles', label: 'Roles', count: 0 },
+        { id: 'transfer-groups', label: 'Transfer Groups', count: 0 },
         { id: 'referrals', label: 'Referrals', count: 0 },
         { id: 'gift-codes', label: 'Gift Codes', count: 0 },
         { id: 'spotlight', label: 'Spotlight', count: 0 },

@@ -146,7 +146,8 @@ export type AdminTab =
   | 'spotlight'
   | 'finance'
   | 'kvk-bulk'
-  | 'review-reports';
+  | 'review-reports'
+  | 'transfer-groups';
 
 export type AdminCategory = 'overview' | 'review' | 'transfer' | 'finance' | 'operations';
 

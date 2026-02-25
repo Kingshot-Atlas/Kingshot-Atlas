@@ -1601,6 +1601,89 @@ async def create_new_transfer_event(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/transfer-groups/add")
+async def add_transfer_group(
+    data: Dict[str, Any],
+    _: bool = Depends(require_bot_admin),
+):
+    """
+    Admin endpoint: add a single transfer group to the current active event.
+    Expects: { min_kingdom: int, max_kingdom: int, event_number?: int }
+    If event_number is not provided, uses the event_number of existing active groups.
+    """
+    sb = get_supabase_admin()
+    if not sb:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+
+    min_k = data.get("min_kingdom")
+    max_k = data.get("max_kingdom")
+    if not min_k or not max_k:
+        raise HTTPException(status_code=400, detail="min_kingdom and max_kingdom are required")
+    if min_k > max_k:
+        raise HTTPException(status_code=400, detail="min_kingdom must be <= max_kingdom")
+
+    event_number = data.get("event_number")
+    if not event_number:
+        # Infer from existing active groups
+        try:
+            active = sb.table("transfer_groups").select("event_number").eq("is_active", True).limit(1).execute()
+            if active.data:
+                event_number = active.data[0]["event_number"]
+            else:
+                raise HTTPException(status_code=400, detail="No active event found. Provide event_number.")
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    now = datetime.now(timezone.utc).isoformat()
+    try:
+        result = sb.table("transfer_groups").insert({
+            "min_kingdom": min_k,
+            "max_kingdom": max_k,
+            "event_number": event_number,
+            "is_active": True,
+            "created_at": now,
+            "updated_at": now,
+        }).execute()
+        created = result.data[0] if result.data else None
+        if not created:
+            raise HTTPException(status_code=500, detail="Insert returned no data")
+        logger.info("Added transfer group K%d-K%d to event #%d", min_k, max_k, event_number)
+        return {"group": created, "ok": True}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error adding transfer group: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/transfer-groups/{group_id}")
+async def delete_transfer_group(
+    group_id: int,
+    _: bool = Depends(require_bot_admin),
+):
+    """
+    Admin endpoint: permanently delete a transfer group.
+    The Discord bot will stop assigning this role on the next sync cycle.
+    """
+    sb = get_supabase_admin()
+    if not sb:
+        raise HTTPException(status_code=500, detail="Supabase not configured")
+
+    try:
+        result = sb.table("transfer_groups").delete().eq("id", group_id).execute()
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Group not found")
+        logger.info("Deleted transfer group %d", group_id)
+        return {"ok": True, "deleted_id": group_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error deleting transfer group %d: %s", group_id, e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/transfer-groups/create-channels")
 async def create_transfer_channels(_: bool = Depends(require_bot_admin)):
     """
