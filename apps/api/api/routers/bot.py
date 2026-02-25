@@ -1601,6 +1601,222 @@ async def create_new_transfer_event(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/transfer-groups/create-channels")
+async def create_transfer_channels(_: bool = Depends(require_bot_admin)):
+    """
+    Admin endpoint: create Discord categories and channels for each active transfer group.
+    For each group, creates:
+      - A category named "Transfer K1-K25" (matching the role name)
+      - Text channel "🗣️-transfer-chat"
+      - Forum channel "🚀-transferring-out"
+      - Forum channel "🏰-kingdom-ads"
+    Permission overwrites deny @everyone VIEW_CHANNEL and allow the transfer group role.
+    Skips categories that already exist (by name match).
+
+    Required bot permissions: Manage Channels, Manage Roles, View Channels.
+    """
+    if not DISCORD_BOT_TOKEN:
+        raise HTTPException(status_code=503, detail="Discord bot token not configured")
+    if not DISCORD_GUILD_ID:
+        raise HTTPException(status_code=503, detail="DISCORD_GUILD_ID not configured")
+
+    sb = get_supabase_admin()
+    if not sb:
+        raise HTTPException(status_code=503, detail="Supabase not configured")
+
+    # 1. Fetch active transfer groups
+    try:
+        result = sb.table("transfer_groups").select(
+            "id, min_kingdom, max_kingdom, label, event_number"
+        ).eq("is_active", True).order("min_kingdom").execute()
+        groups = result.data or []
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch transfer groups: {e}")
+
+    if not groups:
+        raise HTTPException(status_code=400, detail="No active transfer groups found")
+
+    guild_id = DISCORD_GUILD_ID
+
+    # 2. Fetch existing guild channels to detect already-created categories
+    try:
+        channels_resp = await discord_fetch("GET", f"/api/v10/guilds/{guild_id}/channels")
+        if channels_resp.status_code != 200:
+            raise HTTPException(
+                status_code=channels_resp.status_code,
+                detail=_sanitize_discord_error(channels_resp.status_code, channels_resp.text)
+            )
+        existing_channels = channels_resp.json()
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch guild channels: {e}")
+
+    # Build map of existing category names -> id (type 4 = category)
+    existing_categories = {
+        ch["name"]: ch["id"]
+        for ch in existing_channels
+        if ch.get("type") == 4
+    }
+
+    # 3. Fetch existing guild roles to find/create transfer group roles
+    try:
+        roles_resp = await discord_fetch("GET", f"/api/v10/guilds/{guild_id}/roles")
+        if roles_resp.status_code != 200:
+            raise HTTPException(
+                status_code=roles_resp.status_code,
+                detail=_sanitize_discord_error(roles_resp.status_code, roles_resp.text)
+            )
+        existing_roles = roles_resp.json()
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch guild roles: {e}")
+
+    existing_role_map = {r["name"]: r["id"] for r in existing_roles}
+    # @everyone role ID == guild_id
+    everyone_role_id = guild_id
+
+    # Discord permission flags
+    VIEW_CHANNEL = 0x0000000000000400       # 1 << 10
+    SEND_MESSAGES = 0x0000000000000800      # 1 << 11
+    SEND_MESSAGES_IN_THREADS = 0x0000040000000000  # 1 << 38
+    CREATE_PUBLIC_THREADS = 0x0000000800000000     # 1 << 35
+
+    # Channel definitions inside each category
+    CHANNEL_DEFS = [
+        {"name": "🗣️-transfer-chat", "type": 0},    # text channel
+        {"name": "🚀-transferring-out", "type": 15},  # forum channel
+        {"name": "🏰-kingdom-ads", "type": 15},       # forum channel
+    ]
+
+    created_categories = 0
+    created_channels = 0
+    skipped_categories = 0
+    errors = []
+
+    for group in groups:
+        label = group["label"].replace("\u2013", "-")  # en-dash → hyphen
+        category_name = f"Transfer {label}"
+        role_name = f"Transfer {label}"
+
+        # Skip if category already exists
+        if category_name in existing_categories:
+            skipped_categories += 1
+            logger.info("Skipping existing category: %s", category_name)
+            continue
+
+        # Find or create the role
+        role_id = existing_role_map.get(role_name)
+        if not role_id:
+            try:
+                role_resp = await discord_fetch(
+                    "POST",
+                    f"/api/v10/guilds/{guild_id}/roles",
+                    json={
+                        "name": role_name,
+                        "color": 0xa855f7,
+                        "mentionable": False,
+                        "hoist": False,
+                        "reason": "Auto-created: Transfer Group role for Atlas Transfer Hub",
+                    },
+                )
+                if role_resp.status_code in (200, 201):
+                    role_data = role_resp.json()
+                    role_id = role_data["id"]
+                    existing_role_map[role_name] = role_id
+                    logger.info("Created role: %s (%s)", role_name, role_id)
+                else:
+                    err_msg = f"Failed to create role '{role_name}': {role_resp.status_code}"
+                    errors.append(err_msg)
+                    logger.error(err_msg)
+                    continue
+            except Exception as e:
+                errors.append(f"Error creating role '{role_name}': {e}")
+                continue
+
+        # Permission overwrites for the category:
+        # - Deny @everyone: VIEW_CHANNEL
+        # - Allow transfer group role: VIEW_CHANNEL, SEND_MESSAGES, SEND_MESSAGES_IN_THREADS, CREATE_PUBLIC_THREADS
+        permission_overwrites = [
+            {
+                "id": everyone_role_id,
+                "type": 0,  # role
+                "deny": str(VIEW_CHANNEL),
+                "allow": "0",
+            },
+            {
+                "id": role_id,
+                "type": 0,  # role
+                "allow": str(VIEW_CHANNEL | SEND_MESSAGES | SEND_MESSAGES_IN_THREADS | CREATE_PUBLIC_THREADS),
+                "deny": "0",
+            },
+        ]
+
+        # Create the category (type 4)
+        try:
+            cat_resp = await discord_fetch(
+                "POST",
+                f"/api/v10/guilds/{guild_id}/channels",
+                json={
+                    "name": category_name,
+                    "type": 4,
+                    "permission_overwrites": permission_overwrites,
+                },
+            )
+            if cat_resp.status_code not in (200, 201):
+                err_msg = f"Failed to create category '{category_name}': {cat_resp.status_code} — {cat_resp.text[:200]}"
+                errors.append(err_msg)
+                logger.error(err_msg)
+                continue
+
+            cat_data = cat_resp.json()
+            category_id = cat_data["id"]
+            created_categories += 1
+            logger.info("Created category: %s (%s)", category_name, category_id)
+        except Exception as e:
+            errors.append(f"Error creating category '{category_name}': {e}")
+            continue
+
+        # Create channels inside the category
+        for ch_def in CHANNEL_DEFS:
+            try:
+                ch_resp = await discord_fetch(
+                    "POST",
+                    f"/api/v10/guilds/{guild_id}/channels",
+                    json={
+                        "name": ch_def["name"],
+                        "type": ch_def["type"],
+                        "parent_id": category_id,
+                        # Channels inherit permission overwrites from parent category
+                    },
+                )
+                if ch_resp.status_code in (200, 201):
+                    created_channels += 1
+                    logger.info("  Created channel: %s in %s", ch_def["name"], category_name)
+                else:
+                    err_msg = f"Failed to create channel '{ch_def['name']}' in '{category_name}': {ch_resp.status_code}"
+                    errors.append(err_msg)
+                    logger.error(err_msg)
+            except Exception as e:
+                errors.append(f"Error creating channel '{ch_def['name']}' in '{category_name}': {e}")
+
+            # Small delay between channel creations to avoid rate limits
+            await asyncio.sleep(0.5)
+
+        # Delay between categories to be kind to rate limits
+        await asyncio.sleep(1.0)
+
+    return {
+        "success": True,
+        "created_categories": created_categories,
+        "created_channels": created_channels,
+        "skipped_categories": skipped_categories,
+        "total_groups": len(groups),
+        "errors": errors,
+    }
+
+
 @router.get("/linked-users")
 async def get_linked_users(_: bool = Depends(require_bot_admin)):
     """

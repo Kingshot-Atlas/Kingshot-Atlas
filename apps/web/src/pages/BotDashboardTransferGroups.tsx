@@ -35,6 +35,8 @@ const BotDashboardTransferGroups: React.FC<Props> = ({ mob }) => {
   const [newEventNumber, setNewEventNumber] = useState('');
   const [newRows, setNewRows] = useState<{ min: string; max: string }[]>([{ min: '', max: '' }]);
   const [saving, setSaving] = useState(false);
+  const [creatingChannels, setCreatingChannels] = useState(false);
+  const [channelResult, setChannelResult] = useState<{ created_categories: number; created_channels: number; skipped_categories: number; total_groups: number; errors: string[] } | null>(null);
 
   const flash = (msg: string, ok = true) => { setToast({ msg, ok }); setTimeout(() => setToast(null), 3500); };
 
@@ -140,6 +142,34 @@ const BotDashboardTransferGroups: React.FC<Props> = ({ mob }) => {
     }
   };
 
+  const createChannels = async () => {
+    if (!confirm('This will create Discord categories and channels for all active transfer groups.\n\nEach category will contain:\n• 🗣️-transfer-chat (text)\n• 🚀-transferring-out (forum)\n• 🏰-kingdom-ads (forum)\n\nExisting categories will be skipped. Continue?')) return;
+    setCreatingChannels(true);
+    setChannelResult(null);
+    try {
+      const auth = await getAuth();
+      const res = await fetch(`${API_URL}/api/v1/bot/transfer-groups/create-channels`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...auth },
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
+        throw new Error(typeof err.detail === 'string' ? err.detail : `API ${res.status}`);
+      }
+      const data = await res.json();
+      setChannelResult(data);
+      if (data.created_categories > 0) {
+        flash(`Created ${data.created_categories} categories with ${data.created_channels} channels`);
+      } else if (data.skipped_categories > 0) {
+        flash('All categories already exist — nothing to create', false);
+      }
+    } catch (e: unknown) {
+      flash(e instanceof Error ? e.message : 'Failed to create channels', false);
+    } finally {
+      setCreatingChannels(false);
+    }
+  };
+
   const triggerSync = async () => {
     setSyncing(true);
     try {
@@ -162,7 +192,11 @@ const BotDashboardTransferGroups: React.FC<Props> = ({ mob }) => {
         <h2 style={{ color: colors.text, fontSize: mob ? '1rem' : '1.1rem', fontWeight: 700, margin: 0, fontFamily: FONT_DISPLAY }}>
           <span style={{ color: '#fff' }}>TRANSFER</span><span style={{ ...neonGlow('#a855f7'), marginLeft: '0.3rem' }}>GROUPS</span>
         </h2>
-        <div style={{ display: 'flex', gap: '0.4rem' }}>
+        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+          <button onClick={createChannels} disabled={creatingChannels || activeGroups.length === 0}
+            style={{ padding: '0.4rem 0.8rem', backgroundColor: creatingChannels ? colors.border : '#a855f715', border: '1px solid #a855f740', borderRadius: 8, color: creatingChannels ? colors.textMuted : '#a855f7', fontSize: '0.75rem', fontWeight: 600, cursor: creatingChannels || activeGroups.length === 0 ? 'default' : 'pointer' }}>
+            {creatingChannels ? '⏳ Creating...' : '📁 Create Channels'}
+          </button>
           <button onClick={triggerSync} disabled={syncing}
             style={{ padding: '0.4rem 0.8rem', backgroundColor: syncing ? colors.border : `${colors.primary}15`, border: `1px solid ${colors.primary}40`, borderRadius: 8, color: syncing ? colors.textMuted : colors.primary, fontSize: '0.75rem', fontWeight: 600, cursor: syncing ? 'default' : 'pointer' }}>
             {syncing ? '⏳ Syncing...' : '🔄 Sync Now'}
@@ -229,6 +263,37 @@ const BotDashboardTransferGroups: React.FC<Props> = ({ mob }) => {
               {saving ? '⏳ Creating...' : `Create Event #${newEventNumber || '?'}`}
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Channel Creation Result */}
+      {channelResult && (
+        <div style={{ backgroundColor: channelResult.errors.length > 0 ? `${colors.warning}08` : `${colors.success}08`, borderRadius: 12, border: `1px solid ${channelResult.errors.length > 0 ? colors.warning : colors.success}30`, padding: mob ? '1rem' : '1.25rem', marginBottom: '1rem' }}>
+          <div style={{ color: channelResult.errors.length > 0 ? colors.warning : colors.success, fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+            {channelResult.errors.length > 0 ? '⚠️ Completed with errors' : '✅ Discord Channels Created'}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '0.5rem', marginBottom: channelResult.errors.length > 0 ? '0.75rem' : 0 }}>
+            {[
+              { l: 'Categories Created', v: String(channelResult.created_categories), c: colors.success },
+              { l: 'Channels Created', v: String(channelResult.created_channels), c: colors.primary },
+              { l: 'Skipped (Existing)', v: String(channelResult.skipped_categories), c: colors.textMuted },
+            ].map(s => (
+              <div key={s.l} style={{ backgroundColor: colors.surface, borderRadius: 8, border: `1px solid ${colors.border}`, padding: '0.5rem', textAlign: 'center' }}>
+                <div style={{ color: s.c, fontSize: '0.9rem', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>{s.v}</div>
+                <div style={{ color: colors.textMuted, fontSize: '0.55rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em', marginTop: '0.1rem' }}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+          {channelResult.errors.length > 0 && (
+            <div>
+              <div style={{ color: colors.error, fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.3rem' }}>Errors:</div>
+              {channelResult.errors.map((e, i) => (
+                <div key={i} style={{ color: colors.textMuted, fontSize: '0.65rem', paddingLeft: '0.5rem', marginBottom: '0.15rem' }}>• {e}</div>
+              ))}
+            </div>
+          )}
+          <button onClick={() => setChannelResult(null)}
+            style={{ marginTop: '0.5rem', padding: '0.25rem 0.6rem', backgroundColor: 'transparent', border: `1px solid ${colors.border}`, borderRadius: 6, color: colors.textMuted, fontSize: '0.65rem', cursor: 'pointer' }}>Dismiss</button>
         </div>
       )}
 

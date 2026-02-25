@@ -287,10 +287,11 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
         )}
       </div>
 
-      {/* ═══════════════════ ATLAS SCORE ═══════════════════ */}
+      {/* ═══════════════════ ATLAS SCORE + KVK ACTION CHIPS ═══════════════════ */}
       <div style={{ 
         display: 'flex', 
         alignItems: 'center', 
+        justifyContent: 'space-between',
         gap: '0.5rem',
         marginBottom: '0.75rem'
       }}>
@@ -328,53 +329,52 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
             </div>
           </div>
         </SmartTooltip>
-        
-      </div>
 
-      {/* ═══════════════════ KVK ACTION CHIPS ═══════════════════ */}
-      {kvkChips.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '0.75rem' }}>
-          {kvkChips.map(chip => (
-            <div
-              key={chip.key}
-              onClick={(e) => {
-                e.stopPropagation();
-                trackFeature('KvK Chip Click', { kingdom: kingdom.kingdom_number, chip: chip.key });
-                if (chip.key === 'submitAll') {
-                  setShowSubmitModal(true);
-                } else if (chip.mode) {
-                  setMatchupModalMode(chip.mode);
-                  setShowMatchupModal(true);
-                }
-              }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.25rem',
-                padding: '0.35rem 0.6rem',
-                borderRadius: '6px',
-                backgroundColor: `${missingDataColor}15`,
-                border: `1px solid ${missingDataColor}40`,
-                fontSize: '0.65rem',
-                fontWeight: 500,
-                color: missingDataColor,
-                cursor: 'pointer',
-                transition: transition.fast
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = `${missingDataColor}25`;
-                e.currentTarget.style.borderColor = missingDataColor;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = `${missingDataColor}15`;
-                e.currentTarget.style.borderColor = `${missingDataColor}40`;
-              }}
-            >
-              {chip.label}
-            </div>
-          ))}
-        </div>
-      )}
+        {kvkChips.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', justifyContent: 'flex-end' }}>
+            {kvkChips.map(chip => (
+              <div
+                key={chip.key}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  trackFeature('KvK Chip Click', { kingdom: kingdom.kingdom_number, chip: chip.key });
+                  if (chip.key === 'submitAll') {
+                    setShowSubmitModal(true);
+                  } else if (chip.mode) {
+                    setMatchupModalMode(chip.mode);
+                    setShowMatchupModal(true);
+                  }
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0.35rem 0.6rem',
+                  borderRadius: '6px',
+                  backgroundColor: `${missingDataColor}15`,
+                  border: `1px solid ${missingDataColor}40`,
+                  fontSize: '0.65rem',
+                  fontWeight: 500,
+                  color: missingDataColor,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: transition.fast
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = `${missingDataColor}25`;
+                  e.currentTarget.style.borderColor = missingDataColor;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = `${missingDataColor}15`;
+                  e.currentTarget.style.borderColor = `${missingDataColor}40`;
+                }}
+              >
+                {chip.label}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* ═══════════════════ QUICK STATS ROW ═══════════════════ */}
       <QuickStats 
