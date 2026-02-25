@@ -203,12 +203,8 @@ const KvKMatchupSubmission: React.FC<KvKMatchupSubmissionProps> = ({
   const handleSubmit = async () => {
     if (!supabase || !isFormValid()) return;
 
-    // Non-admin kingdom check (frontend guard — RPC also checks)
-    // Skip when defaultKingdom is provided (Kingdom Profile context — anyone can contribute)
-    if (!defaultKingdom && !isAdmin && userKingdom && userKingdom !== kingdomNumber && userKingdom !== opponentKingdom) {
-      showToast(`You can only submit matchups for your own kingdom (K${userKingdom})`, 'error');
-      return;
-    }
+    // Any linked user can submit matchup data for any kingdom pair.
+    // Corrections to existing data are handled server-side (RPC rejects non-admin changes).
 
     setSubmitting(true);
     try {
