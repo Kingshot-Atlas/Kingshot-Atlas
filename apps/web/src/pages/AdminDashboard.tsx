@@ -33,18 +33,15 @@ import {
   type AdminTab,
   type ApiHealth,
   type Submission,
-  type Claim,
   type DataCorrection,
   type KvKError,
-  type NewKingdomSubmission,
   type AnalyticsData
 } from '../components/admin';
 // Lazy-load all tab components for chunk splitting
 const AnalyticsOverview = lazy(() => import('../components/admin/AnalyticsOverview').then(m => ({ default: m.AnalyticsOverview })));
 const FinanceTab = lazy(() => import('../components/admin/FinanceTab'));
 const SubmissionsTab = lazy(() => import('../components/admin/SubmissionsTab').then(m => ({ default: m.SubmissionsTab })));
-const NewKingdomsTab = lazy(() => import('../components/admin/NewKingdomsTab').then(m => ({ default: m.NewKingdomsTab })));
-const ClaimsTab = lazy(() => import('../components/admin/ClaimsTab').then(m => ({ default: m.ClaimsTab })));
+const KvKMatchupConflictsTab = lazy(() => import('../components/admin/KvKMatchupConflictsTab').then(m => ({ default: m.KvKMatchupConflictsTab })));
 const AdminActivityFeed = lazy(() => import('../components/admin/AdminActivityFeed').then(m => ({ default: m.AdminActivityFeed })));
 const TransferApplicationsTab = lazy(() => import('../components/admin/TransferApplicationsTab').then(m => ({ default: m.TransferApplicationsTab })));
 const TransferHubAdminTab = lazy(() => import('../components/admin/TransferHubAdminTab').then(m => ({ default: m.TransferHubAdminTab })));
@@ -55,11 +52,9 @@ const KvKErrorsTab = lazy(() => import('../components/admin/KvKErrorsTab').then(
 const ReviewReportsTab = lazy(() => import('../components/admin/ReviewReportsTab').then(m => ({ default: m.ReviewReportsTab })));
 const TransferStatusTab = lazy(() => import('../components/admin/TransferStatusTab').then(m => ({ default: m.TransferStatusTab })));
 const BotTelemetryTab = lazy(() => import('../components/admin/BotTelemetryTab').then(m => ({ default: m.BotTelemetryTab })));
-const GiftCodeAnalyticsTab = lazy(() => import('../components/admin/GiftCodeAnalyticsTab').then(m => ({ default: m.GiftCodeAnalyticsTab })));
 const BattlePlannerAccessTab = lazy(() => import('../components/admin/BattlePlannerAccessTab').then(m => ({ default: m.BattlePlannerAccessTab })));
 const SpotlightTab = lazy(() => import('../components/admin/SpotlightTab').then(m => ({ default: m.SpotlightTab })));
 const ImportTab = lazy(() => import('../components/admin/ImportTab'));
-const PlausibleTab = lazy(() => import('../components/admin/PlausibleTab'));
 const RejectModal = lazy(() => import('../components/admin/RejectModal'));
 const KvKBulkMatchupTab = lazy(() => import('../components/admin/KvKBulkMatchupTab'));
 const TransferOutcomesTab = lazy(() => import('../components/admin/TransferOutcomesTab'));
@@ -78,11 +73,9 @@ const AdminDashboard: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<AdminTab>('analytics');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [claims, setClaims] = useState<Claim[]>([]);
   const [transferSubmissions, setTransferSubmissions] = useState<StatusSubmission[]>([]);
   const [corrections, setCorrections] = useState<DataCorrection[]>([]);
   const [kvkErrors, setKvkErrors] = useState<KvKError[]>([]);
-  const [newKingdomSubmissions, setNewKingdomSubmissions] = useState<NewKingdomSubmission[]>([]);
   const [rejectModalOpen, setRejectModalOpen] = useState<{ type: string; id: string } | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
@@ -153,144 +146,16 @@ const AdminDashboard: React.FC = () => {
       fetchAnalytics();
     } else if (activeTab === 'submissions') {
       fetchSubmissions();
-    } else if (activeTab === 'claims') {
-      fetchClaims();
     } else if (activeTab === 'corrections') {
       fetchCorrections();
     } else if (activeTab === 'transfer-status') {
       fetchTransferSubmissions();
     } else if (activeTab === 'kvk-errors') {
       fetchKvkErrors();
-    } else if (activeTab === 'new-kingdoms') {
-      fetchNewKingdomSubmissions();
     // feedback tab is now handled by useAdminFeedback/useAdminFeedbackCounts React Query hooks
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, filter, isAdmin]);
-
-  const fetchNewKingdomSubmissions = async () => {
-    if (!supabase) return;
-    setLoading(true);
-    try {
-      let query = supabase
-        .from('new_kingdom_submissions')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (filter !== 'all') {
-        query = query.eq('status', filter);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) {
-        logger.error('Error fetching new kingdom submissions:', error);
-        showToast('Failed to load submissions', 'error');
-      } else {
-        setNewKingdomSubmissions(data || []);
-      }
-    } catch (err) {
-      logger.error('Error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleApproveNewKingdom = async (submission: NewKingdomSubmission) => {
-    if (!supabase) return;
-    try {
-      // 1. Create the kingdom record in Supabase kingdoms table
-      const { error: kingdomError } = await supabase
-        .from('kingdoms')
-        .insert({
-          kingdom_number: submission.kingdom_number,
-          first_kvk_id: submission.first_kvk_id,
-          total_kvks: 0,
-          prep_wins: 0,
-          prep_losses: 0,
-          battle_wins: 0,
-          battle_losses: 0,
-          dominations: 0,
-          invasions: 0,
-          atlas_score: 0,
-          most_recent_status: 'Unannounced'
-        });
-      
-      if (kingdomError) {
-        // Check if kingdom already exists (might have been created via another path)
-        if (kingdomError.code !== '23505') { // Not a duplicate key error
-          throw kingdomError;
-        }
-      }
-      
-      // 2. Insert KvK history records (if kingdom had their first KvK)
-      if (submission.first_kvk_id !== null && submission.kvk_history.length > 0) {
-        const kvkRecords = submission.kvk_history.map(kvk => ({
-          kingdom_number: submission.kingdom_number,
-          kvk_number: kvk.kvk,
-          prep_result: kvk.prep,
-          battle_result: kvk.battle,
-          overall_result: kvk.battle, // Battle result determines overall
-          order_index: kvk.kvk
-        }));
-        
-        const { error: kvkError } = await supabase
-          .from('kvk_history')
-          .insert(kvkRecords);
-        
-        if (kvkError) {
-          logger.error('KvK history insert error:', kvkError);
-          // Don't fail the whole approval - kingdom was created
-        }
-      }
-      
-      // 3. Update submission status to approved
-      const { error: updateError } = await supabase
-        .from('new_kingdom_submissions')
-        .update({
-          status: 'approved',
-          reviewed_by: profile?.username || 'Admin',
-          reviewed_at: new Date().toISOString()
-        })
-        .eq('id', submission.id);
-      
-      if (updateError) throw updateError;
-      
-      const kvkMsg = submission.first_kvk_id === null 
-        ? '(no KvK history yet)' 
-        : `with ${submission.kvk_history.length} KvK record(s)`;
-      showToast(`Kingdom ${submission.kingdom_number} created ${kvkMsg}`, 'success');
-      fetchNewKingdomSubmissions();
-    } catch (err) {
-      logger.error('Approve error:', err);
-      showToast('Failed to approve submission', 'error');
-    }
-  };
-
-  const handleRejectNewKingdom = async (submissionId: string, reason: string) => {
-    if (!supabase) return;
-    try {
-      const { error } = await supabase
-        .from('new_kingdom_submissions')
-        .update({
-          status: 'rejected',
-          reviewed_by: profile?.username || 'Admin',
-          reviewed_at: new Date().toISOString(),
-          review_notes: reason
-        })
-        .eq('id', submissionId);
-      
-      if (error) throw error;
-      
-      showToast('Submission rejected', 'success');
-      setRejectModalOpen(null);
-      setRejectReason('');
-      fetchNewKingdomSubmissions();
-    } catch (err) {
-      logger.error('Reject error:', err);
-      showToast('Failed to reject submission', 'error');
-    }
-  };
 
   // invalidatePendingCounts, fetchFeedback, fetchFeedbackCounts now handled by React Query hooks
 
@@ -814,23 +679,6 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const fetchClaims = async () => {
-    setLoading(true);
-    try {
-      const authHeaders = await getAuthHeaders({ requireAuth: false });
-      const response = await fetch(`${API_URL}/api/v1/claims?status=${filter}`, {
-        headers: authHeaders
-      });
-      if (response.ok) {
-        setClaims(await response.json());
-      }
-    } catch (error) {
-      logger.error('Failed to fetch claims:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const reviewSubmission = async (id: number, status: 'approved' | 'rejected') => {
     try {
       const authHeaders = await getAuthHeaders();
@@ -860,25 +708,6 @@ const AdminDashboard: React.FC = () => {
       }
     } catch (error) {
       showToast('Error reviewing submission', 'error');
-    }
-  };
-
-  const verifyClaim = async (id: number) => {
-    try {
-      const authHeaders = await getAuthHeaders();
-      const response = await fetch(`${API_URL}/api/v1/claims/${id}/verify`, {
-        method: 'POST',
-        headers: authHeaders
-      });
-      if (response.ok) {
-        showToast('Claim verified', 'success');
-        fetchClaims();
-        invalidatePendingCounts();
-      } else {
-        showToast('Failed to verify claim', 'error');
-      }
-    } catch (error) {
-      showToast('Error verifying claim', 'error');
     }
   };
 
@@ -940,14 +769,14 @@ const AdminDashboard: React.FC = () => {
 
   // Determine active category based on current tab
   const getActiveCategory = () => {
-    if (['analytics', 'engagement', 'user-heatmap', 'plausible'].includes(activeTab)) return 'overview';
-    if (['submissions', 'new-kingdoms', 'claims', 'corrections', 'kvk-errors', 'kvk-bulk', 'review-reports'].includes(activeTab)) return 'review';
+    if (['analytics', 'engagement', 'user-heatmap'].includes(activeTab)) return 'overview';
+    if (['submissions', 'corrections', 'kvk-errors', 'matchup-conflicts', 'kvk-bulk', 'review-reports'].includes(activeTab)) return 'review';
     if (['transfer-hub', 'transfer-status', 'transfer-apps', 'transfer-outcomes'].includes(activeTab)) return 'transfer';
     if (['finance'].includes(activeTab)) return 'finance';
     return 'operations';
   };
   const activeCategory = getActiveCategory();
-  const totalPending = pendingCounts.submissions + pendingCounts.claims + pendingCounts.corrections + pendingCounts.transfers + pendingCounts.kvkErrors + pendingCounts.feedback + (pendingCounts.reviewReports || 0);
+  const totalPending = pendingCounts.submissions + pendingCounts.corrections + pendingCounts.transfers + pendingCounts.kvkErrors + pendingCounts.feedback + (pendingCounts.reviewReports || 0);
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1rem', backgroundColor: '#0a0a0a', minHeight: '100vh' }}>
@@ -972,7 +801,7 @@ const AdminDashboard: React.FC = () => {
       />
 
       {/* Filter (not for analytics) */}
-      {(['submissions', 'new-kingdoms', 'claims', 'corrections', 'kvk-errors', 'transfer-status', 'feedback'] as const).includes(activeTab as never) && (
+      {(['submissions', 'corrections', 'kvk-errors', 'transfer-status', 'feedback'] as const).includes(activeTab as never) && (
         <div style={{ marginBottom: '1rem' }}>
           <select
             value={filter}
@@ -988,7 +817,6 @@ const AdminDashboard: React.FC = () => {
             <option value="pending">Pending</option>
             <option value="approved">Approved</option>
             <option value="rejected">Rejected</option>
-            {activeTab === 'claims' && <option value="verified">Verified</option>}
             <option value="all">All</option>
           </select>
         </div>
@@ -1046,24 +874,11 @@ const AdminDashboard: React.FC = () => {
         <DiscordRolesDashboard />
       ) : activeTab === 'referrals' ? (
         <ReferralIntelligence />
-      ) : activeTab === 'new-kingdoms' ? (
-        <NewKingdomsTab
-          submissions={newKingdomSubmissions}
-          filter={filter}
-          onApprove={handleApproveNewKingdom}
-          onReject={(id) => setRejectModalOpen({ type: 'new-kingdom', id })}
-        />
       ) : activeTab === 'submissions' ? (
         <SubmissionsTab
           submissions={submissions}
           filter={filter}
           onReview={reviewSubmission}
-        />
-      ) : activeTab === 'claims' ? (
-        <ClaimsTab
-          claims={claims}
-          filter={filter}
-          onVerify={verifyClaim}
         />
       ) : activeTab === 'corrections' ? (
         <CorrectionsTab
@@ -1091,6 +906,8 @@ const AdminDashboard: React.FC = () => {
         />
       ) : activeTab === 'review-reports' ? (
         <ReviewReportsTab filter={dashboardSearch} />
+      ) : activeTab === 'matchup-conflicts' ? (
+        <KvKMatchupConflictsTab />
       ) : activeTab === 'kvk-bulk' ? (
         <KvKBulkMatchupTab />
       ) : activeTab === 'transfer-hub' ? (
@@ -1111,10 +928,6 @@ const AdminDashboard: React.FC = () => {
         <BotTelemetryTab />
       ) : activeTab === 'battle-planner' ? (
         <BattlePlannerAccessTab />
-      ) : activeTab === 'gift-codes' ? (
-        <GiftCodeAnalyticsTab />
-      ) : activeTab === 'plausible' ? (
-        <PlausibleTab analytics={analytics} />
       ) : activeTab === 'feedback' ? (
         <FeedbackTab
           items={feedbackItems}
@@ -1148,8 +961,6 @@ const AdminDashboard: React.FC = () => {
               reviewKvkError(rejectModalOpen.id, 'rejected', rejectReason);
             } else if (rejectModalOpen.type === 'correction') {
               reviewCorrection(rejectModalOpen.id, 'rejected', rejectReason);
-            } else if (rejectModalOpen.type === 'new-kingdom') {
-              handleRejectNewKingdom(rejectModalOpen.id, rejectReason);
             }
           }}
         />

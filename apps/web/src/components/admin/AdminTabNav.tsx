@@ -70,7 +70,7 @@ export const AdminTabNav: React.FC<AdminTabNavProps> = ({
     }}>
       {[
         { id: 'overview' as AdminCategory, label: 'Overview', color: '#22d3ee', defaultTab: 'analytics' as AdminTab },
-        { id: 'review' as AdminCategory, label: 'Review', color: '#f97316', defaultTab: 'submissions' as AdminTab, count: pendingCounts.submissions + pendingCounts.claims + pendingCounts.corrections + pendingCounts.kvkErrors },
+        { id: 'review' as AdminCategory, label: 'Review', color: '#f97316', defaultTab: 'submissions' as AdminTab, count: pendingCounts.submissions + pendingCounts.corrections + pendingCounts.kvkErrors },
         { id: 'transfer' as AdminCategory, label: 'Transfers', color: '#a855f7', defaultTab: 'transfer-hub' as AdminTab, count: pendingCounts.transfers },
         { id: 'finance' as AdminCategory, label: 'Finance', color: '#22c55e', defaultTab: 'finance' as AdminTab },
         { id: 'operations' as AdminCategory, label: 'Operations', color: '#eab308', defaultTab: 'email' as AdminTab, count: pendingCounts.feedback + unreadEmailCount },
@@ -125,7 +125,6 @@ export const AdminTabNav: React.FC<AdminTabNavProps> = ({
         { id: 'analytics', label: 'Dashboard' },
         { id: 'engagement', label: 'Engagement' },
         { id: 'user-heatmap', label: 'User Heatmap' },
-        { id: 'plausible', label: 'Live Traffic' },
       ].map(tab => (
         <SubTabButton
           key={tab.id}
@@ -137,10 +136,9 @@ export const AdminTabNav: React.FC<AdminTabNavProps> = ({
       ))}
       {activeCategory === 'review' && [
         { id: 'submissions', label: 'KvK Results', count: pendingCounts.submissions },
-        { id: 'new-kingdoms', label: 'New Kingdoms', count: 0 },
-        { id: 'claims', label: 'Claims', count: pendingCounts.claims },
         { id: 'corrections', label: 'Corrections', count: pendingCounts.corrections },
         { id: 'kvk-errors', label: 'KvK Errors', count: pendingCounts.kvkErrors },
+        { id: 'matchup-conflicts', label: 'Matchup Conflicts', count: 0 },
         { id: 'review-reports', label: 'Review Reports', count: pendingCounts.reviewReports },
         { id: 'kvk-bulk', label: 'KvK Bulk / Reports', count: 0 },
       ].map(tab => (
@@ -187,7 +185,6 @@ export const AdminTabNav: React.FC<AdminTabNavProps> = ({
         { id: 'discord-roles', label: 'Roles', count: 0 },
         { id: 'transfer-groups', label: 'Transfer Groups', count: 0 },
         { id: 'referrals', label: 'Referrals', count: 0 },
-        { id: 'gift-codes', label: 'Gift Codes', count: 0 },
         { id: 'spotlight', label: 'Spotlight', count: 0 },
         { id: 'battle-planner', label: 'Battle Planner', count: 0 },
         { id: 'import', label: 'Import', count: 0 },
