@@ -38,6 +38,12 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
   // Sort by kvk_number descending (most recent first)
   const allKvks = [...kvkRecords].sort((a, b) => b.kvk_number - a.kvk_number);
 
+  // Check which data already exists for the current KvK (to lock completed buttons)
+  const currentKvkRecord = kvkRecords.find(r => r.kvk_number === CURRENT_KVK);
+  const hasMatchup = !!currentKvkRecord?.opponent_kingdom;
+  const hasPrep = !!currentKvkRecord?.prep_result;
+  const hasBattle = !!currentKvkRecord?.battle_result;
+
   const getOutcomeStyle = (prepResult: string, battleResult: string) => {
     const outcome = getOutcome(prepResult, battleResult);
     const info = OUTCOMES[outcome];
@@ -79,11 +85,22 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
           ];
           return btnConfigs.map(({ key, label, icon, activeColor }) => {
             const state = btnStates[key];
-            const locked = !state.unlocked;
+            // Lock if phase hasn't opened OR data already submitted
+            const alreadySubmitted = (key === 'matchup' && hasMatchup) || (key === 'prep' && hasPrep) || (key === 'battle' && hasBattle);
+            const locked = !state.unlocked || alreadySubmitted;
             return (
               <button
                 key={key}
                 onClick={() => {
+                  if (alreadySubmitted) {
+                    const submittedMessages: Record<string, string> = {
+                      matchup: t('seasons.matchupAlreadyAdded', 'Matchup data already added for KvK #{{num}}.', { num: CURRENT_KVK }),
+                      prep: t('seasons.prepAlreadyAdded', 'Prep result already added for KvK #{{num}}.', { num: CURRENT_KVK }),
+                      battle: t('seasons.battleAlreadyAdded', 'Battle result already added for KvK #{{num}}.', { num: CURRENT_KVK }),
+                    };
+                    onLockedClick?.(submittedMessages[key] || '');
+                    return;
+                  }
                   if (locked) {
                     const dateStr = state.unlocksAt
                       ? state.unlocksAt.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' })

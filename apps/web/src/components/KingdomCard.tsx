@@ -15,12 +15,11 @@ import {
   CardActions, 
   TransferStatus 
 } from './kingdom-card';
-import PostKvKSubmission from './PostKvKSubmission';
 import StatusSubmission from './StatusSubmission';
 import { statusService } from '../services/statusService';
 import { useToast } from './Toast';
 import { isAdminUsername } from '../utils/constants';
-import { CURRENT_KVK, HIGHEST_KINGDOM_IN_KVK } from '../constants';
+import { CURRENT_KVK, HIGHEST_KINGDOM_IN_KVK, getKvKSchedule } from '../constants';
 import { useTranslation } from 'react-i18next';
 
 interface KingdomCardProps {
@@ -52,7 +51,6 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
     ? kingdom.recent_kvks.filter(kvk => kvk.opponent_kingdom === profile.linked_kingdom).length
     : 0;
   const [isHovered, setIsHovered] = useState(false);
-  const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const { showToast } = useToast();
   const [animatedScore, setAnimatedScore] = useState<number | null>(null);
@@ -100,7 +98,10 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
 
   // Check if kingdom is missing latest KvK data
   // Fresh kingdoms above HIGHEST_KINGDOM_IN_KVK with no history are NOT missing — they're too new
+  // Only show after Castle Battle has ended so users don't submit prematurely
   const isMissingLatestKvK = useMemo(() => {
+    const schedule = getKvKSchedule(CURRENT_KVK);
+    if (new Date() < schedule.castleBattleEnd) return false;
     if (!kingdom.recent_kvks || kingdom.recent_kvks.length === 0) {
       return kingdom.kingdom_number <= HIGHEST_KINGDOM_IN_KVK;
     }
@@ -309,7 +310,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
               onClick={(e) => {
                 e.stopPropagation();
                 trackFeature('Missing KvK Chip Click', { kingdom: kingdom.kingdom_number });
-                setShowSubmitModal(true);
+                navigate(`/kingdom/${kingdom.kingdom_number}`);
               }}
               style={{ 
                 display: 'inline-flex',
@@ -334,7 +335,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
                 e.currentTarget.style.borderColor = `${missingDataColor}40`;
               }}
             >
-              📊 {t('kingdomCard.submitKvK')} {CURRENT_KVK}
+              {t('kingdomCard.addKvKMatchup', 'Add KvK {{num}} Matchup', { num: CURRENT_KVK })}
             </div>
           </SmartTooltip>
         )}
@@ -404,14 +405,6 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
           to { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
       `}</style>
-
-      {/* PostKvKSubmission Modal */}
-      <PostKvKSubmission
-        isOpen={showSubmitModal}
-        onClose={() => setShowSubmitModal(false)}
-        defaultKingdom={kingdom.kingdom_number}
-        defaultKvkNumber={CURRENT_KVK}
-      />
 
       {/* Status Submission Modal */}
       {showStatusModal && (
