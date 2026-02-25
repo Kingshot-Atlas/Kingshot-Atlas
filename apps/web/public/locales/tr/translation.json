@@ -121,6 +121,7 @@
     "battle": "Savaş",
     "noKvKHistory": "Henüz KvK geçmişi yok",
     "copyLink": "Bağlantıyı Kopyala",
+    "submitKvK": "KvK {{num}} Gönder",
     "addKvKMatchup": "KvK {{num}} Eşleşme Ekle",
     "transferStatus": "Transfer Durumu",
     "scoreTooltip": "Şanslı seriler yerine deneyim ve tutarlılığı ödüllendirir",

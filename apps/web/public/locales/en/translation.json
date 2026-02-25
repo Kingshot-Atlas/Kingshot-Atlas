@@ -121,6 +121,7 @@
     "battle": "Battle",
     "noKvKHistory": "No KvK history yet",
     "copyLink": "Copy Link",
+    "submitKvK": "Submit KvK {{num}}",
     "addKvKMatchup": "Add KvK {{num}} Matchup",
     "transferStatus": "Transfer Status",
     "scoreTooltip": "Rewards experience and consistency over lucky streaks",

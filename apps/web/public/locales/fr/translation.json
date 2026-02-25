@@ -121,6 +121,7 @@
     "battle": "Bataille",
     "noKvKHistory": "Pas encore d'historique KvK",
     "copyLink": "Copier le Lien",
+    "submitKvK": "Soumettre KvK {{num}}",
     "addKvKMatchup": "Ajouter KvK {{num}} Confrontation",
     "transferStatus": "Statut de Transfert",
     "scoreTooltip": "Récompense l'expérience et la régularité plutôt que la chance",

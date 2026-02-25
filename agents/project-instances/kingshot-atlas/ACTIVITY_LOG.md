@@ -3,6 +3,25 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-25 09:45 | Platform Engineer | COMPLETED
+Task: Fix "can only submit matchups for your own kingdom" error — RPC + frontend
+Files: KvKMatchupSubmission.tsx, Supabase RPC submit_kvk_partial
+Changes:
+1. **Root cause** — The Supabase RPC `submit_kvk_partial` (with `p_is_admin` param) had a server-side check: `IF v_user_kingdom != p_kingdom_number AND v_user_kingdom != p_opponent_kingdom THEN RETURN error`. A K200 user couldn't submit K182 vs K209 because neither was their kingdom.
+2. **RPC fix** — Removed the "own kingdom only" restriction from the RPC. Any authenticated user with a linked kingdom can now submit first-time matchup data for any kingdom pair. Correction protection (can't change existing results without admin) preserved.
+3. **Frontend cleanup** — Removed the redundant frontend guard entirely from `KvKMatchupSubmission.tsx`.
+Result: Build passed. RPC live immediately. Committed 02c8a03 and pushed to main.
+
+## 2026-02-25 08:30 | Product Engineer | COMPLETED
+Task: Fix KvK matchup modal prefill + hide premature submit prompt
+Files: KvKMatchupSubmission.tsx, MissingKvKPrompt.tsx
+Changes:
+1. **Kingdom prefill** — When opening Add Matchup from Kingdom Profile, the first kingdom field now shows the profile's kingdom number (e.g. K3 on Kingdom 3's page), not the user's home kingdom. Label changed from "Your Kingdom" to "Kingdom" in profile context.
+2. **Anyone can contribute** — Removed the "own kingdom only" frontend guard when submitting from Kingdom Profile. Any logged-in user can submit first data for any kingdom; only corrections require admin approval.
+3. **No-link warning skipped** — The "must link kingdom" warning is now hidden when kingdom comes from profile context since it's already determined.
+4. **Castle Battle gate** — MissingKvKPrompt now checks `getKvKSchedule(kvkNumber).castleBattleEnd` and hides the entire "Submit KvK #N Result" prompt until Castle Battle has ended. Works for current and future KvKs automatically.
+Result: Build passed. Committed 48bc675 and pushed to main.
+
 ## 2026-02-24 19:15 | Product Engineer | COMPLETED
 Task: Mobile Base Designer UX overhaul + remove landing page delegates
 Files: AllianceBaseDesigner.tsx, BaseDesignerLanding.tsx, 18 locale files (src + public × 9)

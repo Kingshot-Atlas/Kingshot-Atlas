@@ -121,6 +121,7 @@
     "battle": "معركة",
     "noKvKHistory": "لا يوجد سجل KvK بعد",
     "copyLink": "نسخ الرابط",
+    "submitKvK": "إرسال KvK {{num}}",
     "addKvKMatchup": "إضافة مواجهة KvK {{num}}",
     "transferStatus": "حالة الانتقال",
     "scoreTooltip": "يكافئ الخبرة والثبات أكثر من السلاسل المحظوظة",

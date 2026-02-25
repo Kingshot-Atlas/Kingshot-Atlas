@@ -121,6 +121,7 @@
     "battle": "전투",
     "noKvKHistory": "KvK 기록 없음",
     "copyLink": "링크 복사",
+    "submitKvK": "KvK {{num}} 제출",
     "addKvKMatchup": "KvK {{num}} 매치업 추가",
     "transferStatus": "이적 상태",
     "scoreTooltip": "경험과 꾸준함에 보상을 주며 행운의 연승은 제외됩니다",

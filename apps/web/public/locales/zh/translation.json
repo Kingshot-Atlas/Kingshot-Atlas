@@ -121,6 +121,7 @@
     "battle": "战斗",
     "noKvKHistory": "暂无 KvK 历史",
     "copyLink": "复制链接",
+    "submitKvK": "提交 KvK {{num}}",
     "addKvKMatchup": "添加 KvK {{num}} 对阵",
     "transferStatus": "转服状态",
     "scoreTooltip": "奖励经验和稳定性，而非幸运连胜",

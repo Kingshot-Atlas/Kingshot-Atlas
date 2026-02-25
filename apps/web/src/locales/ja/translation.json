@@ -121,6 +121,7 @@
     "battle": "Battle",
     "noKvKHistory": "KvK履歴はまだありません",
     "copyLink": "リンクをコピー",
+    "submitKvK": "KvK {{num}} を送信",
     "addKvKMatchup": "KvK {{num}} マッチアップを追加",
     "transferStatus": "トランスファー状態",
     "scoreTooltip": "経験と安定性を評価するスコア",

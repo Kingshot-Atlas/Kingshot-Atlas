@@ -19,8 +19,10 @@ import StatusSubmission from './StatusSubmission';
 import { statusService } from '../services/statusService';
 import { useToast } from './Toast';
 import { isAdminUsername } from '../utils/constants';
-import { CURRENT_KVK, HIGHEST_KINGDOM_IN_KVK, getKvKSchedule } from '../constants';
+import { CURRENT_KVK, HIGHEST_KINGDOM_IN_KVK, getKvKButtonStates } from '../constants';
 import { useTranslation } from 'react-i18next';
+import PostKvKSubmission from './PostKvKSubmission';
+import KvKMatchupSubmission from './KvKMatchupSubmission';
 
 interface KingdomCardProps {
   kingdom: Kingdom;
@@ -52,6 +54,9 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
     : 0;
   const [isHovered, setIsHovered] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [showMatchupModal, setShowMatchupModal] = useState(false);
+  const [matchupModalMode, setMatchupModalMode] = useState<'matchup' | 'prep' | 'battle'>('matchup');
   const { showToast } = useToast();
   const [animatedScore, setAnimatedScore] = useState<number | null>(null);
   const hasAnimatedRef = useRef(false);
@@ -96,18 +101,49 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
   const status = kingdom.most_recent_status || 'Unannounced';
   const powerTier = kingdom.power_tier ?? getPowerTier(kingdom.overall_score);
 
-  // Check if kingdom is missing latest KvK data
-  // Fresh kingdoms above HIGHEST_KINGDOM_IN_KVK with no history are NOT missing — they're too new
-  // Only show after Castle Battle has ended so users don't submit prematurely
-  const isMissingLatestKvK = useMemo(() => {
-    const schedule = getKvKSchedule(CURRENT_KVK);
-    if (new Date() < schedule.castleBattleEnd) return false;
+  // Compute which KvK action chips to show on this card
+  // Phase-gated: each chip unlocks after the relevant KvK phase ends
+  // Data-aware: chips hide once the corresponding data exists
+  // If ALL data missing + castle battle ended → single "Submit KvK N" (full-form)
+  // Otherwise → individual "Add Matchup" / "Add Prep Result" / "Add Battle Result"
+  const kvkChips = useMemo(() => {
+    const btnStates = getKvKButtonStates(CURRENT_KVK);
+
+    // Fresh kingdoms above HIGHEST_KINGDOM_IN_KVK with no history are too new
     if (!kingdom.recent_kvks || kingdom.recent_kvks.length === 0) {
-      return kingdom.kingdom_number <= HIGHEST_KINGDOM_IN_KVK;
+      if (kingdom.kingdom_number > HIGHEST_KINGDOM_IN_KVK) return [];
     }
-    const hasLatestKvK = kingdom.recent_kvks.some(kvk => kvk.kvk_number === CURRENT_KVK);
-    return !hasLatestKvK;
-  }, [kingdom.recent_kvks, kingdom.kingdom_number]);
+
+    const currentRecord = kingdom.recent_kvks?.find(kvk => kvk.kvk_number === CURRENT_KVK);
+    const hasMatchup = !!currentRecord?.opponent_kingdom;
+    const hasPrep = !!currentRecord?.prep_result;
+    const hasBattle = !!currentRecord?.battle_result;
+    const allMissing = !hasMatchup && !hasPrep && !hasBattle;
+
+    const chips: Array<{ key: string; label: string; mode?: 'matchup' | 'prep' | 'battle' }> = [];
+
+    if (allMissing) {
+      if (btnStates.battle.unlocked) {
+        // Castle battle ended + no data at all → full submit button
+        chips.push({ key: 'submitAll', label: t('kingdomCard.submitKvK', 'Submit KvK {{num}}', { num: CURRENT_KVK }) });
+      } else if (btnStates.matchup.unlocked) {
+        // Only matchup phase open → add matchup
+        chips.push({ key: 'matchup', label: t('kingdomCard.addKvKMatchup', 'Add KvK {{num}} Matchup', { num: CURRENT_KVK }), mode: 'matchup' });
+      }
+    } else {
+      if (!hasMatchup && btnStates.matchup.unlocked) {
+        chips.push({ key: 'matchup', label: t('kingdomCard.addKvKMatchup', 'Add KvK {{num}} Matchup', { num: CURRENT_KVK }), mode: 'matchup' });
+      }
+      if (!hasPrep && btnStates.prep.unlocked) {
+        chips.push({ key: 'prep', label: t('seasons.addPrepResult', 'Add Prep Result'), mode: 'prep' });
+      }
+      if (!hasBattle && btnStates.battle.unlocked) {
+        chips.push({ key: 'battle', label: t('seasons.addBattleResult', 'Add Battle Result'), mode: 'battle' });
+      }
+    }
+
+    return chips;
+  }, [kingdom.recent_kvks, kingdom.kingdom_number, t]);
 
   // Unique color for missing data chip (violet)
   const missingDataColor = '#8b5cf6';
@@ -293,26 +329,25 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
           </div>
         </SmartTooltip>
         
-        {/* Missing KvK Data Chip - shows when kingdom is missing latest KvK data */}
-        {isMissingLatestKvK && (
-          <SmartTooltip
-            accentColor={missingDataColor}
-            maxWidth={180}
-            content={
-              <div style={{ fontSize: '0.7rem' }}>
-                <span style={{ fontWeight: '600', color: missingDataColor }}>{t('kingdomCard.missingKvK', 'Missing KvK #{{num}}', { num: CURRENT_KVK })}</span>
-                <span style={{ color: colors.textMuted, marginInlineStart: '0.25rem' }}>— {t('kingdomCard.tapToSubmit', 'tap to submit')}</span>
-              </div>
-            }
-            style={{ marginInlineStart: 'auto' }}
-          >
-            <div 
+      </div>
+
+      {/* ═══════════════════ KVK ACTION CHIPS ═══════════════════ */}
+      {kvkChips.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '0.75rem' }}>
+          {kvkChips.map(chip => (
+            <div
+              key={chip.key}
               onClick={(e) => {
                 e.stopPropagation();
-                trackFeature('Missing KvK Chip Click', { kingdom: kingdom.kingdom_number });
-                navigate(`/kingdom/${kingdom.kingdom_number}`);
+                trackFeature('KvK Chip Click', { kingdom: kingdom.kingdom_number, chip: chip.key });
+                if (chip.key === 'submitAll') {
+                  setShowSubmitModal(true);
+                } else if (chip.mode) {
+                  setMatchupModalMode(chip.mode);
+                  setShowMatchupModal(true);
+                }
               }}
-              style={{ 
+              style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.25rem',
@@ -335,11 +370,11 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
                 e.currentTarget.style.borderColor = `${missingDataColor}40`;
               }}
             >
-              {t('kingdomCard.addKvKMatchup', 'Add KvK {{num}} Matchup', { num: CURRENT_KVK })}
+              {chip.label}
             </div>
-          </SmartTooltip>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* ═══════════════════ QUICK STATS ROW ═══════════════════ */}
       <QuickStats 
@@ -418,6 +453,26 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
             showToast(adminUser ? t('kingdomCard.statusAutoApproved', 'Status update auto-approved!') : t('kingdomCard.statusSubmitted', 'Status update submitted for review!'), 'success');
           }}
           onClose={() => setShowStatusModal(false)}
+        />
+      )}
+
+      {/* KvK Full Submit Modal */}
+      {showSubmitModal && (
+        <PostKvKSubmission
+          isOpen={showSubmitModal}
+          onClose={() => setShowSubmitModal(false)}
+          defaultKingdom={kingdom.kingdom_number}
+        />
+      )}
+
+      {/* KvK Phase Submit Modal */}
+      {showMatchupModal && (
+        <KvKMatchupSubmission
+          isOpen={showMatchupModal}
+          onClose={() => setShowMatchupModal(false)}
+          defaultKingdom={kingdom.kingdom_number}
+          isAdmin={isAdminUsername(profile?.linked_username) || isAdminUsername(profile?.username)}
+          initialMode={matchupModalMode}
         />
       )}
     </div>
