@@ -9,6 +9,9 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
 import { logger } from '../utils/logger';
 import { getTransferGroupOptions, parseTransferGroupValue } from '../config/transferGroups';
+import { useActiveCampaign, useSettlerLeaderboard } from '../hooks/useCampaignQueries';
+
+type TabType = 'colonies' | 'settlers';
 
 interface KingdomCommunity {
   kingdom_number: number;
@@ -69,12 +72,20 @@ const KingdomCommunities: React.FC = () => {
   useMetaTags(PAGE_META_TAGS.kingdomCommunities);
   useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.kingdomCommunities });
 
+  const [activeTab, setActiveTab] = useState<TabType>('colonies');
   const [communities, setCommunities] = useState<KingdomCommunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [transferGroupFilter, setTransferGroupFilter] = useState('all');
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Campaign data for Settlers tab
+  const { data: campaign } = useActiveCampaign();
+  const { data: leaderboardData, isLoading: settlersLoading } = useSettlerLeaderboard(campaign);
+  const settlerKingdoms = leaderboardData?.qualifying ?? [];
+  const risingKingdoms = leaderboardData?.rising ?? [];
+  const totalSettlerTickets = leaderboardData?.totalTickets ?? 0;
 
   useEffect(() => {
     const fetchCommunities = async () => {
@@ -233,8 +244,66 @@ const KingdomCommunities: React.FC = () => {
         </div>
       </div>
 
+      {/* Tab Switcher */}
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: isMobile ? '0.75rem 1rem 0' : '1rem 2rem 0' }}>
+        <div style={{
+          display: 'flex',
+          gap: '0.25rem',
+          backgroundColor: colors.surface,
+          borderRadius: '10px',
+          padding: '4px',
+          border: `1px solid ${colors.border}`,
+        }}>
+          {(['colonies', 'settlers'] as TabType[]).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                flex: 1,
+                padding: isMobile ? '0.6rem 0.75rem' : '0.6rem 1.25rem',
+                borderRadius: '8px',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: isMobile ? '0.8rem' : '0.85rem',
+                fontWeight: activeTab === tab ? '700' : '500',
+                color: activeTab === tab ? '#fff' : colors.textMuted,
+                backgroundColor: activeTab === tab ? `${colors.primary}20` : 'transparent',
+                borderBottom: activeTab === tab ? `2px solid ${colors.primary}` : '2px solid transparent',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.4rem',
+                minHeight: '44px',
+              }}
+            >
+              {tab === 'colonies' ? '🏰' : '⚔️'}
+              {tab === 'colonies'
+                ? t('kingdomCommunities.tabColonies', 'Colonies')
+                : t('kingdomCommunities.tabSettlers', 'Settlers')}
+              {tab === 'settlers' && settlerKingdoms.length > 0 && (
+                <span style={{
+                  fontSize: '0.65rem',
+                  backgroundColor: `${colors.primary}30`,
+                  color: colors.primary,
+                  padding: '0.1rem 0.4rem',
+                  borderRadius: '6px',
+                  fontWeight: '600',
+                }}>
+                  {settlerKingdoms.length}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Content */}
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: isMobile ? '1rem' : '1.5rem 2rem' }}>
+
+        {/* ═══ COLONIES TAB ═══ */}
+        {activeTab === 'colonies' && (
+          <>
         {/* Info Banner - centered */}
         <div style={{
           padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem',
@@ -446,7 +515,7 @@ const KingdomCommunities: React.FC = () => {
           </div>
         )}
 
-        {/* Footer */}
+        {/* Footer (colonies) */}
         <div style={{ textAlign: 'center', marginTop: '2rem', paddingBottom: '2rem' }}>
           <p style={{ color: colors.textMuted, fontSize: '0.75rem', marginBottom: '1rem', lineHeight: 1.6 }}>
             {t('kingdomCommunities.footer', 'Only players who have linked their Kingshot account with TC20+ are counted. Rankings update in real-time.')}
@@ -455,6 +524,252 @@ const KingdomCommunities: React.FC = () => {
             {t('common.backToHome', '← Back to Home')}
           </Link>
         </div>
+          </>
+        )}
+
+        {/* ═══ SETTLERS TAB ═══ */}
+        {activeTab === 'settlers' && (
+          <>
+            {/* Campaign Link Banner */}
+            <Link
+              to="/campaigns/kingdom-settlers"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem',
+                marginBottom: '1.5rem',
+                background: 'linear-gradient(135deg, #22d3ee08 0%, #06b6d408 100%)',
+                border: `1px solid ${colors.primary}30`,
+                borderRadius: '12px',
+                textDecoration: 'none',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <span style={{ fontSize: '1.5rem' }}>⚔️</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ color: colors.primary, fontSize: '0.85rem', fontWeight: '700' }}>
+                  {t('kingdomCommunities.settlersCampaignTitle', 'Kingdom Settlers Campaign #1')}
+                </div>
+                <div style={{ color: colors.textMuted, fontSize: '0.75rem', marginTop: '0.15rem' }}>
+                  {t('kingdomCommunities.settlersCampaignDesc', 'Real prizes for kingdoms with the most settlers. See campaign details →')}
+                </div>
+              </div>
+              <span style={{ color: colors.primary, fontSize: '1.2rem' }}>→</span>
+            </Link>
+
+            {/* Settler Stats */}
+            <div style={{
+              display: 'flex',
+              gap: '0.75rem',
+              marginBottom: '1.5rem',
+              flexWrap: 'wrap',
+            }}>
+              <div style={{
+                flex: '1 1 120px',
+                padding: '0.75rem 1rem',
+                backgroundColor: colors.surface,
+                border: `1px solid ${colors.border}`,
+                borderRadius: '10px',
+                textAlign: 'center',
+              }}>
+                <div style={{ color: colors.primary, fontSize: '1.25rem', fontWeight: '700' }}>{settlerKingdoms.length}</div>
+                <div style={{ color: colors.textMuted, fontSize: '0.7rem' }}>
+                  {t('kingdomCommunities.settlersQualified', 'Qualified Kingdoms')}
+                </div>
+              </div>
+              <div style={{
+                flex: '1 1 120px',
+                padding: '0.75rem 1rem',
+                backgroundColor: colors.surface,
+                border: `1px solid ${colors.border}`,
+                borderRadius: '10px',
+                textAlign: 'center',
+              }}>
+                <div style={{ color: colors.primary, fontSize: '1.25rem', fontWeight: '700' }}>{totalSettlerTickets}</div>
+                <div style={{ color: colors.textMuted, fontSize: '0.7rem' }}>
+                  {t('kingdomCommunities.settlersTotalTickets', 'Total Tickets')}
+                </div>
+              </div>
+              <div style={{
+                flex: '1 1 120px',
+                padding: '0.75rem 1rem',
+                backgroundColor: colors.surface,
+                border: `1px solid ${colors.border}`,
+                borderRadius: '10px',
+                textAlign: 'center',
+              }}>
+                <div style={{ color: '#fbbf24', fontSize: '1.25rem', fontWeight: '700' }}>{risingKingdoms.length}</div>
+                <div style={{ color: colors.textMuted, fontSize: '0.7rem' }}>
+                  {t('kingdomCommunities.settlersRising', 'Rising (Not Yet Qualified)')}
+                </div>
+              </div>
+            </div>
+
+            {/* Settler Kingdom List */}
+            {settlersLoading ? (
+              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: colors.textMuted }}>
+                {t('common.loading', 'Loading...')}
+              </div>
+            ) : settlerKingdoms.length === 0 ? (
+              <div style={{
+                textAlign: 'center',
+                padding: '3rem 1rem',
+                backgroundColor: colors.surface,
+                borderRadius: '12px',
+                border: `1px solid ${colors.border}`,
+              }}>
+                <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>⚔️</div>
+                <p style={{ color: colors.text, fontSize: '1rem', fontWeight: '600' }}>
+                  {t('kingdomCommunities.settlersNoKingdoms', 'No kingdoms have qualified yet')}
+                </p>
+                <p style={{ color: colors.textMuted, fontSize: '0.8rem', marginTop: '0.5rem' }}>
+                  {t('kingdomCommunities.settlersNoKingdomsDesc', 'Kingdoms need at least 3 settlers (linked players with TC20+) to qualify.')}
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {settlerKingdoms.map((kingdom, index) => {
+                  const rank = index + 1;
+                  const isTop3 = rank <= 3;
+                  return (
+                    <Link
+                      key={kingdom.kingdom_number}
+                      to={`/kingdom/${kingdom.kingdom_number}`}
+                      style={{ textDecoration: 'none' }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: isMobile ? '0.75rem' : '1rem',
+                          padding: isMobile ? '0.75rem' : '0.85rem 1.25rem',
+                          borderRadius: '10px',
+                          transition: 'all 0.2s ease',
+                          backgroundColor: colors.surface,
+                          border: `1px solid ${isTop3 ? colors.primary + '30' : colors.border}`,
+                          ...(isTop3 ? { boxShadow: `0 0 12px ${colors.primary}08` } : {}),
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = `${colors.primary}40`;
+                          e.currentTarget.style.transform = 'translateX(4px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = isTop3 ? `${colors.primary}30` : colors.border;
+                          e.currentTarget.style.transform = 'translateX(0)';
+                        }}
+                      >
+                        {/* Rank */}
+                        <div style={{ width: '36px', textAlign: 'center', flexShrink: 0 }}>
+                          {isTop3 ? (
+                            <span style={{ fontSize: '1.25rem' }}>
+                              {rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'}
+                            </span>
+                          ) : (
+                            <span style={{ color: colors.primary, fontSize: '0.85rem', fontWeight: '600' }}>
+                              #{rank}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Kingdom Info */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <span style={{ fontSize: '0.95rem', fontWeight: '700', color: colors.text }}>
+                            Kingdom {kingdom.kingdom_number}
+                          </span>
+                          <div style={{ fontSize: '0.7rem', color: colors.textMuted, marginTop: '0.15rem' }}>
+                            {kingdom.atlas_users} {t('kingdomCommunities.settlersCount', 'settlers')}
+                          </div>
+                        </div>
+
+                        {/* Tickets */}
+                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                          <div style={{
+                            fontSize: isMobile ? '1rem' : '1.15rem',
+                            fontWeight: '700',
+                            color: colors.primary,
+                          }}>
+                            {kingdom.tickets}
+                          </div>
+                          <div style={{ fontSize: '0.65rem', color: colors.textMuted }}>
+                            {kingdom.tickets === 1 ? 'ticket' : 'tickets'}
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+
+                {/* Rising Kingdoms */}
+                {risingKingdoms.length > 0 && (
+                  <>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      margin: '1rem 0 0.5rem',
+                    }}>
+                      <div style={{ flex: 1, height: '1px', backgroundColor: colors.border }} />
+                      <span style={{ color: '#fbbf24', fontSize: '0.75rem', fontWeight: '600' }}>
+                        {t('kingdomCommunities.settlersRisingTitle', 'Rising — Almost There')}
+                      </span>
+                      <div style={{ flex: 1, height: '1px', backgroundColor: colors.border }} />
+                    </div>
+                    {risingKingdoms.map(kingdom => (
+                      <Link
+                        key={kingdom.kingdom_number}
+                        to={`/kingdom/${kingdom.kingdom_number}`}
+                        style={{ textDecoration: 'none' }}
+                      >
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: isMobile ? '0.75rem' : '1rem',
+                          padding: isMobile ? '0.6rem 0.75rem' : '0.7rem 1.25rem',
+                          borderRadius: '10px',
+                          backgroundColor: colors.surface,
+                          border: `1px solid ${colors.border}`,
+                          opacity: 0.7,
+                          transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.7'; }}
+                        >
+                          <div style={{ width: '36px', textAlign: 'center', flexShrink: 0 }}>
+                            <span style={{ color: '#fbbf24', fontSize: '0.75rem' }}>↑</span>
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <span style={{ fontSize: '0.9rem', fontWeight: '600', color: colors.textMuted }}>
+                              Kingdom {kingdom.kingdom_number}
+                            </span>
+                          </div>
+                          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                            <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#fbbf24' }}>
+                              {kingdom.atlas_users}
+                            </div>
+                            <div style={{ fontSize: '0.6rem', color: colors.textMuted }}>
+                              {t('kingdomCommunities.settlersCount', 'settlers')}
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Footer (settlers) */}
+            <div style={{ textAlign: 'center', marginTop: '2rem', paddingBottom: '2rem' }}>
+              <p style={{ color: colors.textMuted, fontSize: '0.75rem', marginBottom: '1rem', lineHeight: 1.6 }}>
+                {t('kingdomCommunities.settlersFooter', 'Kingdoms need 3+ settlers (linked players with TC20+) to qualify. Ticket allocation is based on settler count.')}
+              </p>
+              <Link to="/campaigns/kingdom-settlers" style={{ color: colors.primary, textDecoration: 'none', fontSize: '0.85rem', fontWeight: '600' }}>
+                {t('kingdomCommunities.viewCampaign', 'View Campaign Details →')}
+              </Link>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

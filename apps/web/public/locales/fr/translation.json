@@ -64,7 +64,7 @@
     "ambassadors": "Ambassadeurs",
     "contributeData": "Contribuer des Données",
     "aboutAtlas": "À Propos d'Atlas",
-    "kingdomCommunities": "Colonies de Royaumes",
+    "kingdomCommunities": "Colonies du Royaume",
     "giftCodes": "Codes Cadeaux"
   },
   "stats": {
@@ -971,6 +971,14 @@
     "min": "Min",
     "sec": "Sec",
     "nextEvent": "Prochain Événement {{title}}"
+  },
+  "transferGroupUpdate": {
+    "title": "Groupes de Transfert Mis à Jour",
+    "new": "NOUVEAU",
+    "subtitle": "Les groupes sont définis pour le prochain Événement de Transfert. Rejoignez le canal dédié de votre groupe sur notre Discord pour coordonner.",
+    "ctaHub": "Transfer Hub →",
+    "ctaLink": "Lier Discord →",
+    "dismiss": "Fermer la notification"
   },
   "transferBanner": {
     "eventLive": "L'Événement de Transfert est EN DIRECT !",
@@ -2448,7 +2456,25 @@
     "noResults": "Aucun royaume trouvé",
     "footer": "Seuls les joueurs ayant lié leur compte Kingshot avec TC20+ sont comptés. Les classements se mettent à jour en temps réel.",
     "statsKingdoms": "Royaumes",
-    "statsPlayers": "Joueurs"
+    "statsPlayers": "Joueurs",
+    "tabColonies": "Colonies",
+    "tabSettlers": "Colons",
+    "settlersCampaignTitle": "Campagne Colons du Royaume #1",
+    "settlersCampaignDesc": "De vrais prix pour les royaumes avec le plus de colons. Voir les détails →",
+    "settlersQualified": "Royaumes Qualifiés",
+    "settlersTotalTickets": "Tickets Totaux",
+    "settlersRising": "En Progression (Pas Encore Qualifiés)",
+    "settlersNoKingdoms": "Aucun royaume n'est encore qualifié",
+    "settlersNoKingdomsDesc": "Les royaumes ont besoin d'au moins 3 colons (joueurs liés avec TC20+) pour se qualifier.",
+    "settlersCount": "colons",
+    "settlersRisingTitle": "En Progression — Presque Là",
+    "settlersFooter": "Les royaumes ont besoin de 3+ colons (joueurs liés avec TC20+) pour se qualifier. L'attribution des tickets est basée sur le nombre de colons.",
+    "viewCampaign": "Voir les Détails de la Campagne →"
+  },
+  "campaignBanner": {
+    "title": "Campagne Colons du Royaume #1",
+    "subtitle": "Votre royaume pourrait gagner de vrais prix. Rassemblez vos colons !",
+    "cta": "En Savoir Plus →"
   },
   "admin": {
     "anonymous": "Anonyme",
@@ -3142,10 +3168,49 @@
     "spotlightCta": "En Savoir Plus"
   },
   "campaign": {
-    "title": "Campagne des Colonies du Royaume",
+    "title": "Campagne des Colons du Royaume",
     "live": "EN DIRECT",
     "subtitle": "Les 3 meilleurs royaumes par joueurs vérifiés gagnent de vraies récompenses. Ralliez votre alliance.",
-    "cta": "Voir le classement"
+    "cta": "Voir le classement",
+    "tabAbout": "À propos",
+    "tabLeaderboard": "Colons",
+    "tabWinners": "Gagnants",
+    "heroSubtitle": "Plus votre royaume a de Colons, plus vous gagnez de tickets. Liez votre Discord et ralliez votre royaume !",
+    "prizePool": "Cagnotte",
+    "drawIn": "Tirage en Direct dans",
+    "prizes": "15 Prix — Du plus petit au plus grand",
+    "qualificationTitle": "Votre Statut de Qualification",
+    "signInToCheck": "Connectez-vous pour vérifier votre statut de qualification.",
+    "checkAtlas": "Compte Atlas créé",
+    "checkKingshot": "Kingshot lié (TC {{level}}+)",
+    "checkDiscord": "Discord lié sur Atlas",
+    "checkServer": "Sur le Discord Atlas (rôle Colon)",
+    "qualified": "Vous êtes qualifié ! Votre ticket compte pour votre royaume.",
+    "ctaLinkKingshot": "Lier Kingshot",
+    "ctaLinkDiscord": "Lier Discord",
+    "ctaJoinDiscord": "Rejoindre Discord",
+    "howItWorks": "Comment ça marche",
+    "rule1": "Liez votre compte Kingshot sur Atlas (TC 20+)",
+    "rule2": "Liez votre compte Discord sur Atlas",
+    "rule3": "Rejoignez le serveur Discord Kingshot Atlas pour obtenir le rôle Colon",
+    "rule4": "Chaque Colon qualifié = 1 ticket de tombola pour son royaume",
+    "rule5": "Votre royaume a besoin d'au moins 10 Colons qualifiés pour participer",
+    "rule6": "Prix tirés en direct sur Discord — du plus petit au plus grand !",
+    "rule7": "Un prix par royaume. Si tiré à nouveau pour un prix supérieur → amélioration !",
+    "qualifyingKingdoms": "Qualifiés",
+    "totalTickets": "Total Tickets",
+    "risingKingdoms": "En Montée",
+    "qualifyingSection": "Dans la Tombola",
+    "risingSection": "En Montée — Besoin de Plus de Colons",
+    "colKingdom": "Royaume",
+    "colProgress": "Progression",
+    "colTickets": "Tickets",
+    "colChance": "Chance",
+    "noWinnersYet": "Pas encore de gagnants",
+    "winnersAfterDraw": "Les gagnants apparaîtront ici après le tirage en direct.",
+    "winnersTitle": "Gagnants de la Campagne",
+    "noCampaign": "Pas de Campagne Active",
+    "noCampaignDesc": "Revenez bientôt pour la prochaine campagne des Colons du Royaume !"
   },
   "kvkBanner": {
     "matchupMessage": "Les matchs KvK sont en direct ! Ajoutez le match de votre royaume maintenant.",

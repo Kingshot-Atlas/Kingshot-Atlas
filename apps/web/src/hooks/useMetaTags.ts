@@ -254,7 +254,7 @@ export const PAGE_META_TAGS = {
   },
   kingdomCommunities: {
     title: 'Kingdom Colonies | Kingshot Atlas',
-    description: 'Discover the most active kingdoms on Atlas. See which kingdoms have the biggest colonies of competitive Kingshot players.',
+    description: 'Discover the most active kingdoms on Atlas. See which kingdoms have the biggest colonies — competitive Kingshot players linked on Atlas.',
     url: 'https://ks-atlas.com/kingdoms/communities',
     type: 'website'
   },

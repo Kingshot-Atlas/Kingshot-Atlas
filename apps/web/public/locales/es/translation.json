@@ -64,7 +64,7 @@
     "ambassadors": "Embajadores",
     "contributeData": "Contribuir Datos",
     "aboutAtlas": "Sobre Atlas",
-    "kingdomCommunities": "Colonias de Reinos",
+    "kingdomCommunities": "Colonias del Reino",
     "giftCodes": "Códigos de Regalo"
   },
   "stats": {
@@ -971,6 +971,14 @@
     "min": "Min",
     "sec": "Seg",
     "nextEvent": "Próximo Evento de {{title}}"
+  },
+  "transferGroupUpdate": {
+    "title": "Grupos de Transferencia Actualizados",
+    "new": "NUEVO",
+    "subtitle": "Los grupos están listos para el próximo Evento de Transferencia. Únete al canal de tu grupo en nuestro Discord para coordinar.",
+    "ctaHub": "Transfer Hub →",
+    "ctaLink": "Vincular Discord →",
+    "dismiss": "Cerrar notificación"
   },
   "transferBanner": {
     "eventLive": "¡El Evento de Transferencia está EN VIVO!",
@@ -2448,7 +2456,25 @@
     "noResults": "No se encontraron reinos",
     "footer": "Solo se cuentan los jugadores que han vinculado su cuenta de Kingshot con TC20+. Los rankings se actualizan en tiempo real.",
     "statsKingdoms": "Reinos",
-    "statsPlayers": "Jugadores"
+    "statsPlayers": "Jugadores",
+    "tabColonies": "Colonias",
+    "tabSettlers": "Colonos",
+    "settlersCampaignTitle": "Campaña Colonos del Reino #1",
+    "settlersCampaignDesc": "Premios reales para reinos con más colonos. Ver detalles de la campaña →",
+    "settlersQualified": "Reinos Clasificados",
+    "settlersTotalTickets": "Tickets Totales",
+    "settlersRising": "En Ascenso (Aún No Clasificados)",
+    "settlersNoKingdoms": "Ningún reino se ha clasificado aún",
+    "settlersNoKingdomsDesc": "Los reinos necesitan al menos 3 colonos (jugadores vinculados con TC20+) para clasificar.",
+    "settlersCount": "colonos",
+    "settlersRisingTitle": "En Ascenso — Casi Lo Logran",
+    "settlersFooter": "Los reinos necesitan 3+ colonos (jugadores vinculados con TC20+) para clasificar. La asignación de tickets se basa en el conteo de colonos.",
+    "viewCampaign": "Ver Detalles de la Campaña →"
+  },
+  "campaignBanner": {
+    "title": "Campaña Colonos del Reino #1",
+    "subtitle": "Tu reino podría ganar premios reales. ¡Reúne a tus colonos!",
+    "cta": "Más Información →"
   },
   "admin": {
     "anonymous": "Anónimo",
@@ -3142,10 +3168,49 @@
     "spotlightCta": "Saber Más"
   },
   "campaign": {
-    "title": "Campaña de Colonias del Reino",
+    "title": "Campaña de Colonos del Reino",
     "live": "EN VIVO",
     "subtitle": "Los 3 mejores reinos por jugadores verificados ganan recompensas reales. Moviliza a tu alianza.",
-    "cta": "Ver clasificación"
+    "cta": "Ver clasificación",
+    "tabAbout": "Acerca de",
+    "tabLeaderboard": "Colonos",
+    "tabWinners": "Ganadores",
+    "heroSubtitle": "Cuantos más Colonos tenga tu reino, más boletos de rifa ganarás. ¡Vincula tu Discord y moviliza tu reino!",
+    "prizePool": "Fondo de Premios",
+    "drawIn": "Sorteo en Vivo en",
+    "prizes": "15 Premios — De menor a mayor",
+    "qualificationTitle": "Tu Estado de Calificación",
+    "signInToCheck": "Inicia sesión para verificar tu estado de calificación.",
+    "checkAtlas": "Cuenta Atlas creada",
+    "checkKingshot": "Kingshot vinculado (TC {{level}}+)",
+    "checkDiscord": "Discord vinculado en Atlas",
+    "checkServer": "En Discord de Atlas (rol Colono)",
+    "qualified": "¡Estás calificado! Tu boleto cuenta para tu reino.",
+    "ctaLinkKingshot": "Vincular Kingshot",
+    "ctaLinkDiscord": "Vincular Discord",
+    "ctaJoinDiscord": "Unirse al Discord",
+    "howItWorks": "Cómo Funciona",
+    "rule1": "Vincula tu cuenta Kingshot en Atlas (TC 20+)",
+    "rule2": "Vincula tu cuenta Discord en Atlas",
+    "rule3": "Únete al servidor Discord de Kingshot Atlas para obtener el rol Colono",
+    "rule4": "Cada Colono calificado = 1 boleto de rifa para su reino",
+    "rule5": "Tu reino necesita al menos 10 Colonos calificados para participar",
+    "rule6": "¡Premios sorteados en vivo en Discord — de menor a mayor!",
+    "rule7": "Un premio por reino. Si sale de nuevo para un premio mayor → ¡mejora!",
+    "qualifyingKingdoms": "Calificados",
+    "totalTickets": "Total Boletos",
+    "risingKingdoms": "En Ascenso",
+    "qualifyingSection": "En la Rifa",
+    "risingSection": "En Ascenso — Necesitan Más Colonos",
+    "colKingdom": "Reino",
+    "colProgress": "Progreso",
+    "colTickets": "Boletos",
+    "colChance": "Probabilidad",
+    "noWinnersYet": "Aún no hay ganadores",
+    "winnersAfterDraw": "Los ganadores aparecerán aquí después del sorteo en vivo.",
+    "winnersTitle": "Ganadores de la Campaña",
+    "noCampaign": "Sin Campaña Activa",
+    "noCampaignDesc": "¡Vuelve pronto para la próxima campaña de Colonos del Reino!"
   },
   "kvkBanner": {
     "matchupMessage": "¡Los emparejamientos de KvK están en vivo! Agrega el emparejamiento de tu reino ahora.",

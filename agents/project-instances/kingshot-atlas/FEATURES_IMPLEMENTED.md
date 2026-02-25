@@ -37,6 +37,8 @@
 | Atlas Bot | `/atlas-bot` | ✅ Live | Design + Product | Dedicated Atlas Discord Bot page with commands, features, invite CTA (2026-02-07) |
 | Transfer Hub | `/transfer-hub` | ✅ Live | Product + Business | Kingdom listings, editor claiming, recruiter dashboard, kingdom fund, transfer profiles, applications, match scoring. Open to all linked users. (2026-02-09, renamed from Transfer Board 2026-02-07) |
 | Kingdom Communities | `/kingdoms/communities` | ✅ Live | Product | Ranks kingdoms by # of linked TC20+ Atlas users. Incentivizes kingdom-wide signup. Shows fund tier badges, Atlas Score, rank. (2026-02-14) |
+| Kingdom Settlers Campaign | `/campaigns/kingdom-settlers` | 🔨 Local | Product | Campaign hub with About (hero, countdown, prize pool, qualification checker, rules), Settlers Leaderboard (qualifying/rising kingdoms, expandable settler details), Winners tabs. i18n 9 langs. (2026-02-25) |
+| Admin Campaign Draw | `/admin/campaign-draw` | 🔨 Local | Product | Slot machine winner picker with weighted random selection, prize queue sidebar, confetti, sound effects, fullscreen, test mode, duration slider 1-20s, upgrade/re-roll detection, Discord export. Admin-gated. (2026-02-25) |
 
 ---
 

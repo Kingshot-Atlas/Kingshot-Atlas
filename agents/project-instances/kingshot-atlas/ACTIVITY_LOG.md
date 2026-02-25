@@ -3,6 +3,40 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-25 14:30 | Product Engineer | COMPLETED
+Task: Kingdom Settlers Campaign #1 — Full implementation (DB + frontend + i18n)
+Files: useCampaignQueries.ts (new), campaignUtils.ts (new), KingdomSettlers.tsx (new), AdminCampaignDraw.tsx (new), App.tsx, 9 translation.json files
+Changes:
+1. **Supabase tables** — Created `campaigns` + `campaign_winners` tables with RLS (public read, admin write). Seeded Campaign #1 with 15 prizes ($5×5, $10×4, $25×3, $50×2, $100×1).
+2. **React Query hooks** — `useCampaignQueries.ts` with 4 query hooks (activeCampaign, settlerLeaderboard, kingdomSettlers, campaignWinners) + 4 mutation hooks (saveWinner, deleteWinner, clearAll, updateStatus).
+3. **Campaign utilities** — `campaignUtils.ts` with weighted random selection (crypto-secure), reel sequence generation, prize tier colors, Discord announcement export.
+4. **Campaign Hub page** — `/campaigns/kingdom-settlers` with 3 tabs: About (hero, countdown, prize pool, qualification checker, rules), Settlers Leaderboard (qualifying/rising kingdoms, expandable settler details, progress bars, win chance %), Winners (trophy display sorted by prize).
+5. **Admin Slot Machine** — `/admin/campaign-draw` with slot reel animation (cubic ease-out), prize queue sidebar, draw stats, confetti effect, sound effects (Web Audio API), fullscreen mode, test mode, duration slider (1-20s), upgrade/re-roll detection, export to Discord, reset with confirmation.
+6. **Routes** — Added to App.tsx as lazy-loaded, hidden from nav (URL-only access).
+7. **i18n** — All campaign keys translated to 9 languages (EN/ES/FR/ZH/DE/KO/JA/AR/TR).
+Result: Build passes. Local dev server running. NOT committed, NOT deployed. Ready for owner testing.
+
+## 2026-02-25 13:30 | Product Engineer | COMPLETED
+Task: Kingdom Settlers Campaign #1 — Full implementation plan (no code)
+Files: docs/KINGDOM_COLONIES_PLAN.md (renamed concept → Settlers)
+Changes:
+1. **Architecture review** — Queried Supabase schema, verified existing data layer (profiles table has all fields needed: linked_player_id, discord_id, linked_kingdom, linked_tc_level). ~20 kingdoms currently qualify with ≥10 Discord-linked settlers.
+2. **Comprehensive plan** — Created `docs/KINGDOM_COLONIES_PLAN.md` covering: campaign rules, 2 new Supabase tables (campaigns, campaign_winners), 3 new pages (/campaigns/kingdom-settlers, /admin/campaign-draw, winners tab), slot machine winner picker with configurable 1-20s roll duration, settlers leaderboard with Discord-linked vs Atlas-only visibility, upgrade/re-roll logic, sound design, fullscreen mode, test mode, export results, i18n plan, 5 implementation phases.
+3. **Draw order** — Smallest to biggest ($5→$100) per owner preference to build anticipation.
+4. **Minimum 10 settlers** to qualify, must join Atlas Discord server (Settler role = verification mechanism).
+Result: Plan document ready. No code changes. Awaiting owner launch signal.
+
+## 2026-02-25 13:00 | Product Engineer | COMPLETED
+Task: Transfer Group Update notification banner + i18n translations (all 9 languages)
+Files: CampaignNotificationBanner.tsx, KingdomDirectory.tsx, 9 locale translation.json files
+Changes:
+1. Replaced expired CampaignNotificationBanner with TransferGroupUpdateBanner (purple #a855f7 scheme)
+2. Smart routing: Discord-linked → /transfer-hub, unlinked → /profile, anonymous → /transfer-hub
+3. Dismissible with localStorage persistence (v5 key)
+4. Added transferGroupUpdate i18n keys to all 9 languages (EN/ES/FR/ZH/DE/KO/JA/AR/TR)
+5. Placed prominently after QuickActions on KingdomDirectory
+Result: Committed 2f68e6e, pushed to main. Live on Cloudflare Pages.
+
 ## 2026-02-25 09:45 | Platform Engineer | COMPLETED
 Task: Fix "can only submit matchups for your own kingdom" error — RPC + frontend
 Files: KvKMatchupSubmission.tsx, Supabase RPC submit_kvk_partial

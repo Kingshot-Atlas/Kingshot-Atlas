@@ -12,6 +12,7 @@ import FeedbackWidget from './components/FeedbackWidget';
 import SignupNudgeBar from './components/SignupNudgeBar';
 import SiteFooter from './components/SiteFooter';
 import KvKPhaseBanner from './components/KvKPhaseBanner';
+import CampaignSettlersBanner from './components/CampaignSettlersBanner';
 import { useKeyboardShortcuts, useKeyboardHelp } from './hooks/useKeyboardShortcuts';
 import { usePageTracking } from './hooks/useAnalytics';
 import { useKingdomsRealtime } from './hooks/useKingdomsRealtime';
@@ -58,6 +59,8 @@ const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const AllianceBaseDesigner = lazy(() => import('./pages/AllianceBaseDesigner'));
 const BaseDesignerLanding = lazy(() => import('./pages/BaseDesignerLanding'));
 const SharedBaseDesigner = lazy(() => import('./pages/SharedBaseDesigner'));
+const KingdomSettlers = lazy(() => import('./pages/KingdomSettlers'));
+const AdminCampaignDraw = lazy(() => import('./pages/AdminCampaignDraw'));
 
 // 404 Not Found component
 const NotFound = () => {
@@ -134,6 +137,7 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-bg">
       <Header />
+      <CampaignSettlersBanner />
       <KvKPhaseBanner />
       <KeyboardShortcutsModal isOpen={showHelp} onClose={closeHelp} />
       <main className="container mx-auto px-4 py-8">
@@ -182,6 +186,8 @@ function AppContent() {
               <Route path="/tools/base-designer" element={<ErrorBoundary><AllianceBaseDesigner /></ErrorBoundary>} />
               <Route path="/tools/base-designer/about" element={<ErrorBoundary><BaseDesignerLanding /></ErrorBoundary>} />
               <Route path="/tools/base-designer/view/:token" element={<ErrorBoundary><SharedBaseDesigner /></ErrorBoundary>} />
+              <Route path="/campaigns/kingdom-settlers" element={<ErrorBoundary><KingdomSettlers /></ErrorBoundary>} />
+              <Route path="/admin/campaign-draw" element={<ErrorBoundary><AdminCampaignDraw /></ErrorBoundary>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

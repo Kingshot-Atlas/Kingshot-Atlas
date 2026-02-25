@@ -28,6 +28,8 @@
 
 | Task | Owner | Status |
 |------|-------|--------|
+| Kingdom Settlers Campaign #1 | Product Engineer | ✅ IMPLEMENTED (local) — 2 Supabase tables (campaigns, campaign_winners), campaign hub page (/campaigns/kingdom-settlers) with 3 tabs, admin slot machine (/admin/campaign-draw) with full draw experience, React Query hooks, i18n (9 langs). Build passes. NOT deployed — awaiting owner review. |
+| Transfer Group Update Banner | Product Engineer | ✅ Complete — Purple notification banner with smart routing (Discord-linked → Transfer Hub, unlinked → Profile). i18n in all 9 languages. Live on Cloudflare Pages. |
 | Rally Session Persistence + EvCard Countdown + UTC Timestamp | Product Engineer | ✅ Complete — `rally_sessions` Supabase table with auto-save/restore for queue recovery. EvCard shows live "fires in Xh Ym" countdown. Rally copy text Start At now in UTC. |
 | Bot Dashboard Timezone Fix + Rally Copy Overhaul | Product Engineer | ✅ Complete — Fixed critical timezone bug in `getNextEventDates()`: all date math now uses UTC methods. Bear Hunt, Swordland, Tri-Alliance dates now correct. `fmtDate` displays UTC. Rally copy text shortened (no gap/fill/march details), added "Start at HH:MM:SS" with 30s buffer for text-based coordination. |
 | Rally Coordinator i18n + Bot Dashboard Alliance Events | Product Engineer | ✅ Complete — 47 missing rallyCoordinator keys translated to 8 langs. Bot Dashboard: next event date preview, NULL reference_date validation, Verify Schedule button (next 5 dates), isEventDay() 31 unit tests. Bot Health: NULL reference_date warning banner. Discord welcome rewritten as concise embed. Profile header typo fixed. /improve workflow strengthened. |
