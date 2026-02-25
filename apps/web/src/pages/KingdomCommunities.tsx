@@ -228,10 +228,10 @@ const KingdomCommunities: React.FC = () => {
             </span>
           </h1>
           <p style={{ color: colors.textMuted, fontSize: isMobile ? '0.8rem' : '0.9rem', marginBottom: '0.5rem', lineHeight: 1.6 }}>
-            {t('kingdomCommunities.heroSubtitle', 'The most active kingdoms on Atlas. Bigger colony = stronger intelligence.')}
+            {t('kingdomCommunities.heroSubtitle', 'The most active kingdoms on Atlas.')}
           </p>
           <p style={{ color: colors.textMuted, fontSize: '0.75rem', marginBottom: '0.75rem' }}>
-            <span style={{ color: colors.primary, fontWeight: '700' }}>{communities.length}</span> {t('kingdomCommunities.statsKingdoms', 'kingdoms')} · <span style={{ color: colors.primary, fontWeight: '700' }}>{totalPlayers}</span> {t('kingdomCommunities.statsPlayers', 'verified players')}
+            <span style={{ color: colors.primary, fontWeight: '700' }}>{communities.length}</span> {t('kingdomCommunities.statsKingdoms', 'Kingdoms')} · <span style={{ color: colors.primary, fontWeight: '700' }}>{totalPlayers}</span> {t('kingdomCommunities.statsPlayers', 'Atlas Users')}
           </p>
 
           {!isMobile && (
@@ -277,22 +277,9 @@ const KingdomCommunities: React.FC = () => {
                 minHeight: '44px',
               }}
             >
-              {tab === 'colonies' ? '🏰' : '⚔️'}
               {tab === 'colonies'
                 ? t('kingdomCommunities.tabColonies', 'Colonies')
                 : t('kingdomCommunities.tabSettlers', 'Settlers')}
-              {tab === 'settlers' && settlerKingdoms.length > 0 && (
-                <span style={{
-                  fontSize: '0.65rem',
-                  backgroundColor: `${colors.primary}30`,
-                  color: colors.primary,
-                  padding: '0.1rem 0.4rem',
-                  borderRadius: '6px',
-                  fontWeight: '600',
-                }}>
-                  {settlerKingdoms.length}
-                </span>
-              )}
             </button>
           ))}
         </div>
@@ -318,7 +305,7 @@ const KingdomCommunities: React.FC = () => {
             {t('kingdomCommunities.ctaTitle', 'Rally your kingdom to climb the ranks')}
           </p>
           <p style={{ color: colors.textMuted, fontSize: '0.75rem', margin: 0, lineHeight: 1.5 }}>
-            {t('kingdomCommunities.ctaDescription', 'Every linked player with TC20+ counts toward your kingdom\'s colony rank. Invite your alliance — the bigger your presence, the stronger your kingdom\'s Atlas intelligence.')}
+            {t('kingdomCommunities.ctaDescription', 'Every linked player with TC20+ counts toward your kingdom\'s colony rank!')}
           </p>
         </div>
 
@@ -498,7 +485,7 @@ const KingdomCommunities: React.FC = () => {
                         {community.player_count}
                       </div>
                       <div style={{ fontSize: '0.65rem', color: colors.textMuted }}>
-                        {community.player_count === 1 ? 'player' : 'players'}
+                        {t('kingdomCommunities.atlasUsers', 'Atlas Users')}
                       </div>
                     </div>
                   </div>
@@ -632,6 +619,14 @@ const KingdomCommunities: React.FC = () => {
                 {settlerKingdoms.map((kingdom, index) => {
                   const rank = index + 1;
                   const isTop3 = rank <= 3;
+                  // Enrich with colony data (tier, atlas score, rank)
+                  const colonyData = communities.find(c => c.kingdom_number === kingdom.kingdom_number);
+                  const fundTier = colonyData?.fund_tier || 'standard';
+                  const tierColor = FUND_TIER_COLORS[fundTier] || colors.textMuted;
+                  const tierLabel = FUND_TIER_LABELS[fundTier];
+                  const isGold = fundTier === 'gold';
+                  const isPremium = isGold || fundTier === 'silver' || fundTier === 'bronze';
+                  const cardStyle = getCardStyle(fundTier, tierColor);
                   return (
                     <Link
                       key={kingdom.kingdom_number}
@@ -646,16 +641,14 @@ const KingdomCommunities: React.FC = () => {
                           padding: isMobile ? '0.75rem' : '0.85rem 1.25rem',
                           borderRadius: '10px',
                           transition: 'all 0.2s ease',
-                          backgroundColor: colors.surface,
-                          border: `1px solid ${isTop3 ? colors.primary + '30' : colors.border}`,
-                          ...(isTop3 ? { boxShadow: `0 0 12px ${colors.primary}08` } : {}),
+                          ...cardStyle,
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = `${colors.primary}40`;
+                          e.currentTarget.style.borderColor = isPremium ? `${tierColor}70` : `${colors.primary}40`;
                           e.currentTarget.style.transform = 'translateX(4px)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = isTop3 ? `${colors.primary}30` : colors.border;
+                          e.currentTarget.style.borderColor = isPremium ? `${tierColor}45` : colors.border;
                           e.currentTarget.style.transform = 'translateX(0)';
                         }}
                       >
@@ -674,25 +667,54 @@ const KingdomCommunities: React.FC = () => {
 
                         {/* Kingdom Info */}
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <span style={{ fontSize: '0.95rem', fontWeight: '700', color: colors.text }}>
-                            Kingdom {kingdom.kingdom_number}
-                          </span>
-                          <div style={{ fontSize: '0.7rem', color: colors.textMuted, marginTop: '0.15rem' }}>
-                            {kingdom.atlas_users} {t('kingdomCommunities.settlersCount', 'settlers')}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <span style={{
+                              fontSize: '0.95rem',
+                              fontWeight: '700',
+                              color: isPremium ? tierColor : colors.text,
+                              ...(isGold || fundTier === 'silver' ? neonGlow(tierColor) : {}),
+                            }}>
+                              Kingdom {kingdom.kingdom_number}
+                            </span>
+                            {isPremium && tierLabel && (
+                              <span style={{
+                                fontSize: '0.55rem',
+                                padding: '0.15rem 0.45rem',
+                                backgroundColor: `${tierColor}18`,
+                                border: `1px solid ${tierColor}40`,
+                                borderRadius: '4px',
+                                color: tierColor,
+                                fontWeight: '700',
+                                letterSpacing: '0.8px',
+                                textTransform: 'uppercase',
+                              }}>
+                                {tierLabel.toUpperCase()}
+                              </span>
+                            )}
                           </div>
+                          {colonyData?.atlas_score !== null && colonyData?.atlas_score !== undefined && (
+                            <div style={{ fontSize: '0.7rem', color: colors.textMuted, marginTop: '0.15rem' }}>
+                              Atlas Score: <span style={{ color: colors.primary, fontWeight: '600' }}>{colonyData.atlas_score.toFixed(1)}</span>
+                              {colonyData.current_rank && (
+                                <span style={{ marginLeft: '0.5rem' }}>
+                                  Rank: <span style={{ color: colors.primary, fontWeight: '600' }}>#{colonyData.current_rank}</span>
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
 
-                        {/* Tickets */}
+                        {/* Settler Count */}
                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
                           <div style={{
                             fontSize: isMobile ? '1rem' : '1.15rem',
                             fontWeight: '700',
                             color: colors.primary,
                           }}>
-                            {kingdom.tickets}
+                            {kingdom.atlas_users}
                           </div>
                           <div style={{ fontSize: '0.65rem', color: colors.textMuted }}>
-                            {kingdom.tickets === 1 ? 'ticket' : 'tickets'}
+                            {t('kingdomCommunities.settlersCount', 'settlers')}
                           </div>
                         </div>
                       </div>
