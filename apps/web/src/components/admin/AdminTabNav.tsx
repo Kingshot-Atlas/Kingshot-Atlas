@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import type { AdminTab, AdminCategory, PendingCounts } from './types';
 
 interface AdminTabNavProps {
@@ -121,19 +122,39 @@ export const AdminTabNav: React.FC<AdminTabNavProps> = ({
       paddingBottom: '0.75rem',
       borderBottom: '1px solid #1a1a1a'
     }}>
-      {activeCategory === 'overview' && [
-        { id: 'analytics', label: 'Dashboard' },
-        { id: 'engagement', label: 'Engagement' },
-        { id: 'user-heatmap', label: 'User Heatmap' },
-      ].map(tab => (
-        <SubTabButton
-          key={tab.id}
-          id={tab.id}
-          label={tab.label}
-          isActive={activeTab === tab.id}
-          onClick={() => onTabChange(tab.id as AdminTab)}
-        />
-      ))}
+      {activeCategory === 'overview' && <>
+        {[
+          { id: 'analytics', label: 'Dashboard' },
+          { id: 'engagement', label: 'Engagement' },
+          { id: 'user-heatmap', label: 'User Heatmap' },
+        ].map(tab => (
+          <SubTabButton
+            key={tab.id}
+            id={tab.id}
+            label={tab.label}
+            isActive={activeTab === tab.id}
+            onClick={() => onTabChange(tab.id as AdminTab)}
+          />
+        ))}
+        <Link
+          to="/admin/campaign-draw"
+          style={{
+            padding: '0.35rem 0.7rem',
+            backgroundColor: '#fbbf2418',
+            color: '#fbbf24',
+            border: '1px solid #fbbf2440',
+            borderRadius: '6px',
+            fontWeight: 500,
+            fontSize: '0.8rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.3rem',
+            textDecoration: 'none',
+          }}
+        >
+          🎰 Campaign Draw
+        </Link>
+      </>}
       {activeCategory === 'review' && [
         { id: 'submissions', label: 'KvK Results', count: pendingCounts.submissions },
         { id: 'corrections', label: 'Corrections', count: pendingCounts.corrections },

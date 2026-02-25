@@ -334,7 +334,9 @@ async function fetchAtlasPlayerCount(): Promise<number> {
   const { count } = await supabase
     .from('profiles')
     .select('*', { count: 'exact', head: true })
-    .not('linked_player_id', 'is', null);
+    .not('linked_player_id', 'is', null)
+    .not('linked_kingdom', 'is', null)
+    .gte('linked_tc_level', 20);
   return count || 0;
 }
 
