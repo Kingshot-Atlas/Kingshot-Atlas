@@ -190,4 +190,9 @@ git commit -m "descriptive message"
 git push origin main
 ```
 
-**Note:** Production deployment happens via CI/CD after push to main.
+**Production deployment happens automatically via Cloudflare Pages after push to main.**
+- Project: `kingshot-atlas` on Cloudflare Pages
+- Domains: `ks-atlas.com`, `kingshot-atlas.pages.dev`
+- Build takes ~2-3 min; check Cloudflare dashboard for status
+- **⛔ NEVER use `deploy_web_app` or `read_deployment_config` tools — those are Netlify-based and NOT used by this project.**
+- **⛔ NEVER create `netlify.toml` or any Netlify config files.**

@@ -14,7 +14,7 @@ from typing import List, Optional, Dict, Any
 import hashlib
 import random
 import urllib.parse
-from api.config import DISCORD_BOT_TOKEN, DISCORD_API_KEY, DISCORD_API_PROXY, DISCORD_PROXY_KEY, ENVIRONMENT, ADMIN_EMAILS
+from api.config import DISCORD_BOT_TOKEN, DISCORD_API_KEY, DISCORD_API_PROXY, DISCORD_PROXY_KEY, DISCORD_GUILD_ID, ENVIRONMENT, ADMIN_EMAILS
 from api.supabase_client import get_supabase_admin
 
 logger = logging.getLogger("atlas.bot")

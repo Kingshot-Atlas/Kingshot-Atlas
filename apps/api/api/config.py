@@ -39,6 +39,7 @@ DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 DISCORD_API_KEY = os.getenv("DISCORD_API_KEY")
 DISCORD_API_PROXY = os.getenv("DISCORD_API_PROXY", "")
 DISCORD_PROXY_KEY = os.getenv("DISCORD_PROXY_KEY", "")
+DISCORD_GUILD_ID = os.getenv("DISCORD_GUILD_ID", "")
 
 # ---------------------------------------------------------------------------
 # Email / Frontend
