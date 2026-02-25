@@ -2462,14 +2462,11 @@
     "tabSettlers": "المستوطنون",
     "settlersCampaignTitle": "حملة مستوطني المملكة #1",
     "settlersCampaignDesc": "جوائز حقيقية للممالك التي لديها أكبر عدد من المستوطنين. اطلع على تفاصيل الحملة →",
-    "settlersQualified": "الممالك المؤهلة",
-    "settlersTotalTickets": "إجمالي التذاكر",
-    "settlersRising": "في صعود (غير مؤهلة بعد)",
-    "settlersNoKingdoms": "لم تتأهل أي مملكة بعد",
-    "settlersNoKingdomsDesc": "تحتاج الممالك إلى 3 مستوطنين على الأقل (لاعبون مرتبطون بمستوى TC20+) للتأهل.",
+    "settlersInfoTitle": "ما هو المستوطن؟",
+    "settlersInfoDescription": "المستوطنون هم اللاعبون الذين ربطوا حساب Kingshot الخاص بهم، ووصلوا Discord، وانضموا إلى خادم Atlas Discord.",
+    "settlersNoKingdoms": "لا توجد ممالك لديها مستوطنون بعد",
+    "settlersNoKingdomsDesc": "اربط حساب Kingshot الخاص بك، وصِل Discord وانضم إلى خادم Atlas لتصبح مستوطناً.",
     "settlersCount": "مستوطنون",
-    "settlersRisingTitle": "في صعود — على وشك التأهل",
-    "settlersFooter": "تحتاج الممالك إلى 3+ مستوطنين (لاعبون مرتبطون بمستوى TC20+) للتأهل. يتم توزيع التذاكر بناءً على عدد المستوطنين.",
     "viewCampaign": "عرض تفاصيل الحملة →"
   },
   "campaignBanner": {

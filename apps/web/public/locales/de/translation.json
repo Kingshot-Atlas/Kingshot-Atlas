@@ -2462,14 +2462,11 @@
     "tabSettlers": "Siedler",
     "settlersCampaignTitle": "Königreich-Siedler Kampagne #1",
     "settlersCampaignDesc": "Echte Preise für Königreiche mit den meisten Siedlern. Kampagnendetails ansehen →",
-    "settlersQualified": "Qualifizierte Königreiche",
-    "settlersTotalTickets": "Tickets Gesamt",
-    "settlersRising": "Aufsteigend (Noch Nicht Qualifiziert)",
-    "settlersNoKingdoms": "Noch keine Königreiche qualifiziert",
-    "settlersNoKingdomsDesc": "Königreiche benötigen mindestens 3 Siedler (verknüpfte Spieler mit TC20+) zur Qualifikation.",
+    "settlersInfoTitle": "Was ist ein Siedler?",
+    "settlersInfoDescription": "Siedler sind Spieler, die ihr Kingshot-Konto verknüpft, Discord verbunden und dem Atlas Discord-Server beigetreten sind.",
+    "settlersNoKingdoms": "Noch keine Königreiche haben Siedler",
+    "settlersNoKingdomsDesc": "Verknüpfe dein Kingshot-Konto, verbinde Discord und tritt dem Atlas-Server bei, um Siedler zu werden.",
     "settlersCount": "Siedler",
-    "settlersRisingTitle": "Aufsteigend — Fast Geschafft",
-    "settlersFooter": "Königreiche benötigen 3+ Siedler (verknüpfte Spieler mit TC20+) zur Qualifikation. Die Ticketvergabe basiert auf der Siedleranzahl.",
     "viewCampaign": "Kampagnendetails Ansehen →"
   },
   "campaignBanner": {

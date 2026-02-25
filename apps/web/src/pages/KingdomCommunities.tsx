@@ -9,13 +9,13 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
 import { logger } from '../utils/logger';
 import { getTransferGroupOptions, parseTransferGroupValue } from '../config/transferGroups';
-import { useActiveCampaign, useSettlerLeaderboard } from '../hooks/useCampaignQueries';
 
 type TabType = 'colonies' | 'settlers';
 
 interface KingdomCommunity {
   kingdom_number: number;
   player_count: number;
+  settler_count: number;
   atlas_score: number | null;
   current_rank: number | null;
   fund_tier: string;
@@ -80,13 +80,6 @@ const KingdomCommunities: React.FC = () => {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  // Campaign data for Settlers tab
-  const { data: campaign } = useActiveCampaign();
-  const { data: leaderboardData, isLoading: settlersLoading } = useSettlerLeaderboard(campaign);
-  const settlerKingdoms = leaderboardData?.qualifying ?? [];
-  const risingKingdoms = leaderboardData?.rising ?? [];
-  const totalSettlerTickets = leaderboardData?.totalTickets ?? 0;
-
   useEffect(() => {
     const fetchCommunities = async () => {
       if (!isSupabaseConfigured || !supabase) {
@@ -95,54 +88,60 @@ const KingdomCommunities: React.FC = () => {
       }
 
       try {
-        // Fetch profiles with linked accounts and TC20+
+        // Single profiles fetch — powers both Colonies and Settlers tabs
         const { data: profiles, error: profilesError } = await supabase
           .from('profiles')
-          .select('linked_kingdom')
+          .select('linked_kingdom, discord_id, linked_tc_level')
           .not('linked_kingdom', 'is', null)
-          .not('linked_username', 'is', null)
-          .gte('linked_tc_level', 20);
+          .not('linked_player_id', 'is', null);
 
         if (profilesError) throw profilesError;
 
-        // Count players per kingdom
-        const kingdomCounts: Record<number, number> = {};
+        // Count Atlas users (TC20+ linked) AND settlers (TC20+ + Discord) per kingdom
+        const kingdomCounts: Record<number, { atlas_users: number; settlers: number }> = {};
         (profiles || []).forEach(p => {
           if (p.linked_kingdom) {
-            kingdomCounts[p.linked_kingdom] = (kingdomCounts[p.linked_kingdom] || 0) + 1;
+            const k = p.linked_kingdom as number;
+            if (!kingdomCounts[k]) kingdomCounts[k] = { atlas_users: 0, settlers: 0 };
+            if ((p.linked_tc_level ?? 0) >= 20) {
+              kingdomCounts[k].atlas_users++;
+              if (p.discord_id) {
+                kingdomCounts[k].settlers++;
+              }
+            }
           }
         });
 
-        // Filter kingdoms with at least 1 player
-        const kingdomNumbers = Object.keys(kingdomCounts).map(Number);
+        // Filter kingdoms with at least 1 Atlas user
+        const kingdomNumbers = Object.keys(kingdomCounts).map(Number).filter(kn => (kingdomCounts[kn]?.atlas_users ?? 0) > 0);
         if (kingdomNumbers.length === 0) {
           setCommunities([]);
           setLoading(false);
           return;
         }
 
-        // Fetch kingdom data (atlas score, rank)
-        const { data: kingdoms, error: kingdomsError } = await supabase
-          .from('kingdoms')
-          .select('kingdom_number, atlas_score, current_rank')
-          .in('kingdom_number', kingdomNumbers);
+        // Parallel fetch: kingdom data + fund tiers
+        const [kingdomsResult, fundsResult] = await Promise.all([
+          supabase
+            .from('kingdoms')
+            .select('kingdom_number, atlas_score, current_rank')
+            .in('kingdom_number', kingdomNumbers),
+          supabase
+            .from('kingdom_funds')
+            .select('kingdom_number, tier')
+            .in('kingdom_number', kingdomNumbers),
+        ]);
 
-        if (kingdomsError) throw kingdomsError;
+        if (kingdomsResult.error) throw kingdomsResult.error;
+        if (fundsResult.error) throw fundsResult.error;
 
-        // Fetch fund tiers
-        const { data: funds, error: fundsError } = await supabase
-          .from('kingdom_funds')
-          .select('kingdom_number, tier')
-          .in('kingdom_number', kingdomNumbers);
-
-        if (fundsError) throw fundsError;
-
-        const kingdomMap = new Map((kingdoms || []).map(k => [k.kingdom_number, k]));
-        const fundMap = new Map((funds || []).map(f => [f.kingdom_number, f.tier]));
+        const kingdomMap = new Map((kingdomsResult.data || []).map(k => [k.kingdom_number, k]));
+        const fundMap = new Map((fundsResult.data || []).map(f => [f.kingdom_number, f.tier]));
 
         const result: KingdomCommunity[] = kingdomNumbers.map(kn => ({
           kingdom_number: kn,
-          player_count: kingdomCounts[kn]!,
+          player_count: kingdomCounts[kn]?.atlas_users ?? 0,
+          settler_count: kingdomCounts[kn]?.settlers ?? 0,
           atlas_score: kingdomMap.get(kn)?.atlas_score ? Number(kingdomMap.get(kn)!.atlas_score) : null,
           current_rank: kingdomMap.get(kn)?.current_rank || null,
           fund_tier: fundMap.get(kn) || 'standard',
@@ -196,6 +195,12 @@ const KingdomCommunities: React.FC = () => {
 
   const visibleCommunities = filteredCommunities.slice(0, visibleCount);
   const totalPlayers = useMemo(() => communities.reduce((sum, c) => sum + c.player_count, 0), [communities]);
+
+  // Settlers: communities sorted by settler_count, filtered to those with settlers > 0
+  const settlerCommunities = useMemo(() =>
+    communities.filter(c => c.settler_count > 0).sort((a, b) => b.settler_count - a.settler_count),
+    [communities]
+  );
 
   if (loading) {
     return (
@@ -517,6 +522,24 @@ const KingdomCommunities: React.FC = () => {
         {/* ═══ SETTLERS TAB ═══ */}
         {activeTab === 'settlers' && (
           <>
+            {/* Info Banner */}
+            <div style={{
+              padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem',
+              marginBottom: '1.5rem',
+              backgroundColor: `${colors.primary}08`,
+              border: `1px solid ${colors.primary}20`,
+              borderRadius: '10px',
+              textAlign: 'center',
+            }}>
+              <div style={{ fontSize: '1.25rem', marginBottom: '0.3rem' }}>🛡️</div>
+              <p style={{ color: colors.text, fontSize: '0.8rem', fontWeight: '600', margin: 0, marginBottom: '0.25rem' }}>
+                {t('kingdomCommunities.settlersInfoTitle', 'What is a Settler?')}
+              </p>
+              <p style={{ color: colors.textMuted, fontSize: '0.75rem', margin: 0, lineHeight: 1.5 }}>
+                {t('kingdomCommunities.settlersInfoDescription', 'Settlers are players who linked their Kingshot account, connected their Discord, and joined the Atlas Discord server.')}
+              </p>
+            </div>
+
             {/* Campaign Link Banner */}
             <Link
               to="/campaigns/kingdom-settlers"
@@ -545,60 +568,8 @@ const KingdomCommunities: React.FC = () => {
               <span style={{ color: colors.primary, fontSize: '1.2rem' }}>→</span>
             </Link>
 
-            {/* Settler Stats */}
-            <div style={{
-              display: 'flex',
-              gap: '0.75rem',
-              marginBottom: '1.5rem',
-              flexWrap: 'wrap',
-            }}>
-              <div style={{
-                flex: '1 1 120px',
-                padding: '0.75rem 1rem',
-                backgroundColor: colors.surface,
-                border: `1px solid ${colors.border}`,
-                borderRadius: '10px',
-                textAlign: 'center',
-              }}>
-                <div style={{ color: colors.primary, fontSize: '1.25rem', fontWeight: '700' }}>{settlerKingdoms.length}</div>
-                <div style={{ color: colors.textMuted, fontSize: '0.7rem' }}>
-                  {t('kingdomCommunities.settlersQualified', 'Qualified Kingdoms')}
-                </div>
-              </div>
-              <div style={{
-                flex: '1 1 120px',
-                padding: '0.75rem 1rem',
-                backgroundColor: colors.surface,
-                border: `1px solid ${colors.border}`,
-                borderRadius: '10px',
-                textAlign: 'center',
-              }}>
-                <div style={{ color: colors.primary, fontSize: '1.25rem', fontWeight: '700' }}>{totalSettlerTickets}</div>
-                <div style={{ color: colors.textMuted, fontSize: '0.7rem' }}>
-                  {t('kingdomCommunities.settlersTotalTickets', 'Total Tickets')}
-                </div>
-              </div>
-              <div style={{
-                flex: '1 1 120px',
-                padding: '0.75rem 1rem',
-                backgroundColor: colors.surface,
-                border: `1px solid ${colors.border}`,
-                borderRadius: '10px',
-                textAlign: 'center',
-              }}>
-                <div style={{ color: '#fbbf24', fontSize: '1.25rem', fontWeight: '700' }}>{risingKingdoms.length}</div>
-                <div style={{ color: colors.textMuted, fontSize: '0.7rem' }}>
-                  {t('kingdomCommunities.settlersRising', 'Rising (Not Yet Qualified)')}
-                </div>
-              </div>
-            </div>
-
             {/* Settler Kingdom List */}
-            {settlersLoading ? (
-              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: colors.textMuted }}>
-                {t('common.loading', 'Loading...')}
-              </div>
-            ) : settlerKingdoms.length === 0 ? (
+            {settlerCommunities.length === 0 ? (
               <div style={{
                 textAlign: 'center',
                 padding: '3rem 1rem',
@@ -606,7 +577,7 @@ const KingdomCommunities: React.FC = () => {
                 borderRadius: '12px',
                 border: `1px solid ${colors.border}`,
               }}>
-                <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>⚔️</div>
+                <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>🛡️</div>
                 <p style={{ color: colors.text, fontSize: '1rem', fontWeight: '600' }}>
                   {t('kingdomCommunities.settlersNoKingdoms', 'No kingdoms have qualified yet')}
                 </p>
@@ -616,12 +587,10 @@ const KingdomCommunities: React.FC = () => {
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {settlerKingdoms.map((kingdom, index) => {
+                {settlerCommunities.map((community, index) => {
                   const rank = index + 1;
                   const isTop3 = rank <= 3;
-                  // Enrich with colony data (tier, atlas score, rank)
-                  const colonyData = communities.find(c => c.kingdom_number === kingdom.kingdom_number);
-                  const fundTier = colonyData?.fund_tier || 'standard';
+                  const fundTier = community.fund_tier || 'standard';
                   const tierColor = FUND_TIER_COLORS[fundTier] || colors.textMuted;
                   const tierLabel = FUND_TIER_LABELS[fundTier];
                   const isGold = fundTier === 'gold';
@@ -629,8 +598,8 @@ const KingdomCommunities: React.FC = () => {
                   const cardStyle = getCardStyle(fundTier, tierColor);
                   return (
                     <Link
-                      key={kingdom.kingdom_number}
-                      to={`/kingdom/${kingdom.kingdom_number}`}
+                      key={community.kingdom_number}
+                      to={`/kingdom/${community.kingdom_number}`}
                       style={{ textDecoration: 'none' }}
                     >
                       <div
@@ -674,7 +643,7 @@ const KingdomCommunities: React.FC = () => {
                               color: isPremium ? tierColor : colors.text,
                               ...(isGold || fundTier === 'silver' ? neonGlow(tierColor) : {}),
                             }}>
-                              Kingdom {kingdom.kingdom_number}
+                              Kingdom {community.kingdom_number}
                             </span>
                             {isPremium && tierLabel && (
                               <span style={{
@@ -692,12 +661,12 @@ const KingdomCommunities: React.FC = () => {
                               </span>
                             )}
                           </div>
-                          {colonyData?.atlas_score !== null && colonyData?.atlas_score !== undefined && (
+                          {community.atlas_score !== null && (
                             <div style={{ fontSize: '0.7rem', color: colors.textMuted, marginTop: '0.15rem' }}>
-                              Atlas Score: <span style={{ color: colors.primary, fontWeight: '600' }}>{colonyData.atlas_score.toFixed(1)}</span>
-                              {colonyData.current_rank && (
+                              Atlas Score: <span style={{ color: colors.primary, fontWeight: '600' }}>{community.atlas_score.toFixed(1)}</span>
+                              {community.current_rank && (
                                 <span style={{ marginLeft: '0.5rem' }}>
-                                  Rank: <span style={{ color: colors.primary, fontWeight: '600' }}>#{colonyData.current_rank}</span>
+                                  Rank: <span style={{ color: colors.primary, fontWeight: '600' }}>#{community.current_rank}</span>
                                 </span>
                               )}
                             </div>
@@ -711,81 +680,21 @@ const KingdomCommunities: React.FC = () => {
                             fontWeight: '700',
                             color: colors.primary,
                           }}>
-                            {kingdom.atlas_users}
+                            {community.settler_count}
                           </div>
                           <div style={{ fontSize: '0.65rem', color: colors.textMuted }}>
-                            {t('kingdomCommunities.settlersCount', 'settlers')}
+                            {t('kingdomCommunities.settlersCount', 'Settlers')}
                           </div>
                         </div>
                       </div>
                     </Link>
                   );
                 })}
-
-                {/* Rising Kingdoms */}
-                {risingKingdoms.length > 0 && (
-                  <>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      margin: '1rem 0 0.5rem',
-                    }}>
-                      <div style={{ flex: 1, height: '1px', backgroundColor: colors.border }} />
-                      <span style={{ color: '#fbbf24', fontSize: '0.75rem', fontWeight: '600' }}>
-                        {t('kingdomCommunities.settlersRisingTitle', 'Rising — Almost There')}
-                      </span>
-                      <div style={{ flex: 1, height: '1px', backgroundColor: colors.border }} />
-                    </div>
-                    {risingKingdoms.map(kingdom => (
-                      <Link
-                        key={kingdom.kingdom_number}
-                        to={`/kingdom/${kingdom.kingdom_number}`}
-                        style={{ textDecoration: 'none' }}
-                      >
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: isMobile ? '0.75rem' : '1rem',
-                          padding: isMobile ? '0.6rem 0.75rem' : '0.7rem 1.25rem',
-                          borderRadius: '10px',
-                          backgroundColor: colors.surface,
-                          border: `1px solid ${colors.border}`,
-                          opacity: 0.7,
-                          transition: 'all 0.2s ease',
-                        }}
-                        onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.7'; }}
-                        >
-                          <div style={{ width: '36px', textAlign: 'center', flexShrink: 0 }}>
-                            <span style={{ color: '#fbbf24', fontSize: '0.75rem' }}>↑</span>
-                          </div>
-                          <div style={{ flex: 1 }}>
-                            <span style={{ fontSize: '0.9rem', fontWeight: '600', color: colors.textMuted }}>
-                              Kingdom {kingdom.kingdom_number}
-                            </span>
-                          </div>
-                          <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                            <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#fbbf24' }}>
-                              {kingdom.atlas_users}
-                            </div>
-                            <div style={{ fontSize: '0.6rem', color: colors.textMuted }}>
-                              {t('kingdomCommunities.settlersCount', 'settlers')}
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </>
-                )}
               </div>
             )}
 
             {/* Footer (settlers) */}
             <div style={{ textAlign: 'center', marginTop: '2rem', paddingBottom: '2rem' }}>
-              <p style={{ color: colors.textMuted, fontSize: '0.75rem', marginBottom: '1rem', lineHeight: 1.6 }}>
-                {t('kingdomCommunities.settlersFooter', 'Kingdoms need 3+ settlers (linked players with TC20+) to qualify. Ticket allocation is based on settler count.')}
-              </p>
               <Link to="/campaigns/kingdom-settlers" style={{ color: colors.primary, textDecoration: 'none', fontSize: '0.85rem', fontWeight: '600' }}>
                 {t('kingdomCommunities.viewCampaign', 'View Campaign Details →')}
               </Link>

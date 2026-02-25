@@ -2462,14 +2462,11 @@
     "tabSettlers": "セトラー",
     "settlersCampaignTitle": "王国セトラーキャンペーン #1",
     "settlersCampaignDesc": "最も多くのセトラーを持つ王国に本物の賞品を。キャンペーン詳細を見る →",
-    "settlersQualified": "資格のある王国",
-    "settlersTotalTickets": "合計チケット",
-    "settlersRising": "上昇中（まだ未資格）",
-    "settlersNoKingdoms": "まだ資格を満たした王国はありません",
-    "settlersNoKingdomsDesc": "王国には最低3人のセトラー（TC20+のリンク済みプレイヤー）が必要です。",
+    "settlersInfoTitle": "セトラーとは？",
+    "settlersInfoDescription": "セトラーは、Kingshotアカウントをリンクし、Discordを接続し、Atlas Discordサーバーに参加したプレイヤーです。",
+    "settlersNoKingdoms": "まだセトラーのいる王国はありません",
+    "settlersNoKingdomsDesc": "Kingshotアカウントをリンクし、Discordを接続し、Atlasサーバーに参加してセトラーになりましょう。",
     "settlersCount": "セトラー",
-    "settlersRisingTitle": "上昇中 — もう少し",
-    "settlersFooter": "王国には3人以上のセトラー（TC20+のリンク済みプレイヤー）が必要です。チケット配分はセトラー数に基づきます。",
     "viewCampaign": "キャンペーン詳細を見る →"
   },
   "campaignBanner": {
