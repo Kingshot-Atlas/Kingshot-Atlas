@@ -28,6 +28,7 @@ export const TRANSFER_GROUPS: Array<[number, number]> = [
   [759, 927],
   [928, 1007],
   [1008, 1159],
+  [1160, 99999], // Unofficial — future event communication
 ];
 
 /**

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import MissingKvKPrompt from '../MissingKvKPrompt';
 import SmartTooltip from '../shared/SmartTooltip';
 import { getOutcome, OUTCOMES } from '../../utils/outcomes';
-import { CURRENT_KVK, HIGHEST_KINGDOM_IN_KVK } from '../../constants';
+import { CURRENT_KVK, HIGHEST_KINGDOM_IN_KVK, getKvKButtonStates } from '../../constants';
 import { useTranslation } from 'react-i18next';
 
 interface KvKRecord {
@@ -19,6 +19,9 @@ interface KvKHistoryTableProps {
   kvkRecords: KvKRecord[];
   isMobile: boolean;
   onReportErrorClick: () => void;
+  isLoggedIn?: boolean;
+  onSubmitClick?: (mode: 'matchup' | 'prep' | 'battle') => void;
+  onLockedClick?: (message: string) => void;
 }
 
 const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
@@ -26,6 +29,9 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
   kvkRecords,
   isMobile,
   onReportErrorClick,
+  isLoggedIn,
+  onSubmitClick,
+  onLockedClick,
 }) => {
   const { t } = useTranslation();
 
@@ -63,7 +69,58 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
       <h3 style={{ color: '#fff', fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: '600', margin: '0 0 0.5rem 0', textAlign: 'center' }}>
         {t('kingdomProfile.kvkHistory', 'KvK History')}
       </h3>
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+        {isLoggedIn && onSubmitClick && (() => {
+          const btnStates = getKvKButtonStates(CURRENT_KVK);
+          const btnConfigs: Array<{ key: 'matchup' | 'prep' | 'battle'; label: string; icon: string; activeColor: string }> = [
+            { key: 'matchup', label: t('seasons.addMatchup', 'Add Matchup'), icon: '\uD83D\uDD17', activeColor: '#22d3ee' },
+            { key: 'prep', label: t('seasons.addPrepResult', 'Add Prep Result'), icon: '\uD83D\uDEE1\uFE0F', activeColor: '#eab308' },
+            { key: 'battle', label: t('seasons.addBattleResult', 'Add Battle Result'), icon: '\u2694\uFE0F', activeColor: '#f97316' },
+          ];
+          return btnConfigs.map(({ key, label, icon, activeColor }) => {
+            const state = btnStates[key];
+            const locked = !state.unlocked;
+            return (
+              <button
+                key={key}
+                onClick={() => {
+                  if (locked) {
+                    const dateStr = state.unlocksAt
+                      ? state.unlocksAt.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' })
+                      : '';
+                    const reasonMessages: Record<string, string> = {
+                      not_announced: t('seasons.lockNotAnnounced', { date: dateStr, defaultValue: `Matchups haven't been announced yet. Unlocks {{date}}.` }),
+                      prep_not_ended: t('seasons.lockPrepNotEnded', { date: dateStr, defaultValue: `Prep Phase hasn't ended yet. Unlocks {{date}}.` }),
+                      battle_not_ended: t('seasons.lockBattleNotEnded', { date: dateStr, defaultValue: `Castle Battle hasn't ended yet. Unlocks {{date}}.` }),
+                      closed: t('seasons.lockClosed', 'Submissions are closed for this KvK season.'),
+                    };
+                    onLockedClick?.(`\uD83D\uDD12 ${reasonMessages[state.reasonKey] || ''}`);
+                    return;
+                  }
+                  onSubmitClick(key);
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.3rem',
+                  padding: isMobile ? '0.45rem 0.7rem' : '0.3rem 0.6rem',
+                  minHeight: isMobile ? '44px' : 'auto',
+                  backgroundColor: locked ? '#1a1a1a' : `${activeColor}15`,
+                  border: `1px solid ${locked ? '#2a2a2a' : `${activeColor}40`}`,
+                  borderRadius: '6px',
+                  color: locked ? '#6b7280' : activeColor,
+                  cursor: 'pointer',
+                  fontSize: isMobile ? '0.7rem' : '0.7rem',
+                  fontWeight: '600',
+                  transition: 'all 0.2s',
+                  opacity: locked ? 0.6 : 1,
+                }}
+              >
+                {icon} {label}
+              </button>
+            );
+          });
+        })()}
         <button
           onClick={onReportErrorClick}
           style={{

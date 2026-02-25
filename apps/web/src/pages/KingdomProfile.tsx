@@ -14,6 +14,7 @@ import { useKingdomsRealtime } from '../hooks/useKingdomsRealtime';
 import StatusSubmission from '../components/StatusSubmission';
 import ReportDataModal from '../components/ReportDataModal';
 import ReportKvKErrorModal from '../components/ReportKvKErrorModal';
+const KvKMatchupSubmission = lazy(() => import('../components/KvKMatchupSubmission'));
 // Lazy-load below-fold components for bundle splitting
 const KingdomReviews = lazy(() => import('../components/KingdomReviews'));
 const TrendChart = lazy(() => import('../components/TrendChart'));
@@ -77,6 +78,8 @@ const KingdomProfile: React.FC = () => {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showKvKErrorModal, setShowKvKErrorModal] = useState(false);
+  const [showMatchupModal, setShowMatchupModal] = useState(false);
+  const [matchupModalMode, setMatchupModalMode] = useState<'matchup' | 'prep' | 'battle'>('matchup');
   const [showFundModal, setShowFundModal] = useState(false);
   const [fundConfetti, setFundConfetti] = useState(false);
 
@@ -402,6 +405,18 @@ const KingdomProfile: React.FC = () => {
           kvkRecords={kingdom.recent_kvks || []}
           isMobile={isMobile}
           onReportErrorClick={() => setShowKvKErrorModal(true)}
+          isLoggedIn={!!user}
+          onSubmitClick={(mode) => {
+            if (!user) return;
+            if (!profile?.linked_username) {
+              showToast(t('home.linkToSubmit'), 'error');
+              navigate('/profile');
+              return;
+            }
+            setMatchupModalMode(mode);
+            setShowMatchupModal(true);
+          }}
+          onLockedClick={(message) => showToast(message, 'info')}
         />
 
         {/* Expand/Collapse All Button */}
@@ -707,6 +722,21 @@ const KingdomProfile: React.FC = () => {
                 navigate(`/kingdom/${kingdom.kingdom_number}`, { replace: true });
               }
             }}
+          />
+        </Suspense>
+      )}
+
+      {/* KvK Matchup Submission Modal */}
+      {showMatchupModal && kingdom && (
+        <Suspense fallback={null}>
+          <KvKMatchupSubmission
+            isOpen={showMatchupModal}
+            onClose={() => setShowMatchupModal(false)}
+            defaultKingdom={kingdom.kingdom_number}
+            defaultKvkNumber={undefined}
+            initialMode={matchupModalMode}
+            isAdmin={isAdminUsername(profile?.linked_username) || isAdminUsername(profile?.username)}
+            onSuccess={() => setRefreshKey(prev => prev + 1)}
           />
         </Suspense>
       )}
