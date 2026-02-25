@@ -204,7 +204,8 @@ const KvKMatchupSubmission: React.FC<KvKMatchupSubmissionProps> = ({
     if (!supabase || !isFormValid()) return;
 
     // Non-admin kingdom check (frontend guard — RPC also checks)
-    if (!isAdmin && userKingdom && userKingdom !== kingdomNumber && userKingdom !== opponentKingdom) {
+    // Skip when defaultKingdom is provided (Kingdom Profile context — anyone can contribute)
+    if (!defaultKingdom && !isAdmin && userKingdom && userKingdom !== kingdomNumber && userKingdom !== opponentKingdom) {
       showToast(`You can only submit matchups for your own kingdom (K${userKingdom})`, 'error');
       return;
     }
@@ -452,8 +453,8 @@ const KvKMatchupSubmission: React.FC<KvKMatchupSubmissionProps> = ({
           </span>
         </div>
 
-        {/* No kingdom linked warning */}
-        {!isAdmin && !userKingdom && (
+        {/* No kingdom linked warning — skip when kingdom comes from profile page */}
+        {!defaultKingdom && !isAdmin && !userKingdom && (
           <div style={{ padding: '0.75rem', backgroundColor: '#ef444410', border: '1px solid #ef444430', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.8rem', color: '#ef4444' }}>
             ⚠️ You must link your kingdom in your <strong>Profile</strong> before submitting matchups.
           </div>
@@ -465,7 +466,7 @@ const KvKMatchupSubmission: React.FC<KvKMatchupSubmissionProps> = ({
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
             <div>
               <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>
-                Your Kingdom {!isAdmin && '(locked)'}
+                {defaultKingdom ? 'Kingdom' : 'Your Kingdom'} {!isAdmin && '(locked)'}
               </label>
               {isAdmin ? (
                 <input
@@ -477,8 +478,8 @@ const KvKMatchupSubmission: React.FC<KvKMatchupSubmissionProps> = ({
                   style={inputStyle}
                 />
               ) : (
-                <div style={{ ...inputStyle, backgroundColor: '#0a0a0a', color: userKingdom ? '#22d3ee' : '#6b7280', fontWeight: 600 }}>
-                  {userKingdom ? `K${userKingdom}` : 'Not linked'}
+                <div style={{ ...inputStyle, backgroundColor: '#0a0a0a', color: kingdomNumber ? '#22d3ee' : '#6b7280', fontWeight: 600 }}>
+                  {kingdomNumber ? `K${kingdomNumber}` : 'Not linked'}
                 </div>
               )}
             </div>

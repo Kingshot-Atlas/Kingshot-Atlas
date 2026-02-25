@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import PostKvKSubmission from './PostKvKSubmission';
 import { Button } from './shared';
 import { useTranslation } from 'react-i18next';
+import { getKvKSchedule } from '../constants';
 
 interface MissingKvKPromptProps {
   kingdomNumber: number;
@@ -23,6 +24,10 @@ const MissingKvKPrompt: React.FC<MissingKvKPromptProps> = ({
   // Check if this KvK already exists
   const hasKvK = existingKvkNumbers.includes(kvkNumber);
   if (hasKvK) return null;
+
+  // Don't show submit prompt until Castle Battle has ended
+  const schedule = getKvKSchedule(kvkNumber);
+  if (new Date() < schedule.castleBattleEnd) return null;
 
   // Determine user state
   const isLoggedIn = !!user;
