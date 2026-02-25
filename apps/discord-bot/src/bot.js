@@ -1076,9 +1076,16 @@ client.on('guildDelete', (guild) => {
 });
 
 // Event: New member joins - send welcome message + check Settler/TransferGroup role eligibility
+// ONLY runs in the primary Atlas Discord server to avoid spamming other servers
 client.on('guildMemberAdd', async (member) => {
   console.log(`👋 New member: ${member.user.username} joined ${member.guild.name}`);
   
+  // Guard: only run in the Kingshot Atlas Discord server
+  if (config.guildId && member.guild.id !== config.guildId) {
+    console.log(`⏭️ Skipping welcome for ${member.user.username} — guild ${member.guild.name} is not the primary Atlas server`);
+    return;
+  }
+
   try {
     // Fetch channels from API to ensure fresh data (cache may be stale/empty)
     let channels;
@@ -1169,7 +1176,11 @@ client.on('guildMemberAdd', async (member) => {
 });
 
 // Event: Member update — detect server boosts for auto-spotlight
+// ONLY runs in the primary Atlas Discord server
 client.on('guildMemberUpdate', async (oldMember, newMember) => {
+  // Guard: only run in the Kingshot Atlas Discord server
+  if (config.guildId && newMember.guild.id !== config.guildId) return;
+
   try {
     const wasBoosting = oldMember.premiumSince !== null;
     const isBoosting = newMember.premiumSince !== null;
