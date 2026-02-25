@@ -1718,7 +1718,6 @@ async def create_transfer_channels(_: bool = Depends(require_bot_admin)):
                         "color": 0xa855f7,
                         "mentionable": False,
                         "hoist": False,
-                        "reason": "Auto-created: Transfer Group role for Atlas Transfer Hub",
                     },
                 )
                 if role_resp.status_code in (200, 201):
