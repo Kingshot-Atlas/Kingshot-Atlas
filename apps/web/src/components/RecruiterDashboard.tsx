@@ -14,7 +14,6 @@ import {
   NoEditorState,
   InboxTab,
   TeamTab,
-  WatchlistTab,
   SentInvitesPanel,
   RecruiterAnalyticsTab,
   useRecruiterDashboard,
@@ -49,7 +48,7 @@ const RecruiterDashboard: React.FC<{
   useEffect(() => {
     const TAB_KEYS: Record<string, typeof activeTab> = {
       '1': 'inbox', '2': 'browse', '3': 'profile', '4': 'team',
-      '5': 'watchlist', '6': 'fund', '7': 'analytics',
+      '5': 'fund', '6': 'analytics',
     };
     const handler = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
@@ -217,7 +216,6 @@ const RecruiterDashboard: React.FC<{
                 { key: 'browse', icon: '🔍', label: t('recruiter.candidates', 'Candidates') },
                 { key: 'profile', icon: '📝', label: t('recruiter.profile', 'Profile') },
                 { key: 'team', icon: '👥', label: t('recruiter.team', 'Team'), badge: pendingCoEditorRequests.length },
-                { key: 'watchlist', icon: '📋', label: t('recruiter.watchlist', 'Watchlist') },
                 { key: 'fund', icon: '💰', label: t('recruiter.fund', 'Fund') },
                 { key: 'analytics', icon: '📊', label: t('recruiter.analytics', 'Analytics') },
               ];
@@ -300,6 +298,7 @@ const RecruiterDashboard: React.FC<{
                 perAppUnreadCounts={perAppUnreadCounts}
                 perAppLastMessages={perAppLastMessages}
                 kingdomNumber={editorInfo?.kingdom_number}
+                editorInfo={editorInfo}
               />
             )}
 
@@ -324,11 +323,6 @@ const RecruiterDashboard: React.FC<{
                   <CoEditorsTab editorInfo={editorInfo} team={team} onReloadDashboard={loadDashboard} />
                 </div>
               </>
-            )}
-
-            {/* TAB: Watchlist */}
-            {activeTab === 'watchlist' && (
-              <WatchlistTab editorInfo={editorInfo} />
             )}
 
             {/* TAB: Fund */}

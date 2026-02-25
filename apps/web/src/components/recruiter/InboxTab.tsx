@@ -2,7 +2,8 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../../utils/styles';
 import { ApplicationCard } from './index';
-import type { IncomingApplication } from './types';
+import WatchlistTab from './WatchlistTab';
+import type { IncomingApplication, EditorInfo } from './types';
 import { formatTCLevel, inputStyle } from './types';
 import { supabase } from '../../lib/supabase';
 
@@ -43,6 +44,7 @@ interface InboxTabProps {
   perAppUnreadCounts?: Record<string, number>;
   perAppLastMessages?: Record<string, { message: string; created_at: string }>;
   kingdomNumber?: number;
+  editorInfo?: EditorInfo | null;
 }
 
 const InboxTab: React.FC<InboxTabProps> = ({
@@ -59,6 +61,7 @@ const InboxTab: React.FC<InboxTabProps> = ({
   perAppUnreadCounts,
   perAppLastMessages,
   kingdomNumber,
+  editorInfo,
 }) => {
   const { t } = useTranslation();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -244,10 +247,30 @@ const InboxTab: React.FC<InboxTabProps> = ({
         >
           {t('recruiter.past', 'Past')} ({closedApps.length})
         </button>
+        <button
+          onClick={() => setFilterStatus('watchlist')}
+          style={{
+            padding: '0.3rem 0.6rem',
+            backgroundColor: filterStatus === 'watchlist' ? '#a855f710' : 'transparent',
+            border: `1px solid ${filterStatus === 'watchlist' ? '#a855f730' : '#2a2a2a'}`,
+            borderRadius: '6px',
+            color: filterStatus === 'watchlist' ? '#a855f7' : '#6b7280',
+            fontSize: '0.75rem',
+            cursor: 'pointer',
+            minHeight: '44px',
+          }}
+        >
+          {t('recruiter.watchlist', 'Watchlist')}
+        </button>
       </div>
 
+      {/* Watchlist Section */}
+      {filterStatus === 'watchlist' && editorInfo && (
+        <WatchlistTab editorInfo={editorInfo} />
+      )}
+
       {/* Search & Sort */}
-      {filteredApps.length > 0 && (
+      {filterStatus !== 'watchlist' && filteredApps.length > 0 && (
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', alignItems: 'center' }}>
           <input
             type="text"
@@ -270,7 +293,7 @@ const InboxTab: React.FC<InboxTabProps> = ({
       )}
 
       {/* CSV Download for Gold tier */}
-      {fundTier === 'gold' && filterStatus === 'approved' && approvedApps.length > 0 && (
+      {filterStatus !== 'watchlist' && fundTier === 'gold' && filterStatus === 'approved' && approvedApps.length > 0 && (
         <button
           onClick={() => downloadApprovedCSV(approvedApps)}
           style={{
@@ -436,7 +459,7 @@ const InboxTab: React.FC<InboxTabProps> = ({
       )}
 
       {/* Bulk Select Bar */}
-      {visibleApps.length > 1 && filterStatus === 'active' && (
+      {filterStatus !== 'watchlist' && visibleApps.length > 1 && filterStatus === 'active' && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: '0.5rem',
           marginBottom: '0.5rem', padding: '0.4rem 0.6rem',
@@ -491,7 +514,7 @@ const InboxTab: React.FC<InboxTabProps> = ({
         </div>
       )}
 
-      {visibleApps.length === 0 ? (
+      {filterStatus !== 'watchlist' && (visibleApps.length === 0 ? (
         <div style={{
           textAlign: 'center', padding: '2rem 1rem',
           backgroundColor: colors.surface, borderRadius: '10px',
@@ -529,7 +552,7 @@ const InboxTab: React.FC<InboxTabProps> = ({
             </div>
           ))}
         </div>
-      )}
+      ))}
     </div>
   );
 };
