@@ -397,8 +397,9 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
             )}
           </div>
 
-          {/* Right: Recruiting badge + Match Score */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap', justifyContent: 'flex-end', ...(isPremium ? { backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: '8px', padding: '0.2rem 0.4rem' } : {}) }}>
+          {/* Right: Recruiting badge + Freshness + Match Score */}
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.3rem', flexWrap: 'wrap', justifyContent: 'flex-end', flexDirection: 'column', ...(isPremium ? { backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: '8px', padding: '0.2rem 0.4rem' } : {}) }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             {fund?.is_recruiting && (
               <div style={{
                 display: 'flex', alignItems: 'center', gap: '0.3rem',
@@ -495,6 +496,13 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                 </span>
               </Link>
             )}
+            </div>
+            {/* Listing freshness indicator — below recruiting badge */}
+            {listingAge && (
+              <span style={{ fontSize: '0.6rem', color: listingAge.color, opacity: isPremium ? 1 : 0.8 }}>
+                {listingAge.label}
+              </span>
+            )}
           </div>
         </div>
 
@@ -546,15 +554,6 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
             </span>
             <span style={{ fontSize: '0.55rem', color: colors.textMuted }}>
               ({reviewSummary.review_count})
-            </span>
-          </div>
-        )}
-
-        {/* Listing freshness indicator */}
-        {listingAge && (
-          <div style={{ marginBottom: '0.4rem', ...(isPremium ? { backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: '6px', padding: '0.15rem 0.45rem', display: 'inline-block' } : {}) }}>
-            <span style={{ fontSize: '0.6rem', color: listingAge.color, opacity: isPremium ? 1 : 0.8 }}>
-              {listingAge.label}
             </span>
           </div>
         )}

@@ -121,5 +121,12 @@ export function useUnreadMessages(): number {
     return () => { sb.removeChannel(channel); };
   }, [user, fetchCount]);
 
+  // Listen for custom 'messages-read' event dispatched by Messages page / ApplicationCard
+  useEffect(() => {
+    const handler = () => { fetchCount(); };
+    window.addEventListener('messages-read', handler);
+    return () => window.removeEventListener('messages-read', handler);
+  }, [fetchCount]);
+
   return count;
 }

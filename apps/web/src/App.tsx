@@ -57,6 +57,7 @@ const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const AllianceBaseDesigner = lazy(() => import('./pages/AllianceBaseDesigner'));
 const BaseDesignerLanding = lazy(() => import('./pages/BaseDesignerLanding'));
+const SharedBaseDesigner = lazy(() => import('./pages/SharedBaseDesigner'));
 
 // 404 Not Found component
 const NotFound = () => {
@@ -180,6 +181,7 @@ function AppContent() {
               <Route path="/privacy" element={<ErrorBoundary><PrivacyPolicy /></ErrorBoundary>} />
               <Route path="/tools/base-designer" element={<ErrorBoundary><AllianceBaseDesigner /></ErrorBoundary>} />
               <Route path="/tools/base-designer/about" element={<ErrorBoundary><BaseDesignerLanding /></ErrorBoundary>} />
+              <Route path="/tools/base-designer/view/:token" element={<ErrorBoundary><SharedBaseDesigner /></ErrorBoundary>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

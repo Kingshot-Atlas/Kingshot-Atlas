@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useBaseDesigner } from '../../hooks/useBaseDesigner';
+import { useBaseDesigner, BaseDesign } from '../../hooks/useBaseDesigner';
 import { Button } from '../shared';
 
 // ─── Save/Load Modal ───
@@ -13,13 +13,16 @@ interface DesignModalProps {
 const DesignModal: React.FC<DesignModalProps> = ({ mode, onClose, designer }) => {
   const { t } = useTranslation();
   const [saveName, setSaveName] = useState('');
-  const [designs, setDesigns] = useState(designer.getSavedDesigns);
+  const [designs, setDesigns] = useState<BaseDesign[]>([]);
   const [saveToast, setSaveToast] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Refresh designs list and autofill name when modal opens/changes mode
   useEffect(() => {
     if (mode) {
-      setDesigns(designer.getSavedDesigns());
+      setLoading(true);
+      designer.getSavedDesigns().then((d) => { setDesigns(d); setLoading(false); });
       if (mode === 'save') setSaveName(designer.designName || 'Untitled Design');
       setSaveToast(null);
     }
@@ -31,11 +34,13 @@ const DesignModal: React.FC<DesignModalProps> = ({ mode, onClose, designer }) =>
 
   if (!mode) return null;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const trimmed = saveName.trim();
-    if (!trimmed) return;
+    if (!trimmed || saving) return;
+    setSaving(true);
     designer.setDesignName(trimmed);
-    const result = designer.saveDesign(trimmed);
+    const result = await designer.saveDesign(trimmed);
+    setSaving(false);
     setSaveToast(result.overwrote
       ? t('baseDesigner.overwriteSuccess', '"{{name}}" updated successfully.', { name: trimmed })
       : t('baseDesigner.saveSuccess', '"{{name}}" saved successfully.', { name: trimmed })
@@ -43,9 +48,9 @@ const DesignModal: React.FC<DesignModalProps> = ({ mode, onClose, designer }) =>
     setTimeout(onClose, 1200);
   };
 
-  const handleDelete = (designId: string, designName: string) => {
-    if (confirm(t('baseDesigner.confirmDelete', 'Delete "{{name}}"?', { name: designName }))) {
-      const updated = designer.deleteDesign(designId);
+  const handleDelete = async (designId: string, dName: string) => {
+    if (confirm(t('baseDesigner.confirmDelete', 'Delete "{{name}}"?', { name: dName }))) {
+      const updated = await designer.deleteDesign(designId);
       setDesigns(updated);
     }
   };
@@ -119,7 +124,9 @@ const DesignModal: React.FC<DesignModalProps> = ({ mode, onClose, designer }) =>
         {mode === 'load' && (
           <>
             <h3 style={{ color: '#fff', fontSize: '1rem', marginBottom: '1rem' }}>📂 {t('baseDesigner.loadDesign', 'Load Design')}</h3>
-            {designs.length === 0 ? (
+            {loading ? (
+              <p style={{ color: '#666', fontSize: '0.85rem', textAlign: 'center' }}>Loading...</p>
+            ) : designs.length === 0 ? (
               <p style={{ color: '#666', fontSize: '0.85rem' }}>{t('baseDesigner.noSavedDesigns', 'No saved designs yet.')}</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -135,7 +142,7 @@ const DesignModal: React.FC<DesignModalProps> = ({ mode, onClose, designer }) =>
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: '0.4rem' }}>
-                      <Button variant="secondary" size="sm" onClick={() => { designer.loadDesign(d.id); onClose(); }}>
+                      <Button variant="secondary" size="sm" onClick={async () => { await designer.loadDesign(d.id); onClose(); }}>
                         {t('baseDesigner.loadBtn', 'Load')}
                       </Button>
                       <Button variant="danger" size="sm" onClick={() => handleDelete(d.id, d.name)}>

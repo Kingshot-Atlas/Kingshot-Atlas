@@ -270,9 +270,6 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
                   </Link>
                 )
               )}
-              {kingdom.score_updated_at && (
-                <ScoreFreshness updatedAt={kingdom.score_updated_at} style={{ marginLeft: '0.25rem' }} />
-              )}
             </div>
           )}
 
@@ -400,9 +397,12 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
                 Managed by <span style={{ color: '#a855f7', fontWeight: '600' }}>{managedBy.username}</span>
               </Link>
             )}
+            {kingdom.score_updated_at && (
+              <ScoreFreshness updatedAt={kingdom.score_updated_at} />
+            )}
           </div>
           
-          {/* Row 4: Total KvKs + Actions */}
+          {/* Row 5: Total KvKs + Actions */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap', position: 'relative', zIndex: 10 }}>
             <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>{t('kingdomProfile.totalKvks', 'Total KvKs')}:</span>
             <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 'bold' }}>{kingdom.total_kvks}</span>

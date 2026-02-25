@@ -6,6 +6,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useBaseDesigner, PlacedBuilding } from '../hooks/useBaseDesigner';
 import { getBuildingType } from '../config/allianceBuildings';
 import { useToolAccess } from '../hooks/useToolAccess';
+import { useAuth } from '../contexts/AuthContext';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { Button } from '../components/shared';
@@ -76,6 +77,7 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
   const lastTapRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const isDraggingTouch = useRef(false);
   const hasMoved = useRef(false);
+  const [longPressHighlight, setLongPressHighlight] = useState<{ x: number; y: number; size: number } | null>(null);
 
   const {
     centerX, centerY, zoom, buildings, selectedBuildingId, selectedToolType,
@@ -336,11 +338,35 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
         }
       }
     }
+
+    // Long-press pulsing highlight
+    if (longPressHighlight) {
+      const pulse = (Math.sin(Date.now() / 120) + 1) / 2; // 0..1 oscillation
+      drawDiamond(ctx, longPressHighlight.x, longPressHighlight.y, longPressHighlight.size);
+      ctx.strokeStyle = `rgba(34, 211, 238, ${0.4 + pulse * 0.6})`;
+      ctx.lineWidth = 3 + pulse * 2;
+      ctx.stroke();
+      ctx.fillStyle = `rgba(34, 211, 238, ${0.05 + pulse * 0.12})`;
+      ctx.fill();
+    }
   }, [
     canvasWidth, canvasHeight, centerX, centerY, hc,
     buildings, selectedBuildingId, selectedToolType, showLabels, hoveredCell,
-    dragBuilding, dragPreview, canPlace,
+    dragBuilding, dragPreview, canPlace, longPressHighlight,
   ]);
+
+  // Animate pulsing highlight
+  useEffect(() => {
+    if (!longPressHighlight) return;
+    let raf: number;
+    const tick = () => {
+      // Force re-render of canvas by triggering dependency change
+      setLongPressHighlight((prev) => prev ? { ...prev } : null);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [!!longPressHighlight]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Screen → grid
   const getCellFromMouse = useCallback((e: React.MouseEvent): { x: number; y: number } => {
@@ -464,6 +490,9 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
       const building = getBuildingAtCell(cell.x, cell.y);
 
       if (building && !selectedToolType) {
+        // Show pulsing highlight immediately
+        const bType = getBuildingType(building.typeId);
+        setLongPressHighlight({ x: building.x, y: building.y, size: bType?.size || 1 });
         // Start long-press timer for drag
         longPressTimer.current = setTimeout(() => {
           isDraggingTouch.current = true;
@@ -471,6 +500,7 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
           setDragBuilding(building.id);
           setDragOffset({ dx: cell.x - building.x, dy: cell.y - building.y });
           setDragPreview(null);
+          setLongPressHighlight(null);
           // Haptic feedback if available
           if (navigator.vibrate) navigator.vibrate(30);
         }, 500);
@@ -505,6 +535,7 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
           if (!isDraggingTouch.current && longPressTimer.current) {
             clearTimeout(longPressTimer.current);
             longPressTimer.current = null;
+            setLongPressHighlight(null);
           }
         }
       }
@@ -525,8 +556,11 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
   }, [isPanning, panStart, panByPixels, zoomBy, dragBuilding, dragOffset, getCellFromTouch]);
 
   const handleTouchEnd = useCallback((_e: React.TouchEvent) => {
+    // Prevent iOS double-tap zoom
+    _e.preventDefault();
     // Cancel long-press timer
     if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
+    setLongPressHighlight(null);
 
     // Complete drag if active
     if (isDraggingTouch.current && dragBuilding && dragPreview) {
@@ -586,7 +620,7 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
           const cell = s2g(sx, sy, centerX, centerY, hc, canvasWidth, canvasHeight);
           if (selectedToolType) {
             const placed = placeBuilding(selectedToolType, cell.x, cell.y);
-            if (placed) setSelectedBuildingId(placed);
+            if (placed) { setSelectedBuildingId(placed); if (navigator.vibrate) navigator.vibrate(15); }
           } else {
             const building = getBuildingAtCell(cell.x, cell.y);
             setSelectedBuildingId(building ? building.id : null);
@@ -774,6 +808,54 @@ const AllianceBaseDesigner: React.FC = () => {
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [editingLabel, setEditingLabel] = useState<{ buildingId: string; screenX: number; screenY: number; value: string } | null>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
+  const [shareMenu, setShareMenu] = useState(false);
+  const [shareToast, setShareToast] = useState<string | null>(null);
+  const { user } = useAuth();
+
+  // Swipe-to-dismiss refs for floating action chip
+  const fabSwipeStart = useRef<number | null>(null);
+
+  // Share handlers
+  const handleShareLink = useCallback(async () => {
+    if (!user) { setShareToast(t('baseDesigner.loginToShare', 'Log in to share designs')); setTimeout(() => setShareToast(null), 2500); return; }
+    try {
+      const result = await designer.saveDesign();
+      const token = await designer.getShareToken(result.id);
+      if (token) {
+        const url = `${window.location.origin}/tools/base-designer/view/${token}`;
+        await navigator.clipboard.writeText(url);
+        setShareToast(t('baseDesigner.linkCopied', 'Share link copied to clipboard!'));
+      } else {
+        setShareToast(t('baseDesigner.shareFailed', 'Could not generate share link'));
+      }
+    } catch {
+      setShareToast(t('baseDesigner.shareFailed', 'Could not generate share link'));
+    }
+    setShareMenu(false);
+    setTimeout(() => setShareToast(null), 2500);
+  }, [user, designer, t]);
+
+  const handleShareImage = useCallback(async () => {
+    const canvas = containerRef.current?.querySelector('canvas');
+    if (!canvas) return;
+    try {
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
+      if (blob) {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        setShareToast(t('baseDesigner.imageCopied', 'Base image copied to clipboard!'));
+      }
+    } catch {
+      // Fallback: download
+      const url = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${designer.designName || 'base-design'}.png`;
+      a.click();
+      setShareToast(t('baseDesigner.imageDownloaded', 'Base image downloaded!'));
+    }
+    setShareMenu(false);
+    setTimeout(() => setShareToast(null), 2500);
+  }, [designer.designName, t]);
 
   // Desktop: Enter key opens inline label editor for selected building
   useEffect(() => {
@@ -913,6 +995,10 @@ const AllianceBaseDesigner: React.FC = () => {
                   style={{ ...sidebarBtnStyle, ...(designer.showLabels ? { backgroundColor: '#22d3ee15', borderColor: '#22d3ee40', color: '#22d3ee' } : {}) }}
                   onClick={() => designer.setShowLabels(!designer.showLabels)} title="Toggle Labels"
                 >🏷️</button>
+                <button
+                  style={{ ...sidebarBtnStyle, position: 'relative' }}
+                  onClick={() => setShareMenu(!shareMenu)} title="Share"
+                >📤</button>
                 <button
                   style={{ ...sidebarBtnStyle, borderColor: '#ef444440', color: '#ef4444' }}
                   onClick={() => setShowClearConfirm(true)} title="Clear All"
@@ -1110,6 +1196,51 @@ const AllianceBaseDesigner: React.FC = () => {
 
         <DesignModal mode={modalMode} onClose={() => setModalMode(null)} designer={designer} />
 
+        {/* Share menu popup */}
+        {shareMenu && (
+          <div style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            zIndex: 998,
+          }} onClick={() => setShareMenu(false)}>
+            <div onClick={(e) => e.stopPropagation()} style={{
+              position: 'absolute', top: isMobile ? 54 : 90, left: isMobile ? 'auto' : 200, right: isMobile ? 12 : 'auto',
+              backgroundColor: '#111827', border: '1px solid #1e2a35', borderRadius: '8px',
+              padding: '0.5rem', width: '180px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+              zIndex: 999,
+            }}>
+              <button onClick={handleShareLink} style={{
+                width: '100%', padding: '0.5rem 0.6rem', backgroundColor: 'transparent',
+                border: 'none', borderRadius: '4px', color: '#e5e7eb', cursor: 'pointer',
+                fontSize: '0.7rem', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '0.4rem',
+              }} onMouseEnter={(e) => { (e.target as HTMLElement).style.backgroundColor = '#1e2a35'; }}
+                onMouseLeave={(e) => { (e.target as HTMLElement).style.backgroundColor = 'transparent'; }}>
+                🔗 {t('baseDesigner.shareLink', 'Copy Share Link')}
+              </button>
+              <button onClick={handleShareImage} style={{
+                width: '100%', padding: '0.5rem 0.6rem', backgroundColor: 'transparent',
+                border: 'none', borderRadius: '4px', color: '#e5e7eb', cursor: 'pointer',
+                fontSize: '0.7rem', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '0.4rem',
+              }} onMouseEnter={(e) => { (e.target as HTMLElement).style.backgroundColor = '#1e2a35'; }}
+                onMouseLeave={(e) => { (e.target as HTMLElement).style.backgroundColor = 'transparent'; }}>
+                🖼️ {t('baseDesigner.shareImage', 'Copy as Image')}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Share toast */}
+        {shareToast && (
+          <div style={{
+            position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+            backgroundColor: '#111827', border: '1px solid #22d3ee40', borderRadius: '8px',
+            padding: '0.5rem 1rem', color: '#22d3ee', fontSize: '0.75rem', fontWeight: '600',
+            zIndex: 1001, boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+            animation: 'fadeIn 0.2s ease',
+          }}>
+            {shareToast}
+          </div>
+        )}
+
         {/* Clear confirmation dialog */}
         {showClearConfirm && (
           <div style={{
@@ -1148,8 +1279,8 @@ const AllianceBaseDesigner: React.FC = () => {
         </h1>
       </div>
 
-      {/* Canvas fills most of the screen */}
-      <div ref={containerRef} style={{ flex: 1, position: 'relative', overflow: 'hidden', WebkitTouchCallout: 'none' } as React.CSSProperties}>
+      {/* Canvas fills most of the screen — minHeight prevents bottom panel from compressing it */}
+      <div ref={containerRef} style={{ flex: 1, minHeight: '55vh', position: 'relative', overflow: 'hidden', WebkitTouchCallout: 'none' } as React.CSSProperties}>
         <GridCanvas
           designer={designer}
           canvasWidth={canvasSize.width}
@@ -1208,9 +1339,10 @@ const AllianceBaseDesigner: React.FC = () => {
           <button style={sidebarBtnStyle} onClick={() => setModalMode('save')}>💾</button>
           <button style={sidebarBtnStyle} onClick={() => setModalMode('load')}>📂</button>
           <button
-            style={{ ...sidebarBtnStyle, ...(designer.showLabels ? { color: '#22d3ee' } : {}) }}
+            style={{ ...sidebarBtnStyle, ...(designer.showLabels ? { backgroundColor: '#22d3ee15', borderColor: '#22d3ee40', color: '#22d3ee' } : {}) }}
             onClick={() => designer.setShowLabels(!designer.showLabels)}
           >🏷️</button>
+          <button style={sidebarBtnStyle} onClick={() => setShareMenu(!shareMenu)}>📤</button>
           <div style={{ flex: 1 }} />
           <span style={{ fontSize: '0.55rem', color: '#4b5563' }}>{designer.buildings.length} bldgs</span>
         </div>
@@ -1221,15 +1353,26 @@ const AllianceBaseDesigner: React.FC = () => {
             position: 'absolute', bottom: 12, right: 12, zIndex: 10,
             display: 'flex', flexDirection: 'column', gap: '0.4rem', alignItems: 'flex-end',
           }}>
-            {/* Building info chip */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '0.3rem',
-              backgroundColor: '#0d1117ee', padding: '0.3rem 0.6rem', borderRadius: '8px',
-              border: `1px solid ${selectedBuildingType.color}40`, backdropFilter: 'blur(10px)',
-            }}>
+            {/* Building info chip — swipe right to dismiss */}
+            <div
+              onTouchStart={(e) => { fabSwipeStart.current = e.touches[0]!.clientX; }}
+              onTouchEnd={(e) => {
+                if (fabSwipeStart.current !== null) {
+                  const dx = e.changedTouches[0]!.clientX - fabSwipeStart.current;
+                  if (dx > 60) { designer.setSelectedBuildingId(null); }
+                  fabSwipeStart.current = null;
+                }
+              }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '0.3rem',
+                backgroundColor: '#0d1117ee', padding: '0.3rem 0.6rem', borderRadius: '8px',
+                border: `1px solid ${selectedBuildingType.color}40`, backdropFilter: 'blur(10px)',
+              }}
+            >
               <span style={{ fontSize: '0.8rem' }}>{selectedBuildingType.icon}</span>
               <span style={{ color: selectedBuildingType.color, fontSize: '0.65rem', fontWeight: '700' }}>{selectedBuildingType.name}</span>
               <span style={{ color: '#4b5563', fontSize: '0.55rem' }}>({selectedBuilding.x},{selectedBuilding.y})</span>
+              <span style={{ color: '#4b556380', fontSize: '0.45rem', marginLeft: '0.2rem' }}>→</span>
             </div>
             <div style={{ display: 'flex', gap: '0.35rem' }}>
               {/* Rename button (only if building supports labels) */}
@@ -1274,8 +1417,8 @@ const AllianceBaseDesigner: React.FC = () => {
         )}
       </div>
 
-      {/* Mobile bottom panel with tabs */}
-      <div style={{ borderTop: '1px solid #1e2a35', backgroundColor: '#0d1117' }}>
+      {/* Mobile bottom panel with tabs — maxHeight + scroll to avoid compressing the map */}
+      <div style={{ borderTop: '1px solid #1e2a35', backgroundColor: '#0d1117', maxHeight: '40vh', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
         {/* Tab bar */}
         <div style={{ display: 'flex', borderBottom: '1px solid #1e2a35' }}>
           {(['buildings', 'nav'] as const).map((tab) => (
@@ -1294,8 +1437,8 @@ const AllianceBaseDesigner: React.FC = () => {
           ))}
         </div>
 
-        {/* Tab content — no scroll, full height */}
-        <div style={{ padding: '0.5rem 0.75rem', paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
+        {/* Tab content — scrollable within constrained panel height */}
+        <div style={{ padding: '0.5rem 0.75rem', paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))', overflowY: 'auto', flex: 1, minHeight: 0 }}>
           {mobilePanelTab === 'buildings' && (
             <BuildingPalette
               selectedToolType={designer.selectedToolType}
@@ -1314,6 +1457,12 @@ const AllianceBaseDesigner: React.FC = () => {
                 <input type="text" value={designer.designName} onChange={(e) => designer.setDesignName(e.target.value)}
                   style={{ width: '100%', padding: '0.25rem 0.4rem', backgroundColor: '#0a0a0a', border: '1px solid #1e2a35', borderRadius: '4px', color: '#e5e7eb', fontSize: '0.7rem', outline: 'none', boxSizing: 'border-box', userSelect: 'text', WebkitUserSelect: 'text' } as React.CSSProperties}
                 />
+              </div>
+              <div style={{ marginTop: '0.75rem', borderTop: '1px solid #1e2a35', paddingTop: '0.5rem' }}>
+                <div style={{ color: '#6b7280', fontSize: '0.6rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.4rem' }}>
+                  {t('baseDesigner.delegates', 'Delegates')}
+                </div>
+                <ToolDelegates />
               </div>
             </div>
           )}

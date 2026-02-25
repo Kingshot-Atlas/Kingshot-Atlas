@@ -89,6 +89,8 @@ const InboxTab: React.FC<InboxTabProps> = ({
   const [addMode, setAddMode] = useState<'individual' | 'group'>('individual');
   const [addForm, setAddForm] = useState({ username: '', player_id: '', from_kingdom: '', power_million: '', tc_level: '', contact_username: '', contact_kingdom: '', player_count: '', note: '' });
   const [addingSaving, setAddingSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ username: '', player_id: '', from_kingdom: '', power_million: '', tc_level: '', contact_username: '', contact_kingdom: '', player_count: '', note: '' });
 
   // Fetch external recruits
   useEffect(() => {
@@ -149,6 +151,56 @@ const InboxTab: React.FC<InboxTabProps> = ({
     const { error } = await supabase.from('external_recruits').delete().eq('id', id);
     if (!error) setExternalRecruits(prev => prev.filter(r => r.id !== id));
   }, [supabase]);
+
+  const startEditRecruit = useCallback((r: ExternalRecruit) => {
+    setEditingId(r.id);
+    setEditForm({
+      username: r.username || '',
+      player_id: r.player_id || '',
+      from_kingdom: r.from_kingdom?.toString() || '',
+      power_million: r.power_million?.toString() || '',
+      tc_level: r.tc_level?.toString() || '',
+      contact_username: r.contact_username || '',
+      contact_kingdom: r.contact_kingdom?.toString() || '',
+      player_count: r.player_count?.toString() || '',
+      note: r.note || '',
+    });
+  }, []);
+
+  const handleSaveEdit = useCallback(async () => {
+    if (!supabase || !editingId || addingSaving) return;
+    setAddingSaving(true);
+    try {
+      const recruit = externalRecruits.find(r => r.id === editingId);
+      if (!recruit) return;
+      const updates: Record<string, unknown> = {};
+      if (recruit.type === 'individual') {
+        if (!editForm.username.trim()) { setAddingSaving(false); return; }
+        updates.username = editForm.username.trim();
+        updates.player_id = editForm.player_id.trim() || null;
+        updates.from_kingdom = editForm.from_kingdom ? parseInt(editForm.from_kingdom) : null;
+        updates.power_million = editForm.power_million ? parseFloat(editForm.power_million) : null;
+        updates.tc_level = editForm.tc_level ? parseInt(editForm.tc_level) : null;
+      } else {
+        if (!editForm.contact_username.trim() || !editForm.player_count) { setAddingSaving(false); return; }
+        updates.contact_username = editForm.contact_username.trim();
+        updates.contact_kingdom = editForm.contact_kingdom ? parseInt(editForm.contact_kingdom) : null;
+        updates.player_count = parseInt(editForm.player_count);
+      }
+      updates.note = editForm.note.trim() || null;
+      const { data, error } = await supabase.from('external_recruits').update(updates).eq('id', editingId).select().single();
+      if (error) {
+        console.error('Failed to update external recruit:', error);
+        return;
+      }
+      if (data) {
+        setExternalRecruits(prev => prev.map(r => r.id === editingId ? (data as ExternalRecruit) : r));
+        setEditingId(null);
+      }
+    } finally {
+      setAddingSaving(false);
+    }
+  }, [supabase, editingId, editForm, addingSaving, externalRecruits]);
 
   const visibleApps = useMemo(() => {
     let apps = [...filteredApps];
@@ -419,32 +471,85 @@ const InboxTab: React.FC<InboxTabProps> = ({
             {externalRecruits.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                 {externalRecruits.map(r => (
-                  <div key={r.id} style={{
-                    display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.5rem',
-                    backgroundColor: r.type === 'group' ? '#a855f706' : 'transparent',
-                    border: `1px solid ${colors.border}`, borderRadius: '6px',
-                  }}>
-                    <span style={{ fontSize: '0.7rem' }}>{r.type === 'group' ? '👥' : '👤'}</span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '0.7rem', color: colors.text, fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {r.type === 'individual' ? r.username : r.contact_username}
-                        {r.type === 'group' && <span style={{ color: '#a855f7', fontWeight: '700', marginLeft: '0.3rem' }}>×{r.player_count}</span>}
-                      </div>
-                      <div style={{ fontSize: '0.55rem', color: colors.textMuted, display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                        {(r.from_kingdom || r.contact_kingdom) && <span>K{r.from_kingdom || r.contact_kingdom}</span>}
-                        {r.power_million && <span>{r.power_million}M</span>}
-                        {r.tc_level && <span>TC{r.tc_level}</span>}
-                        {r.note && <span style={{ color: '#6b7280' }}>• {r.note}</span>}
+                  editingId === r.id ? (
+                    <div key={r.id} style={{
+                      padding: '0.5rem', backgroundColor: '#a855f706',
+                      border: '1px solid #a855f725', borderRadius: '6px',
+                    }}>
+                      {r.type === 'individual' ? (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem' }}>
+                          <input value={editForm.username} onChange={e => setEditForm(p => ({ ...p, username: e.target.value }))} placeholder={t('recruiter.usernamePlaceholder', 'Username *')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px', gridColumn: '1 / -1' }} />
+                          <input value={editForm.from_kingdom} onChange={e => setEditForm(p => ({ ...p, from_kingdom: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.kingdomPlaceholder', 'From Kingdom')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} inputMode="numeric" />
+                          <input value={editForm.player_id} onChange={e => setEditForm(p => ({ ...p, player_id: e.target.value }))} placeholder={t('recruiter.playerIdPlaceholder', 'Player ID')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} />
+                          <input value={editForm.power_million} onChange={e => setEditForm(p => ({ ...p, power_million: e.target.value.replace(/[^0-9.]/g, '') }))} placeholder={t('recruiter.powerPlaceholder', 'Power (M)')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} inputMode="decimal" />
+                          <input value={editForm.tc_level} onChange={e => setEditForm(p => ({ ...p, tc_level: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.tcLevelPlaceholder', 'TC Level')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} inputMode="numeric" />
+                        </div>
+                      ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem' }}>
+                          <input value={editForm.contact_username} onChange={e => setEditForm(p => ({ ...p, contact_username: e.target.value }))} placeholder={t('recruiter.contactNamePlaceholder', 'Contact name *')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px', gridColumn: '1 / -1' }} />
+                          <input value={editForm.contact_kingdom} onChange={e => setEditForm(p => ({ ...p, contact_kingdom: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.kingdomPlaceholder', 'From Kingdom')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} inputMode="numeric" />
+                          <input value={editForm.player_count} onChange={e => setEditForm(p => ({ ...p, player_count: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.playerCountPlaceholder', 'Players *')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} inputMode="numeric" />
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.35rem' }}>
+                        <input value={editForm.note} onChange={e => setEditForm(p => ({ ...p, note: e.target.value }))} placeholder={t('recruiter.notePlaceholder', 'Note (optional)')} maxLength={200} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px', flex: 1 }} />
+                        <button
+                          onClick={handleSaveEdit}
+                          disabled={addingSaving}
+                          style={{
+                            padding: '0.35rem 0.6rem', backgroundColor: '#22c55e15', border: '1px solid #22c55e40',
+                            borderRadius: '6px', color: '#22c55e', fontSize: '0.65rem', fontWeight: '700', cursor: addingSaving ? 'not-allowed' : 'pointer',
+                            opacity: addingSaving ? 0.5 : 1, minHeight: '34px', whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {addingSaving ? '...' : '✓'}
+                        </button>
+                        <button
+                          onClick={() => setEditingId(null)}
+                          style={{
+                            padding: '0.35rem 0.6rem', backgroundColor: '#ef444412', border: '1px solid #ef444430',
+                            borderRadius: '6px', color: '#ef4444', fontSize: '0.65rem', fontWeight: '700', cursor: 'pointer', minHeight: '34px',
+                          }}
+                        >
+                          ✕
+                        </button>
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleDeleteRecruit(r.id)}
-                      style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.7rem', cursor: 'pointer', padding: '0.2rem', opacity: 0.6, flexShrink: 0 }}
-                      title={t('common.delete', 'Delete')}
-                    >
-                      ✕
-                    </button>
-                  </div>
+                  ) : (
+                    <div key={r.id} style={{
+                      display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.5rem',
+                      backgroundColor: r.type === 'group' ? '#a855f706' : 'transparent',
+                      border: `1px solid ${colors.border}`, borderRadius: '6px',
+                    }}>
+                      <span style={{ fontSize: '0.7rem' }}>{r.type === 'group' ? '👥' : '👤'}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: '0.7rem', color: colors.text, fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {r.type === 'individual' ? r.username : r.contact_username}
+                          {r.type === 'group' && <span style={{ color: '#a855f7', fontWeight: '700', marginLeft: '0.3rem' }}>×{r.player_count}</span>}
+                        </div>
+                        <div style={{ fontSize: '0.55rem', color: colors.textMuted, display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                          {(r.from_kingdom || r.contact_kingdom) && <span>K{r.from_kingdom || r.contact_kingdom}</span>}
+                          {r.power_million && <span>{r.power_million}M</span>}
+                          {r.tc_level && <span>TC{r.tc_level}</span>}
+                          {r.note && <span style={{ color: '#6b7280' }}>• {r.note}</span>}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => startEditRecruit(r)}
+                        style={{ background: 'none', border: 'none', color: '#a855f7', fontSize: '0.65rem', cursor: 'pointer', padding: '0.2rem', opacity: 0.6, flexShrink: 0 }}
+                        title={t('common.edit', 'Edit')}
+                      >
+                        ✎
+                      </button>
+                      <button
+                        onClick={() => handleDeleteRecruit(r.id)}
+                        style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.7rem', cursor: 'pointer', padding: '0.2rem', opacity: 0.6, flexShrink: 0 }}
+                        title={t('common.delete', 'Delete')}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )
                 ))}
               </div>
             )}

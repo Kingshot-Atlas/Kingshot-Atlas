@@ -101,7 +101,7 @@ const ApplicationCard: React.FC<{
       if (user) {
         sb.from('message_read_status')
           .upsert({ application_id: application.id, user_id: user.id, last_read_at: new Date().toISOString() }, { onConflict: 'application_id,user_id' })
-          .then(() => {});
+          .then(() => { window.dispatchEvent(new Event('messages-read')); });
       }
     };
     load();
@@ -122,6 +122,12 @@ const ApplicationCard: React.FC<{
         });
         if (row.sender_user_id !== user?.id) {
           try { new Audio('/sounds/message.wav').play().catch(() => {}); } catch {}
+          // Mark as read since user is viewing this conversation
+          if (user && sb) {
+            sb.from('message_read_status')
+              .upsert({ application_id: application.id, user_id: user.id, last_read_at: new Date().toISOString() }, { onConflict: 'application_id,user_id' })
+              .then(() => { window.dispatchEvent(new Event('messages-read')); });
+          }
         }
       })
       .subscribe();
@@ -204,6 +210,10 @@ const ApplicationCard: React.FC<{
       if (!error && data) {
         setMessages(prev => [...prev, data]);
         setMsgText('');
+        // Mark as read when sending (we're viewing the conversation)
+        supabase.from('message_read_status')
+          .upsert({ application_id: application.id, user_id: user.id, last_read_at: new Date().toISOString() }, { onConflict: 'application_id,user_id' })
+          .then(() => { window.dispatchEvent(new Event('messages-read')); });
       }
     } catch (err) {
       logger.error('ApplicationCard: send message failed', err);
@@ -294,7 +304,7 @@ const ApplicationCard: React.FC<{
           </span>
           {lastMessageAt && (
             <span style={{ color: colors.textMuted, fontSize: '0.55rem', flexShrink: 0 }}>
-              {new Date(lastMessageAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+              {new Date(lastMessageAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} {new Date(lastMessageAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
         </div>
@@ -635,7 +645,7 @@ const ApplicationCard: React.FC<{
                         )}
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: isMe ? 'flex-end' : 'flex-start', gap: '0.3rem', marginTop: '0.1rem' }}>
                           <span style={{ color: '#4b5563', fontSize: '0.5rem' }}>
-                            {new Date(msg.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(msg.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} {new Date(msg.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                           </span>
                           {!isMe && (
                             <button

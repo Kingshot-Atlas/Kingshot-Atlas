@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { getBuildingType } from '../config/allianceBuildings';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
 export interface PlacedBuilding {
   id: string;
@@ -14,6 +16,7 @@ export interface BaseDesign {
   name: string;
   buildings: PlacedBuilding[];
   gridSize: number;
+  shareToken?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -25,14 +28,17 @@ const DEFAULT_ZOOM = 12;
 let nextBuildingId = 1;
 const generateId = () => `b_${Date.now()}_${nextBuildingId++}`;
 
-export function useBaseDesigner() {
+export function useBaseDesigner(readOnlyDesign?: BaseDesign | null) {
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
+
   // Isometric viewport: center point in grid coords + zoom (half-cell px size)
   const [centerX, setCenterX] = useState(600);
   const [centerY, setCenterY] = useState(600);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
 
   // Building state
-  const [buildings, setBuildings] = useState<PlacedBuilding[]>([]);
+  const [buildings, setBuildings] = useState<PlacedBuilding[]>(readOnlyDesign?.buildings ?? []);
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
   const [selectedToolType, setSelectedToolType] = useState<string | null>(null);
   const [showLabels, setShowLabels] = useState(true);
@@ -236,40 +242,92 @@ export function useBaseDesigner() {
     setCenterY((y) => Math.max(0, Math.min(1199, y + dgy)));
   }, [zoom]);
 
+  // ─── Cloud + Local persistence helpers ───
+
+  // Save to localStorage as backup
+  const saveToLocal = useCallback((designs: BaseDesign[]) => {
+    try { localStorage.setItem('atlas_base_designs', JSON.stringify(designs)); } catch {}
+  }, []);
+
+  const getLocalDesigns = useCallback((): BaseDesign[] => {
+    try {
+      const saved = localStorage.getItem('atlas_base_designs');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  }, []);
+
   // Save/Load/Export/Import
-  const saveDesign = useCallback((name?: string): { id: string; overwrote: boolean } => {
+  const saveDesign = useCallback(async (name?: string): Promise<{ id: string; overwrote: boolean }> => {
     const saveName = name || designName;
-    const saved = localStorage.getItem('atlas_base_designs');
-    const designs: BaseDesign[] = saved ? JSON.parse(saved) : [];
-    const existingIdx = designs.findIndex((d) => d.name.trim().toLowerCase() === saveName.trim().toLowerCase());
     const now = new Date().toISOString();
-    if (existingIdx >= 0) {
-      const existing = designs[existingIdx]!;
-      existing.buildings = JSON.parse(JSON.stringify(buildings));
-      existing.gridSize = zoom;
-      existing.updatedAt = now;
-      localStorage.setItem('atlas_base_designs', JSON.stringify(designs));
+    const buildingsSnapshot = JSON.parse(JSON.stringify(buildings));
+
+    // Cloud save (preferred)
+    if (supabase && userId) {
+      const { data: existing } = await supabase
+        .from('base_designs')
+        .select('id')
+        .eq('user_id', userId)
+        .ilike('name', saveName.trim())
+        .maybeSingle();
+
+      if (existing) {
+        await supabase.from('base_designs').update({
+          buildings: buildingsSnapshot, grid_size: zoom, updated_at: now,
+        }).eq('id', existing.id);
+        setIsDirty(false);
+        return { id: existing.id, overwrote: true };
+      }
+
+      const { data: inserted } = await supabase.from('base_designs').insert({
+        user_id: userId, name: saveName, buildings: buildingsSnapshot,
+        grid_size: zoom, created_at: now, updated_at: now,
+      }).select('id').single();
+
       setIsDirty(false);
-      return { id: existing.id, overwrote: true };
+      return { id: inserted?.id ?? `design_${Date.now()}`, overwrote: false };
+    }
+
+    // Fallback: localStorage
+    const designs = getLocalDesigns();
+    const existingIdx = designs.findIndex((d) => d.name.trim().toLowerCase() === saveName.trim().toLowerCase());
+    if (existingIdx >= 0) {
+      const ex = designs[existingIdx]!;
+      ex.buildings = buildingsSnapshot;
+      ex.gridSize = zoom;
+      ex.updatedAt = now;
+      saveToLocal(designs);
+      setIsDirty(false);
+      return { id: ex.id, overwrote: true };
     }
     const design: BaseDesign = {
-      id: `design_${Date.now()}`,
-      name: saveName,
-      buildings: JSON.parse(JSON.stringify(buildings)),
-      gridSize: zoom,
-      createdAt: now,
-      updatedAt: now,
+      id: `design_${Date.now()}`, name: saveName, buildings: buildingsSnapshot,
+      gridSize: zoom, createdAt: now, updatedAt: now,
     };
     designs.push(design);
-    localStorage.setItem('atlas_base_designs', JSON.stringify(designs));
+    saveToLocal(designs);
     setIsDirty(false);
     return { id: design.id, overwrote: false };
-  }, [buildings, designName, zoom]);
+  }, [buildings, designName, zoom, userId, getLocalDesigns, saveToLocal]);
 
-  const loadDesign = useCallback((designId: string): boolean => {
-    const saved = localStorage.getItem('atlas_base_designs');
-    if (!saved) return false;
-    const designs: BaseDesign[] = JSON.parse(saved);
+  const loadDesign = useCallback(async (designId: string): Promise<boolean> => {
+    // Cloud load
+    if (supabase && userId) {
+      const { data } = await supabase
+        .from('base_designs')
+        .select('*')
+        .eq('id', designId)
+        .single();
+      if (data) {
+        setBuildings(data.buildings as PlacedBuilding[]);
+        setDesignName(data.name);
+        pushHistory(data.buildings as PlacedBuilding[]);
+        setIsDirty(false);
+        return true;
+      }
+    }
+    // Fallback: localStorage
+    const designs = getLocalDesigns();
     const design = designs.find((d) => d.id === designId);
     if (!design) return false;
     setBuildings(design.buildings);
@@ -277,21 +335,60 @@ export function useBaseDesigner() {
     pushHistory(design.buildings);
     setIsDirty(false);
     return true;
-  }, [pushHistory]);
+  }, [pushHistory, userId, getLocalDesigns]);
 
-  const getSavedDesigns = useCallback((): BaseDesign[] => {
-    const saved = localStorage.getItem('atlas_base_designs');
-    return saved ? JSON.parse(saved) : [];
-  }, []);
+  const getSavedDesigns = useCallback(async (): Promise<BaseDesign[]> => {
+    if (supabase && userId) {
+      const { data } = await supabase
+        .from('base_designs')
+        .select('id, name, buildings, grid_size, share_token, created_at, updated_at')
+        .eq('user_id', userId)
+        .order('updated_at', { ascending: false });
+      if (data) {
+        return data.map((d: Record<string, unknown>) => ({
+          id: d.id as string,
+          name: d.name as string,
+          buildings: d.buildings as PlacedBuilding[],
+          gridSize: d.grid_size as number,
+          shareToken: d.share_token as string | undefined,
+          createdAt: d.created_at as string,
+          updatedAt: d.updated_at as string,
+        }));
+      }
+    }
+    return getLocalDesigns();
+  }, [userId, getLocalDesigns]);
 
-  const deleteDesign = useCallback((designId: string): BaseDesign[] => {
-    const saved = localStorage.getItem('atlas_base_designs');
-    if (!saved) return [];
-    const designs: BaseDesign[] = JSON.parse(saved);
-    const updated = designs.filter((d) => d.id !== designId);
-    localStorage.setItem('atlas_base_designs', JSON.stringify(updated));
-    return updated;
-  }, []);
+  const deleteDesign = useCallback(async (designId: string): Promise<BaseDesign[]> => {
+    if (supabase && userId) {
+      await supabase.from('base_designs').delete().eq('id', designId).eq('user_id', userId);
+      return getSavedDesigns();
+    }
+    const designs = getLocalDesigns().filter((d) => d.id !== designId);
+    saveToLocal(designs);
+    return designs;
+  }, [userId, getLocalDesigns, saveToLocal, getSavedDesigns]);
+
+  // Generate or retrieve share link for a design
+  const getShareToken = useCallback(async (designId: string): Promise<string | null> => {
+    if (!supabase || !userId) return null;
+    // Check existing token
+    const { data: existing } = await supabase
+      .from('base_designs')
+      .select('share_token')
+      .eq('id', designId)
+      .eq('user_id', userId)
+      .single();
+    if (existing?.share_token) return existing.share_token;
+    // Generate new token
+    const token = crypto.randomUUID().replace(/-/g, '').slice(0, 12);
+    const { error } = await supabase
+      .from('base_designs')
+      .update({ share_token: token })
+      .eq('id', designId)
+      .eq('user_id', userId);
+    return error ? null : token;
+  }, [userId]);
 
   const exportDesign = useCallback((): string => {
     return JSON.stringify({
@@ -317,35 +414,71 @@ export function useBaseDesigner() {
     return acc;
   }, {});
 
-  // Auto-persist session to localStorage
+  // Auto-persist session to localStorage + cloud restore on mount
   const isRestoredRef = useRef(false);
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('atlas_base_designer_session');
-      if (saved) {
-        const s = JSON.parse(saved);
-        if (s.buildings?.length > 0) {
-          setBuildings(s.buildings);
-          historyRef.current = [s.buildings];
-          historyIndexRef.current = 0;
-        }
-        if (s.designName) setDesignName(s.designName);
-        if (s.centerX != null) setCenterX(s.centerX);
-        if (s.centerY != null) setCenterY(s.centerY);
-        if (s.zoom != null) setZoom(s.zoom);
-        if (s.showLabels != null) setShowLabels(s.showLabels);
+    if (readOnlyDesign) { isRestoredRef.current = true; return; }
+    let cancelled = false;
+    const restore = async () => {
+      // Try cloud restore first (for cross-device sync)
+      if (supabase && userId) {
+        try {
+          const { data } = await supabase
+            .from('base_designs')
+            .select('name, buildings, grid_size, updated_at')
+            .eq('user_id', userId)
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (!cancelled && data && (data.buildings as PlacedBuilding[]).length > 0) {
+            const localSession = localStorage.getItem('atlas_base_designer_session');
+            const localTime = localSession ? JSON.parse(localSession).savedAt : null;
+            // Use cloud if newer or no local session
+            if (!localTime || new Date(data.updated_at) >= new Date(localTime)) {
+              setBuildings(data.buildings as PlacedBuilding[]);
+              setDesignName(data.name);
+              if (data.grid_size) setZoom(data.grid_size as number);
+              historyRef.current = [data.buildings as PlacedBuilding[]];
+              historyIndexRef.current = 0;
+              isRestoredRef.current = true;
+              return;
+            }
+          }
+        } catch {}
       }
-    } catch {}
-    // Delay enabling auto-save so restored state doesn't trigger a save of defaults
-    const t = setTimeout(() => { isRestoredRef.current = true; }, 200);
-    return () => clearTimeout(t);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+      // Fallback: restore from localStorage
+      if (!cancelled) {
+        try {
+          const saved = localStorage.getItem('atlas_base_designer_session');
+          if (saved) {
+            const s = JSON.parse(saved);
+            if (s.buildings?.length > 0) {
+              setBuildings(s.buildings);
+              historyRef.current = [s.buildings];
+              historyIndexRef.current = 0;
+            }
+            if (s.designName) setDesignName(s.designName);
+            if (s.centerX != null) setCenterX(s.centerX);
+            if (s.centerY != null) setCenterY(s.centerY);
+            if (s.zoom != null) setZoom(s.zoom);
+            if (s.showLabels != null) setShowLabels(s.showLabels);
+          }
+        } catch {}
+      }
+    };
+    restore().finally(() => {
+      if (!cancelled) {
+        setTimeout(() => { isRestoredRef.current = true; }, 200);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!isRestoredRef.current) return;
     try {
       localStorage.setItem('atlas_base_designer_session', JSON.stringify({
-        buildings, designName, centerX, centerY, zoom, showLabels,
+        buildings, designName, centerX, centerY, zoom, showLabels, savedAt: new Date().toISOString(),
       }));
     } catch {}
   }, [buildings, designName, centerX, centerY, zoom, showLabels]);
@@ -401,6 +534,6 @@ export function useBaseDesigner() {
     // Design
     designName, setDesignName, isDirty,
     saveDesign, loadDesign, getSavedDesigns, deleteDesign,
-    exportDesign, importDesign,
+    exportDesign, importDesign, getShareToken,
   };
 }

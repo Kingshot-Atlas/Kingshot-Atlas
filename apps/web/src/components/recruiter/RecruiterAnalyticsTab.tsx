@@ -286,23 +286,40 @@ const RecruiterAnalyticsTab: React.FC<RecruiterAnalyticsTabProps> = ({ editorInf
           padding: '0.75rem',
         }}>
           <span style={{ color: colors.textSecondary, fontSize: '0.65rem', fontWeight: '600' }}>Applications per Week</span>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.25rem', marginTop: '0.5rem', height: '60px' }}>
-            {analytics.applicationsByWeek.map(w => (
-              <div
-                key={w.week}
-                title={`Week of ${w.week}: ${w.count} application${w.count !== 1 ? 's' : ''}`}
-                style={{
-                  flex: 1,
-                  height: `${Math.max((w.count / maxWeekCount) * 100, 4)}%`,
-                  backgroundColor: '#22d3ee',
-                  borderRadius: '3px 3px 0 0',
-                  opacity: 0.7,
-                  minHeight: '3px',
-                }}
-              />
-            ))}
+          <div style={{ display: 'flex', marginTop: '0.5rem', gap: '0.25rem' }}>
+            {/* Y-axis labels */}
+            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '60px', alignItems: 'flex-end', paddingRight: '0.25rem', flexShrink: 0 }}>
+              <span style={{ color: colors.textMuted, fontSize: '0.45rem', lineHeight: 1 }}>{maxWeekCount}</span>
+              <span style={{ color: colors.textMuted, fontSize: '0.45rem', lineHeight: 1 }}>{Math.round(maxWeekCount / 2)}</span>
+              <span style={{ color: colors.textMuted, fontSize: '0.45rem', lineHeight: 1 }}>0</span>
+            </div>
+            {/* Bars */}
+            <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', gap: '0.25rem', height: '60px' }}>
+              {analytics.applicationsByWeek.map(w => (
+                <div
+                  key={w.week}
+                  title={`Week of ${w.week}: ${w.count} application${w.count !== 1 ? 's' : ''}`}
+                  style={{
+                    flex: 1,
+                    height: `${Math.max((w.count / maxWeekCount) * 100, 4)}%`,
+                    backgroundColor: '#22d3ee',
+                    borderRadius: '3px 3px 0 0',
+                    opacity: 0.7,
+                    minHeight: '3px',
+                    position: 'relative',
+                  }}
+                >
+                  {w.count > 0 && (
+                    <span style={{
+                      position: 'absolute', top: '-0.7rem', left: '50%', transform: 'translateX(-50%)',
+                      color: '#22d3ee', fontSize: '0.45rem', fontWeight: '700', whiteSpace: 'nowrap',
+                    }}>{w.count}</span>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.2rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.2rem', paddingLeft: '1.5rem' }}>
             <span style={{ color: colors.textMuted, fontSize: '0.5rem' }}>
               {analytics.applicationsByWeek[0]?.week}
             </span>

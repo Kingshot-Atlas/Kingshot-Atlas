@@ -287,6 +287,8 @@ const Messages: React.FC = () => {
       setConversations(prev => prev.map(c =>
         c.application_id === activeConvo ? { ...c, unread_count: 0 } : c
       ));
+      // Signal header badge to refresh
+      window.dispatchEvent(new Event('messages-read'));
       if (!cancelled) setLoadingMessages(false);
     };
     load();
@@ -307,7 +309,7 @@ const Messages: React.FC = () => {
         // Mark as read immediately since we're viewing
         sb.from('message_read_status')
           .upsert({ application_id: activeConvo, user_id: user.id, last_read_at: new Date().toISOString() }, { onConflict: 'application_id,user_id' })
-          .then(() => {});
+          .then(() => { window.dispatchEvent(new Event('messages-read')); });
       })
       .subscribe();
 
@@ -346,6 +348,10 @@ const Messages: React.FC = () => {
             ? { ...c, last_message: data.message, last_message_at: data.created_at, last_sender_id: data.sender_user_id }
             : c
         ));
+        // Mark as read when sending (we're clearly viewing the conversation)
+        supabase.from('message_read_status')
+          .upsert({ application_id: activeConvo, user_id: user.id, last_read_at: new Date().toISOString() }, { onConflict: 'application_id,user_id' })
+          .then(() => { window.dispatchEvent(new Event('messages-read')); });
       }
     } catch (err) {
       logger.error('Messages: send failed', err);
@@ -365,6 +371,7 @@ const Messages: React.FC = () => {
         .upsert({ application_id: c.application_id, user_id: user.id, last_read_at: new Date().toISOString() }, { onConflict: 'application_id,user_id' });
     }
     setConversations(prev => prev.map(c => ({ ...c, unread_count: 0 })));
+    window.dispatchEvent(new Event('messages-read'));
   };
 
   // ─── Subscribe to new messages across all conversations ─────
@@ -750,7 +757,7 @@ const Messages: React.FC = () => {
                                 gap: '0.3rem', marginTop: '0.1rem',
                               }}>
                                 <span style={{ color: '#4b5563', fontSize: '0.5rem' }}>
-                                  {new Date(msg.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                  {(() => { const d = new Date(msg.created_at); const now = new Date(); const isToday = d.toDateString() === now.toDateString(); const yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1); const isYesterday = d.toDateString() === yesterday.toDateString(); const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }); if (isToday) return time; if (isYesterday) return `Yesterday ${time}`; return `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${time}`; })()}
                                 </span>
                                 {isMe && (
                                   <span style={{ color: otherReadAt && new Date(otherReadAt) >= new Date(msg.created_at) ? '#3b82f6' : '#4b5563', fontSize: '0.5rem', fontWeight: 600 }}>

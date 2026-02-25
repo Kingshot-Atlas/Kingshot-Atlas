@@ -303,9 +303,10 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
     }
   };
 
-  const avgRating = reviews.length > 0 
-    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+  const avgRating = reviewStats && reviewStats.totalReviews > 0
+    ? reviewStats.avgRating.toFixed(1)
     : null;
+  const totalReviewCount = reviewStats?.totalReviews ?? reviews.length;
 
   if (compact) {
     return (
@@ -314,7 +315,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
         {avgRating ? (
           <>
             <span style={{ color: '#fbbf24' }}>{'★'.repeat(Math.round(Number(avgRating)))}</span>
-            <span style={{ color: colors.textSecondary }}>({reviews.length})</span>
+            <span style={{ color: colors.textSecondary }}>({totalReviewCount})</span>
           </>
         ) : (
           <span style={{ color: '#4a4a4a' }}>{t('reviews.noReviewsYet', 'No reviews yet')}</span>
@@ -335,7 +336,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
           {t('reviews.communityReviews', 'Community Reviews')}
           {avgRating && (
             <span style={{ marginLeft: '0.75rem', fontSize: '0.85rem', color: '#fbbf24' }}>
-              ★ {avgRating} ({reviews.length})
+              ★ {avgRating} ({totalReviewCount})
             </span>
           )}
         </h3>

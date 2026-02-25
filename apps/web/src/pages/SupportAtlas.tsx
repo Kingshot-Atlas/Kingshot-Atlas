@@ -52,6 +52,7 @@ const SupportAtlas: React.FC = () => {
     { icon: '🎛️', text: t('support.perk10Title', 'Atlas Bot Dashboard'), desc: t('support.perk10Desc', 'Your command center. Configure reminders, gift code alerts, and manage multiple servers — all from one screen.') },
     { icon: '🎙️', text: t('support.perk5Title', 'Exclusive Discord Channel'), desc: t('support.perk5Desc', 'Access to supporter-only discussions and early previews') },
     { icon: '🚀', text: t('support.perk6Title', 'Early Access'), desc: t('support.perk6Desc', 'First to try new features before public release') },
+    { icon: '🏰', text: t('support.perk11Title', 'Alliance Base Designer'), desc: t('support.perk11Desc', 'Plan your alliance fortress layout before you build. Drag, place, and optimize — no wasted speedups.') },
   ];
 
   const handleStripeCheckout = () => {
