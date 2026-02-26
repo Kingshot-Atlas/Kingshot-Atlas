@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { supabase } from '../lib/supabase';
+import { registerChannel, unregisterChannel } from '../lib/realtimeGuard';
 import { FONT_DISPLAY } from '../utils/styles';
 import { useToast } from './Toast';
 import { useAnalytics } from '../hooks/useAnalytics';
@@ -776,8 +777,10 @@ const EditorClaiming: React.FC<{
   useEffect(() => {
     if (!supabase || !user || !myClaim || myClaim.status !== 'pending') return;
     const sb = supabase;
+    const claimChName = `editor-claim-${myClaim.id}`;
+    if (!registerChannel(claimChName)) return;
     const channel = sb
-      .channel(`editor-claim-${myClaim.id}`)
+      .channel(claimChName)
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
@@ -802,7 +805,7 @@ const EditorClaiming: React.FC<{
         }
       })
       .subscribe();
-    return () => { sb.removeChannel(channel); };
+    return () => { sb.removeChannel(channel); unregisterChannel(claimChName); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [myClaim?.id, myClaim?.status]);
 

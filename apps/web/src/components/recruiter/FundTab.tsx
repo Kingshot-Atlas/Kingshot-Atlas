@@ -155,16 +155,15 @@ const FundTab: React.FC<FundTabProps> = ({ fund, editorInfo }) => {
             const features: { label: string; minTier: string }[] = [
               { label: t('transferHubLanding.cmpBasicListing', 'Basic listing with Atlas Score & stats'), minTier: 'standard' },
               { label: t('transferHubLanding.cmpReviews', 'Community reviews from players'), minTier: 'standard' },
+              { label: t('transferHubLanding.cmpBioLang', 'Kingdom Bio & Language display'), minTier: 'standard' },
               { label: t('transferHubLanding.cmpMinReqs', 'Min TC & Power requirements shown'), minTier: 'bronze' },
-              { label: t('transferHubLanding.cmpBrowseProfiles', 'Browse transferee profiles'), minTier: 'bronze' },
+              { label: t('transferHubLanding.cmpBrowseProfiles', 'Browse recruit candidates'), minTier: 'bronze' },
               { label: t('transferHubLanding.cmpVibeTags', 'Kingdom Policies & Vibe tags'), minTier: 'bronze' },
-              { label: t('transferHubLanding.cmpInvites', 'Send invites to transferees'), minTier: 'silver' },
-              { label: t('transferHubLanding.cmpBioLang', 'Kingdom Bio & Language display'), minTier: 'silver' },
-              { label: t('transferHubLanding.cmpAlliance', 'Alliance Information schedule'), minTier: 'silver' },
-              { label: t('transferHubLanding.cmpSlots', '+2 alliance slots (5 total)'), minTier: 'gold' },
+              { label: t('transferHubLanding.cmpInvites', 'Send invites to recruit candidates'), minTier: 'silver' },
+              { label: t('transferHubLanding.cmpAlliance', 'Alliance Information & Schedules'), minTier: 'silver' },
+              { label: t('transferHubLanding.cmpPrepScheduler', 'KvK Prep Scheduler access'), minTier: 'silver' },
               { label: t('transferHubLanding.cmpBadge', 'Gilded badge for all kingdom users'), minTier: 'gold' },
               { label: t('transferHubLanding.cmpGlow', 'Gold glow + priority placement'), minTier: 'gold' },
-              { label: t('transferHubLanding.cmpPrepScheduler', 'KvK Prep Scheduler access'), minTier: 'gold' },
               { label: t('transferHubLanding.cmpBattlePlanner', 'KvK Battle Planner access'), minTier: 'gold' },
             ];
             const tierOrder = ['standard', 'bronze', 'silver', 'gold'];
@@ -218,7 +217,7 @@ const FundTab: React.FC<FundTabProps> = ({ fund, editorInfo }) => {
                 const url = `${window.location.origin}/transfer-hub?kingdom=${editorInfo.kingdom_number}${refParam}`;
                 navigator.clipboard.writeText(url).then(() => {
                   trackFeature('Listing Link Copied', { kingdom: editorInfo.kingdom_number, hasReferral: !!refParam });
-                  showToast(t('recruiter.listingLinkCopied', 'Listing link copied! Share to recruit transferees.'), 'success');
+                  showToast(t('recruiter.listingLinkCopied', 'Listing link copied! Share to find recruit candidates.'), 'success');
                 });
               }}
               style={{

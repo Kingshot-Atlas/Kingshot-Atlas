@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
+import { registerChannel, unregisterChannel } from '../lib/realtimeGuard';
 import { colors, neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { logger } from '../utils/logger';
@@ -210,8 +211,10 @@ const Messages: React.FC = () => {
     };
     fetchReadStatus();
     // Subscribe to read status changes from other party
+    const rsName = `read-status-${activeConvo}`;
+    if (!registerChannel(rsName)) return;
     const channel = sb
-      .channel(`read-status-${activeConvo}`)
+      .channel(rsName)
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'message_read_status',
         filter: `application_id=eq.${activeConvo}`,
@@ -220,14 +223,16 @@ const Messages: React.FC = () => {
         if (row.user_id !== user.id) setOtherReadAt(row.last_read_at);
       })
       .subscribe();
-    return () => { cancelled = true; sb.removeChannel(channel); };
+    return () => { cancelled = true; sb.removeChannel(channel); unregisterChannel(rsName); };
   }, [activeConvo, user, conversations]);
 
   // ─── Typing indicator via Supabase broadcast ───────────────
   useEffect(() => {
     if (!activeConvo || !supabase || !user) { setOtherTyping(false); return; }
     const sb = supabase;
-    const channel = sb.channel(`typing-${activeConvo}`, { config: { broadcast: { self: false } } });
+    const typChName = `typing-${activeConvo}`;
+    if (!registerChannel(typChName)) return;
+    const channel = sb.channel(typChName, { config: { broadcast: { self: false } } });
     channel.on('broadcast', { event: 'typing' }, (payload) => {
       if (payload.payload?.user_id !== user.id) {
         setOtherTyping(true);
@@ -237,6 +242,7 @@ const Messages: React.FC = () => {
     }).subscribe();
     return () => {
       sb.removeChannel(channel);
+      unregisterChannel(typChName);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       setOtherTyping(false);
     };
@@ -294,8 +300,10 @@ const Messages: React.FC = () => {
     load();
 
     // Real-time subscription
+    const msgChName = `msg-page-${activeConvo}`;
+    if (!registerChannel(msgChName)) { if (!cancelled) setLoadingMessages(false); return; }
     const channel = sb
-      .channel(`msg-page-${activeConvo}`)
+      .channel(msgChName)
       .on('postgres_changes', {
         event: 'INSERT', schema: 'public', table: 'application_messages',
         filter: `application_id=eq.${activeConvo}`,
@@ -313,7 +321,7 @@ const Messages: React.FC = () => {
       })
       .subscribe();
 
-    return () => { cancelled = true; sb.removeChannel(channel); };
+    return () => { cancelled = true; sb.removeChannel(channel); unregisterChannel(msgChName); };
   }, [activeConvo, user]);
 
   // Auto-scroll
@@ -380,8 +388,10 @@ const Messages: React.FC = () => {
     const sb = supabase;
     const appIds = conversations.map(c => c.application_id);
     const channels = appIds.map(appId => {
+      const listChName = `msg-list-${appId}`;
+      if (!registerChannel(listChName)) return null;
       return sb
-        .channel(`msg-list-${appId}`)
+        .channel(listChName)
         .on('postgres_changes', {
           event: 'INSERT', schema: 'public', table: 'application_messages',
           filter: `application_id=eq.${appId}`,
@@ -401,7 +411,7 @@ const Messages: React.FC = () => {
         })
         .subscribe();
     });
-    return () => { channels.forEach(ch => sb.removeChannel(ch)); };
+    return () => { channels.filter(Boolean).forEach(ch => { sb.removeChannel(ch!); }); appIds.forEach(id => unregisterChannel(`msg-list-${id}`)); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, conversations.length, activeConvo]);
 
@@ -620,7 +630,7 @@ const Messages: React.FC = () => {
                             fontWeight: '600',
                             textTransform: 'uppercase',
                           }}>
-                            {convo.role === 'recruiter' ? t('messages.recruiter', 'Recruiter') : t('messages.transferee', 'Transferee')}
+                            {convo.role === 'recruiter' ? t('messages.recruiter', 'Recruiter') : t('messages.transferee', 'Recruit Candidate')}
                           </span>
                         </div>
                         {convo.last_message && (

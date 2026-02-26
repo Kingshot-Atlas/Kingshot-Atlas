@@ -413,7 +413,7 @@ const LeaderboardTab: React.FC<{ campaign: Campaign }> = ({ campaign }) => {
                 <div style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
                   {k.tickets}/{campaign.min_settlers} settlers
                 </div>
-                <span style={{ color: '#6b7280', fontSize: '0.8rem', textAlign: 'right' }}>
+                <span style={{ color: '#6b7280', fontSize: '0.8rem', textAlign: 'right', whiteSpace: 'nowrap' }}>
                   {k.atlas_users} Atlas users
                 </span>
               </div>

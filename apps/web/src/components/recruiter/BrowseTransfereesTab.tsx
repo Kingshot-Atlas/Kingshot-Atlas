@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { supabase } from '../../lib/supabase';
+import { registerChannel, unregisterChannel } from '../../lib/realtimeGuard';
 import { colors } from '../../utils/styles';
 import { logger } from '../../utils/logger';
 import { useToast } from '../Toast';
@@ -109,6 +110,7 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
   useEffect(() => {
     if (!supabase) return;
     const sb = supabase;
+    if (!registerChannel('browse-transferees')) return;
     const channel = sb
       .channel('browse-transferees')
       .on('postgres_changes', {
@@ -119,7 +121,7 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
         queryClient.invalidateQueries({ queryKey: browseKeys.all });
       })
       .subscribe();
-    return () => { sb.removeChannel(channel); };
+    return () => { sb.removeChannel(channel); unregisterChannel('browse-transferees'); };
   }, [kingdomNumber, queryClient]);
 
   const saveToWatchlist = async (tp: TransfereeProfile) => {
@@ -297,7 +299,7 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
         const hasActiveFilters = !!(browseFilters.minTc || browseFilters.minPower || browseFilters.language);
 
         if (loadingTransferees) return (
-          <div style={{ textAlign: 'center', padding: '2rem 0', color: '#6b7280' }}>{t('recruiter.loadingTransferees', 'Loading transferees...')}</div>
+          <div style={{ textAlign: 'center', padding: '2rem 0', color: '#6b7280' }}>{t('recruiter.loadingTransferees', 'Loading recruit candidates...')}</div>
         );
         if (transferees.length === 0) return (
           <div style={{
@@ -309,7 +311,7 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
               {hasActiveFilters ? '🔍' : '📭'}
             </div>
             <p style={{ color: '#d1d5db', fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.3rem' }}>
-              {hasActiveFilters ? t('recruiter.noTransfereesMatch', 'No transferees match your filters') : t('recruiter.noActiveProfiles', 'No active transfer profiles yet')}
+              {hasActiveFilters ? t('recruiter.noTransfereesMatch', 'No recruit candidates match your filters') : t('recruiter.noActiveProfiles', 'No active transfer profiles yet')}
             </p>
             <p style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: hasActiveFilters ? '0.75rem' : 0 }}>
               {hasActiveFilters
@@ -334,7 +336,7 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
 
         return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>{transferees.length} transferee{transferees.length !== 1 ? 's' : ''}{browseFilters.minTc || browseFilters.minPower || browseFilters.language ? ' (filtered)' : ''}</span>
+          <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>{transferees.length} recruit candidate{transferees.length !== 1 ? 's' : ''}{browseFilters.minTc || browseFilters.minPower || browseFilters.language ? ' (filtered)' : ''}</span>
           {transferees.map((tp: TransfereeProfile) => {
             const isAnon = tp.is_anonymous as boolean;
             const canSeeDetails = fund && ['bronze', 'silver', 'gold'].includes(fund.tier);

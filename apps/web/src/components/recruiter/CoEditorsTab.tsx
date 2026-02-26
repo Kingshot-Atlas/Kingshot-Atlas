@@ -409,7 +409,7 @@ const CoEditorsTab: React.FC<CoEditorsTabProps> = ({ editorInfo, team, onReloadD
         <div style={{ padding: '0.75rem', backgroundColor: colors.surface, borderRadius: '10px', border: '1px solid #a855f720' }}>
           <span style={{ color: '#a855f7', fontSize: '0.8rem', fontWeight: '600' }}>{t('recruiter.inviteCoEditor', 'Invite Co-Editor')}</span>
           <p style={{ color: colors.textMuted, fontSize: '0.7rem', margin: '0.25rem 0 0.5rem 0' }}>
-            {t('recruiter.inviteCoEditorDesc', 'Enter the player ID of a linked kingdom member (TC20+) to add as co-editor. Co-editors can manage applications, browse transferees, and update the kingdom profile.')}
+            {t('recruiter.inviteCoEditorDesc', 'Enter the player ID of a linked kingdom member (TC20+) to add as co-editor. Co-editors can manage applications, browse recruit candidates, and update the kingdom profile.')}
           </p>
           <div style={{ display: 'flex', gap: '0.4rem' }}>
             <input

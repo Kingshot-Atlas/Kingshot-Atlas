@@ -9,7 +9,7 @@
  * Global/unauthenticated realtime is BANNED — use React Query polling instead.
  */
 
-const MAX_REALTIME_CHANNELS = 4; // Hard cap per browser tab
+const MAX_REALTIME_CHANNELS = 12; // Hard cap per browser tab (Messages page needs ~5-8)
 const activeChannels = new Set<string>();
 
 /**

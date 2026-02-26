@@ -182,7 +182,7 @@ const NotificationPreferences: React.FC = () => {
           <ToggleItem
             icon="💬"
             label="Messages"
-            description="Get notified when you receive a new message from a recruiter or transferee"
+            description="Get notified when you receive a new message from a recruiter or recruit candidate"
             enabled={preferences.message_notifications}
             onChange={(v) => handleChange('message_notifications', v)}
             isMobile={isMobile}

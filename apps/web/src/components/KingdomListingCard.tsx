@@ -371,8 +371,8 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                     </div>
                     <div style={{ color: '#6b7280', lineHeight: 1.8, display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
                       <div>🥉 <span style={{ color: colors.bronze }}>Bronze $25+</span> — {t('listing.bronzePerks', 'Shimmer border · requirements · vibes')}</div>
-                      <div>🥈 <span style={{ color: '#d1d5db' }}>Silver $50+</span> — {t('listing.silverPerks', '+ Silver glow · bio · alliance info')}</div>
-                      <div>🥇 <span style={{ color: colors.gold }}>Gold $100+</span> — {t('listing.goldPerksV2', '+ Gilded badge · +2 slots · priority')}</div>
+                      <div>🥈 <span style={{ color: '#d1d5db' }}>Silver $50+</span> — {t('listing.silverPerks', '+ Invites · alliance schedules · prep scheduler')}</div>
+                      <div>🥇 <span style={{ color: colors.gold }}>Gold $100+</span> — {t('listing.goldPerks', '+ Gilded badge · battle planner · priority')}</div>
                     </div>
                   </div>
                 }
@@ -805,9 +805,9 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                 flex: 1,
               }}>
                 <div style={{ fontSize: '0.5rem', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.15rem', textAlign: 'center' }}>
-                  📝 {t('listing.kingdomBio', 'Kingdom Bio')} 📝 {!(isSilver || isGold) && <span style={{ color: '#c0c0c0', fontSize: '0.45rem', fontWeight: 'normal', textTransform: 'none' }}>(Silver+)</span>}
+                  📝 {t('listing.kingdomBio', 'Kingdom Bio')} 📝
                 </div>
-                {(isSilver || isGold) && fund?.recruitment_pitch ? (
+                {fund?.recruitment_pitch ? (
                   <p style={{
                     color: '#e5e7eb',
                     fontSize: '0.8rem',
@@ -818,13 +818,9 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                   }}>
                     &ldquo;{fund.recruitment_pitch}&rdquo;
                   </p>
-                ) : (isSilver || isGold) ? (
-                  <div style={{ fontSize: '0.7rem', color: colors.textMuted, fontStyle: 'italic' }}>
-                    {t('listing.bioNotSet', 'Not set — add a bio in the Recruiter Dashboard (max 150 chars)')}
-                  </div>
                 ) : (
                   <div style={{ fontSize: '0.7rem', color: colors.textMuted, fontStyle: 'italic' }}>
-                    {t('listing.upgradeForBio', 'Upgrade to Silver to add a kingdom bio')}
+                    {t('listing.bioNotSet', 'Not set — add a bio in the Recruiter Dashboard (max 150 chars)')}
                   </div>
                 )}
               </div>

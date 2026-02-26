@@ -48,7 +48,7 @@ const PrepSchedulerLanding: React.FC = () => {
       num: '1',
       icon: '�',
       title: t('prepLanding.step1', 'Create a Schedule'),
-      desc: t('prepLanding.step1Desc', 'An Editor, Co-Editor, or Prep Manager creates a Prep Schedule for their Gold Tier kingdom and sets an optional submission deadline.'),
+      desc: t('prepLanding.step1Desc', 'An Editor, Co-Editor, or Prep Manager creates a Prep Schedule for their Silver+ Tier kingdom and sets an optional submission deadline.'),
     },
     {
       num: '2',
@@ -96,7 +96,7 @@ const PrepSchedulerLanding: React.FC = () => {
             color: '#9ca3af', fontSize: isMobile ? '0.95rem' : '1.1rem',
             maxWidth: '520px', margin: '0 auto 0.5rem', lineHeight: 1.6,
           }}>
-            {t('prepLanding.heroSubtitle', 'Your Gold Tier kingdom earned elite tools. Stop losing Prep Phase points to disorganized buff scheduling — Atlas turns chaos into a precision-timed machine that maximizes every 30-minute slot.')}
+            {t('prepLanding.heroSubtitle', 'Your Silver+ Tier kingdom earned elite tools. Stop losing Prep Phase points to disorganized buff scheduling — Atlas turns chaos into a precision-timed machine that maximizes every 30-minute slot.')}
           </p>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
@@ -104,11 +104,11 @@ const PrepSchedulerLanding: React.FC = () => {
             border: '1px solid #ffc30b30', borderRadius: '20px', marginBottom: '0.5rem',
           }}>
             <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#ffc30b' }}>
-              👑 {t('prepLanding.goldTierBadge', 'GOLD TIER KINGDOM FEATURE')}
+              🥈 {t('prepLanding.silverPlusTierBadge', 'SILVER+ TIER KINGDOM FEATURE')}
             </span>
           </div>
           <p style={{ color: '#6b7280', fontSize: '0.75rem', maxWidth: '400px', margin: '0 auto 1.25rem', lineHeight: 1.5 }}>
-            {t('prepLanding.goldTierNote', 'Reach Gold Tier through the Kingdom Fund to unlock this and other premium kingdom tools.')}
+            {t('prepLanding.silverPlusTierNote', 'Reach Silver Tier ($50+) through the Kingdom Fund to unlock this and other premium kingdom tools.')}
           </p>
 
           {/* CTA */}
@@ -132,7 +132,7 @@ const PrepSchedulerLanding: React.FC = () => {
             </Link>
           </div>
           <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.75rem' }}>
-            {t('prepLanding.ctaNote', 'Editors, Co-Editors, and Prep Managers of Gold Tier kingdoms can create and manage schedules.')}
+            {t('prepLanding.ctaNote', 'Editors, Co-Editors, and Prep Managers of Silver+ Tier kingdoms can create and manage schedules.')}
           </p>
 
           {!isMobile && (
@@ -312,19 +312,19 @@ const PrepSchedulerLanding: React.FC = () => {
             letterSpacing: '0.05em', textTransform: 'uppercase',
             display: 'inline-block', marginBottom: '0.75rem',
           }}>
-            {t('prepLanding.goldBadge', 'Gold Tier Exclusive')}
+            {t('prepLanding.silverPlusTierBadge', 'SILVER+ TIER KINGDOM FEATURE')}
           </span>
           <h3 style={{
             fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: 'bold',
             color: '#fff', marginBottom: '0.5rem', fontFamily: FONT_DISPLAY,
           }}>
-            {t('prepLanding.goldTitle', 'Your kingdom deserves organized prep phases.')}
+            {t('prepLanding.silverPlusTitle', 'Your kingdom deserves organized prep phases.')}
           </h3>
           <p style={{
             color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.85rem',
             marginBottom: '1.25rem', maxWidth: '450px', margin: '0 auto 1.25rem', lineHeight: 1.6,
           }}>
-            {t('prepLanding.goldDesc', 'The KvK Prep Scheduler is available to kingdoms with Gold Tier status through the Kingdom Fund. If your kingdom isn\'t Gold Tier yet, encourage your alliance leaders to contribute.')}
+            {t('prepLanding.silverPlusDesc', 'The KvK Prep Scheduler is available to kingdoms with Silver Tier ($50+) or Gold Tier ($100+) status through the Kingdom Fund. If your kingdom isn\'t Silver Tier yet, encourage your alliance leaders to contribute.')}
           </p>
           <div style={{
             display: 'flex', flexDirection: isMobile ? 'column' : 'row',

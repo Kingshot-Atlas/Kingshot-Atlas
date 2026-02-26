@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { registerChannel, unregisterChannel } from '../../lib/realtimeGuard';
 import { colors } from '../../utils/styles';
 
 interface TransferApplication {
@@ -103,8 +104,10 @@ const TransfereeAppCard: React.FC<TransfereeAppCardProps> = ({
         .then(() => {});
     };
     loadMsgs();
+    const tCardChName = `transferee-card-msgs-${app.id}`;
+    if (!registerChannel(tCardChName)) return;
     const channel = sb
-      .channel(`transferee-card-msgs-${app.id}`)
+      .channel(tCardChName)
       .on('postgres_changes', {
         event: 'INSERT', schema: 'public', table: 'application_messages',
         filter: `application_id=eq.${app.id}`,
@@ -116,7 +119,7 @@ const TransfereeAppCard: React.FC<TransfereeAppCardProps> = ({
         }
       })
       .subscribe();
-    return () => { sb.removeChannel(channel); };
+    return () => { sb.removeChannel(channel); unregisterChannel(tCardChName); };
   }, [openMessages, app.id, user]);
 
   // Auto-scroll messages

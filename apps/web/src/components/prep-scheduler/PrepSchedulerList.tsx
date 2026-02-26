@@ -8,7 +8,7 @@ interface PrepSchedulerListProps {
   isMobile: boolean;
   user: { id: string } | null;
   profile: { linked_kingdom?: number; linked_player_id?: string; is_admin?: boolean } | null;
-  goldKingdoms: Set<number>;
+  silverPlusKingdoms: Set<number>;
   hasPromoAccess: (kingdomNumber: number) => boolean;
   isPromoActive: boolean;
   promoMsRemaining: number;
@@ -34,7 +34,7 @@ interface PrepSchedulerListProps {
 }
 
 const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
-  isMobile, user, profile, goldKingdoms, hasPromoAccess, isPromoActive, promoMsRemaining, mySchedules, kingdomSchedules, submittedSchedules, navigate,
+  isMobile, user, profile, silverPlusKingdoms, hasPromoAccess, isPromoActive, promoMsRemaining, mySchedules, kingdomSchedules, submittedSchedules, navigate,
   isEditorOrCoEditor, isManager,
   createKingdom, setCreateKingdom, createKvkNumber, setCreateKvkNumber,
   createNotes, setCreateNotes, createDeadline, setCreateDeadline,
@@ -42,8 +42,8 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  // Helper: kingdom qualifies via Gold tier OR Silver promo
-  const hasQualifyingTier = (kn: number) => goldKingdoms.has(kn) || hasPromoAccess(kn);
+  // Helper: kingdom qualifies via Silver+ tier OR promo
+  const hasQualifyingTier = (kn: number) => silverPlusKingdoms.has(kn) || hasPromoAccess(kn);
 
   // Check for return URL (after login/linking)
   const returnUrl = (() => { try { return sessionStorage.getItem('prep_return_url'); } catch { return null; } })();
@@ -93,8 +93,8 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
           </div>
         )}
 
-        {/* Silver Promo Countdown — only for silver promo kingdoms (not gold) */}
-        {user && profile?.linked_kingdom && isPromoActive && hasPromoAccess(profile.linked_kingdom) && !goldKingdoms.has(profile.linked_kingdom) && (
+        {/* Silver Promo Countdown — only for promo kingdoms not already Silver+ */}
+        {user && profile?.linked_kingdom && isPromoActive && hasPromoAccess(profile.linked_kingdom) && !silverPlusKingdoms.has(profile.linked_kingdom) && (
           <div style={{ ...cardStyle, marginBottom: '1rem', borderColor: '#c0c0c030', backgroundColor: '#c0c0c008', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>🥈</span>
             <div style={{ flex: 1 }}>
@@ -105,13 +105,13 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
                 {(() => {
                   const days = Math.floor(promoMsRemaining / (1000 * 60 * 60 * 24));
                   const hours = Math.floor((promoMsRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                  if (days > 0) return t('prepScheduler.silverPromoCountdown', 'Access expires in {{days}}d {{hours}}h. Reach Gold tier to keep permanent access.', { days, hours });
-                  return t('prepScheduler.silverPromoCountdownHours', 'Access expires in {{hours}}h. Reach Gold tier to keep permanent access.', { hours });
+                  if (days > 0) return t('prepScheduler.silverPromoCountdown', 'Access expires in {{days}}d {{hours}}h. Reach Silver tier to keep permanent access.', { days, hours });
+                  return t('prepScheduler.silverPromoCountdownHours', 'Access expires in {{hours}}h. Reach Silver tier to keep permanent access.', { hours });
                 })()}
               </p>
             </div>
             <Link to="/transfer-hub" style={{ color: '#ffc30b', fontSize: '0.7rem', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', padding: '0.3rem 0.6rem', border: '1px solid #ffc30b30', borderRadius: '6px', backgroundColor: '#ffc30b08' }}>
-              {t('prepScheduler.reachGold', 'Reach Gold')}
+              {t('prepScheduler.reachSilver', 'Reach Silver')}
             </Link>
           </div>
         )}
@@ -184,11 +184,9 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
         {/* Tier Required notice — mentions Silver promo when active */}
         {user && profile?.linked_kingdom && !hasQualifyingTier(profile.linked_kingdom) && !kingdomSchedules.length && mySchedules.length === 0 && (
           <div style={{ ...cardStyle, marginBottom: '1.5rem', borderColor: '#ffc30b30', backgroundColor: '#ffc30b08' }}>
-            <h3 style={{ color: '#ffc30b', fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem' }}>👑 {t('prepScheduler.goldTierRequired', 'Gold Tier Required')}</h3>
+            <h3 style={{ color: '#d1d5db', fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem' }}>🥈 {t('prepScheduler.silverTierRequired', 'Silver Tier Required')}</h3>
             <p style={{ color: colors.textMuted, fontSize: '0.8rem', lineHeight: 1.5 }}>
-              {isPromoActive
-                ? t('prepScheduler.tierRequiredPromoDesc', 'The KvK Prep Scheduler is available for Gold and Silver Tier kingdoms during the KvK #11 promotion. Contribute to the Kingdom Fund to reach Silver ($50+) or Gold ($100+) and unlock this tool!')
-                : t('prepScheduler.goldTierRequiredDesc', 'The KvK Prep Scheduler is available for Gold Tier kingdoms. Encourage your kingdom to reach Gold tier through the Kingdom Fund to unlock this tool!')}
+              {t('prepScheduler.silverTierRequiredDesc', 'The KvK Prep Scheduler is available for Silver Tier ($50+) and Gold Tier ($100+) kingdoms. Contribute to the Kingdom Fund to reach Silver and unlock this tool!')}
             </p>
             {isPromoActive && (
               <Link to="/transfer-hub" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.5rem', padding: '0.4rem 0.8rem', backgroundColor: '#ffc30b10', border: '1px solid #ffc30b30', borderRadius: '6px', color: '#ffc30b', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>
@@ -213,7 +211,7 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
           <div style={{ ...cardStyle, marginBottom: '1.5rem' }}>
             <h3 style={{ color: colors.text, fontSize: '1rem', marginBottom: '0.75rem', fontWeight: 700 }}>📋 {t('prepScheduler.createSchedule', 'Create New Schedule')}</h3>
             <p style={{ color: colors.textMuted, fontSize: '0.75rem', marginBottom: '1rem', lineHeight: 1.5 }}>
-              {t('prepScheduler.createScheduleDesc', 'Create a Prep Schedule for your Gold Tier kingdom. You\'ll get a shareable link for players to submit their availability and speedups.')}
+              {t('prepScheduler.createScheduleDesc', 'Create a Prep Schedule for your Silver+ Tier kingdom. You\'ll get a shareable link for players to submit their availability and speedups.')}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <div>
@@ -221,7 +219,7 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
                 <input type="number" value={createKingdom || ''} readOnly={!!profile?.linked_kingdom} style={{ ...inputStyle, ...(profile?.linked_kingdom ? { opacity: 0.7, cursor: 'not-allowed', backgroundColor: '#1a1a1a' } : {}) }} onChange={(e) => { if (!profile?.linked_kingdom) setCreateKingdom(parseInt(e.target.value) || 0); }} placeholder="e.g. 172" />
                 {profile?.linked_kingdom && <p style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.2rem' }}>{t('prepScheduler.autoFilled', 'Auto-filled from your linked kingdom.')}</p>}
                 {createKingdom > 0 && !hasQualifyingTier(createKingdom) && (
-                  <p style={{ color: colors.error, fontSize: '0.7rem', marginTop: '0.25rem' }}>⚠️ {t('prepScheduler.notQualifyingTier', 'Kingdom {{kingdom}} does not have Gold or Silver tier. Only qualifying kingdoms can use this tool.', { kingdom: createKingdom })}</p>
+                  <p style={{ color: colors.error, fontSize: '0.7rem', marginTop: '0.25rem' }}>⚠️ {t('prepScheduler.notQualifyingTier', 'Kingdom {{kingdom}} does not have Silver or Gold tier. Only qualifying kingdoms can use this tool.', { kingdom: createKingdom })}</p>
                 )}
               </div>
               <div>

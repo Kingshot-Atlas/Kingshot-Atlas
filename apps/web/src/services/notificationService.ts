@@ -6,6 +6,7 @@
 import { colors } from '../utils/styles';
 
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { registerChannel, unregisterChannel } from '../lib/realtimeGuard';
 import { logger } from '../utils/logger';
 
 export interface Notification {
@@ -232,8 +233,12 @@ class NotificationService {
       return () => {};
     }
 
+    const notifChName = `notifications:${userId}`;
+    if (!registerChannel(notifChName)) {
+      return () => {};
+    }
     const channel = supabase
-      .channel(`notifications:${userId}`)
+      .channel(notifChName)
       .on(
         'postgres_changes',
         {
@@ -251,6 +256,7 @@ class NotificationService {
     return () => {
       if (supabase) {
         supabase.removeChannel(channel);
+        unregisterChannel(notifChName);
       }
     };
   }

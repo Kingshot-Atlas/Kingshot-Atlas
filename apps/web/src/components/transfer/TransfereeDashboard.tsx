@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { supabase } from '../../lib/supabase';
+import { registerChannel, unregisterChannel } from '../../lib/realtimeGuard';
 import { colors } from '../../utils/styles';
 import RateKingdomModal from './RateKingdomModal';
 import TransfereeAppCard from './TransfereeAppCard';
@@ -75,8 +76,10 @@ const TransfereeDashboard: React.FC<{
     const sb = supabase;
     const activeAppIds = applications.filter(a => ['pending', 'viewed', 'accepted'].includes(a.status)).map(a => a.id);
     if (activeAppIds.length === 0) return;
-    const channels = activeAppIds.map(appId =>
-      sb.channel(`transferee-unread-${appId}`)
+    const channels = activeAppIds.map(appId => {
+      const chName = `transferee-unread-${appId}`;
+      if (!registerChannel(chName)) return null;
+      return sb.channel(chName)
         .on('postgres_changes', {
           event: 'INSERT', schema: 'public', table: 'application_messages',
           filter: `application_id=eq.${appId}`,
@@ -88,9 +91,9 @@ const TransfereeDashboard: React.FC<{
           setPerAppLastMsg(prev => ({ ...prev, [appId]: { message: row.message, created_at: row.created_at } }));
           try { new Audio('/sounds/message.wav').play().catch(() => {}); } catch {}
         })
-        .subscribe()
-    );
-    return () => { channels.forEach(ch => sb.removeChannel(ch)); };
+        .subscribe();
+    }).filter(Boolean);
+    return () => { channels.forEach(ch => sb.removeChannel(ch!)); activeAppIds.forEach(id => unregisterChannel(`transferee-unread-${id}`)); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, applications.length]);
 

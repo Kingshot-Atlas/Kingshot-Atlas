@@ -83,16 +83,15 @@ const TransferHubLanding: React.FC = () => {
   const comparisonRows: { feature: string; standard: boolean; bronze: boolean; silver: boolean; gold: boolean; minTier: 'standard' | 'bronze' | 'silver' | 'gold' }[] = [
     { feature: t('transferHubLanding.cmpBasicListing', 'Basic listing with Atlas Score & stats'), standard: true, bronze: true, silver: true, gold: true, minTier: 'standard' },
     { feature: t('transferHubLanding.cmpReviews', 'Community reviews from players'), standard: true, bronze: true, silver: true, gold: true, minTier: 'standard' },
+    { feature: t('transferHubLanding.cmpBioLang', 'Kingdom Bio & Language display'), standard: true, bronze: true, silver: true, gold: true, minTier: 'standard' },
     { feature: t('transferHubLanding.cmpMinReqs', 'Min TC & Power requirements shown'), standard: false, bronze: true, silver: true, gold: true, minTier: 'bronze' },
-    { feature: t('transferHubLanding.cmpBrowseProfiles', 'Browse transferee profiles'), standard: false, bronze: true, silver: true, gold: true, minTier: 'bronze' },
+    { feature: t('transferHubLanding.cmpBrowseProfiles', 'Browse recruit candidates'), standard: false, bronze: true, silver: true, gold: true, minTier: 'bronze' },
     { feature: t('transferHubLanding.cmpVibeTags', 'Kingdom Policies & Vibe tags'), standard: false, bronze: true, silver: true, gold: true, minTier: 'bronze' },
-    { feature: t('transferHubLanding.cmpInvites', 'Send invites to transferees'), standard: false, bronze: false, silver: true, gold: true, minTier: 'silver' },
-    { feature: t('transferHubLanding.cmpBioLang', 'Kingdom Bio & Language display'), standard: false, bronze: false, silver: true, gold: true, minTier: 'silver' },
-    { feature: t('transferHubLanding.cmpAlliance', 'Alliance Information schedule'), standard: false, bronze: false, silver: true, gold: true, minTier: 'silver' },
-    { feature: t('transferHubLanding.cmpSlots', '+2 alliance slots (5 total)'), standard: false, bronze: false, silver: false, gold: true, minTier: 'gold' },
+    { feature: t('transferHubLanding.cmpInvites', 'Send invites to recruit candidates'), standard: false, bronze: false, silver: true, gold: true, minTier: 'silver' },
+    { feature: t('transferHubLanding.cmpAlliance', 'Alliance Information & Schedules'), standard: false, bronze: false, silver: true, gold: true, minTier: 'silver' },
+    { feature: t('transferHubLanding.cmpPrepScheduler', 'KvK Prep Scheduler access'), standard: false, bronze: false, silver: true, gold: true, minTier: 'silver' },
     { feature: t('transferHubLanding.cmpBadge', 'Gilded badge for all kingdom users'), standard: false, bronze: false, silver: false, gold: true, minTier: 'gold' },
     { feature: t('transferHubLanding.cmpGlow', 'Gold glow + priority placement'), standard: false, bronze: false, silver: false, gold: true, minTier: 'gold' },
-    { feature: t('transferHubLanding.cmpPrepScheduler', 'KvK Prep Scheduler access'), standard: false, bronze: false, silver: false, gold: true, minTier: 'gold' },
     { feature: t('transferHubLanding.cmpBattlePlanner', 'KvK Battle Planner access'), standard: false, bronze: false, silver: false, gold: true, minTier: 'gold' },
   ];
 

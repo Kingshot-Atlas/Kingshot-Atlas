@@ -36,7 +36,7 @@ const PrepScheduler: React.FC = () => {
         isMobile={hook.isMobile}
         user={hook.user}
         profile={hook.profile}
-        goldKingdoms={hook.goldKingdoms}
+        silverPlusKingdoms={hook.silverPlusKingdoms}
         hasPromoAccess={hook.hasPromoAccess}
         isPromoActive={hook.isPromoActive}
         promoMsRemaining={hook.promoMsRemaining}

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { registerChannel, unregisterChannel } from '../../lib/realtimeGuard';
 import { colors } from '../../utils/styles';
 import { logger } from '../../utils/logger';
 import { translateMessage, getBrowserLanguage } from '../../utils/translateMessage';
@@ -107,8 +108,10 @@ const ApplicationCard: React.FC<{
     load();
 
     // Real-time subscription for new messages
+    const appMsgChName = `app-msgs-${application.id}`;
+    if (!registerChannel(appMsgChName)) return;
     const channel = sb
-      .channel(`app-msgs-${application.id}`)
+      .channel(appMsgChName)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
@@ -132,7 +135,7 @@ const ApplicationCard: React.FC<{
       })
       .subscribe();
 
-    return () => { sb.removeChannel(channel); };
+    return () => { sb.removeChannel(channel); unregisterChannel(appMsgChName); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showMessages, application.id, user?.id]);
 

@@ -9,36 +9,31 @@ import type { FundTransaction, FundContributor } from '../hooks/useKingdomProfil
 // STRIPE PAYMENT LINKS (Kingdom Fund Contribution)
 // =============================================
 
-const CONTRIBUTION_TIERS = [
-  {
-    amount: 5,
-    label: '$5',
-    description: 'Starter',
-    paymentLink: 'https://buy.stripe.com/fZu6oIdjSegWgOcaPBeZ207',
-    color: '#6b7280',
-  },
-  {
-    amount: 10,
-    label: '$10',
-    description: 'Supporter',
-    paymentLink: 'https://buy.stripe.com/cNieVedjSfl055u5vheZ208',
-    color: '#22d3ee',
-  },
-  {
-    amount: 25,
-    label: '$25',
-    description: 'Champion',
-    paymentLink: 'https://buy.stripe.com/28EfZibbKdcS69y4rdeZ209',
-    color: '#a855f7',
-  },
-  {
-    amount: 50,
-    label: '$50',
-    description: 'Legend',
-    paymentLink: 'https://buy.stripe.com/7sYcN61BaegW0PeaPBeZ20a',
-    color: '#fbbf24',
-  },
-];
+const PAYMENT_LINKS: Record<number, string> = {
+  5: 'https://buy.stripe.com/cNi3cwa7Gfl069y7DpeZ20c',
+  10: 'https://buy.stripe.com/6oUfZia7G6Ou69y7DpeZ20d',
+  15: 'https://buy.stripe.com/aFa6oI7ZyegW69ybTFeZ20e',
+  20: 'https://buy.stripe.com/dRm4gA3JiegWeG45vheZ20f',
+  25: 'https://buy.stripe.com/14AdRabbK8WC41qe1NeZ20g',
+  30: 'https://buy.stripe.com/14A3cwcfO3Ci8hGe1NeZ20h',
+  35: 'https://buy.stripe.com/6oU5kEcfO4Gm2Xm0aXeZ20i',
+  40: 'https://buy.stripe.com/8x25kEcfOfl0eG4bTFeZ20j',
+  45: 'https://buy.stripe.com/aFa00ka7Gb4K41qg9VeZ20k',
+  50: 'https://buy.stripe.com/fZu00k93C5KqbtSaPBeZ20l',
+  55: 'https://buy.stripe.com/5kQdRa1Ba7Sy55uf5ReZ20m',
+  60: 'https://buy.stripe.com/dRm4gA4Nmc8OdC08HteZ20n',
+  65: 'https://buy.stripe.com/aFa14o93Cb4K1Ti8HteZ20o',
+  70: 'https://buy.stripe.com/7sYdRa4Nm5KqcxW8HteZ20p',
+  75: 'https://buy.stripe.com/dRmdRabbK2ye2XmaPBeZ20q',
+  80: 'https://buy.stripe.com/dRmdRa93C2yeapOaPBeZ20r',
+  85: 'https://buy.stripe.com/9B6fZia7Gfl09lK4rdeZ20s',
+  90: 'https://buy.stripe.com/5kQdRa93CegWfK81f1eZ20t',
+  95: 'https://buy.stripe.com/dRmfZi2Fec8OcxWcXJeZ20u',
+  100: 'https://buy.stripe.com/00w28senW1ua41q4rdeZ20v',
+};
+
+const AMOUNTS = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100];
+const POPULAR_AMOUNTS = new Set([5, 10, 25, 50, 100]);
 
 // Fund tier thresholds (same as DB logic)
 const TIER_THRESHOLDS = {
@@ -63,10 +58,10 @@ const TIER_COLORS: Record<string, string> = {
 };
 
 const TIER_BENEFITS: Record<string, string[]> = {
-  standard: ['Basic listing with Atlas Score & stats', 'Community reviews from players'],
-  bronze: ['Min TC & Power requirements shown', 'Browse transferee profiles', 'Kingdom Policies & Vibe tags'],
-  silver: ['All Bronze benefits', 'Send invites to transferees', 'Kingdom Bio & Language display', 'Alliance Information schedule'],
-  gold: ['All Silver benefits', '+2 alliance slots (5 total)', 'Gilded badge for all kingdom users', 'Gold glow + priority placement', 'KvK Prep Scheduler access', 'KvK Battle Planner access'],
+  standard: ['Basic listing with Atlas Score & stats', 'Community reviews from players', 'Kingdom Bio & Language display'],
+  bronze: ['Min TC & Power requirements shown', 'Browse recruit candidates', 'Kingdom Policies & Vibe tags'],
+  silver: ['All Bronze benefits', 'Send invites to recruit candidates', 'Alliance Information & Schedules', 'KvK Prep Scheduler access'],
+  gold: ['All Silver benefits', 'Gilded badge for all kingdom users', 'Gold glow + priority placement', 'KvK Battle Planner access'],
 };
 
 // =============================================
@@ -366,59 +361,94 @@ const KingdomFundContribute: React.FC<{
         {/* ===== CHIP IN TAB ===== */}
         {activeTab === 'chipIn' && (
           <>
-            {/* Contribution Options */}
+            {/* Quick Pick — Popular Amounts */}
             <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '0.5rem',
-              marginBottom: '1rem',
+              display: 'flex',
+              gap: '0.4rem',
+              marginBottom: '0.5rem',
+              justifyContent: 'center',
             }}>
-              {CONTRIBUTION_TIERS.map((tier) => {
-                const projectedTier = getProjectedTier(tier.amount);
+              {[5, 10, 25, 50, 100].map((amt) => {
+                const isSelected = selectedAmount === amt;
+                const projectedTier = getProjectedTier(amt);
                 const isUpgrade = projectedTier !== currentTier;
-                const isSelected = selectedAmount === tier.amount;
-
                 return (
                   <button
-                    key={tier.amount}
-                    onClick={() => setSelectedAmount(tier.amount)}
+                    key={amt}
+                    onClick={() => setSelectedAmount(amt)}
                     style={{
-                      padding: '0.75rem',
-                      backgroundColor: isSelected ? `${tier.color}15` : '#0a0a0a',
-                      border: `2px solid ${isSelected ? `${tier.color}60` : '#2a2a2a'}`,
-                      borderRadius: '12px',
+                      padding: isMobile ? '0.55rem 0.7rem' : '0.5rem 0.85rem',
+                      backgroundColor: isSelected ? '#22c55e18' : '#0a0a0a',
+                      border: `2px solid ${isSelected ? '#22c55e70' : '#2a2a2a'}`,
+                      borderRadius: '10px',
                       cursor: 'pointer',
-                      textAlign: 'center',
-                      position: 'relative',
                       transition: 'all 0.2s',
-                      minHeight: '80px',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.25rem',
+                      gap: '0.1rem',
+                      minWidth: isMobile ? '52px' : '58px',
                     }}
                   >
                     <span style={{
-                      fontSize: '1.25rem',
-                      fontWeight: 'bold',
-                      color: isSelected ? tier.color : '#fff',
+                      fontSize: isMobile ? '0.95rem' : '1rem',
+                      fontWeight: 700,
+                      color: isSelected ? '#22c55e' : '#fff',
                     }}>
-                      {tier.label}
-                    </span>
-                    <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>
-                      {tier.description}
+                      ${amt}
                     </span>
                     {isUpgrade && (
                       <span style={{
-                        fontSize: '0.6rem',
+                        fontSize: '0.55rem',
                         color: TIER_COLORS[projectedTier],
-                        fontWeight: '600',
-                        marginTop: '0.1rem',
+                        fontWeight: 600,
+                        lineHeight: 1,
                       }}>
-                        {t('kingdomFund.toTier', { tier: projectedTier })}
+                        → {projectedTier}
                       </span>
                     )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* All Amounts — Scrollable Strip */}
+            <div style={{
+              display: 'flex',
+              gap: '0.3rem',
+              overflowX: 'auto',
+              paddingBottom: '0.4rem',
+              marginBottom: '1rem',
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'thin',
+              msOverflowStyle: 'none',
+            }}>
+              {AMOUNTS.map((amt) => {
+                const isSelected = selectedAmount === amt;
+                const isPopular = POPULAR_AMOUNTS.has(amt);
+                return (
+                  <button
+                    key={amt}
+                    onClick={() => setSelectedAmount(amt)}
+                    style={{
+                      padding: '0.35rem 0.55rem',
+                      backgroundColor: isSelected ? '#22c55e18' : isPopular ? '#ffffff08' : 'transparent',
+                      border: `1.5px solid ${isSelected ? '#22c55e60' : '#2a2a2a'}`,
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                      minWidth: '40px',
+                    }}
+                  >
+                    <span style={{
+                      fontSize: '0.75rem',
+                      fontWeight: isSelected ? 700 : isPopular ? 600 : 400,
+                      color: isSelected ? '#22c55e' : isPopular ? '#d1d5db' : '#6b7280',
+                    }}>
+                      ${amt}
+                    </span>
                   </button>
                 );
               })}
@@ -514,8 +544,9 @@ const KingdomFundContribute: React.FC<{
               </button>
               <button
                 onClick={() => {
-                  const tier = CONTRIBUTION_TIERS.find((t) => t.amount === selectedAmount);
-                  if (tier) handleContribute(tier.paymentLink);
+                  if (selectedAmount && PAYMENT_LINKS[selectedAmount]) {
+                    handleContribute(PAYMENT_LINKS[selectedAmount]);
+                  }
                 }}
                 disabled={!selectedAmount}
                 style={{

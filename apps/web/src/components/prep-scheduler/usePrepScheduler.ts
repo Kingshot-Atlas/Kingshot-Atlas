@@ -5,10 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useGoldKingdoms } from '../../hooks/useGoldKingdoms';
+import { useSilverPlusKingdoms } from '../../hooks/useSilverPlusKingdoms';
 import { useKvk11Promo } from '../../hooks/useKvk11Promo';
 import { useToast } from '../Toast';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
+import { registerChannel, unregisterChannel } from '../../lib/realtimeGuard';
 import { logger } from '../../utils/logger';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import * as Sentry from '@sentry/react';
@@ -28,7 +29,7 @@ export function usePrepScheduler() {
   const { t } = useTranslation();
   const { user, profile } = useAuth();
   const isMobile = useIsMobile();
-  const goldKingdoms = useGoldKingdoms();
+  const silverPlusKingdoms = useSilverPlusKingdoms();
   const { hasPromoAccess, isPromoActive, msRemaining: promoMsRemaining } = useKvk11Promo();
   const { showToast } = useToast();
   useDocumentTitle('KvK Prep Scheduler');
@@ -296,8 +297,10 @@ export function usePrepScheduler() {
     if (!scheduleId || !isSupabaseConfigured || !supabase) return;
     const client = supabase;
 
+    const prepChName = `prep-schedule-${scheduleId}`;
+    if (!registerChannel(prepChName)) return;
     const channel = client
-      .channel(`prep-schedule-${scheduleId}`)
+      .channel(prepChName)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'prep_submissions', filter: `schedule_id=eq.${scheduleId}` },
         () => { fetchSubmissions(scheduleId); })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'prep_slot_assignments', filter: `schedule_id=eq.${scheduleId}` },
@@ -321,6 +324,7 @@ export function usePrepScheduler() {
     return () => {
       if (channelRef.current && client) {
         client.removeChannel(channelRef.current);
+        unregisterChannel(prepChName);
         channelRef.current = null;
       }
     };
@@ -433,8 +437,8 @@ export function usePrepScheduler() {
       showToast(t('prepScheduler.toastRoleRequired', 'Only Editors, Co-Editors, and Prep Managers can create schedules.'), 'error');
       return;
     }
-    if (!goldKingdoms.has(createKingdom) && !hasPromoAccess(createKingdom)) {
-      showToast(t('prepScheduler.toastGoldOnly', 'Only Gold Tier kingdoms can use the KvK Prep Scheduler.'), 'error');
+    if (!silverPlusKingdoms.has(createKingdom) && !hasPromoAccess(createKingdom)) {
+      showToast(t('prepScheduler.toastSilverOnly', 'Only Silver Tier and above kingdoms can use the KvK Prep Scheduler.'), 'error');
       return;
     }
     setSaving(true);
@@ -990,7 +994,7 @@ export function usePrepScheduler() {
     // Routing
     scheduleId, navigate,
     // Auth
-    user, profile, goldKingdoms, hasPromoAccess, isPromoActive, promoMsRemaining,
+    user, profile, silverPlusKingdoms, hasPromoAccess, isPromoActive, promoMsRemaining,
     // Layout
     isMobile,
     // State
