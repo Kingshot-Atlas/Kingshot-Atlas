@@ -3,6 +3,18 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-27 10:00 | Platform Engineer | COMPLETED
+Task: Supabase performance & stability audit — 9 database migrations applied
+Files: PERFORMANCE_AUDIT_REPORT.md (new), 9 Supabase migrations (applied via MCP)
+Changes:
+1. **Connection safety** — Set `idle_in_transaction_session_timeout = 30s` (was 0/disabled). Connections dropped 41→29 at idle.
+2. **3 missing FK indexes** — `idx_battle_registry_entries_added_by`, `idx_battle_registry_managers_assigned_by`, `idx_tool_access_granted_by`
+3. **7 RLS policies optimized** — Wrapped `auth.uid()` in `(select auth.uid())` across `tool_access`, `battle_registries`, `battle_registry_entries`, `battle_registry_managers` to evaluate once per query instead of per-row.
+4. **Security: `kingdom_review_summaries`** view changed from SECURITY DEFINER → SECURITY INVOKER
+5. **Security: `is_registry_manager()`** function now has `SET search_path = public`
+Verification: All security advisors clean, all affected queries verified working, build passes.
+Result: Supabase Pro + Micro confirmed adequate for current scale.
+
 ## 2026-02-26 21:30 | Product Engineer | COMPLETED
 Task: Message notification deep-link, chat scroll fix, PWA stale cache fix
 Files: NotificationBell.tsx, Messages.tsx, serviceWorkerRegistration.ts, index.tsx, Supabase trigger notify_on_new_message()
