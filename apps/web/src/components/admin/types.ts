@@ -144,7 +144,8 @@ export type AdminTab =
   | 'finance'
   | 'kvk-bulk'
   | 'review-reports'
-  | 'transfer-groups';
+  | 'transfer-groups'
+  | 'gift-codes';
 
 export type AdminCategory = 'overview' | 'review' | 'transfer' | 'finance' | 'operations';
 

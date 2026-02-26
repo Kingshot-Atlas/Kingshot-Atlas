@@ -213,7 +213,7 @@ const FundTab: React.FC<FundTabProps> = ({ fund, editorInfo }) => {
           <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button
               onClick={() => {
-                const refParam = profile && isReferralEligible(profile) && profile.linked_username ? `&ref=${profile.linked_username}&src=transfer` : '';
+                const refParam = profile && isReferralEligible(profile) && profile.linked_username ? `&ref=${encodeURIComponent(profile.linked_username)}&src=transfer` : '';
                 const url = `${window.location.origin}/transfer-hub?kingdom=${editorInfo.kingdom_number}${refParam}`;
                 navigator.clipboard.writeText(url).then(() => {
                   trackFeature('Listing Link Copied', { kingdom: editorInfo.kingdom_number, hasReferral: !!refParam });

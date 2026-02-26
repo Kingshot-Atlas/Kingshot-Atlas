@@ -1121,7 +1121,7 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
                           <button
                             onClick={() => {
                               const refSuffix = profile && isReferralEligible(profile) && profile.linked_username
-                                ? `?ref=${profile.linked_username}&src=review`
+                                ? `?ref=${encodeURIComponent(profile.linked_username)}&src=review`
                                 : '';
                               const url = `${window.location.origin}/kingdom/${kingdomNumber}${refSuffix}#reviews`;
                               navigator.clipboard.writeText(url);

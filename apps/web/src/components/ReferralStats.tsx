@@ -57,9 +57,10 @@ const ReferralStats: React.FC = () => {
   const handleCopyLink = useCallback(async () => {
     if (!profile?.linked_username) return;
     const kingdom = profile.linked_kingdom || '';
+    const encodedRef = encodeURIComponent(profile.linked_username);
     const url = kingdom
-      ? `https://ks-atlas.com/kingdom/${kingdom}?ref=${profile.linked_username}`
-      : `https://ks-atlas.com?ref=${profile.linked_username}`;
+      ? `https://ks-atlas.com/kingdom/${kingdom}?ref=${encodedRef}`
+      : `https://ks-atlas.com?ref=${encodedRef}`;
     const success = await copyToClipboard(url);
     if (success) {
       setCopied(true);

@@ -47,7 +47,7 @@ export const useReferralLink = (): UseReferralLinkReturn => {
         preserved.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
       }
     });
-    preserved.push(`ref=${profile.linked_username}`);
+    preserved.push(`ref=${encodeURIComponent(profile.linked_username)}`);
     return `https://ks-atlas.com${location.pathname}?${preserved.join('&')}`;
   }, [refCode, location.pathname, location.search, profile]);
 
@@ -60,7 +60,7 @@ export const useReferralLink = (): UseReferralLinkReturn => {
         parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
       });
     }
-    parts.push(`ref=${profile.linked_username}`);
+    parts.push(`ref=${encodeURIComponent(profile.linked_username)}`);
     return `https://ks-atlas.com${path}?${parts.join('&')}`;
   }, [refCode, profile?.linked_username]);
 
