@@ -377,8 +377,8 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
         </div>
       </ProfileField>
 
-      {/* Alliance Details (Silver+) — language, secondary language, open spots per alliance */}
-      <ProfileField label="Alliance Details" tierRequired="silver" currentTier={fund.tier}>
+      {/* Alliance Details (Bronze+) — language, secondary language, open spots per alliance */}
+      <ProfileField label="Alliance Details" tierRequired="bronze" currentTier={fund.tier}>
         <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.4rem' }}>
           Set language, secondary language, and open spots for each alliance. Visible on your listing.
         </div>
@@ -445,7 +445,7 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
                           ))}
                         </select>
                       </div>
-                      {['silver', 'gold'].includes(fund.tier) && (
+                      {['bronze', 'silver', 'gold'].includes(fund.tier) && (
                         <div style={{ width: '90px' }}>
                           <span style={{ color: '#6b7280', fontSize: '0.6rem' }}>Open Spots</span>
                           <input
@@ -471,8 +471,8 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
         })()}
       </ProfileField>
 
-      {/* Alliance Information (Silver+) — table format */}
-      <ProfileField label="Alliance Information (UTC)" tierRequired="silver" currentTier={fund.tier}>
+      {/* Alliance Information (Bronze+) — table format */}
+      <ProfileField label="Alliance Information (UTC)" tierRequired="bronze" currentTier={fund.tier}>
         {(() => {
           const EVENT_TYPES = [
             { key: 'bear_hunt', label: 'Bear Hunt', slots: 2 },
@@ -494,7 +494,7 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
             setProfileDraft(d => ({ ...d, alliance_events: { alliances: newAlliances, schedule: newSchedule } }));
           };
 
-          const maxAlliances = ['silver', 'gold'].includes(fund.tier) ? 5 : 3;
+          const maxAlliances = ['bronze', 'silver', 'gold'].includes(fund.tier) ? 5 : 3;
           const addAlliance = () => {
             if (alliances.length >= maxAlliances) return;
             const newAlliances = [...alliances, ''];
@@ -602,7 +602,7 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
                   <button onClick={addAlliance} style={{
                     padding: '0.3rem 0.5rem', backgroundColor: '#22d3ee10', border: '1px solid #22d3ee25',
                     borderRadius: '6px', color: '#22d3ee', fontSize: '0.65rem', cursor: 'pointer', minHeight: '36px', whiteSpace: 'nowrap',
-                  }}>+ Alliance {['silver', 'gold'].includes(fund.tier) && alliances.length >= 3 ? '(Silver+)' : ''}</button>
+                  }}>+ Alliance {['bronze', 'silver', 'gold'].includes(fund.tier) && alliances.length >= 3 ? '(Bronze+)' : ''}</button>
                 )}
               </div>
 

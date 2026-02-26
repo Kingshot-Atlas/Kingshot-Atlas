@@ -3,6 +3,26 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-26 20:00 | Product Engineer | COMPLETED
+Task: Bronze Tier alliance info, KvK Battle Registry notification, Co-Editor toast
+Files: KingdomProfileTab.tsx, TransferHubLanding.tsx, FundTab.tsx, KingdomFundContribute.tsx, KingdomListingCard.tsx, useSilverPlusKingdoms.ts, EditorClaiming.tsx, + 9 translation files
+Changes:
+1. **Bronze Tier Alliance Info** — Alliance Details and Alliance Information (UTC) fields now require Bronze tier instead of Silver. Updated ProfileField tierRequired, maxAlliances logic, open spots gating, and add-alliance button text. Updated comparison tables in TransferHubLanding, FundTab, and KingdomFundContribute. Updated tier perks tooltip in KingdomListingCard.
+2. **KvK Battle Registry notification** — Sent system_announcement to all 2,590 users via Supabase bulk insert. Notification links to /tools/battle-registry-info.
+3. **Co-Editor toast** — Added success toast on both co-editor request paths (reactivation and new insert) in EditorClaiming.tsx so users get immediate feedback.
+4. **i18n** — Updated bronzePerks and silverPerks keys across all 9 languages to reflect alliance schedules moving from Silver to Bronze.
+Result: Production build passes. i18n synced.
+
+## 2026-02-26 19:00 | Product Engineer | COMPLETED
+Task: Remove tier badge emojis, gate Battle Registry to Gold-only + Silver promo
+Files: Tools.tsx, useBattleRegistry.ts, BattleRegistryLanding.tsx, BattleRegistryList.tsx, BattleRegistryMain.tsx, useKvk11Promo.ts
+Changes:
+1. **Emoji removal** — Removed 👑 and 🥈 emojis from Gold/Silver tier badges on Tools page (clean text only).
+2. **Battle Registry Gold gating** — Changed from `useSilverPlusKingdoms` to `useGoldKingdoms` in useBattleRegistry.ts and BattleRegistryLanding.tsx. Battle Registry is now Gold-only at base tier.
+3. **Silver promo access** — Silver Tier kingdoms retain temporary access via the KvK #11 promo (expires Feb 28, 2026). Updated useKvk11Promo.ts JSDoc to list Battle Registry as a promo tool.
+4. **UI text updates** — All "Silver Tier Required" → "Gold Tier Required", "Silver+ Tier" → "Gold Tier" across BattleRegistryList.tsx and BattleRegistryLanding.tsx.
+Result: Production build passes. Committed and pushed to main.
+
 ## 2026-02-26 18:00 | Product Engineer | COMPLETED
 Task: Battle Registry UI polish, edit manual entries, export player list
 Files: BattleRegistryDashboard.tsx, BattleRegistryForm.tsx, useBattleRegistry.ts, BattleRegistryMain.tsx, + 9 translation files

@@ -160,7 +160,7 @@ const FundTab: React.FC<FundTabProps> = ({ fund, editorInfo }) => {
               { label: t('transferHubLanding.cmpBrowseProfiles', 'Browse recruit candidates'), minTier: 'bronze' },
               { label: t('transferHubLanding.cmpVibeTags', 'Kingdom Policies & Vibe tags'), minTier: 'bronze' },
               { label: t('transferHubLanding.cmpInvites', 'Send invites to recruit candidates'), minTier: 'silver' },
-              { label: t('transferHubLanding.cmpAlliance', 'Alliance Information & Schedules'), minTier: 'silver' },
+              { label: t('transferHubLanding.cmpAlliance', 'Alliance Information & Schedules'), minTier: 'bronze' },
               { label: t('transferHubLanding.cmpPrepScheduler', 'KvK Prep Scheduler access'), minTier: 'silver' },
               { label: t('transferHubLanding.cmpBadge', 'Gilded badge for all kingdom users'), minTier: 'gold' },
               { label: t('transferHubLanding.cmpGlow', 'Gold glow + priority placement'), minTier: 'gold' },

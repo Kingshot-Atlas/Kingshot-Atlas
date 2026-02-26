@@ -1047,6 +1047,7 @@ const EditorClaiming: React.FC<{
           .update({ status: 'pending', role: 'co-editor', assigned_by: null })
           .eq('id', existing.id);
         setCoEditorRequestSent(true);
+        showToast(t('editor.coEditorRequestToast', 'Co-Editor request sent! The editor will be notified.'), 'success');
         trackFeature('Co-Editor Request Submitted', { kingdom: linkedKingdom, source: 'reactivation' });
         loadMyClaim();
 
@@ -1113,6 +1114,7 @@ const EditorClaiming: React.FC<{
       }
 
       setCoEditorRequestSent(true);
+      showToast(t('editor.coEditorRequestToast', 'Co-Editor request sent! The editor will be notified.'), 'success');
       trackFeature('Co-Editor Request Submitted', { kingdom: linkedKingdom, source: 'self_nomination' });
       loadMyClaim();
     } catch (err: unknown) {

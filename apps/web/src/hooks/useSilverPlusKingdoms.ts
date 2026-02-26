@@ -4,7 +4,7 @@ import { logger } from '../utils/logger';
 
 /**
  * Fetches the set of kingdom numbers that have Silver+ (Silver or Gold) Kingdom Fund status.
- * Used for features gated at Silver tier: Prep Scheduler, Alliance Info & Schedules, Invites.
+ * Used for features gated at Silver tier: Prep Scheduler, Invites.
  * Cached globally so multiple components don't re-fetch.
  */
 

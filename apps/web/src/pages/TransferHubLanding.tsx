@@ -88,7 +88,7 @@ const TransferHubLanding: React.FC = () => {
     { feature: t('transferHubLanding.cmpBrowseProfiles', 'Browse recruit candidates'), standard: false, bronze: true, silver: true, gold: true, minTier: 'bronze' },
     { feature: t('transferHubLanding.cmpVibeTags', 'Kingdom Policies & Vibe tags'), standard: false, bronze: true, silver: true, gold: true, minTier: 'bronze' },
     { feature: t('transferHubLanding.cmpInvites', 'Send invites to recruit candidates'), standard: false, bronze: false, silver: true, gold: true, minTier: 'silver' },
-    { feature: t('transferHubLanding.cmpAlliance', 'Alliance Information & Schedules'), standard: false, bronze: false, silver: true, gold: true, minTier: 'silver' },
+    { feature: t('transferHubLanding.cmpAlliance', 'Alliance Information & Schedules'), standard: false, bronze: true, silver: true, gold: true, minTier: 'bronze' },
     { feature: t('transferHubLanding.cmpPrepScheduler', 'KvK Prep Scheduler access'), standard: false, bronze: false, silver: true, gold: true, minTier: 'silver' },
     { feature: t('transferHubLanding.cmpBadge', 'Gilded badge for all kingdom users'), standard: false, bronze: false, silver: false, gold: true, minTier: 'gold' },
     { feature: t('transferHubLanding.cmpGlow', 'Gold glow + priority placement'), standard: false, bronze: false, silver: false, gold: true, minTier: 'gold' },
