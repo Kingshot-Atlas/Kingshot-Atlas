@@ -139,7 +139,7 @@ export type AdminTab =
   | 'feedback'
   | 'email'
   | 'bot-telemetry'
-  | 'battle-planner'
+  | 'tool-access'
   | 'spotlight'
   | 'finance'
   | 'kvk-bulk'

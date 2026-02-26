@@ -52,7 +52,7 @@ const KvKErrorsTab = lazy(() => import('../components/admin/KvKErrorsTab').then(
 const ReviewReportsTab = lazy(() => import('../components/admin/ReviewReportsTab').then(m => ({ default: m.ReviewReportsTab })));
 const TransferStatusTab = lazy(() => import('../components/admin/TransferStatusTab').then(m => ({ default: m.TransferStatusTab })));
 const BotTelemetryTab = lazy(() => import('../components/admin/BotTelemetryTab').then(m => ({ default: m.BotTelemetryTab })));
-const BattlePlannerAccessTab = lazy(() => import('../components/admin/BattlePlannerAccessTab').then(m => ({ default: m.BattlePlannerAccessTab })));
+const ToolAccessTab = lazy(() => import('../components/admin/ToolAccessTab').then(m => ({ default: m.ToolAccessTab })));
 const SpotlightTab = lazy(() => import('../components/admin/SpotlightTab').then(m => ({ default: m.SpotlightTab })));
 const ImportTab = lazy(() => import('../components/admin/ImportTab'));
 const RejectModal = lazy(() => import('../components/admin/RejectModal'));
@@ -927,8 +927,8 @@ const AdminDashboard: React.FC = () => {
         <EmailTab />
       ) : activeTab === 'bot-telemetry' ? (
         <BotTelemetryTab />
-      ) : activeTab === 'battle-planner' ? (
-        <BattlePlannerAccessTab />
+      ) : activeTab === 'tool-access' ? (
+        <ToolAccessTab />
       ) : activeTab === 'feedback' ? (
         <FeedbackTab
           items={feedbackItems}

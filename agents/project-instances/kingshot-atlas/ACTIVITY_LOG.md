@@ -3,6 +3,67 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-26 17:00 | Product Engineer | COMPLETED
+Task: Battle Registry manual input, unified Tool Access tab, gating migration
+Files: ToolAccessTab.tsx (new), BattleRegistryDashboard.tsx, useBattleRegistry.ts, BattleRegistryMain.tsx, types.ts, useRallyCoordinator.ts, AdminTabNav.tsx, AdminDashboard.tsx, admin/types.ts, admin/index.ts, + 18 translation files
+Changes:
+1. **Manual entry for managers** — Editors, Co-Editors, and Battle Managers can now add entries for non-Atlas users via a collapsible form in the dashboard. Entries have nullable `user_id` and track `added_by`. Delete with confirmation for manual entries.
+2. **Unified Tool Access tab** — Created `ToolAccessTab.tsx` replacing `BattlePlannerAccessTab` in Admin Dashboard Operations. Supports multiple tools (Battle Planner, Prep Scheduler, Battle Registry) with tool selector, search, grant/revoke UI.
+3. **Gating migration** — `useRallyCoordinator.ts` now queries `tool_access` table (with `tool = 'battle_planner'`) instead of deprecated `battle_planner_access` table.
+4. **RLS policy fix** — Updated `battle_registry_entries` INSERT/UPDATE/DELETE policies to allow managers to create/modify/delete manual entries. Added `is_registry_manager()` helper function.
+5. **DB CHECK constraints** — TG constraints now allow `>= 0` (TG0 valid). User_id nullable. `added_by` column added.
+6. **tool_access table** — Created with RLS (admin full access, users read own). Data migrated from `battle_planner_access`.
+7. **i18n** — Added 16 battleRegistry keys + 15 admin.toolAccess keys to all 9 languages.
+Result: Production build passes cleanly (`npm run build` + `tsc --noEmit`).
+
+## 2026-02-26 15:30 | Product Engineer | COMPLETED
+Task: Battle Registry dashboard enhancements, tier/TG range limits, combined distributions
+Files: types.ts, BattleRegistryForm.tsx, BattleRegistryDashboard.tsx, + 9 translation files
+Changes:
+1. **Archers color → red** — Changed `TROOP_COLORS.archers` from green (#22c55e) to red (#ef4444).
+2. **Time availability bars → green** — Changed dashboard time distribution bar color from red (#ef4444) to green (#22c55e).
+3. **Removed stat info boxes** — Removed the 4 summary stat cards (Total Players, Alliances, Peak Slot, Peak Players) from the dashboard.
+4. **Tier range limited to T8–T11** — Added `MIN_TIER = 8` constant; form dropdown now only shows T8, T9, T10, T11.
+5. **Added TG0 option** — Added `MIN_TG = 0` constant; form dropdown now shows TG0–TG8.
+6. **Combined Tier+TG distribution** — Dashboard troop distribution now shows combined labels (e.g., `T10/TG4`, `T11/TG5`) sorted by count descending, instead of separate Tier and TG bar charts.
+7. **TG0 display bug fix** — Changed falsy checks (`entry.infantry_tg ?`) to null checks (`entry.infantry_tg != null ?`) in the player list table, preventing TG0 from being hidden.
+8. **i18n** — Updated `troopLevelsDesc` key in all 9 languages (T1→T8, TG1→TG0).
+Result: Production build passes cleanly.
+
+## 2026-02-26 14:00 | Product Engineer | COMPLETED
+Task: Battle Registry time range selection, code review, security test
+Files: useBattleRegistry.ts, BattleRegistryForm.tsx, BattleRegistryMain.tsx, BattleRegistryDashboard.tsx, types.ts, + 9 translation files
+Changes:
+1. **Time range selection** — Replaced single time slot button grid with two searchable dropdowns ("From" and "To"). Each option displays UTC time with local timezone equivalent in parentheses (e.g., `12:00 UTC (8:00 AM)`). Desktop: side-by-side layout. Mobile: stacked vertically. "To" dropdown auto-constrains to slots >= "From". Custom `TimeSlotDropdown` component with click-outside close, search filtering, keyboard-friendly.
+2. **DB migration** — Added `time_slot_to` (nullable text) column to `battle_registry_entries`. Existing entries backward-compatible with `time_slot_to = NULL`.
+3. **Dashboard analytics update** — Time distribution chart now counts each slot within a player's range (e.g., 12:00–14:00 counts for 12:00, 12:30, 13:00, 13:30, 14:00). Player list shows range with en-dash (e.g., `12:00–14:00`).
+4. **Stale closure bug fix** — `fetchEntries` captured `existingEntry` as `null` forever (not in useCallback deps), causing every realtime update to re-prefill the form and overwrite user's in-progress edits. Fixed with `hasPrefilled` ref.
+5. **Time range validation** — Added server-side validation in `submitEntry` ensuring `time_slot_to >= time_slot`.
+6. **Search sanitization hardening** — Added PostgREST filter-sensitive characters (`(),.:!`) to the sanitization regex to prevent potential filter injection via the `.or()` query string.
+7. **i18n** — Added 5 new keys (`timeRangeDesc`, `timeFrom`, `timeTo`, `timeTo_label`, `toastInvalidTimeRange`) to all 9 languages (EN/ES/FR/ZH/DE/KO/JA/AR/TR).
+Result: Production build passes cleanly.
+
+## 2026-02-26 12:30 | Product Engineer | COMPLETED
+Task: Battle Registry bug fixes, mobile UX, security hardening
+Files: useBattleRegistry.ts, BattleRegistryMain.tsx, BattleRegistryDashboard.tsx, BattleRegistryForm.tsx, BattleRegistryList.tsx, BattleRegistryLanding.tsx, types.ts
+Changes:
+1. **"Open Registration Form" button fix** — Root cause: button navigated to same URL, view stayed `manage` because `isManager` was still true. Fix: exposed `setView` from `useBattleRegistry` hook, changed button to call `setView('form')` instead of `navigate()`. Same fix applied to "View Dashboard" button in Form component (`setView('manage')`).
+2. **Landing page tier check fix** — Was checking `useGoldKingdoms()` but Battle Registry is available to Silver+ kingdoms. Changed to `useSilverPlusKingdoms()`.
+3. **Search query sanitization** — Manager search in `searchUsers()` interpolated raw user input into Supabase `.or()` filter. Added sanitization to strip `%`, `_`, `\`, `'`, `"` characters.
+4. **Clipboard fallback** — Added `document.execCommand('copy')` fallback for environments where `navigator.clipboard` is unavailable (HTTP, older browsers).
+5. **Mobile UX improvements** — All buttons now have 44px min-height touch targets (Apple HIG). Action buttons stack vertically on mobile. Navigation links have proper padding and flex alignment. Submit button enlarged on mobile. Safe bottom padding on all views. Scroll-to-top on view transitions (form↔dashboard). Time slot grid buttons sized for thumb tapping.
+6. **RLS policy fixes (4 policies)** — (a) `battle_registries_update`: manager subquery was self-joining (`registry_id = id` instead of `registry_id = battle_registries.id`), so managers could never update registries. (b) `battle_registry_managers_insert`: had no authorization check — any authenticated user could add themselves as manager to any registry. Now restricted to registry creators and kingdom editors. (c) `battle_registry_entries_insert` + `_update`: no registry status check — users could submit to closed registries via API. Now enforces `status = 'active'`.
+7. **Dead code cleanup** — Removed `void setShowManagerDropdown` no-op, prefixed unused destructured props with underscore.
+Result: Build passes cleanly. Dev server running with HMR. Supabase migration applied.
+
+## 2026-02-26 08:50 | Product Engineer + Platform Engineer | COMPLETED
+Task: Wire Gift Codes admin tab + fix referral URL encoding for usernames with spaces
+Files: types.ts, AdminTabNav.tsx, AdminDashboard.tsx, useReferralLink.ts, ReferralStats.tsx, KingdomReviews.tsx, FundTab.tsx
+Changes:
+1. **Gift Codes admin tab** — Added `'gift-codes'` to AdminTab type, added sub-tab under Operations in AdminTabNav, render case already existed in AdminDashboard. Tab now accessible with full manage + analytics UI.
+2. **Referral URL encoding bug** — Fixed 4 files where `?ref=` URLs used raw `profile.linked_username` without `encodeURIComponent()`. Usernames with spaces (e.g. "Phoenix Lunaris") produced broken URLs where only first word was captured. Now properly encoded. Capture side (`URLSearchParams.get`) auto-decodes, so DB lookups still match correctly.
+Result: Both fixes deployed to production via Cloudflare Pages.
+
 ## 2026-02-25 14:30 | Product Engineer | COMPLETED
 Task: Kingdom Settlers Campaign #1 — Full implementation (DB + frontend + i18n)
 Files: useCampaignQueries.ts (new), campaignUtils.ts (new), KingdomSettlers.tsx (new), AdminCampaignDraw.tsx (new), App.tsx, 9 translation.json files

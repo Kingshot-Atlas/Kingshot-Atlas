@@ -160,9 +160,10 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
     (async () => {
       try {
         const { data, error } = await supabase
-          .from('battle_planner_access')
+          .from('tool_access')
           .select('id')
           .eq('user_id', user.id)
+          .eq('tool', 'battle_planner')
           .maybeSingle();
         if (!cancelled) {
           setHasAccess(!error && !!data);

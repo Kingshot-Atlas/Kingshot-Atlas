@@ -62,6 +62,8 @@ const BaseDesignerLanding = lazy(() => import('./pages/BaseDesignerLanding'));
 const SharedBaseDesigner = lazy(() => import('./pages/SharedBaseDesigner'));
 const KingdomSettlers = lazy(() => import('./pages/KingdomSettlers'));
 const AdminCampaignDraw = lazy(() => import('./pages/AdminCampaignDraw'));
+const BattleRegistry = lazy(() => import('./pages/BattleRegistry'));
+const BattleRegistryLanding = lazy(() => import('./pages/BattleRegistryLanding'));
 
 // 404 Not Found component
 const NotFound = () => {
@@ -172,6 +174,9 @@ function AppContent() {
               <Route path="/tools/base-designer" element={<ErrorBoundary><AllianceBaseDesigner /></ErrorBoundary>} />
               <Route path="/tools/base-designer/about" element={<ErrorBoundary><BaseDesignerLanding /></ErrorBoundary>} />
               <Route path="/tools/base-designer/view/:token" element={<ErrorBoundary><SharedBaseDesigner /></ErrorBoundary>} />
+              <Route path="/tools/battle-registry-info" element={<ErrorBoundary><BattleRegistryLanding /></ErrorBoundary>} />
+              <Route path="/tools/battle-registry" element={<ErrorBoundary><BattleRegistry /></ErrorBoundary>} />
+              <Route path="/tools/battle-registry/:registryId" element={<ErrorBoundary><BattleRegistry /></ErrorBoundary>} />
               <Route path="/campaigns/kingdom-settlers" element={<ErrorBoundary><KingdomSettlers /></ErrorBoundary>} />
               <Route path="/admin/campaign-draw" element={<ErrorBoundary><AdminCampaignDraw /></ErrorBoundary>} />
               <Route path="*" element={<NotFound />} />
