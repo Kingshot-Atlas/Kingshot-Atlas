@@ -324,10 +324,17 @@ const Messages: React.FC = () => {
     return () => { cancelled = true; sb.removeChannel(channel); unregisterChannel(msgChName); };
   }, [activeConvo, user]);
 
-  // Auto-scroll
+  // Auto-scroll to bottom: instant on chat open / initial load, smooth for new messages
+  const prevMsgCountRef = useRef(0);
   useEffect(() => {
-    if (messages.length > 0) msgEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages.length]);
+    if (messages.length === 0) { prevMsgCountRef.current = 0; return; }
+    const isInitialLoad = prevMsgCountRef.current === 0;
+    prevMsgCountRef.current = messages.length;
+    // Use rAF to ensure DOM has painted before scrolling
+    requestAnimationFrame(() => {
+      msgEndRef.current?.scrollIntoView({ behavior: isInitialLoad ? 'instant' : 'smooth' });
+    });
+  }, [messages.length, activeConvo]);
 
   // Focus input on convo open
   useEffect(() => {

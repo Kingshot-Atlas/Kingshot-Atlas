@@ -114,9 +114,15 @@ const NotificationBell: React.FC = () => {
   }, [isOpen]);
 
   const resolveNotificationLink = (notification: Notification): string | null => {
-    if (notification.link) return notification.link;
     const meta = notification.metadata || {};
     const kn = meta.kingdom_number as number | undefined;
+    // For new_message, always use type-specific routing (deep-link to chat)
+    // to override legacy link values like '/transfer-hub'
+    if (notification.type === 'new_message') {
+      const appId = meta.application_id as string | undefined;
+      return appId ? `/messages?app=${appId}` : '/messages';
+    }
+    if (notification.link) return notification.link;
     switch (notification.type) {
       case 'admin_new_submission':
         return '/admin?tab=kvk-submissions';
@@ -146,10 +152,6 @@ const NotificationBell: React.FC = () => {
         return '/profile';
       case 'favorite_score_change':
         return kn ? `/kingdom/${kn}` : '/';
-      case 'new_message': {
-        const appId = meta.application_id as string | undefined;
-        return appId ? `/messages?app=${appId}` : '/messages';
-      }
       case 'prep_schedule_form':
         return notification.link || '/tools/prep-scheduler';
       case 'system_announcement':

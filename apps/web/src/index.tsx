@@ -4,7 +4,7 @@ import * as Sentry from '@sentry/react';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+import { registerUpdateHandler } from './serviceWorkerRegistration';
 import { sendToAnalytics } from './services/analytics';
 
 // Initialize Sentry for error monitoring (only if DSN is configured)
@@ -60,5 +60,5 @@ root.render(
 // Report Web Vitals for performance monitoring
 reportWebVitals(sendToAnalytics);
 
-// Register service worker for offline support (production only)
-serviceWorkerRegistration.register();
+// Listen for SW updates and auto-reload (works with vite-plugin-pwa autoUpdate)
+registerUpdateHandler();

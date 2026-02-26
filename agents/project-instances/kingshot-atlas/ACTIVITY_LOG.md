@@ -3,6 +3,15 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-26 21:30 | Product Engineer | COMPLETED
+Task: Message notification deep-link, chat scroll fix, PWA stale cache fix
+Files: NotificationBell.tsx, Messages.tsx, serviceWorkerRegistration.ts, index.tsx, Supabase trigger notify_on_new_message()
+Changes:
+1. **Message notification routing** — DB trigger now sets link to `/messages?app=<id>` instead of `/transfer-hub`. Frontend `resolveNotificationLink` handles `new_message` type before checking generic `link` field, so both old and new notifications route correctly.
+2. **Chat scroll to bottom** — Opening a chat now uses `behavior: 'instant'` (no animation delay) with `requestAnimationFrame` for reliable DOM-painted scroll. New messages still use `'smooth'`. Tracks initial vs incremental loads via `prevMsgCountRef`.
+3. **PWA stale cache fix** — Replaced broken CRA-style SW registration (targeted non-existent `/service-worker.js`) with a `controllerchange` listener that auto-reloads when a new SW takes control. Uses `sessionStorage` guard to prevent infinite loops. Works alongside VitePWA's auto-inject.
+Result: Production build passes. No i18n changes needed.
+
 ## 2026-02-26 21:00 | Product Engineer | COMPLETED
 Task: Battle Registry — sort troop levels + add collapsible Troop Roster section
 Files: BattleRegistryDashboard.tsx, + 9 translation files
