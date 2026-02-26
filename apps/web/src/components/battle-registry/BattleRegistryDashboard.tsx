@@ -416,12 +416,14 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
             <p style={{ color: colors.textMuted, fontSize: '0.8rem' }}>{t('battleRegistry.noEntriesYet', 'No registrations yet.')}</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-              {TIME_SLOTS.map(slot => {
+              {TIME_SLOTS.slice(0, -1).map((slot, idx) => {
+                const nextSlot = TIME_SLOTS[idx + 1];
+                const rangeLabel = `${slot} - ${nextSlot}`;
                 const count = timeDistribution[slot] || 0;
                 const pct = maxTimeCount > 0 ? (count / maxTimeCount) * 100 : 0;
                 return (
                   <div key={slot} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ color: colors.textSecondary, fontSize: '0.75rem', fontWeight: 600, width: '45px', textAlign: 'right', flexShrink: 0 }}>{slot}</span>
+                    <span style={{ color: colors.textSecondary, fontSize: '0.75rem', fontWeight: 600, width: '90px', textAlign: 'right', flexShrink: 0 }}>{rangeLabel}</span>
                     <div style={{ flex: 1, height: '20px', backgroundColor: colors.bg, borderRadius: '4px', overflow: 'hidden', position: 'relative' }}>
                       <div style={{ height: '100%', width: `${pct}%`, backgroundColor: count > 0 ? '#22c55e' : 'transparent', borderRadius: '4px', transition: 'width 0.3s ease', minWidth: count > 0 ? '2px' : '0' }} />
                     </div>

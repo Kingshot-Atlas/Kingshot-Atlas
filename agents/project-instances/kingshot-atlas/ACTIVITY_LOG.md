@@ -3,6 +3,14 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-26 20:30 | Product Engineer | COMPLETED
+Task: Battle Registry time slot labels — show 30-min ranges
+Files: BattleRegistryDashboard.tsx
+Changes:
+1. **Range labels** — Time Availability Distribution chart now shows "12:00 - 12:30" instead of just "12:00". Iterates `TIME_SLOTS.slice(0, -1)` to skip the 18:00 end boundary, pairs each slot with its successor for the range label.
+2. **Label width** — Widened label column from 45px to 90px to accommodate the range format.
+Result: Production build passes. No i18n changes needed (labels are computed from data, not translated strings).
+
 ## 2026-02-26 20:00 | Product Engineer | COMPLETED
 Task: Bronze Tier alliance info, KvK Battle Registry notification, Co-Editor toast
 Files: KingdomProfileTab.tsx, TransferHubLanding.tsx, FundTab.tsx, KingdomFundContribute.tsx, KingdomListingCard.tsx, useSilverPlusKingdoms.ts, EditorClaiming.tsx, + 9 translation files
