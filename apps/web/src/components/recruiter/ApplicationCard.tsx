@@ -698,7 +698,7 @@ const ApplicationCard: React.FC<{
                       fontWeight: '600',
                       cursor: sendingMsg || !msgText.trim() ? 'not-allowed' : 'pointer',
                       opacity: sendingMsg || !msgText.trim() ? 0.5 : 1,
-                      minHeight: '32px',
+                      minHeight: isMobile ? '44px' : '32px',
                     }}
                   >
                     {sendingMsg ? '...' : t('appCard.send', 'Send')}
@@ -726,20 +726,20 @@ const ApplicationCard: React.FC<{
                     <button
                       onClick={(e) => { e.stopPropagation(); handleRecruiterOutcome(true, 4); }}
                       disabled={outcomeSubmitting}
-                      style={{ padding: '0.3rem 0.6rem', backgroundColor: '#22c55e15', border: '1px solid #22c55e30', borderRadius: '6px', color: '#22c55e', fontSize: '0.65rem', fontWeight: '600', cursor: 'pointer' }}
+                      style={{ padding: '0.3rem 0.6rem', backgroundColor: '#22c55e15', border: '1px solid #22c55e30', borderRadius: '6px', color: '#22c55e', fontSize: '0.65rem', fontWeight: '600', cursor: 'pointer', minHeight: '44px' }}
                     >
                       ✅ {t('appCard.yesTransferred', 'Yes, transferred')}
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); handleRecruiterOutcome(false); }}
                       disabled={outcomeSubmitting}
-                      style={{ padding: '0.3rem 0.6rem', backgroundColor: '#ef444415', border: '1px solid #ef444430', borderRadius: '6px', color: '#ef4444', fontSize: '0.65rem', fontWeight: '600', cursor: 'pointer' }}
+                      style={{ padding: '0.3rem 0.6rem', backgroundColor: '#ef444415', border: '1px solid #ef444430', borderRadius: '6px', color: '#ef4444', fontSize: '0.65rem', fontWeight: '600', cursor: 'pointer', minHeight: '44px' }}
                     >
                       ❌ {t('appCard.no', 'No')}
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); setShowOutcomePrompt(false); }}
-                      style={{ padding: '0.3rem 0.4rem', backgroundColor: 'transparent', border: 'none', color: colors.textMuted, fontSize: '0.65rem', cursor: 'pointer' }}
+                      style={{ padding: '0.3rem 0.4rem', backgroundColor: 'transparent', border: 'none', color: colors.textMuted, fontSize: '0.65rem', cursor: 'pointer', minHeight: '44px' }}
                     >
                       {t('appCard.cancel', 'Cancel')}
                     </button>
@@ -748,7 +748,7 @@ const ApplicationCard: React.FC<{
               ) : (
                 <button
                   onClick={(e) => { e.stopPropagation(); setShowOutcomePrompt(true); }}
-                  style={{ background: 'none', border: `1px solid #22c55e25`, borderRadius: '6px', padding: '0.3rem 0.6rem', color: '#22c55e', fontSize: '0.65rem', fontWeight: '600', cursor: 'pointer' }}
+                  style={{ background: 'none', border: `1px solid #22c55e25`, borderRadius: '6px', padding: '0.3rem 0.6rem', color: '#22c55e', fontSize: '0.65rem', fontWeight: '600', cursor: 'pointer', minHeight: '44px' }}
                 >
                   📋 {t('appCard.confirmOutcome', 'Confirm transfer outcome')}
                 </button>

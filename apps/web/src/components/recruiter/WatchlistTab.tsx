@@ -257,7 +257,7 @@ const WatchlistTab: React.FC<WatchlistTabProps> = ({ editorInfo }) => {
   return (
     <div>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
         <div>
           <span style={{ color: colors.textSecondary, fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             Future Event Watchlist
@@ -454,8 +454,9 @@ const WatchlistTab: React.FC<WatchlistTabProps> = ({ editorInfo }) => {
                   onClick={() => handleRemove(item.id)}
                   style={{
                     background: 'none', border: 'none', color: '#ef4444',
-                    cursor: 'pointer', fontSize: '0.8rem', padding: '0.1rem 0.3rem',
-                    opacity: 0.6, flexShrink: 0,
+                    cursor: 'pointer', fontSize: '0.8rem', padding: '0.3rem 0.5rem',
+                    opacity: 0.6, flexShrink: 0, minWidth: '36px', minHeight: '36px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}
                 >
                   ✕

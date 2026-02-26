@@ -253,7 +253,7 @@ const InboxTab: React.FC<InboxTabProps> = ({
   return (
     <div>
       {/* Filter Tabs */}
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
         <button
           onClick={() => setFilterStatus('active')}
           style={{
@@ -329,12 +329,12 @@ const InboxTab: React.FC<InboxTabProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('recruiter.searchApplicants', 'Search applicants...')}
-            style={{ ...inputStyle, flex: 1, fontSize: '0.75rem', minHeight: '36px', padding: '0.3rem 0.5rem' }}
+            style={{ ...inputStyle, flex: 1, fontSize: '0.75rem', minHeight: '44px', padding: '0.3rem 0.5rem' }}
           />
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-            style={{ ...inputStyle, width: 'auto', minWidth: '110px', fontSize: '0.7rem', minHeight: '36px', cursor: 'pointer' }}
+            style={{ ...inputStyle, width: 'auto', minWidth: '110px', fontSize: '0.7rem', minHeight: '44px', cursor: 'pointer' }}
           >
             <option value="newest">{t('recruiter.sortNewest', 'Newest')}</option>
             <option value="oldest">{t('recruiter.sortOldest', 'Oldest')}</option>
@@ -582,7 +582,7 @@ const InboxTab: React.FC<InboxTabProps> = ({
             {t('recruiter.selectAll', 'Select All')} ({selectedIds.size}/{visibleApps.length})
           </label>
           {selectedIds.size > 0 && (
-            <div style={{ display: 'flex', gap: '0.3rem', marginLeft: 'auto' }}>
+            <div style={{ display: 'flex', gap: '0.3rem', marginLeft: 'auto', flexWrap: 'wrap' }}>
               {['viewed', 'interested', 'declined'].map(status => {
                 const fallbackColor = { bg: '#3b82f615', border: '#3b82f630', text: '#3b82f6' };
                 const btnColors: Record<string, { bg: string; border: string; text: string }> = {
@@ -607,7 +607,7 @@ const InboxTab: React.FC<InboxTabProps> = ({
                       cursor: bulkUpdating ? 'not-allowed' : 'pointer',
                       opacity: bulkUpdating ? 0.5 : 1,
                       textTransform: 'capitalize',
-                      minHeight: '28px',
+                      minHeight: '36px',
                     }}
                   >
                     {bulkUpdating ? '...' : status === 'viewed' ? t('appCard.markViewed', 'Mark Viewed') : status.charAt(0).toUpperCase() + status.slice(1)}

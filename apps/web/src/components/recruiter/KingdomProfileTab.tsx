@@ -445,7 +445,7 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
                           ))}
                         </select>
                       </div>
-                      {fund.tier === 'gold' && (
+                      {['silver', 'gold'].includes(fund.tier) && (
                         <div style={{ width: '90px' }}>
                           <span style={{ color: '#6b7280', fontSize: '0.6rem' }}>Open Spots</span>
                           <input
@@ -494,7 +494,7 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
             setProfileDraft(d => ({ ...d, alliance_events: { alliances: newAlliances, schedule: newSchedule } }));
           };
 
-          const maxAlliances = fund.tier === 'gold' ? 5 : 3;
+          const maxAlliances = ['silver', 'gold'].includes(fund.tier) ? 5 : 3;
           const addAlliance = () => {
             if (alliances.length >= maxAlliances) return;
             const newAlliances = [...alliances, ''];
@@ -534,9 +534,9 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
           return (
             <div>
               {/* Alliance tag inputs */}
-              <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.4rem', alignItems: 'flex-end' }}>
+              <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.4rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                 {alliances.map((tag, idx) => (
-                  <div key={idx} style={{ flex: 1 }}>
+                  <div key={idx} style={{ flex: '1 1 100px', minWidth: '90px' }}>
                     <span style={{ color: '#6b7280', fontSize: '0.6rem' }}>Alliance {idx + 1}</span>
                     <div style={{ display: 'flex', gap: '0.2rem' }}>
                       {idx > 0 && (
@@ -602,7 +602,7 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
                   <button onClick={addAlliance} style={{
                     padding: '0.3rem 0.5rem', backgroundColor: '#22d3ee10', border: '1px solid #22d3ee25',
                     borderRadius: '6px', color: '#22d3ee', fontSize: '0.65rem', cursor: 'pointer', minHeight: '36px', whiteSpace: 'nowrap',
-                  }}>+ Alliance {fund.tier === 'gold' && alliances.length >= 3 ? '(Gold)' : ''}</button>
+                  }}>+ Alliance {['silver', 'gold'].includes(fund.tier) && alliances.length >= 3 ? '(Silver+)' : ''}</button>
                 )}
               </div>
 
