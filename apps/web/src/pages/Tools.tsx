@@ -20,6 +20,7 @@ interface ToolCardProps {
   usageStat?: string;
   ctaLabel?: string;
   goldTierBadge?: boolean;
+  silverTierBadge?: boolean;
 }
 
 const ToolCard: React.FC<ToolCardProps> = ({ 
@@ -32,7 +33,8 @@ const ToolCard: React.FC<ToolCardProps> = ({
   accentColor,
   usageStat,
   ctaLabel,
-  goldTierBadge 
+  goldTierBadge,
+  silverTierBadge 
 }) => {
   const isMobile = useIsMobile();
   const { t } = useTranslation();
@@ -101,7 +103,26 @@ const ToolCard: React.FC<ToolCardProps> = ({
           👑 Gold Tier
         </div>
       )}
-      {usageStat && !comingSoon && !goldTierBadge && (
+      {silverTierBadge && !comingSoon && (
+        <div style={{
+          position: 'absolute',
+          top: '12px',
+          right: '12px',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '0.25rem',
+          padding: '0.2rem 0.55rem',
+          backgroundColor: '#d1d5db15',
+          border: '1px solid #d1d5db30',
+          borderRadius: '20px',
+          fontSize: '0.6rem',
+          fontWeight: '700',
+          color: '#d1d5db'
+        }}>
+          🥈 Silver Tier
+        </div>
+      )}
+      {usageStat && !comingSoon && !goldTierBadge && !silverTierBadge && (
         <div style={{
           position: 'absolute',
           top: '12px',
@@ -260,7 +281,7 @@ const Tools: React.FC = () => {
         </svg>
       ),
       href: '/tools/battle-planner',
-      accentColor: '#ef4444',
+      accentColor: '#f97316',
       goldTierBadge: true
     },
     {
@@ -282,8 +303,8 @@ const Tools: React.FC = () => {
       ),
       href: '/tools/prep-scheduler-info',
       ctaLabel: t('tools.learnMore', 'Learn More'),
-      accentColor: '#a855f7',
-      goldTierBadge: true
+      accentColor: '#eab308',
+      silverTierBadge: true
     },
     {
       title: t('tools.battleRegistryTitle', 'KvK Battle Registry'),
@@ -300,7 +321,7 @@ const Tools: React.FC = () => {
       ),
       href: '/tools/battle-registry-info',
       ctaLabel: t('tools.learnMore', 'Learn More'),
-      accentColor: '#ef4444',
+      accentColor: '#f97316',
       goldTierBadge: true
     },
     {
@@ -325,22 +346,22 @@ const Tools: React.FC = () => {
       accentColor: '#5865F2'
     },
     {
-      title: t('tools.giftTitle', 'Gift Codes'),
-      description: t('tools.giftDesc', 'Every active Kingshot gift code in one place. Copy codes and redeem them in-game — never miss free rewards again.'),
-      tagline: t('tools.giftTagline', 'Never miss a code. Ever.'),
-      usageStat: giftCodeCount ? `${giftCodeCount} active codes` : undefined,
+      title: t('tools.baseDesignerTitle', 'Alliance Base Designer'),
+      description: t('tools.baseDesignerDesc', 'Plan your alliance base layout on a grid. Place cities, traps, and buildings to optimize positioning. Save, share, and collaborate on designs.'),
+      tagline: t('tools.baseDesignerTagline', 'Design your fortress. Dominate the map.'),
       icon: (
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="3" y="10" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="2"/>
-          <path d="M12 10V21" stroke="currentColor" strokeWidth="2"/>
-          <path d="M3 14H21" stroke="currentColor" strokeWidth="2"/>
-          <path d="M7.5 10C7.5 10 6 8.5 6 7C6 5.5 7.5 4 9 5C10.5 6 12 10 12 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          <path d="M16.5 10C16.5 10 18 8.5 18 7C18 5.5 16.5 4 15 5C13.5 6 12 10 12 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="7" height="7"/>
+          <rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/>
+          <line x1="10" y1="6.5" x2="14" y2="6.5"/>
+          <line x1="6.5" y1="10" x2="6.5" y2="14"/>
         </svg>
       ),
+      href: '/tools/base-designer/about',
+      accentColor: '#3b82f6',
       ctaLabel: t('tools.learnMore', 'Learn More'),
-      href: '/gift-codes',
-      accentColor: '#f59e0b'
     },
     {
       title: t('tools.compareTitle', 'Kingdom Comparison'),
@@ -356,22 +377,22 @@ const Tools: React.FC = () => {
       accentColor: '#22d3ee'
     },
     {
-      title: t('tools.baseDesignerTitle', 'Alliance Base Designer'),
-      description: t('tools.baseDesignerDesc', 'Plan your alliance base layout on a grid. Place cities, traps, and buildings to optimize positioning. Save, share, and collaborate on designs.'),
-      tagline: t('tools.baseDesignerTagline', 'Design your fortress. Dominate the map.'),
+      title: t('tools.giftTitle', 'Gift Codes'),
+      description: t('tools.giftDesc', 'Every active Kingshot gift code in one place. Copy codes and redeem them in-game — never miss free rewards again.'),
+      tagline: t('tools.giftTagline', 'Never miss a code. Ever.'),
+      usageStat: giftCodeCount ? `${giftCodeCount} active codes` : undefined,
       icon: (
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="3" y="3" width="7" height="7"/>
-          <rect x="14" y="3" width="7" height="7"/>
-          <rect x="14" y="14" width="7" height="7"/>
-          <rect x="3" y="14" width="7" height="7"/>
-          <line x1="10" y1="6.5" x2="14" y2="6.5"/>
-          <line x1="6.5" y1="10" x2="6.5" y2="14"/>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="10" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="2"/>
+          <path d="M12 10V21" stroke="currentColor" strokeWidth="2"/>
+          <path d="M3 14H21" stroke="currentColor" strokeWidth="2"/>
+          <path d="M7.5 10C7.5 10 6 8.5 6 7C6 5.5 7.5 4 9 5C10.5 6 12 10 12 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          <path d="M16.5 10C16.5 10 18 8.5 18 7C18 5.5 16.5 4 15 5C13.5 6 12 10 12 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
         </svg>
       ),
-      href: '/tools/base-designer/about',
-      accentColor: '#f97316',
       ctaLabel: t('tools.learnMore', 'Learn More'),
+      href: '/gift-codes',
+      accentColor: '#22d3ee'
     },
     {
       title: t('tools.calcTitle', 'Gaming Calculators'),
@@ -392,9 +413,13 @@ const Tools: React.FC = () => {
         </svg>
       ),
       comingSoon: true,
-      accentColor: '#10b981'
+      accentColor: '#22d3ee'
     }
   ];
+
+  const kingdomTools = tools.slice(0, 4);
+  const allianceTools = tools.slice(4, 6);
+  const individualTools = tools.slice(6);
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }}>
@@ -447,14 +472,46 @@ const Tools: React.FC = () => {
         {/* Stage 3: Battle Planner trial tooltip for engaged free users */}
         <BattlePlannerTrialTooltip />
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-          gap: isMobile ? '1rem' : '1.5rem'
-        }}>
-          {tools.map((tool, index) => (
-            <ToolCard key={index} {...tool} />
-          ))}
+        {/* Kingdom Tools */}
+        <div style={{ marginBottom: isMobile ? '1.5rem' : '2rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: isMobile ? '0.75rem' : '1rem' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M9 21v-4h6v4"/></svg>
+            <h2 style={{ fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: '700', color: '#f97316', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: FONT_DISPLAY }}>
+              {t('tools.categoryKingdom', 'Kingdom Tools')}
+            </h2>
+            <div style={{ flex: 1, height: '1px', backgroundColor: '#f9731630' }} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: isMobile ? '1rem' : '1.5rem' }}>
+            {kingdomTools.map((tool, index) => (<ToolCard key={`k-${index}`} {...tool} />))}
+          </div>
+        </div>
+
+        {/* Alliance Tools */}
+        <div style={{ marginBottom: isMobile ? '1.5rem' : '2rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: isMobile ? '0.75rem' : '1rem' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <h2 style={{ fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: '700', color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: FONT_DISPLAY }}>
+              {t('tools.categoryAlliance', 'Alliance Tools')}
+            </h2>
+            <div style={{ flex: 1, height: '1px', backgroundColor: '#3b82f630' }} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: isMobile ? '1rem' : '1.5rem' }}>
+            {allianceTools.map((tool, index) => (<ToolCard key={`a-${index}`} {...tool} />))}
+          </div>
+        </div>
+
+        {/* Individual Tools */}
+        <div style={{ marginBottom: isMobile ? '1.5rem' : '2rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: isMobile ? '0.75rem' : '1rem' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <h2 style={{ fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: '700', color: '#22d3ee', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: FONT_DISPLAY }}>
+              {t('tools.categoryIndividual', 'Individual Tools')}
+            </h2>
+            <div style={{ flex: 1, height: '1px', backgroundColor: '#22d3ee30' }} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: isMobile ? '1rem' : '1.5rem' }}>
+            {individualTools.map((tool, index) => (<ToolCard key={`i-${index}`} {...tool} />))}
+          </div>
         </div>
 
         {/* Bottom CTA */}

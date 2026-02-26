@@ -372,7 +372,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                     <div style={{ color: '#6b7280', lineHeight: 1.8, display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
                       <div>🥉 <span style={{ color: colors.bronze }}>Bronze $25+</span> — {t('listing.bronzePerks', 'Shimmer border · requirements · vibes')}</div>
                       <div>🥈 <span style={{ color: '#d1d5db' }}>Silver $50+</span> — {t('listing.silverPerks', '+ Invites · alliance schedules · prep scheduler')}</div>
-                      <div>🥇 <span style={{ color: colors.gold }}>Gold $100+</span> — {t('listing.goldPerks', '+ Gilded badge · battle planner · priority')}</div>
+                      <div>🥇 <span style={{ color: colors.gold }}>Gold $100+</span> — {t('listing.goldPerks', '+ Gilded badge · battle planner · battle registry · priority')}</div>
                     </div>
                   </div>
                 }

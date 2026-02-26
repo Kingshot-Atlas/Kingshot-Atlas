@@ -42,7 +42,9 @@
     "kvkSeasons_1": "KvK-",
     "kvkSeasons_2": "Saisons",
     "prepScheduler_1": "KvK-Prep",
-    "prepScheduler_2": "Planer"
+    "prepScheduler_2": "Planer",
+    "battleRegistry_1": "KvK-Schlacht",
+    "battleRegistry_2": "Register"
   },
   "nav": {
     "home": "Startseite",
@@ -67,7 +69,10 @@
     "kingdomCommunities": "Königreich-Kolonien",
     "giftCodes": "Geschenkcodes",
     "kvkBattleRegistry": "KvK Schlachtregister",
-    "baseDesigner": "Basis-Designer"
+    "baseDesigner": "Basis-Designer",
+    "kingdomTools": "Königreich-Tools",
+    "allianceTools": "Allianz-Tools",
+    "individualTools": "Individuelle Tools"
   },
   "stats": {
     "atlasScore": "Atlas-Wertung",
@@ -293,6 +298,9 @@
     "calcTitle": "Spielrechner",
     "calcDesc": "Ressourcenplaner, Upgrade-Kosten, Beschleunigungsrechner. Mathe, damit du es nicht machen musst.",
     "calcTagline": "Klüger rechnen. Schneller wachsen.",
+    "categoryKingdom": "Königreich-Tools",
+    "categoryAlliance": "Allianz-Tools",
+    "categoryIndividual": "Individuelle Tools",
     "giftTitle": "Geschenkcode-Einlöser",
     "giftDesc": "Löse Geschenkcodes mit einem Klick ein. Kein Kopieren und Einfügen. Belohnungen direkt in deinem Postfach.",
     "giftTagline": "Hör auf zu tippen. Fang an einzulösen.",
@@ -1554,7 +1562,7 @@
     "fundDescription": "Königreiche finanzieren ihren Eintrag, um bessere Sichtbarkeit und Funktionen freizuschalten.",
     "bronzePerks": "Schimmer-Rahmen · Anforderungen · Stimmungen",
     "silverPerks": "+ Einladungen · Allianz-Zeiten · Vorbereitungsplaner",
-    "goldPerks": "+ Goldenes Abzeichen · Kampfplaner · Priorität",
+    "goldPerks": "+ Goldenes Abzeichen · Kampfplaner · Schlachtregister · Priorität",
     "recruiting": "REKRUTIERT",
     "matchBreakdown": "Match-Aufschlüsselung",
     "matchBreakdownDesc": "Wie gut dieses Königreich zu deinen Transfer-Profil-Präferenzen passt.",
@@ -2431,6 +2439,7 @@
     "cmpBadge": "Goldenes Abzeichen für alle Königreichsmitglieder",
     "cmpBasicListing": "Grundeintrag mit Atlas Score und Statistiken",
     "cmpBattlePlanner": "Zugang zum KvK-Kampfplaner",
+    "cmpBattleRegistry": "Zugang zum KvK-Schlachtregister",
     "cmpBioLang": "Königreich-Bio und Sprache",
     "cmpBrowseProfiles": "Rekrutierungskandidaten durchsuchen",
     "cmpGlow": "Goldenes Leuchten + Prioritätsplatzierung",
@@ -3063,7 +3072,7 @@
     "signupNudge": "Erstellen Sie ein kostenloses Konto, um alle Funktionen freizuschalten"
   },
   "referral": {
-    "copyLink": "Link kopieren"
+    "copyLink": "Empfehlungslink kopieren"
   },
   "baseDesigner": {
     "pageTitle": "Allianz-Basis-Designer",

@@ -42,7 +42,9 @@
     "kvkSeasons_1": "KvK",
     "kvkSeasons_2": "シーズン",
     "prepScheduler_1": "KvK準備",
-    "prepScheduler_2": "スケジューラー"
+    "prepScheduler_2": "スケジューラー",
+    "battleRegistry_1": "KvKバトル",
+    "battleRegistry_2": "登録"
   },
   "nav": {
     "home": "ホーム",
@@ -67,7 +69,10 @@
     "kingdomCommunities": "王国コロニー",
     "giftCodes": "ギフトコード",
     "kvkBattleRegistry": "KvKバトル登録",
-    "baseDesigner": "基地デザイナー"
+    "baseDesigner": "基地デザイナー",
+    "kingdomTools": "王国ツール",
+    "allianceTools": "同盟ツール",
+    "individualTools": "個人ツール"
   },
   "stats": {
     "atlasScore": "Atlasスコア",
@@ -293,6 +298,9 @@
     "calcTitle": "ゲーム計算機",
     "calcDesc": "資源プランナー、アップグレードコスト、スピードアップ見積もり。計算はお任せ。",
     "calcTagline": "スマートに計算。速く成長。",
+    "categoryKingdom": "王国ツール",
+    "categoryAlliance": "同盟ツール",
+    "categoryIndividual": "個人ツール",
     "giftTitle": "ギフトコード交換機",
     "giftDesc": "ワンクリックでギフトコードを交換。コピペ不要。報酬はメールボックスに直接届きます。",
     "giftTagline": "入力はやめて。受け取りを始めよう。",
@@ -1554,7 +1562,7 @@
     "fundDescription": "王国がリスティングに投資してより良い可視性と機能を解除。",
     "bronzePerks": "シマーボーダー · 要件 · バイブ",
     "silverPerks": "+ 招待 · 同盟スケジュール · 準備プランナー",
-    "goldPerks": "+ ゴールドバッジ · バトルプランナー · 優先表示",
+    "goldPerks": "+ ゴールドバッジ · バトルプランナー · バトル登録 · 優先表示",
     "recruiting": "リクルート中",
     "matchBreakdown": "マッチ内訳",
     "matchBreakdownDesc": "この王国があなたのトランスファープロフィールの希望にどれだけ合っているか。",
@@ -2431,6 +2439,7 @@
     "cmpBadge": "王国全ユーザーのゴールドバッジ",
     "cmpBasicListing": "Atlasスコアと統計の基本リスティング",
     "cmpBattlePlanner": "KvKバトルプランナーアクセス",
+    "cmpBattleRegistry": "KvKバトル登録アクセス",
     "cmpBioLang": "王国プロフィールと言語表示",
     "cmpBrowseProfiles": "リクルート候補者を閲覧",
     "cmpGlow": "ゴールドグロー+優先配置",
@@ -3063,7 +3072,7 @@
     "signupNudge": "無料アカウントを作成してすべての機能をアンロック"
   },
   "referral": {
-    "copyLink": "リンクをコピー"
+    "copyLink": "紹介リンクをコピー"
   },
   "baseDesigner": {
     "pageTitle": "同盟拠点デザイナー",

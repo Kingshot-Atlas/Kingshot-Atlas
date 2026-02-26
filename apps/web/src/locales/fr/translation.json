@@ -42,7 +42,9 @@
     "kvkSeasons_1": "Saisons",
     "kvkSeasons_2": "KvK",
     "prepScheduler_1": "Planificateur",
-    "prepScheduler_2": "Prep KvK"
+    "prepScheduler_2": "Prep KvK",
+    "battleRegistry_1": "Registre",
+    "battleRegistry_2": "de Bataille"
   },
   "nav": {
     "home": "Accueil",
@@ -67,7 +69,10 @@
     "kingdomCommunities": "Colonies du Royaume",
     "giftCodes": "Codes Cadeaux",
     "kvkBattleRegistry": "Registre de Bataille KvK",
-    "baseDesigner": "Concepteur de Base"
+    "baseDesigner": "Concepteur de Base",
+    "kingdomTools": "Outils du Royaume",
+    "allianceTools": "Outils d'Alliance",
+    "individualTools": "Outils Individuels"
   },
   "stats": {
     "atlasScore": "Score Atlas",
@@ -293,6 +298,9 @@
     "calcTitle": "Calculatrices de Jeu",
     "calcDesc": "Planificateurs de ressources, coûts d'amélioration, estimations d'accélération. Les maths pour que vous n'ayez pas à les faire.",
     "calcTagline": "Calculez plus intelligemment. Progressez plus vite.",
+    "categoryKingdom": "Outils du Royaume",
+    "categoryAlliance": "Outils d'Alliance",
+    "categoryIndividual": "Outils Individuels",
     "giftTitle": "Échangeur de Codes",
     "giftDesc": "Échangez des codes cadeaux en un clic. Sans copier-coller. Les récompenses arrivent directement dans votre boîte.",
     "giftTagline": "Arrêtez de taper. Commencez à réclamer.",
@@ -1554,7 +1562,7 @@
     "fundDescription": "Les royaumes financent leur annonce pour débloquer une meilleure visibilité et des fonctionnalités.",
     "bronzePerks": "Bordure scintillante · exigences · ambiance",
     "silverPerks": "+ Invitations · horaires d'alliance · planificateur prep",
-    "goldPerks": "+ Badge doré · planificateur de bataille · priorité",
+    "goldPerks": "+ Badge doré · planificateur de bataille · registre de bataille · priorité",
     "recruiting": "EN RECRUTEMENT",
     "matchBreakdown": "Détail de Compatibilité",
     "matchBreakdownDesc": "À quel point ce royaume correspond aux préférences de votre Profil de Transfert.",
@@ -2431,6 +2439,7 @@
     "cmpBadge": "Badge doré pour tous les utilisateurs du royaume",
     "cmpBasicListing": "Annonce basique avec Atlas Score et statistiques",
     "cmpBattlePlanner": "Accès au Planificateur de Bataille KvK",
+    "cmpBattleRegistry": "Accès au Registre de Bataille KvK",
     "cmpBioLang": "Bio et langue du royaume",
     "cmpBrowseProfiles": "Parcourir les candidats au recrutement",
     "cmpGlow": "Éclat doré + placement prioritaire",
@@ -3063,7 +3072,7 @@
     "signupNudge": "Créez un compte gratuit pour débloquer toutes les fonctionnalités"
   },
   "referral": {
-    "copyLink": "Copier le lien"
+    "copyLink": "Copier le lien de parrainage"
   },
   "baseDesigner": {
     "pageTitle": "Concepteur de Base d'Alliance",

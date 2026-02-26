@@ -44,16 +44,6 @@ const AtlasBotIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
   </svg>
 );
 
-const KvkSeasonsIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
-    <path d="M12 3C12 3 16 7 16 12C16 17 12 21 12 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    <path d="M12 3C12 3 8 7 8 12C8 17 12 21 12 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    <path d="M3.5 9H20.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    <path d="M3.5 15H20.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-  </svg>
-);
-
 const RankingsIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="3" y="14" width="5" height="7" rx="1" stroke="currentColor" strokeWidth="2" />
@@ -77,6 +67,16 @@ const PrepSchedulerIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
   </svg>
 );
 
+const BattleRegistryIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M9 2H15L17 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4H7L9 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <line x1="8" y1="10" x2="16" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    <line x1="8" y1="14" x2="14" y2="14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    <circle cx="6" cy="10" r="1" fill="currentColor" />
+    <circle cx="6" cy="14" r="1" fill="currentColor" />
+  </svg>
+);
+
 const QuickActions: React.FC = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -87,11 +87,11 @@ const QuickActions: React.FC = () => {
 
   const ACTIONS: QuickAction[] = [
     { label: 'Transfer Hub', line1: t('quickAction.transferHub_1', 'Transfer'), line2: t('quickAction.transferHub_2', 'Hub'), path: '/transfer-hub/about', color: '#22c55e', icon: <TransferHubIcon size={iconSize} /> },
-    { label: 'KvK Battle Planner', line1: t('quickAction.battlePlanner_1', 'KvK Battle'), line2: t('quickAction.battlePlanner_2', 'Planner'), path: '/tools/battle-planner', color: '#ef4444', icon: <BattlePlannerIcon size={iconSize} /> },
-    { label: 'KvK Prep Scheduler', line1: t('quickAction.prepScheduler_1', 'KvK Prep'), line2: t('quickAction.prepScheduler_2', 'Scheduler'), path: '/tools/prep-scheduler-info', color: '#a855f7', icon: <PrepSchedulerIcon size={iconSize} /> },
-    { label: 'Discord Bot Atlas', line1: t('quickAction.atlasBot_1', 'Discord'), line2: t('quickAction.atlasBot_2', 'Bot Atlas'), path: '/atlas-bot', color: '#5865F2', icon: <AtlasBotIcon size={iconSize} /> },
+    { label: 'KvK Battle Planner', line1: t('quickAction.battlePlanner_1', 'KvK Battle'), line2: t('quickAction.battlePlanner_2', 'Planner'), path: '/tools/battle-planner', color: '#f97316', icon: <BattlePlannerIcon size={iconSize} /> },
+    { label: 'KvK Battle Registry', line1: t('quickAction.battleRegistry_1', 'KvK Battle'), line2: t('quickAction.battleRegistry_2', 'Registry'), path: '/tools/battle-registry-info', color: '#f97316', icon: <BattleRegistryIcon size={iconSize} /> },
+    { label: 'KvK Prep Scheduler', line1: t('quickAction.prepScheduler_1', 'KvK Prep'), line2: t('quickAction.prepScheduler_2', 'Scheduler'), path: '/tools/prep-scheduler-info', color: '#eab308', icon: <PrepSchedulerIcon size={iconSize} /> },
+    { label: 'Atlas Discord Bot', line1: t('quickAction.atlasBot_1', 'Atlas'), line2: t('quickAction.atlasBot_2', 'Discord Bot'), path: '/atlas-bot', color: '#5865F2', icon: <AtlasBotIcon size={iconSize} /> },
     { label: 'Kingdom Rankings', line1: t('quickAction.rankings_1', 'Kingdom'), line2: t('quickAction.rankings_2', 'Rankings'), path: '/rankings', color: '#22d3ee', icon: <RankingsIcon size={iconSize} /> },
-    { label: 'KvK Seasons', line1: t('quickAction.kvkSeasons_1', 'KvK'), line2: t('quickAction.kvkSeasons_2', 'Seasons'), path: '/seasons', color: '#f59e0b', icon: <KvkSeasonsIcon size={iconSize} /> },
   ];
 
   return (

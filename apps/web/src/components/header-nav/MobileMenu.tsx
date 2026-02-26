@@ -26,6 +26,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
   const [showMobileToolsMenu, setShowMobileToolsMenu] = useState(false);
   const [showMobileCommunityMenu, setShowMobileCommunityMenu] = useState(false);
   const [showMobileRankingsMenu, setShowMobileRankingsMenu] = useState(false);
+  const [expandedToolCategory, setExpandedToolCategory] = useState<string | null>('kingdom');
   const [refCopied, setRefCopied] = useState(false);
   const { eligible: referralEligible, copyCurrentPageLink } = useReferralLink();
   const { trackFeature } = useAnalytics();
@@ -249,34 +250,77 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
       </button>
       {showMobileToolsMenu && (
         <>
-          <Link to="/transfer-hub/about" style={{ color: (isActive('/transfer-hub') || isActive('/transfer-hub/about')) ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#333' }}>└</span> {t('nav.transferHub')}
+          {/* Kingdom Tools */}
+          <button
+            onClick={() => setExpandedToolCategory(expandedToolCategory === 'kingdom' ? null : 'kingdom')}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0.45rem 1rem 0.45rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', backgroundColor: expandedToolCategory === 'kingdom' ? '#f9731610' : 'transparent', color: '#f97316', fontSize: '0.7rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left' }}
+          >
+            {t('nav.kingdomTools', 'Kingdom Tools')}
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={chevronStyle(expandedToolCategory === 'kingdom')}><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          {expandedToolCategory === 'kingdom' && (
+            <>
+              <Link to="/transfer-hub/about" style={{ color: (isActive('/transfer-hub') || isActive('/transfer-hub/about')) ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#22c55e', fontSize: '0.7rem' }}>●</span> {t('nav.transferHub')}
+              </Link>
+              <Link to="/tools/battle-planner" style={{ color: isActive('/tools/battle-planner') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#f97316', fontSize: '0.7rem' }}>●</span> {t('nav.kvkBattleCoordinator')}
+              </Link>
+              <Link to="/tools/battle-registry-info" style={{ color: (isActive('/tools/battle-registry') || isActive('/tools/battle-registry-info')) ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#f97316', fontSize: '0.7rem' }}>●</span> {t('nav.kvkBattleRegistry', 'KvK Battle Registry')}
+              </Link>
+              <Link to="/tools/prep-scheduler-info" style={{ color: (isActive('/tools/prep-scheduler') || isActive('/tools/prep-scheduler-info')) ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#eab308', fontSize: '0.7rem' }}>●</span> {t('nav.kvkPrepScheduler', 'KvK Prep Scheduler')}
+              </Link>
+            </>
+          )}
+
+          {/* Alliance Tools */}
+          <button
+            onClick={() => setExpandedToolCategory(expandedToolCategory === 'alliance' ? null : 'alliance')}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0.45rem 1rem 0.45rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', backgroundColor: expandedToolCategory === 'alliance' ? '#3b82f610' : 'transparent', color: '#3b82f6', fontSize: '0.7rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left' }}
+          >
+            {t('nav.allianceTools', 'Alliance Tools')}
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={chevronStyle(expandedToolCategory === 'alliance')}><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          {expandedToolCategory === 'alliance' && (
+            <>
+              <Link to="/tools/base-designer/about" style={{ color: (isActive('/tools/base-designer') || isActive('/tools/base-designer/about')) ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#3b82f6', fontSize: '0.7rem' }}>●</span> {t('nav.baseDesigner', 'Base Designer')}
+              </Link>
+              <Link to="/atlas-bot" style={{ color: isActive('/atlas-bot') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#5865F2', fontSize: '0.7rem' }}>●</span> {t('nav.atlasBot')}
+              </Link>
+            </>
+          )}
+
+          {/* Individual Tools */}
+          <button
+            onClick={() => setExpandedToolCategory(expandedToolCategory === 'individual' ? null : 'individual')}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0.45rem 1rem 0.45rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', backgroundColor: expandedToolCategory === 'individual' ? '#22d3ee10' : 'transparent', color: '#22d3ee', fontSize: '0.7rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left' }}
+          >
+            {t('nav.individualTools', 'Individual Tools')}
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={chevronStyle(expandedToolCategory === 'individual')}><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          {expandedToolCategory === 'individual' && (
+            <>
+              <Link to="/compare" style={{ color: isActive('/compare') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#22d3ee', fontSize: '0.7rem' }}>●</span> {t('nav.kingdomComparison')}
+              </Link>
+              <Link to="/gift-codes" style={{ color: isActive('/gift-codes') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#22d3ee', fontSize: '0.7rem' }}>●</span> {t('nav.giftCodes', 'Gift Codes')}
+              </Link>
+              <div style={{ color: '#4b5563', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#22d3ee', fontSize: '0.7rem', opacity: 0.5 }}>●</span> {t('nav.gamingCalculators')}
+                <span style={{ fontSize: '0.55rem', backgroundColor: '#22d3ee20', color: '#22d3ee', padding: '0.1rem 0.3rem', borderRadius: '4px' }}>{t('common.soon')}</span>
+              </div>
+            </>
+          )}
+
+          {/* All Tools link */}
+          <Link to="/tools" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem', padding: '0.4rem 1rem 0.4rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '500' }}>
+            {t('nav.viewAllTools', 'View All Tools →')}
           </Link>
-          <Link to="/tools/battle-planner" style={{ color: isActive('/tools/battle-planner') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#333' }}>└</span> {t('nav.kvkBattleCoordinator')}
-          </Link>
-          <Link to="/tools/prep-scheduler-info" style={{ color: isActive('/tools/prep-scheduler') || isActive('/tools/prep-scheduler-info') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#333' }}>└</span> {t('nav.kvkPrepScheduler', 'KvK Prep Scheduler')}
-          </Link>
-          <Link to="/tools/battle-registry-info" style={{ color: (isActive('/tools/battle-registry') || isActive('/tools/battle-registry-info')) ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#333' }}>└</span> {t('nav.kvkBattleRegistry', 'KvK Battle Registry')}
-          </Link>
-          <Link to="/tools/base-designer/about" style={{ color: (isActive('/tools/base-designer') || isActive('/tools/base-designer/about')) ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#333' }}>└</span> {t('nav.baseDesigner', 'Base Designer')}
-          </Link>
-          <Link to="/atlas-bot" style={{ color: isActive('/atlas-bot') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#333' }}>└</span> {t('nav.atlasBot')}
-          </Link>
-          <Link to="/gift-codes" style={{ color: isActive('/gift-codes') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#333' }}>└</span> {t('nav.giftCodes', 'Gift Codes')}
-          </Link>
-          <Link to="/compare" style={{ color: isActive('/compare') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#333' }}>└</span> {t('nav.kingdomComparison')}
-          </Link>
-          <div style={{ color: '#4b5563', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#333' }}>└</span> {t('nav.gamingCalculators')}
-            <span style={{ fontSize: '0.55rem', backgroundColor: '#10b98120', color: '#10b981', padding: '0.1rem 0.3rem', borderRadius: '4px' }}>{t('common.soon')}</span>
-          </div>
         </>
       )}
 

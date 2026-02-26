@@ -42,7 +42,9 @@
     "kvkSeasons_1": "KvK",
     "kvkSeasons_2": "Sezonları",
     "prepScheduler_1": "KvK Hazırlık",
-    "prepScheduler_2": "Planlayıcı"
+    "prepScheduler_2": "Planlayıcı",
+    "battleRegistry_1": "KvK Savaş",
+    "battleRegistry_2": "Kaydı"
   },
   "nav": {
     "home": "Ana Sayfa",
@@ -67,7 +69,10 @@
     "kingdomCommunities": "Krallık Kolonileri",
     "giftCodes": "Hediye Kodları",
     "kvkBattleRegistry": "KvK Savaş Kaydı",
-    "baseDesigner": "Üs Tasarımcısı"
+    "baseDesigner": "Üs Tasarımcısı",
+    "kingdomTools": "Krallık Araçları",
+    "allianceTools": "İttifak Araçları",
+    "individualTools": "Bireysel Araçlar"
   },
   "stats": {
     "atlasScore": "Atlas Puanı",
@@ -293,6 +298,9 @@
     "calcTitle": "Oyun Hesaplayıcıları",
     "calcDesc": "Kaynak planlayıcıları, yükseltme maliyetleri, hızlandırma tahminleri. Senin yerine matematik yapar.",
     "calcTagline": "Daha akıllı hesapla. Daha hızlı büyü.",
+    "categoryKingdom": "Krallık Araçları",
+    "categoryAlliance": "İttifak Araçları",
+    "categoryIndividual": "Bireysel Araçlar",
     "giftTitle": "Hediye Kodu Kullanıcı",
     "giftDesc": "Hediye kodlarını tek tıkla kullan. Kopyala-yapıştır yok. Ödüller doğrudan posta kutuna gelir.",
     "giftTagline": "Yazmayı bırak. Toplamaya başla.",
@@ -1554,7 +1562,7 @@
     "fundDescription": "Krallıklar daha iyi görünürlük ve özellikler için ilanlarını fonlar.",
     "bronzePerks": "Parıltılı kenarlık · gereksinimler · vibes",
     "silverPerks": "+ Davetler · ittifak programları · hazırlık planlayıcı",
-    "goldPerks": "+ Altın rozet · savaş planlayıcı · öncelik",
+    "goldPerks": "+ Altın rozet · savaş planlayıcı · savaş kaydı · öncelik",
     "recruiting": "İŞE ALIYOR",
     "matchBreakdown": "Eşleşme Detayları",
     "matchBreakdownDesc": "Bu krallığın Transfer Profili tercihlerinize ne kadar uyduğu.",
@@ -2431,6 +2439,7 @@
     "cmpBadge": "Tüm krallık üyeleri için altın rozet",
     "cmpBasicListing": "Atlas Puanı ve istatistiklerle temel ilan",
     "cmpBattlePlanner": "KvK Savaş Planlayıcı erişimi",
+    "cmpBattleRegistry": "KvK Savaş Kaydı erişimi",
     "cmpBioLang": "Krallık Biyografi ve Dil gösterimi",
     "cmpBrowseProfiles": "Aday adaylarını inceleyin",
     "cmpGlow": "Altın parıltı + öncelikli yerleşim",
@@ -3063,7 +3072,7 @@
     "signupNudge": "Tüm özelliklerin kilidini açmak için ücretsiz hesap oluşturun"
   },
   "referral": {
-    "copyLink": "Bağlantıyı Kopyala"
+    "copyLink": "Referans Bağlantısını Kopyala"
   },
   "baseDesigner": {
     "pageTitle": "İttifak Üssü Tasarımcısı",

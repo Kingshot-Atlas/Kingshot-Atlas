@@ -42,7 +42,9 @@
     "kvkSeasons_1": "Temporadas",
     "kvkSeasons_2": "KvK",
     "prepScheduler_1": "Programador",
-    "prepScheduler_2": "KvK Prep"
+    "prepScheduler_2": "KvK Prep",
+    "battleRegistry_1": "Registro",
+    "battleRegistry_2": "de Batalla"
   },
   "nav": {
     "home": "Inicio",
@@ -66,7 +68,10 @@
     "aboutAtlas": "Sobre Atlas",
     "kingdomCommunities": "Colonias del Reino",
     "kvkBattleRegistry": "Registro de Batalla KvK",
-    "giftCodes": "Códigos de Regalo"
+    "giftCodes": "Códigos de Regalo",
+    "kingdomTools": "Herramientas del Reino",
+    "allianceTools": "Herramientas de Alianza",
+    "individualTools": "Herramientas Individuales"
   },
   "stats": {
     "atlasScore": "Índice Atlas",
@@ -292,6 +297,9 @@
     "calcTitle": "Calculadoras de Juego",
     "calcDesc": "Planificadores de recursos, costes de mejora, estimaciones de aceleración. Matemáticas para que no tengas que hacerlas.",
     "calcTagline": "Calcula más inteligente. Crece más rápido.",
+    "categoryKingdom": "Herramientas del Reino",
+    "categoryAlliance": "Herramientas de Alianza",
+    "categoryIndividual": "Herramientas Individuales",
     "giftTitle": "Canjeador de Códigos",
     "giftDesc": "Canjea códigos de regalo con un clic. Sin copiar y pegar. Las recompensas van directo a tu buzón.",
     "giftTagline": "Deja de escribir. Empieza a reclamar.",
@@ -1553,7 +1561,7 @@
     "fundDescription": "Los reinos financian su listado para desbloquear mejor visibilidad y características.",
     "bronzePerks": "Borde brillante · requisitos · ambiente",
     "silverPerks": "+ Invitaciones · horarios de alianza · programador prep",
-    "goldPerks": "+ Insignia dorada · planificador de batalla · prioridad",
+    "goldPerks": "+ Insignia dorada · planificador de batalla · registro de batalla · prioridad",
     "recruiting": "RECLUTANDO",
     "matchBreakdown": "Desglose de Compatibilidad",
     "matchBreakdownDesc": "Qué tan bien este reino se ajusta a las preferencias de tu Perfil de Transferencia.",
@@ -2430,6 +2438,7 @@
     "cmpBadge": "Insignia dorada para todos los usuarios del reino",
     "cmpBasicListing": "Anuncio básico con Atlas Score y estadísticas",
     "cmpBattlePlanner": "Acceso al Planificador de Batalla KvK",
+    "cmpBattleRegistry": "Acceso al Registro de Batalla KvK",
     "cmpBioLang": "Biografía e idioma del reino",
     "cmpBrowseProfiles": "Explorar candidatos de reclutamiento",
     "cmpGlow": "Brillo dorado + posición prioritaria",
@@ -3062,7 +3071,7 @@
     "signupNudge": "Crea una cuenta gratuita para desbloquear todas las funciones"
   },
   "referral": {
-    "copyLink": "Copiar enlace"
+    "copyLink": "Copiar Enlace de Referido"
   },
   "baseDesigner": {
     "pageTitle": "Diseñador de Base de Alianza",

@@ -93,6 +93,7 @@ const TransferHubLanding: React.FC = () => {
     { feature: t('transferHubLanding.cmpBadge', 'Gilded badge for all kingdom users'), standard: false, bronze: false, silver: false, gold: true, minTier: 'gold' },
     { feature: t('transferHubLanding.cmpGlow', 'Gold glow + priority placement'), standard: false, bronze: false, silver: false, gold: true, minTier: 'gold' },
     { feature: t('transferHubLanding.cmpBattlePlanner', 'KvK Battle Planner access'), standard: false, bronze: false, silver: false, gold: true, minTier: 'gold' },
+    { feature: t('transferHubLanding.cmpBattleRegistry', 'KvK Battle Registry access'), standard: false, bronze: false, silver: false, gold: true, minTier: 'gold' },
   ];
 
   const TIER_COLORS: Record<string, string> = { standard: '#ffffff', bronze: FUND_BRONZE, silver: FUND_SILVER, gold: FUND_GOLD };

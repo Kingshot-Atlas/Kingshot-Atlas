@@ -3,6 +3,16 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-26 18:00 | Product Engineer | COMPLETED
+Task: Battle Registry UI polish, edit manual entries, export player list
+Files: BattleRegistryDashboard.tsx, BattleRegistryForm.tsx, useBattleRegistry.ts, BattleRegistryMain.tsx, + 9 translation files
+Changes:
+1. **ALL CAPS title** — Removed emojis from Dashboard and Form titles, made "BATTLE REGISTRY" ALL CAPS to match landing page style.
+2. **Edit manual entries** — Managers can now edit manually added player entries via pencil icon. Edit reuses the manual form with pre-filled data, Cancel button, and "Update Player" action. Added `updateManualEntry` to hook.
+3. **Export player list** — "Copy Player List" button copies a formatted text summary to clipboard for sharing in Discord. Includes header, player details, troop info.
+4. **i18n** — Added 7 new keys (editPlayerTitle, cancelEdit, updatePlayer, editEntry, exportList, toastManualUpdated, toastManualUpdateFailed) to all 9 languages.
+Result: Production build passes cleanly. Committed and pushed to main.
+
 ## 2026-02-26 17:00 | Product Engineer | COMPLETED
 Task: Battle Registry manual input, unified Tool Access tab, gating migration
 Files: ToolAccessTab.tsx (new), BattleRegistryDashboard.tsx, useBattleRegistry.ts, BattleRegistryMain.tsx, types.ts, useRallyCoordinator.ts, AdminTabNav.tsx, AdminDashboard.tsx, admin/types.ts, admin/index.ts, + 18 translation files

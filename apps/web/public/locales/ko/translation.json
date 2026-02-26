@@ -42,7 +42,9 @@
     "kvkSeasons_1": "KvK",
     "kvkSeasons_2": "시즌",
     "prepScheduler_1": "KvK 준비",
-    "prepScheduler_2": "스케줄러"
+    "prepScheduler_2": "스케줄러",
+    "battleRegistry_1": "KvK 전투",
+    "battleRegistry_2": "등록부"
   },
   "nav": {
     "home": "홈",
@@ -67,7 +69,10 @@
     "kingdomCommunities": "왕국 식민지",
     "giftCodes": "기프트 코드",
     "kvkBattleRegistry": "KvK 전투 등록부",
-    "baseDesigner": "기지 디자이너"
+    "baseDesigner": "기지 디자이너",
+    "kingdomTools": "왕국 도구",
+    "allianceTools": "동맹 도구",
+    "individualTools": "개인 도구"
   },
   "stats": {
     "atlasScore": "Atlas 점수",
@@ -1554,7 +1559,7 @@
     "fundDescription": "왕국이 목록에 펀딩하여 더 나은 가시성과 기능을 잠금 해제합니다.",
     "bronzePerks": "반짝 테두리 · 요구사항 · 분위기",
     "silverPerks": "+ 초대 · 동맹 일정 · 준비 스케줄러",
-    "goldPerks": "+ 골드 뱃지 · 배틀 플래너 · 우선",
+    "goldPerks": "+ 골드 뱃지 · 배틀 플래너 · 전투 등록부 · 우선",
     "recruiting": "모집 중",
     "matchBreakdown": "매치 분석",
     "matchBreakdownDesc": "이 왕국이 이적 프로필 선호도와 얼마나 잘 맞는지.",
@@ -2431,6 +2436,7 @@
     "cmpBadge": "모든 왕국 사용자를 위한 골드 배지",
     "cmpBasicListing": "Atlas 점수와 통계가 포함된 기본 목록",
     "cmpBattlePlanner": "KvK 배틀 플래너 접근",
+    "cmpBattleRegistry": "KvK 전투 등록부 접근",
     "cmpBioLang": "왕국 소개 및 언어 표시",
     "cmpBrowseProfiles": "모집 후보자 탐색",
     "cmpGlow": "골드 글로우 + 우선 배치",
@@ -3063,7 +3069,7 @@
     "signupNudge": "무료 계정을 만들어 모든 기능을 잠금 해제하세요"
   },
   "referral": {
-    "copyLink": "링크 복사"
+    "copyLink": "추천 링크 복사"
   },
   "baseDesigner": {
     "pageTitle": "동맹 기지 디자이너",

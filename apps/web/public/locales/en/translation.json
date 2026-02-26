@@ -42,7 +42,9 @@
     "kvkSeasons_1": "KvK",
     "kvkSeasons_2": "Seasons",
     "prepScheduler_1": "KvK Prep",
-    "prepScheduler_2": "Scheduler"
+    "prepScheduler_2": "Scheduler",
+    "battleRegistry_1": "KvK Battle",
+    "battleRegistry_2": "Registry"
   },
   "nav": {
     "home": "Home",
@@ -67,7 +69,10 @@
     "aboutAtlas": "About Atlas",
     "kingdomCommunities": "Kingdom Colonies",
     "kvkBattleRegistry": "KvK Battle Registry",
-    "baseDesigner": "Base Designer"
+    "baseDesigner": "Base Designer",
+    "kingdomTools": "Kingdom Tools",
+    "allianceTools": "Alliance Tools",
+    "individualTools": "Individual Tools"
   },
   "stats": {
     "atlasScore": "Atlas Score",
@@ -293,6 +298,9 @@
     "calcTitle": "Gaming Calculators",
     "calcDesc": "Resource planners, upgrade costs, speedup estimates. Math so you don't have to.",
     "calcTagline": "Calculate smarter. Grow faster.",
+    "categoryKingdom": "Kingdom Tools",
+    "categoryAlliance": "Alliance Tools",
+    "categoryIndividual": "Individual Tools",
     "giftTitle": "Gift Codes",
     "giftDesc": "Every active Kingshot gift code in one place. Copy codes and redeem them in-game — never miss free rewards again.",
     "giftTagline": "Never miss a code. Ever.",
@@ -1554,7 +1562,7 @@
     "fundDescription": "Kingdoms fund their listing to unlock better visibility and features.",
     "bronzePerks": "Shimmer border · requirements · vibes",
     "silverPerks": "+ Invites · alliance schedules · prep scheduler",
-    "goldPerks": "+ Gilded badge · battle planner · priority",
+    "goldPerks": "+ Gilded badge · battle planner · battle registry · priority",
     "recruiting": "RECRUITING",
     "matchBreakdown": "Match Breakdown",
     "matchBreakdownDesc": "How well this kingdom fits your Transfer Profile preferences.",
@@ -2431,6 +2439,7 @@
     "cmpBadge": "Gilded badge for all kingdom users",
     "cmpBasicListing": "Basic listing with Atlas Score & stats",
     "cmpBattlePlanner": "KvK Battle Planner access",
+    "cmpBattleRegistry": "KvK Battle Registry access",
     "cmpBioLang": "Kingdom Bio & Language display",
     "cmpBrowseProfiles": "Browse recruit candidates",
     "cmpGlow": "Gold glow + priority placement",
@@ -3066,7 +3075,7 @@
     "signupNudge": "Create a free account to unlock all features"
   },
   "referral": {
-    "copyLink": "Copy Link"
+    "copyLink": "Copy Referral Link"
   },
   "campaign": {
     "title": "Kingdom Settlers Campaign",

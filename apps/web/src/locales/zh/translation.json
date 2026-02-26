@@ -42,7 +42,9 @@
     "kvkSeasons_1": "KvK",
     "kvkSeasons_2": "赛季",
     "prepScheduler_1": "KvK 备战",
-    "prepScheduler_2": "调度器"
+    "prepScheduler_2": "调度器",
+    "battleRegistry_1": "KvK 战斗",
+    "battleRegistry_2": "登记"
   },
   "nav": {
     "home": "首页",
@@ -67,7 +69,10 @@
     "kingdomCommunities": "王国殖民地",
     "giftCodes": "礼品码",
     "kvkBattleRegistry": "KvK战斗注册",
-    "baseDesigner": "基地设计师"
+    "baseDesigner": "基地设计师",
+    "kingdomTools": "王国工具",
+    "allianceTools": "联盟工具",
+    "individualTools": "个人工具"
   },
   "stats": {
     "atlasScore": "Atlas 评分",
@@ -293,6 +298,9 @@
     "calcTitle": "游戏计算器",
     "calcDesc": "资源规划器、升级成本、加速估算。我们来算，你来赢。",
     "calcTagline": "聪明计算。快速成长。",
+    "categoryKingdom": "王国工具",
+    "categoryAlliance": "联盟工具",
+    "categoryIndividual": "个人工具",
     "giftTitle": "礼品码兑换器",
     "giftDesc": "一键兑换礼品码。无需复制粘贴。奖励直达邮箱。",
     "giftTagline": "别打字了。开始领取吧。",
@@ -1554,7 +1562,7 @@
     "fundDescription": "王国为招募信息注资以解锁更好的可见度和功能。",
     "bronzePerks": "闪光边框 · 要求 · 氛围",
     "silverPerks": "+ 邀请 · 联盟日程 · 备战调度器",
-    "goldPerks": "+ 金色徽章 · 战斗规划器 · 优先",
+    "goldPerks": "+ 金色徽章 · 战斗规划器 · 战斗注册 · 优先",
     "recruiting": "招募中",
     "matchBreakdown": "匹配详解",
     "matchBreakdownDesc": "此王国与你的转服资料偏好的匹配程度。",
@@ -2431,6 +2439,7 @@
     "cmpBadge": "王国所有用户的金色徽章",
     "cmpBasicListing": "包含Atlas评分和统计的基本列表",
     "cmpBattlePlanner": "KvK战斗规划器权限",
+    "cmpBattleRegistry": "KvK战斗注册权限",
     "cmpBioLang": "王国简介和语言显示",
     "cmpBrowseProfiles": "浏览招募候选人",
     "cmpGlow": "金色光效+优先展示",
@@ -3242,7 +3251,7 @@
     "signupNudge": "创建免费账户以解锁所有功能"
   },
   "referral": {
-    "copyLink": "复制链接"
+    "copyLink": "复制推荐链接"
   },
   "errors": {
     "pageNotFound": "此页面不存在。它可能已被移动或删除。"
