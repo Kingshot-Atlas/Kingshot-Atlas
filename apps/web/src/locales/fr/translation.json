@@ -775,7 +775,9 @@
     "clearAll": "Tout effacer",
     "justNow": "À l'instant",
     "coEditorRequests": "Demandes de Co-Éditeur",
-    "coEditorRequestsDesc": "Recevez une notification quand quelqu'un demande à devenir co-éditeur de votre royaume"
+    "coEditorRequestsDesc": "Recevez une notification quand quelqu'un demande à devenir co-éditeur de votre royaume",
+    "mute": "Couper ce chat",
+    "unmute": "Réactiver ce chat"
   },
   "feedback": {
     "title": "Retours",
@@ -2588,7 +2590,13 @@
     "translationOn": "Traduction ACTIVÉE",
     "machineTranslation": "Traduction automatique · peut ne pas être exacte",
     "moveToWatchlist": "Déplacer vers la Liste de Suivi",
-    "addedToWatchlist": "Ajouté à la Liste de Suivi"
+    "addedToWatchlist": "Ajouté à la Liste de Suivi",
+    "messageQueued": "Message en file d'attente — sera envoyé une fois reconnecté",
+    "sendFailed": "Échec de l'envoi du message",
+    "retry": "Réessayer",
+    "connectionLost": "Connexion perdue — les messages peuvent être retardés",
+    "pendingMessages": "{{count}} message(s) en attente d'envoi",
+    "queueFlushed": "{{count}} message(s) en file d'attente envoyé(s)"
   },
   "rateKingdom": {
     "title": "Évaluer le Royaume {{num}}",

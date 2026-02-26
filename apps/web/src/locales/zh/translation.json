@@ -775,7 +775,9 @@
     "clearAll": "清除全部",
     "justNow": "刚刚",
     "coEditorRequests": "共同编辑申请",
-    "coEditorRequestsDesc": "当有人申请成为你王国的共同编辑时收到通知"
+    "coEditorRequestsDesc": "当有人申请成为你王国的共同编辑时收到通知",
+    "mute": "静音此聊天",
+    "unmute": "取消静音此聊天"
   },
   "feedback": {
     "title": "反馈",
@@ -2588,7 +2590,13 @@
     "translationOn": "翻译已开启",
     "machineTranslation": "机器翻译 · 可能不准确",
     "moveToWatchlist": "移至关注列表",
-    "addedToWatchlist": "已添加至关注列表"
+    "addedToWatchlist": "已添加至关注列表",
+    "messageQueued": "消息已排队 — 重新连接后将发送",
+    "sendFailed": "消息发送失败",
+    "retry": "重试",
+    "connectionLost": "连接丢失 — 消息可能延迟",
+    "pendingMessages": "{{count}} 条消息等待发送",
+    "queueFlushed": "{{count}} 条排队消息已发送"
   },
   "rateKingdom": {
     "title": "评价王国 {{num}}",

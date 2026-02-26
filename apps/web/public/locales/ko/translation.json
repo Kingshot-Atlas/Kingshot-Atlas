@@ -772,7 +772,9 @@
     "clearAll": "모두 지우기",
     "justNow": "방금",
     "coEditorRequests": "공동 편집자 요청",
-    "coEditorRequestsDesc": "누군가 당신의 왕국 공동 편집자를 요청하면 알림을 받습니다"
+    "coEditorRequestsDesc": "누군가 당신의 왕국 공동 편집자를 요청하면 알림을 받습니다",
+    "mute": "이 채팅 음소거",
+    "unmute": "이 채팅 음소거 해제"
   },
   "feedback": {
     "title": "피드백",
@@ -2585,7 +2587,13 @@
     "translationOn": "번역 켜짐",
     "machineTranslation": "기계 번역 · 정확하지 않을 수 있음",
     "moveToWatchlist": "관심 목록으로 이동",
-    "addedToWatchlist": "관심 목록에 추가됨"
+    "addedToWatchlist": "관심 목록에 추가됨",
+    "messageQueued": "메시지 대기 중 — 다시 온라인이 되면 전송됩니다",
+    "sendFailed": "메시지 전송 실패",
+    "retry": "재시도",
+    "connectionLost": "연결 끊김 — 메시지가 지연될 수 있습니다",
+    "pendingMessages": "{{count}}개 메시지 전송 대기 중",
+    "queueFlushed": "{{count}}개 대기 메시지 전송됨"
   },
   "rateKingdom": {
     "title": "왕국 {{num}} 평가",

@@ -42,7 +42,9 @@ export type NotificationType =
   | 'editor_activated'
   | 'co_editor_request'
   | 'prep_schedule_form'
-  | 'new_message';
+  | 'new_message'
+  | 'fund_grace_period'
+  | 'fund_tier_change';
 
 export interface NotificationPreferences {
   score_changes: boolean;
@@ -308,6 +310,10 @@ class NotificationService {
         return '📅';
       case 'new_message':
         return '💬';
+      case 'fund_grace_period':
+        return '⏳';
+      case 'fund_tier_change':
+        return '📉';
       default:
         return '🔔';
     }
@@ -355,6 +361,10 @@ class NotificationService {
         return '#a855f7'; // prep purple
       case 'new_message':
         return '#3b82f6'; // blue
+      case 'fund_grace_period':
+        return colors.amber; // amber
+      case 'fund_tier_change':
+        return colors.error; // red
       default:
         return colors.textSecondary; // gray
     }
@@ -434,6 +444,72 @@ class NotificationService {
       return true;
     } catch (err) {
       logger.error('Error updating notification preferences:', err);
+      return false;
+    }
+  }
+  /**
+   * Get list of muted conversation (application) IDs
+   */
+  async getMutedConversations(): Promise<string[]> {
+    if (!isSupabaseConfigured || !supabase) return [];
+    try {
+      const { data } = await supabase
+        .from('user_data')
+        .select('settings')
+        .maybeSingle();
+      return data?.settings?.muted_conversations || [];
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Mute a conversation by application ID
+   */
+  async muteConversation(applicationId: string): Promise<boolean> {
+    if (!isSupabaseConfigured || !supabase) return false;
+    try {
+      const { data: current } = await supabase
+        .from('user_data')
+        .select('settings')
+        .maybeSingle();
+      const settings = current?.settings || {};
+      const muted: string[] = settings.muted_conversations || [];
+      if (muted.includes(applicationId)) return true;
+      const updatedSettings = { ...settings, muted_conversations: [...muted, applicationId] };
+      const { error } = await supabase
+        .from('user_data')
+        .update({ settings: updatedSettings })
+        .not('user_id', 'is', null);
+      if (error) { logger.error('Failed to mute conversation:', error.message); return false; }
+      return true;
+    } catch (err) {
+      logger.error('Error muting conversation:', err);
+      return false;
+    }
+  }
+
+  /**
+   * Unmute a conversation by application ID
+   */
+  async unmuteConversation(applicationId: string): Promise<boolean> {
+    if (!isSupabaseConfigured || !supabase) return false;
+    try {
+      const { data: current } = await supabase
+        .from('user_data')
+        .select('settings')
+        .maybeSingle();
+      const settings = current?.settings || {};
+      const muted: string[] = settings.muted_conversations || [];
+      const updatedSettings = { ...settings, muted_conversations: muted.filter(id => id !== applicationId) };
+      const { error } = await supabase
+        .from('user_data')
+        .update({ settings: updatedSettings })
+        .not('user_id', 'is', null);
+      if (error) { logger.error('Failed to unmute conversation:', error.message); return false; }
+      return true;
+    } catch (err) {
+      logger.error('Error unmuting conversation:', err);
       return false;
     }
   }

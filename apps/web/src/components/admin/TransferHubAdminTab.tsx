@@ -462,18 +462,32 @@ export const TransferHubAdminTab: React.FC = () => {
       // Check if fund entry exists
       const { data: existing } = await supabase
         .from('kingdom_funds')
-        .select('id, balance, total_contributed')
+        .select('id, balance, total_contributed, tier, grace_period_until')
         .eq('kingdom_number', kingdomNumber)
         .maybeSingle();
 
       if (existing) {
         const newBalance = parseFloat(existing.balance || '0') + amount;
         const newTotal = parseFloat(existing.total_contributed || '0') + amount;
-        // Determine tier based on new balance
-        const newTier = newBalance >= 100 ? 'gold' : newBalance >= 50 ? 'silver' : newBalance >= 25 ? 'bronze' : 'standard';
+        const balanceTier = newBalance >= 100 ? 'gold' : newBalance >= 50 ? 'silver' : newBalance >= 25 ? 'bronze' : 'standard';
+        const currentTier = existing.tier || 'standard';
+        const tierThresholds: Record<string, number> = { gold: 100, silver: 50, bronze: 25, standard: 0 };
+        const threshold = tierThresholds[currentTier] ?? 0;
+        const hasGrace = existing.grace_period_until && new Date(existing.grace_period_until) > new Date();
+
+        // During grace period: keep current tier, clear grace if balance recovered
+        const updateData: Record<string, unknown> = { balance: newBalance, total_contributed: newTotal };
+        if (hasGrace && newBalance >= threshold) {
+          updateData.tier = currentTier;
+          updateData.grace_period_until = null;
+        } else if (hasGrace) {
+          updateData.tier = currentTier;
+        } else {
+          updateData.tier = balanceTier;
+        }
         const { error } = await supabase
           .from('kingdom_funds')
-          .update({ balance: newBalance, total_contributed: newTotal, tier: newTier })
+          .update(updateData)
           .eq('id', existing.id);
         if (error) { logger.error('Add funds failed:', error); return; }
       } else {

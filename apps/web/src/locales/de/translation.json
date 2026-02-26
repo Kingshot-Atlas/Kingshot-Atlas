@@ -775,7 +775,9 @@
     "clearAll": "Alle löschen",
     "justNow": "Gerade eben",
     "coEditorRequests": "Co-Redakteur-Anfragen",
-    "coEditorRequestsDesc": "Werde benachrichtigt, wenn jemand Co-Redakteur deines Königreichs werden möchte"
+    "coEditorRequestsDesc": "Werde benachrichtigt, wenn jemand Co-Redakteur deines Königreichs werden möchte",
+    "mute": "Diesen Chat stummschalten",
+    "unmute": "Stummschaltung aufheben"
   },
   "feedback": {
     "title": "Feedback",
@@ -2588,7 +2590,13 @@
     "translationOn": "Übersetzung EIN",
     "machineTranslation": "Maschinelle Übersetzung · möglicherweise nicht genau",
     "moveToWatchlist": "Zur Beobachtungsliste verschieben",
-    "addedToWatchlist": "Zur Beobachtungsliste hinzugefügt"
+    "addedToWatchlist": "Zur Beobachtungsliste hinzugefügt",
+    "messageQueued": "Nachricht in Warteschlange — wird gesendet, wenn wieder online",
+    "sendFailed": "Nachricht konnte nicht gesendet werden",
+    "retry": "Erneut versuchen",
+    "connectionLost": "Verbindung verloren — Nachrichten können verzögert sein",
+    "pendingMessages": "{{count}} Nachricht(en) warten auf Versand",
+    "queueFlushed": "{{count}} wartende Nachricht(en) gesendet"
   },
   "rateKingdom": {
     "title": "Königreich {{num}} bewerten",

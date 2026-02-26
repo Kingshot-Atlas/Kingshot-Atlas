@@ -23,16 +23,24 @@ const NotificationBell: React.FC = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
+  const [mutedConversations, setMutedConversations] = useState<string[]>([]);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  // Group similar notifications (same type + title within 1 hour)
+  // Group notifications: messages by chat (application_id), others by type+title within 1 hour
   const groupedNotifications = useMemo((): GroupedNotification[] => {
     const groups: GroupedNotification[] = [];
     const ONE_HOUR = 60 * 60 * 1000;
 
     notifications.forEach(notif => {
       const existing = groups.find(g => {
+        // For messages: group by application_id (same chat thread)
+        if (notif.type === 'new_message' && g.latestNotification.type === 'new_message') {
+          const notifAppId = (notif.metadata as Record<string, unknown>)?.application_id;
+          const groupAppId = (g.latestNotification.metadata as Record<string, unknown>)?.application_id;
+          return !!notifAppId && !!groupAppId && notifAppId === groupAppId;
+        }
+        // For other types: existing grouping (type + title within 1 hour)
         const timeDiff = Math.abs(
           new Date(g.latestNotification.created_at).getTime() - new Date(notif.created_at).getTime()
         );
@@ -44,6 +52,10 @@ const NotificationBell: React.FC = () => {
       if (existing) {
         existing.notifications.push(notif);
         existing.count++;
+        // Keep the most recent notification as the representative
+        if (new Date(notif.created_at) > new Date(existing.latestNotification.created_at)) {
+          existing.latestNotification = notif;
+        }
       } else {
         groups.push({
           key: notif.id,
@@ -61,12 +73,14 @@ const NotificationBell: React.FC = () => {
     if (!user) return;
     setLoading(true);
     try {
-      const [notifs, count] = await Promise.all([
+      const [notifs, count, muted] = await Promise.all([
         notificationService.getNotifications(20),
-        notificationService.getUnreadCount()
+        notificationService.getUnreadCount(),
+        notificationService.getMutedConversations(),
       ]);
       setNotifications(notifs);
       setUnreadCount(count);
+      setMutedConversations(muted);
       setLastChecked(new Date());
     } catch (err) {
       logger.error('Failed to fetch notifications:', err);
@@ -74,6 +88,20 @@ const NotificationBell: React.FC = () => {
       setLoading(false);
     }
   }, [user]);
+
+  const handleMuteConversation = async (e: React.MouseEvent, group: GroupedNotification) => {
+    e.stopPropagation();
+    const appId = (group.latestNotification.metadata as Record<string, unknown>)?.application_id as string | undefined;
+    if (!appId) return;
+    const isMuted = mutedConversations.includes(appId);
+    if (isMuted) {
+      const success = await notificationService.unmuteConversation(appId);
+      if (success) setMutedConversations(prev => prev.filter(id => id !== appId));
+    } else {
+      const success = await notificationService.muteConversation(appId);
+      if (success) setMutedConversations(prev => [...prev, appId]);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -139,6 +167,8 @@ const NotificationBell: React.FC = () => {
       case 'claim_rejected':
         return '/profile';
       case 'fund_contribution':
+      case 'fund_grace_period':
+      case 'fund_tier_change':
         return '/transfer-hub';
       case 'new_application':
       case 'application_status':
@@ -380,41 +410,49 @@ const NotificationBell: React.FC = () => {
                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = hasUnread ? '#22d3ee08' : 'transparent'}
                   >
-                    {/* Icon */}
-                    <span style={{
-                      fontSize: '1.25rem',
-                      flexShrink: 0,
-                      width: '28px',
-                      height: '28px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: `${notificationService.getNotificationColor(notification.type)}15`,
-                      borderRadius: '6px',
-                      position: 'relative'
-                    }}>
-                      {notificationService.getNotificationIcon(notification.type)}
-                      {group.count > 1 && (
-                        <span style={{
-                          position: 'absolute',
-                          top: '-4px',
-                          right: '-4px',
-                          minWidth: '14px',
-                          height: '14px',
-                          backgroundColor: notificationService.getNotificationColor(notification.type),
-                          borderRadius: '7px',
-                          fontSize: '0.55rem',
-                          fontWeight: '700',
-                          color: '#fff',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          padding: '0 3px'
-                        }}>
-                          {group.count}
-                        </span>
-                      )}
-                    </span>
+                    {/* Icon / Avatar */}
+                    {notification.type === 'new_message' && (notification.metadata as Record<string, unknown>)?.sender_avatar_url ? (
+                      <span style={{ flexShrink: 0, width: '28px', height: '28px', position: 'relative' }}>
+                        <img
+                          src={(notification.metadata as Record<string, unknown>).sender_avatar_url as string}
+                          alt=""
+                          style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
+                        />
+                        {group.count > 1 && (
+                          <span style={{
+                            position: 'absolute', top: '-4px', right: '-4px',
+                            minWidth: '14px', height: '14px',
+                            backgroundColor: '#3b82f6', borderRadius: '7px',
+                            fontSize: '0.55rem', fontWeight: '700', color: '#fff',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px'
+                          }}>{group.count}</span>
+                        )}
+                      </span>
+                    ) : (
+                      <span style={{
+                        fontSize: '1.25rem',
+                        flexShrink: 0,
+                        width: '28px',
+                        height: '28px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: `${notificationService.getNotificationColor(notification.type)}15`,
+                        borderRadius: '6px',
+                        position: 'relative'
+                      }}>
+                        {notificationService.getNotificationIcon(notification.type)}
+                        {group.count > 1 && (
+                          <span style={{
+                            position: 'absolute', top: '-4px', right: '-4px',
+                            minWidth: '14px', height: '14px',
+                            backgroundColor: notificationService.getNotificationColor(notification.type),
+                            borderRadius: '7px', fontSize: '0.55rem', fontWeight: '700', color: '#fff',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px'
+                          }}>{group.count}</span>
+                        )}
+                      </span>
+                    )}
 
                     {/* Content */}
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -458,14 +496,29 @@ const NotificationBell: React.FC = () => {
                       }}>
                         {notification.message}
                       </p>
-                      <span style={{
-                        fontSize: '0.7rem',
-                        color: '#6b7280',
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
                         marginTop: '0.25rem',
-                        display: 'block'
                       }}>
-                        {formatTime(notification.created_at)}
-                      </span>
+                        <span style={{ fontSize: '0.7rem', color: '#6b7280' }}>
+                          {formatTime(notification.created_at)}
+                        </span>
+                        {notification.type === 'new_message' && !!(notification.metadata as Record<string, unknown>)?.application_id && (
+                          <button
+                            onClick={(e) => handleMuteConversation(e, group)}
+                            style={{
+                              background: 'none', border: 'none', cursor: 'pointer',
+                              fontSize: '0.6rem', color: '#6b7280', padding: '0 0.2rem',
+                              opacity: 0.7,
+                            }}
+                            title={mutedConversations.includes((notification.metadata as Record<string, unknown>).application_id as string) ? t('notifications.unmute', 'Unmute this chat') : t('notifications.mute', 'Mute this chat')}
+                          >
+                            {mutedConversations.includes((notification.metadata as Record<string, unknown>).application_id as string) ? '🔇' : '🔔'}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </button>
                 );

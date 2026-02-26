@@ -712,7 +712,7 @@ def credit_kingdom_fund(
 
     try:
         # 1. Get or create the kingdom fund record
-        fund_result = client.table("kingdom_funds").select("kingdom_number, balance").eq(
+        fund_result = client.table("kingdom_funds").select("kingdom_number, balance, tier, grace_period_until").eq(
             "kingdom_number", kingdom_number
         ).limit(1).execute()
 
@@ -720,12 +720,28 @@ def credit_kingdom_fund(
             current_balance = float(fund_result.data[0].get("balance", 0))
             new_balance = current_balance + amount
             new_tier = _calculate_fund_tier(new_balance)
+            current_tier = fund_result.data[0].get("tier", "standard")
+            grace_until = fund_result.data[0].get("grace_period_until")
 
-            # Use RPC to atomically increment contributor_count and total_contributed
-            client.table("kingdom_funds").update({
+            update_data: dict = {
                 "balance": new_balance,
                 "tier": new_tier,
-            }).eq("kingdom_number", kingdom_number).execute()
+            }
+
+            # If kingdom was in grace period and balance now meets/exceeds threshold, clear grace period
+            if grace_until:
+                tier_threshold = {"gold": 100, "silver": 50, "bronze": 25, "standard": 0}.get(current_tier, 0)
+                if new_balance >= tier_threshold:
+                    # Balance recovered — clear grace period, keep current tier
+                    update_data["tier"] = current_tier
+                    update_data["grace_period_until"] = None
+                    new_tier = current_tier
+                else:
+                    # Still in grace period but balance didn't recover — keep preserved tier
+                    update_data["tier"] = current_tier
+                    new_tier = current_tier
+
+            client.table("kingdom_funds").update(update_data).eq("kingdom_number", kingdom_number).execute()
 
             # Increment total_contributed and contributor_count via raw SQL
             client.rpc("increment_fund_totals", {

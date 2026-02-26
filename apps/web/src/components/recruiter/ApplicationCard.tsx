@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase';
 import { registerChannel, unregisterChannel } from '../../lib/realtimeGuard';
 import { colors } from '../../utils/styles';
 import { logger } from '../../utils/logger';
+import { useToast } from '../Toast';
 import { translateMessage, getBrowserLanguage } from '../../utils/translateMessage';
 import type { IncomingApplication } from './types';
 import { formatTCLevel, STATUS_ACTIONS, STATUS_LABELS, inputStyle } from './types';
@@ -30,6 +31,7 @@ const ApplicationCard: React.FC<{
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [expanded, setExpanded] = useState(false);
   const [confirmingAccept, setConfirmingAccept] = useState(false);
   const [confirmingDecline, setConfirmingDecline] = useState(false);
@@ -52,6 +54,11 @@ const ApplicationCard: React.FC<{
   const [translateAll, setTranslateAll] = useState(false);
   const [translatingAll, setTranslatingAll] = useState(false);
   const browserLang = getBrowserLanguage();
+  // Connection & offline state
+  const [connectionLost, setConnectionLost] = useState(false);
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [offlineQueue, setOfflineQueue] = useState<string[]>([]);
+  const [otherLastRead, setOtherLastRead] = useState<Date | null>(null);
   // Outcome tracking state
   const [showOutcomePrompt, setShowOutcomePrompt] = useState(false);
   const [outcomeSubmitting, setOutcomeSubmitting] = useState(false);
@@ -103,6 +110,15 @@ const ApplicationCard: React.FC<{
         sb.from('message_read_status')
           .upsert({ application_id: application.id, user_id: user.id, last_read_at: new Date().toISOString() }, { onConflict: 'application_id,user_id' })
           .then(() => { window.dispatchEvent(new Event('messages-read')); });
+        // Fetch other party's read status for delivery indicators
+        const { data: readStatuses } = await sb
+          .from('message_read_status')
+          .select('user_id, last_read_at')
+          .eq('application_id', application.id)
+          .neq('user_id', user.id);
+        if (readStatuses?.[0]?.last_read_at) {
+          setOtherLastRead(new Date(readStatuses[0].last_read_at));
+        }
       }
     };
     load();
@@ -133,7 +149,10 @@ const ApplicationCard: React.FC<{
           }
         }
       })
-      .subscribe();
+      .subscribe((status: string) => {
+        if (status === 'SUBSCRIBED') setConnectionLost(false);
+        else if (['CLOSED', 'CHANNEL_ERROR', 'TIMED_OUT'].includes(status)) setConnectionLost(true);
+      });
 
     return () => { sb.removeChannel(channel); unregisterChannel(appMsgChName); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -176,6 +195,34 @@ const ApplicationCard: React.FC<{
       .then(({ data }) => { if (data) setOutcomeSubmitted(true); });
   }, [application.id, application.status, user]);
 
+  // Track online/offline status for message queue
+  useEffect(() => {
+    const goOnline = () => setIsOnline(true);
+    const goOffline = () => setIsOnline(false);
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+    return () => { window.removeEventListener('online', goOnline); window.removeEventListener('offline', goOffline); };
+  }, []);
+
+  // Flush offline message queue when back online
+  useEffect(() => {
+    if (!isOnline || offlineQueue.length === 0 || !supabase || !user || !showMessages) return;
+    const queue = [...offlineQueue];
+    setOfflineQueue([]);
+    (async () => {
+      for (const text of queue) {
+        try {
+          const { data } = await supabase.from('application_messages')
+            .insert({ application_id: application.id, sender_user_id: user.id, message: text })
+            .select('id, sender_user_id, message, created_at')
+            .single();
+          if (data) setMessages(prev => prev.some(m => m.id === data.id) ? prev : [...prev, data]);
+        } catch (e) { logger.warn('Offline queue flush failed for message', e); }
+      }
+      if (queue.length > 0) showToast(t('appCard.queueFlushed', '{{count}} queued message(s) sent', { count: queue.length }), 'success');
+    })();
+  }, [isOnline]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleRecruiterOutcome = async (didTransfer: boolean, satisfaction?: number) => {
     if (!supabase || !user) return;
     setOutcomeSubmitting(true);
@@ -198,28 +245,57 @@ const ApplicationCard: React.FC<{
   };
 
   const lastSentRef = useRef(0);
-  const sendMessage = async () => {
-    if (!supabase || !user || !msgText.trim() || sendingMsg) return;
+  const sendMessage = async (retryText?: string) => {
+    if (!user || sendingMsg) return;
+    const textToSend = retryText || msgText.trim();
+    if (!textToSend) return;
+
+    // Offline — queue for later
+    if (!isOnline || !supabase) {
+      setOfflineQueue(prev => [...prev, textToSend]);
+      if (!retryText) setMsgText('');
+      showToast(t('appCard.messageQueued', 'Message queued — will send when back online'), 'info');
+      return;
+    }
+
+    const sb = supabase;
     const now = Date.now();
-    if (now - lastSentRef.current < 2000) return;
+    if (!retryText && now - lastSentRef.current < 1500) return;
     lastSentRef.current = now;
     setSendingMsg(true);
-    try {
-      const { data, error } = await supabase
+
+    const attemptSend = async (retriesLeft: number, delay: number): Promise<void> => {
+      const { data, error } = await sb
         .from('application_messages')
-        .insert({ application_id: application.id, sender_user_id: user.id, message: msgText.trim() })
+        .insert({ application_id: application.id, sender_user_id: user.id, message: textToSend })
         .select('id, sender_user_id, message, created_at')
         .single();
-      if (!error && data) {
-        setMessages(prev => [...prev, data]);
-        setMsgText('');
-        // Mark as read when sending (we're viewing the conversation)
-        supabase.from('message_read_status')
+      if (error) {
+        if (retriesLeft > 0) {
+          await new Promise(r => setTimeout(r, delay));
+          return attemptSend(retriesLeft - 1, delay * 2);
+        }
+        throw error;
+      }
+      if (data) {
+        setMessages(prev => prev.some(m => m.id === data.id) ? prev : [...prev, data]);
+        if (!retryText) setMsgText('');
+        sb.from('message_read_status')
           .upsert({ application_id: application.id, user_id: user.id, last_read_at: new Date().toISOString() }, { onConflict: 'application_id,user_id' })
           .then(() => { window.dispatchEvent(new Event('messages-read')); });
       }
+    };
+
+    try {
+      await attemptSend(2, 1000);
     } catch (err) {
-      logger.error('ApplicationCard: send message failed', err);
+      logger.error('ApplicationCard: send message failed after retries', err);
+      showToast(
+        t('appCard.sendFailed', 'Message failed to send'),
+        'error', 5000,
+        () => sendMessage(textToSend),
+        t('appCard.retry', 'Retry'),
+      );
     } finally {
       setSendingMsg(false);
     }
@@ -579,6 +655,38 @@ const ApplicationCard: React.FC<{
                 maxHeight: isMobile ? '260px' : '200px',
                 overflowY: 'auto',
               }}>
+                {/* Connection lost banner */}
+                {connectionLost && (
+                  <div style={{
+                    padding: '0.35rem 0.5rem',
+                    backgroundColor: '#ef444412',
+                    border: '1px solid #ef444430',
+                    borderRadius: '6px',
+                    marginBottom: '0.4rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.3rem',
+                  }}>
+                    <span style={{ fontSize: '0.65rem' }}>⚠️</span>
+                    <span style={{ color: '#ef4444', fontSize: '0.6rem', fontWeight: 600 }}>
+                      {t('appCard.connectionLost', 'Connection lost — messages may be delayed')}
+                    </span>
+                  </div>
+                )}
+                {/* Offline queue indicator */}
+                {offlineQueue.length > 0 && (
+                  <div style={{
+                    padding: '0.3rem 0.5rem',
+                    backgroundColor: '#f59e0b10',
+                    border: '1px solid #f59e0b30',
+                    borderRadius: '6px',
+                    marginBottom: '0.4rem',
+                  }}>
+                    <span style={{ color: '#f59e0b', fontSize: '0.6rem' }}>
+                      📤 {t('appCard.pendingMessages', '{{count}} message(s) waiting to send', { count: offlineQueue.length })}
+                    </span>
+                  </div>
+                )}
                 {/* Translate All toggle + disclaimer */}
                 {messages.length > 0 && browserLang !== 'en' && messages.some(m => m.sender_user_id !== user?.id) && (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem', paddingBottom: '0.3rem', borderBottom: '1px solid #ffffff08' }}>
@@ -650,6 +758,11 @@ const ApplicationCard: React.FC<{
                           <span style={{ color: '#4b5563', fontSize: '0.5rem' }}>
                             {new Date(msg.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} {new Date(msg.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                           </span>
+                          {isMe && (
+                            <span style={{ color: otherLastRead && new Date(msg.created_at) <= otherLastRead ? '#3b82f6' : '#4b5563', fontSize: '0.5rem', fontWeight: 600 }}>
+                              {otherLastRead && new Date(msg.created_at) <= otherLastRead ? '✓✓' : '✓'}
+                            </span>
+                          )}
                           {!isMe && (
                             <button
                               onClick={async (e) => {

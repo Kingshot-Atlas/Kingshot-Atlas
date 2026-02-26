@@ -774,7 +774,9 @@
     "clearAll": "Borrar todo",
     "justNow": "Ahora mismo",
     "coEditorRequests": "Solicitudes de Co-Editor",
-    "coEditorRequestsDesc": "Recibe notificaciones cuando alguien solicite ser co-editor de tu reino"
+    "coEditorRequestsDesc": "Recibe notificaciones cuando alguien solicite ser co-editor de tu reino",
+    "mute": "Silenciar este chat",
+    "unmute": "Activar sonido de este chat"
   },
   "feedback": {
     "title": "Comentarios",
@@ -2587,7 +2589,13 @@
     "translationOn": "Traducción ACTIVADA",
     "machineTranslation": "Traducción automática · puede no ser precisa",
     "moveToWatchlist": "Mover a Lista de Seguimiento",
-    "addedToWatchlist": "Agregado a Lista de Seguimiento"
+    "addedToWatchlist": "Agregado a Lista de Seguimiento",
+    "messageQueued": "Mensaje en cola — se enviará cuando vuelvas a estar en línea",
+    "sendFailed": "Error al enviar el mensaje",
+    "retry": "Reintentar",
+    "connectionLost": "Conexión perdida — los mensajes pueden retrasarse",
+    "pendingMessages": "{{count}} mensaje(s) esperando envío",
+    "queueFlushed": "{{count}} mensaje(s) en cola enviado(s)"
   },
   "rateKingdom": {
     "title": "Calificar Reino {{num}}",

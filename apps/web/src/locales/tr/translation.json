@@ -775,7 +775,9 @@
     "clearAll": "Tümünü temizle",
     "justNow": "Az önce",
     "coEditorRequests": "Yardımcı Editör Talepleri",
-    "coEditorRequestsDesc": "Birisi krallığınız için yardımcı editör olmayı talep ettiğinde bildirim alın"
+    "coEditorRequestsDesc": "Birisi krallığınız için yardımcı editör olmayı talep ettiğinde bildirim alın",
+    "mute": "Bu sohbeti sessize al",
+    "unmute": "Bu sohbetin sesini aç"
   },
   "feedback": {
     "title": "Geri Bildirim",
@@ -2588,7 +2590,13 @@
     "translationOn": "Çeviri AÇIK",
     "machineTranslation": "Makine çevirisi · doğru olmayabilir",
     "moveToWatchlist": "İzleme Listesine Taşı",
-    "addedToWatchlist": "İzleme Listesine Eklendi"
+    "addedToWatchlist": "İzleme Listesine Eklendi",
+    "messageQueued": "Mesaj sıraya alındı — tekrar çevrimiçi olunca gönderilecek",
+    "sendFailed": "Mesaj gönderilemedi",
+    "retry": "Tekrar dene",
+    "connectionLost": "Bağlantı kesildi — mesajlar gecikebilir",
+    "pendingMessages": "{{count}} mesaj gönderim bekliyor",
+    "queueFlushed": "{{count}} sıradaki mesaj gönderildi"
   },
   "rateKingdom": {
     "title": "Krallık {{num}} Değerlendir",

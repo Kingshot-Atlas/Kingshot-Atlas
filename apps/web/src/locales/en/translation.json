@@ -775,7 +775,9 @@
     "clearAll": "Clear all",
     "justNow": "Just now",
     "coEditorRequests": "Co-Editor Requests",
-    "coEditorRequestsDesc": "Get notified when someone requests to be a co-editor for your kingdom"
+    "coEditorRequestsDesc": "Get notified when someone requests to be a co-editor for your kingdom",
+    "mute": "Mute this chat",
+    "unmute": "Unmute this chat"
   },
   "feedback": {
     "title": "Feedback",
@@ -2588,7 +2590,13 @@
     "translationOn": "Translation ON",
     "machineTranslation": "Machine translation · may not be accurate",
     "moveToWatchlist": "Move to Watchlist",
-    "addedToWatchlist": "Added to Watchlist"
+    "addedToWatchlist": "Added to Watchlist",
+    "messageQueued": "Message queued — will send when back online",
+    "sendFailed": "Message failed to send",
+    "retry": "Retry",
+    "connectionLost": "Connection lost — messages may be delayed",
+    "pendingMessages": "{{count}} message(s) waiting to send",
+    "queueFlushed": "{{count}} queued message(s) sent"
   },
   "rateKingdom": {
     "title": "Rate Kingdom {{num}}",

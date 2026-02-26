@@ -775,7 +775,9 @@
     "clearAll": "すべてクリア",
     "justNow": "たった今",
     "coEditorRequests": "共同エディターリクエスト",
-    "coEditorRequestsDesc": "誰かがあなたの王国の共同エディターをリクエストしたときに通知を受け取ります"
+    "coEditorRequestsDesc": "誰かがあなたの王国の共同エディターをリクエストしたときに通知を受け取ります",
+    "mute": "このチャットをミュート",
+    "unmute": "このチャットのミュートを解除"
   },
   "feedback": {
     "title": "フィードバック",
@@ -2588,7 +2590,13 @@
     "translationOn": "翻訳オン",
     "machineTranslation": "機械翻訳 · 正確でない場合があります",
     "moveToWatchlist": "ウォッチリストに移動",
-    "addedToWatchlist": "ウォッチリストに追加済み"
+    "addedToWatchlist": "ウォッチリストに追加済み",
+    "messageQueued": "メッセージがキューに入りました — オンラインになったら送信されます",
+    "sendFailed": "メッセージの送信に失敗しました",
+    "retry": "再試行",
+    "connectionLost": "接続が切れました — メッセージが遅延する場合があります",
+    "pendingMessages": "{{count}}件のメッセージが送信待ち",
+    "queueFlushed": "{{count}}件のキューメッセージが送信されました"
   },
   "rateKingdom": {
     "title": "王国 {{num}} を評価",
