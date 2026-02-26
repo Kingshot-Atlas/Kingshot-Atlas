@@ -207,6 +207,7 @@ export const AdminTabNav: React.FC<AdminTabNavProps> = ({
         { id: 'transfer-groups', label: 'Transfer Groups', count: 0 },
         { id: 'referrals', label: 'Referrals', count: 0 },
         { id: 'gift-codes', label: 'Gift Codes', count: 0 },
+        { id: 'notifications', label: 'Notifications', count: 0 },
         { id: 'spotlight', label: 'Spotlight', count: 0 },
         { id: 'tool-access', label: 'Tool Access', count: 0 },
         { id: 'import', label: 'Import', count: 0 },

@@ -42,7 +42,7 @@ const Messages: React.FC = () => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const { t } = useTranslation();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const openAppId = searchParams.get('app');
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -422,13 +422,15 @@ const Messages: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, conversations.length, activeConvo]);
 
-  // ─── Auto-open from URL param ───────────────────────────────
+  // ─── Auto-open from URL param (consume once, then clear) ────
   useEffect(() => {
     if (openAppId && conversations.length > 0) {
       const found = conversations.find(c => c.application_id === openAppId);
       if (found) setActiveConvo(openAppId);
+      // Clear ?app= so it doesn't override future manual thread selections
+      setSearchParams(prev => { prev.delete('app'); return prev; }, { replace: true });
     }
-  }, [openAppId, conversations]);
+  }, [openAppId, conversations, setSearchParams]);
 
   const activeConversation = conversations.find(c => c.application_id === activeConvo);
 

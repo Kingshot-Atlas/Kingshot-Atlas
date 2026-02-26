@@ -60,6 +60,7 @@ const KvKBulkMatchupTab = lazy(() => import('../components/admin/KvKBulkMatchupT
 const TransferOutcomesTab = lazy(() => import('../components/admin/TransferOutcomesTab'));
 const BotDashboardTransferGroups = lazy(() => import('./BotDashboardTransferGroups'));
 const GiftCodeAnalyticsTab = lazy(() => import('../components/admin/GiftCodeAnalyticsTab'));
+const NotificationSenderTab = lazy(() => import('../components/admin/NotificationSenderTab'));
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 const ADMIN_LOG_KEY = 'kingshot_admin_log';
@@ -949,6 +950,8 @@ const AdminDashboard: React.FC = () => {
         <BotDashboardTransferGroups />
       ) : activeTab === 'gift-codes' ? (
         <GiftCodeAnalyticsTab />
+      ) : activeTab === 'notifications' ? (
+        <NotificationSenderTab />
       ) : null}
       </Suspense>
 

@@ -24,3 +24,4 @@ export { default as RejectModal } from './RejectModal';
 export { default as KvKBulkMatchupTab } from './KvKBulkMatchupTab';
 export { default as TransferOutcomesTab } from './TransferOutcomesTab';
 export { ReviewReportsTab } from './ReviewReportsTab';
+export { NotificationSenderTab } from './NotificationSenderTab';
