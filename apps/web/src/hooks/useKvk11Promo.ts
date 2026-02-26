@@ -7,10 +7,11 @@ import { logger } from '../utils/logger';
  * 
  * From now until KvK #11 ends (Saturday Feb 28, 2026 at 22:00 UTC),
  * Silver Tier kingdoms get access to:
- *   - KvK Prep Scheduler
- *   - KvK Battle Planner
+ *   - KvK Prep Scheduler (normally Silver+)
+ *   - KvK Battle Planner (normally Gold-only)
+ *   - KvK Battle Registry (normally Gold-only)
  * 
- * After the deadline, access reverts to Gold-only.
+ * After the deadline, access reverts to tier-specific gating.
  */
 
 // KvK #11 Battle Phase ends Saturday Feb 28, 2026 at 22:00 UTC

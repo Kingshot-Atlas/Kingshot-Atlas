@@ -8,7 +8,7 @@ interface BattleRegistryListProps {
   isMobile: boolean;
   user: { id: string } | null;
   profile: { linked_kingdom?: number; linked_player_id?: string; is_admin?: boolean } | null;
-  silverPlusKingdoms: Set<number>;
+  goldKingdoms: Set<number>;
   hasPromoAccess: (kingdomNumber: number) => boolean;
   isPromoActive: boolean;
   promoMsRemaining: number;
@@ -29,7 +29,7 @@ interface BattleRegistryListProps {
 }
 
 const BattleRegistryList: React.FC<BattleRegistryListProps> = ({
-  isMobile, user, profile, silverPlusKingdoms, hasPromoAccess, isPromoActive, promoMsRemaining,
+  isMobile, user, profile, goldKingdoms, hasPromoAccess, isPromoActive, promoMsRemaining,
   myRegistries, kingdomRegistries, submittedRegistries, navigate,
   isEditorOrCoEditor, isManager,
   createKingdom, setCreateKingdom, createKvkNumber, setCreateKvkNumber,
@@ -37,7 +37,7 @@ const BattleRegistryList: React.FC<BattleRegistryListProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  const hasQualifyingTier = (kn: number) => silverPlusKingdoms.has(kn) || hasPromoAccess(kn);
+  const hasQualifyingTier = (kn: number) => goldKingdoms.has(kn) || hasPromoAccess(kn);
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '0.5rem 0.75rem', backgroundColor: colors.bg,
@@ -64,14 +64,14 @@ const BattleRegistryList: React.FC<BattleRegistryListProps> = ({
             {t('battleRegistry.subtitle', 'Report your availability and troop strength for KvK Castle Battles. Your kingdom needs to know who\'s showing up — and what they\'re bringing.')}
           </p>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.5rem', padding: '0.2rem 0.6rem', backgroundColor: '#ffc30b15', border: '1px solid #ffc30b30', borderRadius: '20px' }}>
-            <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#ffc30b' }}>👑 {t('battleRegistry.goldAndSilverTier', 'GOLD & SILVER TIER KINGDOMS')}</span>
+            <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#ffc30b' }}>{t('battleRegistry.goldTierKingdoms', 'GOLD TIER KINGDOMS')}</span>
           </div>
         </div>
       </div>
 
       <div style={{ maxWidth: '700px', margin: '0 auto', padding: isMobile ? '1rem' : '1.5rem' }}>
         {/* Silver Promo Countdown */}
-        {user && profile?.linked_kingdom && isPromoActive && hasPromoAccess(profile.linked_kingdom) && !silverPlusKingdoms.has(profile.linked_kingdom) && (
+        {user && profile?.linked_kingdom && isPromoActive && hasPromoAccess(profile.linked_kingdom) && !goldKingdoms.has(profile.linked_kingdom) && (
           <div style={{ ...cardStyle, marginBottom: '1rem', borderColor: '#c0c0c030', backgroundColor: '#c0c0c008', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>🥈</span>
             <div style={{ flex: 1 }}>
@@ -158,9 +158,9 @@ const BattleRegistryList: React.FC<BattleRegistryListProps> = ({
         {/* Tier Required notice */}
         {user && profile?.linked_kingdom && !hasQualifyingTier(profile.linked_kingdom) && !kingdomRegistries.length && myRegistries.length === 0 && (
           <div style={{ ...cardStyle, marginBottom: '1.5rem', borderColor: '#ffc30b30', backgroundColor: '#ffc30b08' }}>
-            <h3 style={{ color: '#d1d5db', fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem' }}>🥈 {t('battleRegistry.silverTierRequired', 'Silver Tier Required')}</h3>
+            <h3 style={{ color: '#d1d5db', fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem' }}>{t('battleRegistry.goldTierRequired', 'Gold Tier Required')}</h3>
             <p style={{ color: colors.textMuted, fontSize: '0.8rem', lineHeight: 1.5 }}>
-              {t('battleRegistry.silverTierRequiredDesc', 'The KvK Battle Registry is available for Silver Tier ($50+) and Gold Tier ($100+) kingdoms. Contribute to the Kingdom Fund to reach Silver and unlock this tool!')}
+              {t('battleRegistry.goldTierRequiredDesc', 'The KvK Battle Registry is available for Gold Tier ($100+) kingdoms. Contribute to the Kingdom Fund to reach Gold and unlock this tool!')}
             </p>
           </div>
         )}
@@ -180,7 +180,7 @@ const BattleRegistryList: React.FC<BattleRegistryListProps> = ({
           <div style={{ ...cardStyle, marginBottom: '1.5rem' }}>
             <h3 style={{ color: colors.text, fontSize: '1rem', marginBottom: '0.75rem', fontWeight: 700 }}>⚔️ {t('battleRegistry.createRegistry', 'Create New Battle Registry')}</h3>
             <p style={{ color: colors.textMuted, fontSize: '0.75rem', marginBottom: '1rem', lineHeight: 1.5 }}>
-              {t('battleRegistry.createRegistryDesc', 'Create a Battle Registry for your Silver+ Tier kingdom. Share the link with players so they can register their availability and troop levels for the upcoming castle battle.')}
+              {t('battleRegistry.createRegistryDesc', 'Create a Battle Registry for your Gold Tier kingdom. Share the link with players so they can register their availability and troop levels for the upcoming castle battle.')}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <div>
@@ -190,7 +190,7 @@ const BattleRegistryList: React.FC<BattleRegistryListProps> = ({
                   onChange={(e) => { if (!profile?.linked_kingdom) setCreateKingdom(parseInt(e.target.value) || 0); }} placeholder="e.g. 172" />
                 {profile?.linked_kingdom && <p style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.2rem' }}>{t('battleRegistry.autoFilled', 'Auto-filled from your linked kingdom.')}</p>}
                 {createKingdom > 0 && !hasQualifyingTier(createKingdom) && (
-                  <p style={{ color: colors.error, fontSize: '0.7rem', marginTop: '0.25rem' }}>⚠️ {t('battleRegistry.notQualifyingTier', 'Kingdom {{kingdom}} does not have Silver or Gold tier.', { kingdom: createKingdom })}</p>
+                  <p style={{ color: colors.error, fontSize: '0.7rem', marginTop: '0.25rem' }}>⚠️ {t('battleRegistry.notQualifyingTier', 'Kingdom {{kingdom}} does not have Gold tier.', { kingdom: createKingdom })}</p>
                 )}
               </div>
               <div>

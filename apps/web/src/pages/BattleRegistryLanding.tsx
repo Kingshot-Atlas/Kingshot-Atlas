@@ -6,7 +6,7 @@ import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 import { usePremium } from '../contexts/PremiumContext';
 import { useAuth } from '../contexts/AuthContext';
-import { useSilverPlusKingdoms } from '../hooks/useSilverPlusKingdoms';
+import { useGoldKingdoms } from '../hooks/useGoldKingdoms';
 import { useKvk11Promo } from '../hooks/useKvk11Promo';
 import { supabase } from '../lib/supabase';
 
@@ -16,12 +16,12 @@ const BattleRegistryLanding: React.FC = () => {
   const isMobile = useIsMobile();
   const { isAdmin } = usePremium();
   const { profile, user } = useAuth();
-  const silverPlusKingdoms = useSilverPlusKingdoms();
+  const goldKingdoms = useGoldKingdoms();
   const { hasPromoAccess } = useKvk11Promo();
-  const isSilverPlusKingdom = !!(profile?.linked_kingdom && silverPlusKingdoms.has(profile.linked_kingdom));
+  const isGoldKingdom = !!(profile?.linked_kingdom && goldKingdoms.has(profile.linked_kingdom));
   const hasSilverPromoAccess = !!(profile?.linked_kingdom && hasPromoAccess(profile.linked_kingdom));
   const [isEditorOrCoEditor, setIsEditorOrCoEditor] = useState(false);
-  const hasFullAccess = isSilverPlusKingdom || hasSilverPromoAccess || isAdmin || isEditorOrCoEditor;
+  const hasFullAccess = isGoldKingdom || hasSilverPromoAccess || isAdmin || isEditorOrCoEditor;
 
   useEffect(() => {
     if (!user?.id || !supabase) return;
@@ -161,8 +161,8 @@ const BattleRegistryLanding: React.FC = () => {
           </div>
           <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.75rem' }}>
             {hasFullAccess
-              ? t('battleRegistryLanding.accessConfirm', 'You have full access as a Gold/Silver Tier kingdom member.')
-              : t('battleRegistryLanding.goldPerk', 'Available for Gold & Silver Tier kingdoms. Contribute to the Kingdom Fund to unlock.')}
+              ? t('battleRegistryLanding.accessConfirm', 'You have full access as a Gold Tier kingdom member.')
+              : t('battleRegistryLanding.goldPerk', 'Available for Gold Tier kingdoms. Contribute to the Kingdom Fund to unlock.')}
           </p>
 
           {!isMobile && (
@@ -306,7 +306,7 @@ const BattleRegistryLanding: React.FC = () => {
           }}>
             {hasFullAccess
               ? t('battleRegistryLanding.accessUnlocked', 'Access Unlocked')
-              : t('battleRegistryLanding.goldBadge', 'Gold & Silver Tier Kingdom Feature')}
+              : t('battleRegistryLanding.goldBadge', 'Gold Tier Kingdom Feature')}
           </span>
           <h3 style={{
             fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: 'bold',
@@ -322,7 +322,7 @@ const BattleRegistryLanding: React.FC = () => {
           }}>
             {hasFullAccess
               ? t('battleRegistryLanding.accessThanksDesc', 'Your kingdom has earned access. Create a registry and start collecting player intel for your next castle battle.')
-              : t('battleRegistryLanding.goldDesc', 'The Battle Registry is available for Gold and Silver Tier kingdoms. Help your kingdom reach the tier by contributing to the Kingdom Fund.')}
+              : t('battleRegistryLanding.goldDesc', 'The Battle Registry is a Gold Tier feature. Help your kingdom reach Gold by contributing to the Kingdom Fund.')}
           </p>
           <div style={{
             display: 'flex', flexDirection: isMobile ? 'column' : 'row',

@@ -100,7 +100,7 @@ const ToolCard: React.FC<ToolCardProps> = ({
           fontWeight: '700',
           color: '#ffc30b'
         }}>
-          👑 Gold Tier
+          Gold Tier
         </div>
       )}
       {silverTierBadge && !comingSoon && (
@@ -119,7 +119,7 @@ const ToolCard: React.FC<ToolCardProps> = ({
           fontWeight: '700',
           color: '#d1d5db'
         }}>
-          🥈 Silver Tier
+          Silver Tier
         </div>
       )}
       {usageStat && !comingSoon && !goldTierBadge && !silverTierBadge && (

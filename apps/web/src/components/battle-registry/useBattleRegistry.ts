@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useSilverPlusKingdoms } from '../../hooks/useSilverPlusKingdoms';
+import { useGoldKingdoms } from '../../hooks/useGoldKingdoms';
 import { useKvk11Promo } from '../../hooks/useKvk11Promo';
 import { useToast } from '../Toast';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
@@ -24,7 +24,7 @@ export function useBattleRegistry() {
   const { t } = useTranslation();
   const { user, profile } = useAuth();
   const isMobile = useIsMobile();
-  const silverPlusKingdoms = useSilverPlusKingdoms();
+  const goldKingdoms = useGoldKingdoms();
   const { hasPromoAccess, isPromoActive, msRemaining: promoMsRemaining } = useKvk11Promo();
   const { showToast } = useToast();
   useDocumentTitle('KvK Battle Registry');
@@ -291,8 +291,8 @@ export function useBattleRegistry() {
       showToast(t('battleRegistry.toastRoleRequired', 'Only Editors, Co-Editors, and Battle Managers can create registries.'), 'error');
       return;
     }
-    if (!silverPlusKingdoms.has(createKingdom) && !hasPromoAccess(createKingdom)) {
-      showToast(t('battleRegistry.toastSilverOnly', 'Only Silver Tier and above kingdoms can use the KvK Battle Registry.'), 'error');
+    if (!goldKingdoms.has(createKingdom) && !hasPromoAccess(createKingdom)) {
+      showToast(t('battleRegistry.toastGoldOnly', 'Only Gold Tier kingdoms can use the KvK Battle Registry.'), 'error');
       return;
     }
     setSaving(true);
@@ -499,7 +499,7 @@ export function useBattleRegistry() {
   return {
     // Params
     registryId, navigate, t, user, profile, isMobile,
-    silverPlusKingdoms, hasPromoAccess, isPromoActive, promoMsRemaining,
+    goldKingdoms, hasPromoAccess, isPromoActive, promoMsRemaining,
     // State
     view, setView, loading, registry, myRegistries, entries,
     isManager, isEditorOrCoEditor, saving, existingEntry,

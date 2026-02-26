@@ -41,7 +41,7 @@ const BattleRegistryMain: React.FC = () => {
         isMobile={hook.isMobile}
         user={hook.user}
         profile={hook.profile}
-        silverPlusKingdoms={hook.silverPlusKingdoms}
+        goldKingdoms={hook.goldKingdoms}
         hasPromoAccess={hook.hasPromoAccess}
         isPromoActive={hook.isPromoActive}
         promoMsRemaining={hook.promoMsRemaining}
