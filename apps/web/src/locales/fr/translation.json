@@ -3325,6 +3325,8 @@
     "tierDistribution": "Distribution des Tiers",
     "tgDistribution": "Distribution Truegold",
     "players": "joueurs",
+    "playerSingular": "joueur",
+    "troopRoster": "Effectifs par Niveau de Troupes",
     "allianceBreakdown": "Répartition par Alliance",
     "playerList": "Joueurs Inscrits",
     "player": "Joueur",

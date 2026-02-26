@@ -3325,6 +3325,8 @@
     "tierDistribution": "Tier-Verteilung",
     "tgDistribution": "Truegold-Verteilung",
     "players": "Spieler",
+    "playerSingular": "Spieler",
+    "troopRoster": "Truppenliste nach Stufe",
     "allianceBreakdown": "Allianz-Aufschlüsselung",
     "playerList": "Registrierte Spieler",
     "player": "Spieler",

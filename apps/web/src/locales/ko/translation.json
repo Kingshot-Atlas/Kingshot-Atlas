@@ -3322,6 +3322,8 @@
     "tierDistribution": "티어 분포",
     "tgDistribution": "트루골드 분포",
     "players": "플레이어",
+    "playerSingular": "플레이어",
+    "troopRoster": "레벨별 병력 명단",
     "allianceBreakdown": "동맹 분석",
     "playerList": "등록된 플레이어",
     "player": "플레이어",

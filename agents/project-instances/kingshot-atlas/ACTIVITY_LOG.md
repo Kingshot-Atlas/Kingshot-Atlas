@@ -3,6 +3,15 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-26 21:00 | Product Engineer | COMPLETED
+Task: Battle Registry — sort troop levels + add collapsible Troop Roster section
+Files: BattleRegistryDashboard.tsx, + 9 translation files
+Changes:
+1. **Sort troop combos** — Troop Level Distribution chart now sorts by Tier desc, then Truegold desc (was count desc). Added `parseTroopCombo()` and `sortCombosDesc()` helpers.
+2. **Troop Roster section** — New collapsible section showing each troop type → tier/TG combos (sorted desc) → expandable player lists with alliance tag, username, and time slot. Collapsed by default for clean UX.
+3. **i18n** — Added `troopRoster` and `playerSingular` keys across all 9 languages.
+Result: Production build passes. i18n synced.
+
 ## 2026-02-26 20:30 | Product Engineer | COMPLETED
 Task: Battle Registry time slot labels — show 30-min ranges
 Files: BattleRegistryDashboard.tsx

@@ -3325,6 +3325,8 @@
     "tierDistribution": "等级分布",
     "tgDistribution": "真金分布",
     "players": "玩家",
+    "playerSingular": "名玩家",
+    "troopRoster": "按等级分类兵力名册",
     "allianceBreakdown": "联盟分布",
     "playerList": "已注册玩家",
     "player": "玩家",

@@ -10,6 +10,20 @@ import {
   TroopType, MIN_TIER, MAX_TIER, MIN_TG, MAX_TG,
 } from './types';
 
+// Parse "T11/TG8" → { tier: 11, tg: 8 } or "T9" → { tier: 9, tg: -1 }
+function parseTroopCombo(label: string): { tier: number; tg: number } {
+  const m = label.match(/^T(\d+)(?:\/TG(\d+))?$/);
+  if (!m) return { tier: 0, tg: -1 };
+  return { tier: parseInt(m[1] ?? '0', 10), tg: m[2] != null ? parseInt(m[2], 10) : -1 };
+}
+
+function sortCombosDesc(a: string, b: string): number {
+  const pa = parseTroopCombo(a);
+  const pb = parseTroopCombo(b);
+  if (pa.tier !== pb.tier) return pb.tier - pa.tier;
+  return pb.tg - pa.tg;
+}
+
 interface BattleRegistryDashboardProps {
   isMobile: boolean;
   registry: BattleRegistry;
@@ -75,6 +89,7 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [copiedList, setCopiedList] = useState(false);
+  const [expandedRosterCombos, setExpandedRosterCombos] = useState<Set<string>>(new Set());
 
   const resetManualForm = () => {
     setManualUsername(''); setManualAlliance('');
@@ -190,6 +205,38 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
     const dist: Record<string, number> = {};
     entries.forEach(e => { dist[e.alliance_tag] = (dist[e.alliance_tag] || 0) + 1; });
     return Object.entries(dist).sort((a, b) => b[1] - a[1]);
+  }, [entries]);
+
+  const toggleRosterCombo = (key: string) => {
+    setExpandedRosterCombos(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
+
+  const troopRoster = useMemo(() => {
+    const roster: Record<TroopType, { label: string; tier: number; tg: number; players: BattleRegistryEntry[] }[]> = {
+      infantry: [], cavalry: [], archers: [],
+    };
+    TROOP_TYPES.forEach(type => {
+      const tierKey = `${type}_tier` as keyof BattleRegistryEntry;
+      const tgKey = `${type}_tg` as keyof BattleRegistryEntry;
+      const comboMap: Record<string, BattleRegistryEntry[]> = {};
+      entries.forEach(e => {
+        const tier = e[tierKey] as number | null;
+        const tg = e[tgKey] as number | null;
+        if (tier != null) {
+          const label = tg != null ? `T${tier}/TG${tg}` : `T${tier}`;
+          if (!comboMap[label]) comboMap[label] = [];
+          comboMap[label].push(e);
+        }
+      });
+      roster[type] = Object.entries(comboMap)
+        .map(([label, players]) => ({ label, ...parseTroopCombo(label), players }))
+        .sort((a, b) => a.tier !== b.tier ? b.tier - a.tier : b.tg - a.tg);
+    });
+    return roster;
   }, [entries]);
 
   const shareLink = `${window.location.origin}/tools/battle-registry/${registry.id}`;
@@ -445,7 +492,7 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
               {TROOP_TYPES.map(type => {
                 const data = troopDistribution[type];
                 if (data.total === 0) return null;
-                const sortedCombos = Object.entries(data.combos).sort((a, b) => b[1] - a[1]);
+                const sortedCombos = Object.entries(data.combos).sort((a, b) => sortCombosDesc(a[0], b[0]));
                 const maxComboCount = Math.max(1, ...sortedCombos.map(c => c[1]));
                 return (
                   <div key={type} style={{ padding: '0.75rem', borderRadius: '8px', backgroundColor: `${TROOP_COLORS[type]}06`, border: `1px solid ${TROOP_COLORS[type]}20` }}>
@@ -470,6 +517,70 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
             </div>
           )}
         </div>
+
+        {/* ─── Troop Roster (collapsible by tier/TG) ───────────────────── */}
+        {entries.length > 0 && (
+          <div style={cardStyle}>
+            <h3 style={{ color: colors.text, fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.75rem' }}>⚔️ {t('battleRegistry.troopRoster', 'Troop Roster by Level')}</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {TROOP_TYPES.map(type => {
+                const combos = troopRoster[type];
+                if (combos.length === 0) return null;
+                return (
+                  <div key={type} style={{ padding: '0.75rem', borderRadius: '8px', backgroundColor: `${TROOP_COLORS[type]}06`, border: `1px solid ${TROOP_COLORS[type]}20` }}>
+                    <span style={{ color: TROOP_COLORS[type], fontSize: '0.85rem', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>{TROOP_LABELS[type]}</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      {combos.map(({ label, players }) => {
+                        const comboKey = `${type}-${label}`;
+                        const isExpanded = expandedRosterCombos.has(comboKey);
+                        return (
+                          <div key={comboKey}>
+                            <button
+                              onClick={() => toggleRosterCombo(comboKey)}
+                              style={{
+                                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                padding: '0.4rem 0.6rem', borderRadius: '6px',
+                                backgroundColor: isExpanded ? `${TROOP_COLORS[type]}12` : 'transparent',
+                                border: `1px solid ${isExpanded ? TROOP_COLORS[type] + '30' : colors.borderSubtle}`,
+                                cursor: 'pointer', transition: 'all 0.15s',
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={TROOP_COLORS[type]} strokeWidth="2"
+                                  style={{ transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s', flexShrink: 0 }}>
+                                  <path d="M9 18l6-6-6-6" />
+                                </svg>
+                                <span style={{ color: colors.text, fontSize: '0.8rem', fontWeight: 600 }}>{label}</span>
+                              </div>
+                              <span style={{ color: TROOP_COLORS[type], fontSize: '0.7rem', fontWeight: 700 }}>
+                                {players.length} {players.length === 1 ? t('battleRegistry.playerSingular', 'player') : t('battleRegistry.players', 'players')}
+                              </span>
+                            </button>
+                            {isExpanded && (
+                              <div style={{ padding: '0.35rem 0 0.35rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                                {players.map(p => (
+                                  <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem' }}>
+                                    <span style={{ color: '#a855f7', fontWeight: 600 }}>[{p.alliance_tag}]</span>
+                                    <span style={{ color: colors.text }}>{p.username}</span>
+                                    <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
+                                      {p.time_slot_to && p.time_slot_to !== p.time_slot
+                                        ? `${p.time_slot}\u2013${p.time_slot_to}`
+                                        : p.time_slot}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* ─── Alliance Breakdown ─────────────────────────────────────── */}
         {allianceDistribution.length > 0 && (
