@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { KingdomProfile as KingdomProfileType, getPowerTier } from '../types';
@@ -10,7 +10,7 @@ import { DataLoadError } from '../components/DataLoadError';
 import { KingdomProfileSkeleton } from '../components/Skeleton';
 import { statusService } from '../services/statusService';
 import { logger } from '../utils/logger';
-import { useKingdomsRealtime } from '../hooks/useKingdomsRealtime';
+// useKingdomsRealtime REMOVED (2026-02-25 incident) — caused DB overload
 import StatusSubmission from '../components/StatusSubmission';
 import ReportDataModal from '../components/ReportDataModal';
 import ReportKvKErrorModal from '../components/ReportKvKErrorModal';
@@ -62,17 +62,7 @@ const KingdomProfile: React.FC = () => {
   const [recentRankChange, setRecentRankChange] = useState<number | null>(null);
   const [visitDelta, setVisitDelta] = useState<number | null>(null);
 
-  // Auto-refresh when KvK history changes for this kingdom via realtime
-  const handleKvkHistoryUpdate = useCallback((updatedKingdom: number, kvkNumber: number) => {
-    if (kingdomNumber && updatedKingdom === parseInt(kingdomNumber)) {
-      logger.log(`Realtime: KvK history updated for K${updatedKingdom} #${kvkNumber}, refreshing...`);
-      setRefreshKey(prev => prev + 1);
-    }
-  }, [kingdomNumber]);
-
-  useKingdomsRealtime({
-    onKvkHistoryUpdate: handleKvkHistoryUpdate,
-  });
+  // Realtime subscription REMOVED (2026-02-25 incident) — React Query handles refetch
 
   // Modal states
   const [showStatusModal, setShowStatusModal] = useState(false);

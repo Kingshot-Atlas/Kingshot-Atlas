@@ -15,8 +15,9 @@ import KvKPhaseBanner from './components/KvKPhaseBanner';
 import CampaignSettlersBanner from './components/CampaignSettlersBanner';
 import { useKeyboardShortcuts, useKeyboardHelp } from './hooks/useKeyboardShortcuts';
 import { usePageTracking } from './hooks/useAnalytics';
-import { useKingdomsRealtime } from './hooks/useKingdomsRealtime';
-import { useToast } from './components/Toast';
+// REMOVED: useKingdomsRealtime was causing resource exhaustion on Supabase Nano instance
+// Every visitor opened 2 realtime channels (kingdoms + kvk_history) draining CPU/IO
+// Kingdom data changes rarely — React Query caching with refetchOnWindowFocus is sufficient
 import { useTranslation } from 'react-i18next';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -113,26 +114,11 @@ const PageTransition: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 function AppContent() {
   const { showHelp, openHelp, closeHelp } = useKeyboardHelp();
-  const { showToast } = useToast();
-  const { t } = useTranslation();
   useKeyboardShortcuts({ onShowHelp: openHelp });
   usePageTracking(); // Track page views for analytics
   
-  // Subscribe to real-time kingdom and KvK history updates with toast notifications
-  useKingdomsRealtime({
-    onKingdomUpdate: (kingdomNumber, eventType) => {
-      if (eventType === 'UPDATE') {
-        showToast(`🔄 ${t('realtime.kingdomUpdated', { number: kingdomNumber })}`, 'info');
-      }
-    },
-    onKvkHistoryUpdate: (kingdomNumber, kvkNumber, eventType) => {
-      if (eventType === 'UPDATE') {
-        showToast(`📊 ${t('realtime.kvkCorrected', { kingdom: kingdomNumber, kvk: kvkNumber })}`, 'success');
-      } else if (eventType === 'INSERT') {
-        showToast(`✨ ${t('realtime.newKvkRecord', { number: kingdomNumber })}`, 'info');
-      }
-    }
-  });
+  // Realtime subscriptions REMOVED (2026-02-25 incident)
+  // Kingdom data changes rarely — React Query handles caching + refetch on window focus
 
   return (
     <div className="min-h-screen bg-bg">
