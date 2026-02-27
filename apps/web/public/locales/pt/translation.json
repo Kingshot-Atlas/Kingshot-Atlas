@@ -3329,6 +3329,8 @@
     "removeSlot": "Remover",
     "addTimeSlot": "Adicionar Outra Faixa Horária",
     "toastOverlappingSlots": "As faixas horárias não podem se sobrepor. Corrija seus intervalos de tempo.",
+    "duplicateWarning": "Um jogador com este nome de usuário e aliança já existe.",
+    "searchPlayers": "Buscar jogadores...",
     "toastInvalidTimeRange": "Rango de tempo inválido. \"Hasta\" debe ser igual o posterior a \"Desde\".",
     "troopLevels": "Niveles de Tropas",
     "troopLevelsDesc": "Para cada tipo de tropa, selecione seu Tier mais alto (T8–T11) y Nivel Truegold (TG0–TG8). Deixe en blanco si no usas ese tipo.",

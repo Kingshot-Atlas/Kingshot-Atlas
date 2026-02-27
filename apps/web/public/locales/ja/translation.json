@@ -3316,6 +3316,8 @@
     "removeSlot": "削除",
     "addTimeSlot": "タイムスロットを追加",
     "toastOverlappingSlots": "タイムスロットは重複できません。時間範囲を修正してください。",
+    "duplicateWarning": "このユーザー名とアライアンスのプレイヤーは既に存在します。",
+    "searchPlayers": "プレイヤーを検索...",
     "toastInvalidTimeRange": "無効な時間範囲です。「終了」は「開始」と同じか後でなければなりません。",
     "troopLevels": "兵力レベル",
     "troopLevelsDesc": "各兵種の最高ティア（T8–T11）とトゥルーゴールドレベル（TG0–TG8）を選択。",

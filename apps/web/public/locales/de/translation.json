@@ -3316,6 +3316,8 @@
     "removeSlot": "Entfernen",
     "addTimeSlot": "Weiteres Zeitfenster hinzufügen",
     "toastOverlappingSlots": "Zeitfenster dürfen sich nicht überschneiden. Bitte korrigiere deine Zeitbereiche.",
+    "duplicateWarning": "Ein Spieler mit diesem Benutzernamen und dieser Allianz existiert bereits.",
+    "searchPlayers": "Spieler suchen...",
     "toastInvalidTimeRange": "Ungültiger Zeitraum. \"Bis\" muss gleich oder nach \"Von\" sein.",
     "troopLevels": "Truppenstufen",
     "troopLevelsDesc": "Wähle dein höchstes Tier (T8–T11) und Truegold-Level (TG0–TG8).",

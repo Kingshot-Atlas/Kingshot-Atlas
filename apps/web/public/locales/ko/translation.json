@@ -3313,6 +3313,8 @@
     "removeSlot": "제거",
     "addTimeSlot": "시간대 추가",
     "toastOverlappingSlots": "시간대가 겹칠 수 없습니다. 시간 범위를 수정해 주세요.",
+    "duplicateWarning": "이 사용자 이름과 동맹의 플레이어가 이미 존재합니다.",
+    "searchPlayers": "플레이어 검색...",
     "toastInvalidTimeRange": "잘못된 시간 범위입니다. \"종료\"는 \"시작\"과 같거나 이후여야 합니다.",
     "troopLevels": "병력 수준",
     "troopLevelsDesc": "각 병종의 최고 티어(T8–T11)와 트루골드 레벨(TG0–TG8)을 선택하세요.",

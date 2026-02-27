@@ -3316,6 +3316,8 @@
     "removeSlot": "Supprimer",
     "addTimeSlot": "Ajouter un Autre Créneau",
     "toastOverlappingSlots": "Les créneaux ne peuvent pas se chevaucher. Corrigez vos plages horaires.",
+    "duplicateWarning": "Un joueur avec ce nom d'utilisateur et cette alliance existe déjà.",
+    "searchPlayers": "Rechercher des joueurs...",
     "toastInvalidTimeRange": "Plage horaire invalide. \"À\" doit être égal ou postérieur à \"De\".",
     "troopLevels": "Niveaux de Troupes",
     "troopLevelsDesc": "Sélectionnez votre Tier (T8–T11) et Niveau Truegold (TG0–TG8) pour chaque type.",

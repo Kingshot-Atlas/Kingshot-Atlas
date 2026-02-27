@@ -3331,6 +3331,8 @@
     "removeSlot": "Remove",
     "addTimeSlot": "Add Another Time Slot",
     "toastOverlappingSlots": "Time slots cannot overlap. Please fix your time ranges.",
+    "duplicateWarning": "A player with this username and alliance already exists.",
+    "searchPlayers": "Search players...",
     "toastInvalidTimeRange": "Invalid time range. \"To\" must be equal to or after \"From\".",
     "troopLevels": "Troop Levels",
     "troopLevelsDesc": "For each troop type, select your highest Tier (T8–T11) and Truegold Level (TG0–TG8). Leave blank if you don't use that troop type.",

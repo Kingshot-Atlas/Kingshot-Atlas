@@ -3316,6 +3316,8 @@
     "removeSlot": "Kaldır",
     "addTimeSlot": "Başka Zaman Dilimi Ekle",
     "toastOverlappingSlots": "Zaman dilimleri çakışamaz. Lütfen zaman aralıklarınızı düzeltin.",
+    "duplicateWarning": "Bu kullanıcı adı ve ittifaka sahip bir oyuncu zaten mevcut.",
+    "searchPlayers": "Oyuncu ara...",
     "toastInvalidTimeRange": "Geçersiz zaman aralığı. \"Bitiş\" \"Başlangıç\" ile aynı veya sonrasında olmalıdır.",
     "troopLevels": "Asker Seviyeleri",
     "troopLevelsDesc": "Her asker türü için en yüksek Seviye (T8–T11) ve Truegold Seviyesini (TG0–TG8) seçin.",

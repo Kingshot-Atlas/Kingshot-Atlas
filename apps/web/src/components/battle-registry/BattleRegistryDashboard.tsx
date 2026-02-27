@@ -118,6 +118,9 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
   const [expandedTimeFrames, setExpandedTimeFrames] = useState<Set<string>>(new Set());
   const [expandedAlliances, setExpandedAlliances] = useState<Set<string>>(new Set());
   const manualFormRef = useRef<HTMLDivElement>(null);
+  const [playerSearch, setPlayerSearch] = useState('');
+  const [sortColumn, setSortColumn] = useState<'player' | 'alliance' | 'time' | 'infantry' | 'cavalry' | 'archers'>('player');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
   const resetManualForm = () => {
     setManualUsername(''); setManualAlliance('');
@@ -137,7 +140,30 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
     if (manualTimeSlots.length > 1) setManualTimeSlots(prev => prev.filter((_, i) => i !== idx));
   };
 
+  const overlapWarning = useMemo(() => {
+    if (manualTimeSlots.length < 2) return false;
+    for (let i = 0; i < manualTimeSlots.length; i++) {
+      for (let j = i + 1; j < manualTimeSlots.length; j++) {
+        const a = manualTimeSlots[i]!, b = manualTimeSlots[j]!;
+        const ai = TIME_SLOTS.indexOf(a.from), aj = TIME_SLOTS.indexOf(a.to);
+        const bi = TIME_SLOTS.indexOf(b.from), bj = TIME_SLOTS.indexOf(b.to);
+        if (ai <= bj && bi <= aj) return true;
+      }
+    }
+    return false;
+  }, [manualTimeSlots]);
+
+  const duplicateWarning = useMemo(() => {
+    if (!manualUsername.trim() || manualAlliance.trim().length !== 3) return false;
+    return entries.some(e =>
+      e.id !== editingEntryId &&
+      e.username.toLowerCase() === manualUsername.trim().toLowerCase() &&
+      e.alliance_tag.toLowerCase() === manualAlliance.trim().toLowerCase()
+    );
+  }, [entries, manualUsername, manualAlliance, editingEntryId]);
+
   const handleManualSubmit = async () => {
+    if (overlapWarning) return;
     const formData = {
       username: manualUsername, alliance_tag: manualAlliance,
       time_slots: manualTimeSlots,
@@ -275,12 +301,50 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
     return Object.entries(dist).sort((a, b) => b[1] - a[1]);
   }, [entries]);
 
+  const sortedFilteredEntries = useMemo(() => {
+    let list = entries;
+    if (playerSearch.trim()) {
+      const q = playerSearch.trim().toLowerCase();
+      list = entries.filter(e => e.username.toLowerCase().includes(q) || e.alliance_tag.toLowerCase().includes(q));
+    }
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return [...list].sort((a, b) => {
+      switch (sortColumn) {
+        case 'player': return dir * a.username.localeCompare(b.username);
+        case 'alliance': return dir * a.alliance_tag.localeCompare(b.alliance_tag);
+        case 'time': return dir * ((getEntryTimeSlots(a)[0]?.from ?? '').localeCompare(getEntryTimeSlots(b)[0]?.from ?? ''));
+        case 'infantry': return dir * ((a.infantry_tier ?? 0) - (b.infantry_tier ?? 0));
+        case 'cavalry': return dir * ((a.cavalry_tier ?? 0) - (b.cavalry_tier ?? 0));
+        case 'archers': return dir * ((a.archers_tier ?? 0) - (b.archers_tier ?? 0));
+        default: return 0;
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entries, playerSearch, sortColumn, sortDir]);
+
   const toggleTroopCombo = (key: string) => {
     setExpandedTroopCombos(prev => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key); else next.add(key);
       return next;
     });
+  };
+
+  const toggleExpandAllTime = () => {
+    const all = hourlyData.filter(h => h.count > 0).map(h => h.label);
+    setExpandedTimeFrames(prev => prev.size >= all.length ? new Set() : new Set(all));
+  };
+  const toggleExpandAllTroops = () => {
+    const all = TROOP_TYPES.flatMap(type => troopDistribution[type].combos.map(c => `${type}-${c.label}`));
+    setExpandedTroopCombos(prev => prev.size >= all.length ? new Set() : new Set(all));
+  };
+  const toggleExpandAllAlliances = () => {
+    const all = allianceDistribution.map(([tag]) => tag);
+    setExpandedAlliances(prev => prev.size >= all.length ? new Set() : new Set(all));
+  };
+  const handleSort = (col: typeof sortColumn) => {
+    if (sortColumn === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortColumn(col); setSortDir(['infantry', 'cavalry', 'archers'].includes(col) ? 'desc' : 'asc'); }
   };
 
   const shareLink = `${window.location.origin}/tools/battle-registry/${registry.id}`;
@@ -450,12 +514,22 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
                 </div>
               ))}
             </div>
-            <button onClick={handleManualSubmit} disabled={saving || !manualUsername.trim() || manualAlliance.trim().length !== 3}
+            {overlapWarning && (
+              <p style={{ color: colors.error, fontSize: '0.7rem', marginBottom: '0.35rem', fontWeight: 600 }}>
+                ⚠️ {t('battleRegistry.toastOverlappingSlots', 'Time slots overlap. Please adjust your time ranges.')}
+              </p>
+            )}
+            {duplicateWarning && (
+              <p style={{ color: '#f97316', fontSize: '0.7rem', marginBottom: '0.35rem', fontWeight: 600 }}>
+                ⚠️ {t('battleRegistry.duplicateWarning', 'A player with this username and alliance already exists.')}
+              </p>
+            )}
+            <button onClick={handleManualSubmit} disabled={saving || overlapWarning || !manualUsername.trim() || manualAlliance.trim().length !== 3}
               style={{
                 padding: '0.5rem 1.25rem', borderRadius: '8px', border: 'none',
-                backgroundColor: manualAlliance.trim().length === 3 && manualUsername.trim() ? '#f97316' : `${colors.textMuted}20`,
-                color: manualAlliance.trim().length === 3 && manualUsername.trim() ? '#fff' : colors.textMuted,
-                fontSize: '0.8rem', fontWeight: 700, cursor: manualAlliance.trim().length === 3 && manualUsername.trim() ? 'pointer' : 'not-allowed',
+                backgroundColor: !overlapWarning && manualAlliance.trim().length === 3 && manualUsername.trim() ? '#f97316' : `${colors.textMuted}20`,
+                color: !overlapWarning && manualAlliance.trim().length === 3 && manualUsername.trim() ? '#fff' : colors.textMuted,
+                fontSize: '0.8rem', fontWeight: 700, cursor: !overlapWarning && manualAlliance.trim().length === 3 && manualUsername.trim() ? 'pointer' : 'not-allowed',
                 opacity: saving ? 0.5 : 1, minHeight: '40px',
               }}>
               {saving ? '...' : editingEntryId ? `✏️ ${t('battleRegistry.updatePlayer', 'Update Player')}` : `➕ ${t('battleRegistry.addPlayer', 'Add Player')}`}
@@ -515,7 +589,14 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
 
         {/* ─── Time Availability Distribution (hourly frames, collapsible) ── */}
         <div style={cardStyle}>
-          <h3 style={{ color: colors.text, fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.75rem' }}>🕐 {t('battleRegistry.timeDistribution', 'Time Availability Distribution')}</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <h3 style={{ color: colors.text, fontSize: '0.9rem', fontWeight: 700, margin: 0 }}>🕐 {t('battleRegistry.timeDistribution', 'Time Availability Distribution')}</h3>
+            {entries.length > 0 && (
+              <button onClick={toggleExpandAllTime} style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', border: `1px solid ${colors.border}`, backgroundColor: 'transparent', color: colors.textMuted, fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer', minHeight: '32px' }}>
+                {expandedTimeFrames.size > 0 ? t('battleRegistry.collapseAll', 'Collapse All') : t('battleRegistry.expandAll', 'Expand All')}
+              </button>
+            )}
+          </div>
           {entries.length === 0 ? (
             <p style={{ color: colors.textMuted, fontSize: '0.8rem' }}>{t('battleRegistry.noEntriesYet', 'No registrations yet.')}</p>
           ) : (
@@ -578,7 +659,14 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
 
         {/* ─── Troop Level Distribution (expandable bars with players) ─── */}
         <div style={cardStyle}>
-          <h3 style={{ color: colors.text, fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.75rem' }}>🗡️ {t('battleRegistry.troopDistribution', 'Troop Level Distribution')}</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <h3 style={{ color: colors.text, fontSize: '0.9rem', fontWeight: 700, margin: 0 }}>🗡️ {t('battleRegistry.troopDistribution', 'Troop Level Distribution')}</h3>
+            {entries.length > 0 && (
+              <button onClick={toggleExpandAllTroops} style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', border: `1px solid ${colors.border}`, backgroundColor: 'transparent', color: colors.textMuted, fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer', minHeight: '32px' }}>
+                {expandedTroopCombos.size > 0 ? t('battleRegistry.collapseAll', 'Collapse All') : t('battleRegistry.expandAll', 'Expand All')}
+              </button>
+            )}
+          </div>
           {entries.length === 0 ? (
             <p style={{ color: colors.textMuted, fontSize: '0.8rem' }}>{t('battleRegistry.noEntriesYet', 'No registrations yet.')}</p>
           ) : (
@@ -652,7 +740,12 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
         {/* ─── Alliance Breakdown (collapsible) ─────────────────────── */}
         {allianceDistribution.length > 0 && (
           <div style={cardStyle}>
-            <h3 style={{ color: colors.text, fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.75rem' }}>🏰 {t('battleRegistry.allianceBreakdown', 'Alliance Breakdown')}</h3>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+              <h3 style={{ color: colors.text, fontSize: '0.9rem', fontWeight: 700, margin: 0 }}>🏰 {t('battleRegistry.allianceBreakdown', 'Alliance Breakdown')}</h3>
+              <button onClick={toggleExpandAllAlliances} style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', border: `1px solid ${colors.border}`, backgroundColor: 'transparent', color: colors.textMuted, fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer', minHeight: '32px' }}>
+                {expandedAlliances.size > 0 ? t('battleRegistry.collapseAll', 'Collapse All') : t('battleRegistry.expandAll', 'Expand All')}
+              </button>
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
               {allianceDistribution.map(([tag, count]) => {
                 const maxAllianceCount = allianceDistribution[0]?.[1] ?? 1;
@@ -713,7 +806,16 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
 
         {/* ─── Player List ────────────────────────────────────────────── */}
         <div style={cardStyle}>
-          <h3 style={{ color: colors.text, fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.75rem' }}>📋 {t('battleRegistry.playerList', 'Registered Players')}</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <h3 style={{ color: colors.text, fontSize: '0.9rem', fontWeight: 700, margin: 0 }}>📋 {t('battleRegistry.playerList', 'Registered Players')}</h3>
+            {entries.length > 0 && (
+              <input
+                type="text" value={playerSearch} onChange={e => setPlayerSearch(e.target.value)}
+                placeholder={t('battleRegistry.searchPlayers', 'Search players...')}
+                style={{ padding: '0.3rem 0.6rem', backgroundColor: colors.bg, border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.text, fontSize: '0.75rem', outline: 'none', width: isMobile ? '100%' : '180px', boxSizing: 'border-box' }}
+              />
+            )}
+          </div>
           {entries.length === 0 ? (
             <p style={{ color: colors.textMuted, fontSize: '0.8rem' }}>{t('battleRegistry.noEntriesYet', 'No registrations yet.')}</p>
           ) : (
@@ -721,17 +823,17 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
                 <thead>
                   <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
-                    <th style={{ textAlign: 'left', padding: '0.5rem 0.35rem', color: colors.textMuted, fontWeight: 600 }}>{t('battleRegistry.player', 'Player')}</th>
-                    <th style={{ textAlign: 'center', padding: '0.5rem 0.35rem', color: colors.textMuted, fontWeight: 600 }}>{t('battleRegistry.alliance', 'Alliance')}</th>
-                    <th style={{ textAlign: 'center', padding: '0.5rem 0.35rem', color: colors.textMuted, fontWeight: 600 }}>{t('battleRegistry.timeSlot', 'Time')}</th>
-                    <th style={{ textAlign: 'center', padding: '0.5rem 0.35rem', color: TROOP_COLORS.infantry, fontWeight: 600 }}>🛡️</th>
-                    <th style={{ textAlign: 'center', padding: '0.5rem 0.35rem', color: TROOP_COLORS.cavalry, fontWeight: 600 }}>🐴</th>
-                    <th style={{ textAlign: 'center', padding: '0.5rem 0.35rem', color: TROOP_COLORS.archers, fontWeight: 600 }}>🏹</th>
+                    <th onClick={() => handleSort('player')} style={{ textAlign: 'left', padding: '0.5rem 0.35rem', color: sortColumn === 'player' ? '#ef4444' : colors.textMuted, fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}>{t('battleRegistry.player', 'Player')} {sortColumn === 'player' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
+                    <th onClick={() => handleSort('alliance')} style={{ textAlign: 'center', padding: '0.5rem 0.35rem', color: sortColumn === 'alliance' ? '#ef4444' : colors.textMuted, fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}>{t('battleRegistry.alliance', 'Alliance')} {sortColumn === 'alliance' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
+                    <th onClick={() => handleSort('time')} style={{ textAlign: 'center', padding: '0.5rem 0.35rem', color: sortColumn === 'time' ? '#ef4444' : colors.textMuted, fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}>{t('battleRegistry.timeSlot', 'Time')} {sortColumn === 'time' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
+                    <th onClick={() => handleSort('infantry')} style={{ textAlign: 'center', padding: '0.5rem 0.35rem', color: sortColumn === 'infantry' ? '#ef4444' : TROOP_COLORS.infantry, fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}>🛡️{sortColumn === 'infantry' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
+                    <th onClick={() => handleSort('cavalry')} style={{ textAlign: 'center', padding: '0.5rem 0.35rem', color: sortColumn === 'cavalry' ? '#ef4444' : TROOP_COLORS.cavalry, fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}>🐴{sortColumn === 'cavalry' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
+                    <th onClick={() => handleSort('archers')} style={{ textAlign: 'center', padding: '0.5rem 0.35rem', color: sortColumn === 'archers' ? '#ef4444' : TROOP_COLORS.archers, fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}>🏹{sortColumn === 'archers' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
                     <th style={{ textAlign: 'center', padding: '0.5rem 0.35rem', color: colors.textMuted, fontWeight: 600, width: '40px' }}></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {entries.map(entry => (
+                  {sortedFilteredEntries.map(entry => (
                     <tr key={entry.id} style={{ borderBottom: `1px solid ${colors.borderSubtle}`, backgroundColor: editingEntryId === entry.id ? '#f9731612' : undefined, outline: editingEntryId === entry.id ? '1px solid #f9731640' : undefined }}>
                       <td style={{ padding: '0.5rem 0.35rem', color: colors.text, fontWeight: 600 }}>
                         {entry.username}
