@@ -106,7 +106,7 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
   // Gold kingdom gate: user's linked kingdom must be Gold tier
   const isGoldKingdom = !!(profile?.linked_kingdom && goldKingdoms.has(profile.linked_kingdom));
 
-  // KvK #11 promo: Silver tier kingdoms also get access until Feb 21 22:00 UTC
+  // KvK #11 promo: Silver tier kingdoms also get access until Feb 28 22:00 UTC
   const hasSilverPromoAccess = !!(profile?.linked_kingdom && hasPromoAccess(profile.linked_kingdom));
 
   // Onboarding 1-hour trial check (Stage 3)

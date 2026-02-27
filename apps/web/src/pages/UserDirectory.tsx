@@ -116,7 +116,7 @@ const UserDirectory: React.FC = () => {
           logger.log('[PlayerDirectory] Fetching users from Supabase...');
           const { data, error } = await supabase
             .from('profiles')
-            .select('id, username, email, avatar_url, home_kingdom, alliance_tag, language, region, bio, theme_color, badge_style, created_at, linked_username, linked_avatar_url, linked_kingdom, linked_tc_level, subscription_tier, referral_tier, referral_count')
+            .select('id, username, avatar_url, home_kingdom, alliance_tag, language, region, bio, theme_color, badge_style, created_at, linked_username, linked_avatar_url, linked_kingdom, linked_tc_level, subscription_tier, referral_tier, referral_count')
             .neq('linked_username', '')
             .not('linked_username', 'is', null)
             .order('created_at', { ascending: false });

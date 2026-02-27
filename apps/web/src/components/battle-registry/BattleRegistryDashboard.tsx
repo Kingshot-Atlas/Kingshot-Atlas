@@ -54,6 +54,7 @@ interface BattleRegistryDashboardProps {
   entries: BattleRegistryEntry[];
   managers: ManagerEntry[];
   isEditorOrCoEditor: boolean;
+  isManager: boolean;
   // Manager assignment
   assignManagerInput: string;
   setAssignManagerInput: (v: string) => void;
@@ -89,7 +90,7 @@ interface BattleRegistryDashboardProps {
 
 const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
   isMobile, registry, entries, managers,
-  isEditorOrCoEditor,
+  isEditorOrCoEditor, isManager,
   assignManagerInput, setAssignManagerInput,
   managerSearchResults, showManagerDropdown, setShowManagerDropdown: _setShowManagerDropdown,
   managerSearchRef, addManager, removeManager,
@@ -860,7 +861,7 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
                         {entry.archers_tg != null ? <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>/TG{entry.archers_tg}</span> : ''}
                       </td>
                       <td style={{ padding: '0.5rem 0.35rem', textAlign: 'center' }}>
-                        {entry.added_by && !entry.user_id && (
+                        {(isManager || (entry.added_by && !entry.user_id)) && (
                           confirmDelete === entry.id ? (
                             <div style={{ display: 'flex', gap: '0.2rem', justifyContent: 'center' }}>
                               <button onClick={() => { deleteEntry(entry.id); setConfirmDelete(null); }}

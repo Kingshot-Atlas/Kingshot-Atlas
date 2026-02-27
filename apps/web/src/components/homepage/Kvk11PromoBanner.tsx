@@ -164,7 +164,7 @@ const Kvk11PromoBanner: React.FC = () => {
             margin: 0,
             lineHeight: 1.4,
           }}>
-            Prep Scheduler & Battle Planner unlocked for Silver Tier kingdoms until KvK #11 ends.
+            Prep Scheduler, Battle Planner & Battle Registry unlocked for Silver Tier kingdoms until KvK #11 ends.
             Fund your kingdom to Silver ($50) and gain the edge.
           </p>
         </div>

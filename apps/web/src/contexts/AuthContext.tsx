@@ -257,11 +257,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           if (data.session) {
             setSession(data.session);
             setUser(data.session.user);
-            // Re-fetch profile from Supabase to pick up changes from other devices
+            // Re-fetch profile via RPC (returns full profile for own user only)
             const { data: freshProfile, error: profileError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', data.session.user.id)
+              .rpc('get_my_profile')
               .single();
             if (!profileError && freshProfile) {
               setProfile(freshProfile as UserProfile);
@@ -346,11 +344,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
     
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+      const { data, error }: { data: UserProfile | null; error: { code: string; message: string } | null } = await supabase
+        .rpc('get_my_profile')
+        .single() as any;
 
       if (error && error.code === 'PGRST116') {
         // Profile doesn't exist, create one
@@ -380,37 +376,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           discord_linked_at: discordId ? new Date().toISOString() : null
         };
 
-        const { data: created, error: createError } = await supabase
+        const { error: createError } = await supabase
           .from('profiles')
-          .insert([newProfile])
-          .select()
-          .single();
+          .insert([newProfile]);
 
         if (createError) {
           logger.error('Error creating profile:', createError);
           const mergedProfile = { ...newProfile, ...getCachedLinkedPlayerData() };
           setProfile(mergedProfile);
           localStorage.setItem(PROFILE_KEY, JSON.stringify(mergedProfile));
-        } else if (created) {
-          // Set profile and unblock UI immediately — referral processing is non-blocking
-          const mergedProfile = { ...created, ...getCachedLinkedPlayerData() };
-          setProfile(mergedProfile);
+        } else {
+          // Fetch full profile via RPC (column restrictions prevent .insert().select())
+          const { data: created } = await supabase.rpc('get_my_profile').single() as any;
+          const mergedProfile = { ...(created || newProfile), ...getCachedLinkedPlayerData() };
+          setProfile(mergedProfile as UserProfile);
           localStorage.setItem(PROFILE_KEY, JSON.stringify(mergedProfile));
 
           // Process referral code asynchronously (does NOT block loading)
           const storedRefCode = localStorage.getItem(REFERRAL_KEY);
           if (storedRefCode) {
-            processReferral(storedRefCode, created.id).catch(refErr => {
+            processReferral(storedRefCode, newProfile.id).catch(refErr => {
               logger.error('Failed to process referral:', refErr);
             });
             localStorage.removeItem(REFERRAL_KEY);
             localStorage.removeItem(REFERRAL_SOURCE_KEY);
             localStorage.removeItem(REFERRAL_LANDING_KEY);
           }
-        } else {
-          const mergedProfile = { ...newProfile, ...getCachedLinkedPlayerData() };
-          setProfile(mergedProfile);
-          localStorage.setItem(PROFILE_KEY, JSON.stringify(mergedProfile));
         }
       } else if (error) {
         logger.error('Error fetching profile:', error);

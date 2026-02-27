@@ -33,30 +33,30 @@ const generateEvents = (): GameEvent[] => {
   // Calculate KvK #1 start date by going back 9 cycles (9 * 28 days)
   const kvk10Start = new Date('2026-01-26T00:00:00Z');
   const kvk1Start = new Date(kvk10Start);
-  kvk1Start.setDate(kvk1Start.getDate() - (9 * 28));
+  kvk1Start.setUTCDate(kvk1Start.getUTCDate() - (9 * 28));
   
   // Transfer Event #3 started Sunday, January 4, 2026 at 00:00 UTC
   // Calculate Transfer #1 start date by going back 2 cycles (2 * 56 days)
   const transfer3Start = new Date('2026-01-04T00:00:00Z');
   const transfer1Start = new Date(transfer3Start);
-  transfer1Start.setDate(transfer1Start.getDate() - (2 * 56));
+  transfer1Start.setUTCDate(transfer1Start.getUTCDate() - (2 * 56));
   
   // Generate KvK events (past and future)
   for (let i = 0; i < 20; i++) {
     const kvkNumber = i + 1;
     const kvkStart = new Date(kvk1Start);
-    kvkStart.setDate(kvkStart.getDate() + (i * 28)); // 4 weeks = 28 days
+    kvkStart.setUTCDate(kvkStart.getUTCDate() + (i * 28)); // 4 weeks = 28 days
     
     // Prep Phase: Monday 00:00 UTC to Saturday 10:00 UTC
     const prepStart = new Date(kvkStart);
     const prepEnd = new Date(kvkStart);
-    prepEnd.setDate(prepEnd.getDate() + 5);
-    prepEnd.setHours(10, 0, 0, 0);
+    prepEnd.setUTCDate(prepEnd.getUTCDate() + 5);
+    prepEnd.setUTCHours(10, 0, 0, 0);
     
     // Battle Phase: Saturday 10:00 UTC to Saturday 22:00 UTC
     const battleStart = new Date(prepEnd);
     const battleEnd = new Date(battleStart);
-    battleEnd.setHours(22, 0, 0, 0);
+    battleEnd.setUTCHours(22, 0, 0, 0);
 
     events.push({
       id: `kvk-prep-${kvkNumber}`,
@@ -83,9 +83,9 @@ const generateEvents = (): GameEvent[] => {
     // Castle Battle: Saturday 12:00 UTC to Saturday 18:00 UTC (core competitive window)
     // Winning Castle Battle = Winning the "Battle Phase"
     const castleBattleStart = new Date(battleStart);
-    castleBattleStart.setHours(12, 0, 0, 0);
+    castleBattleStart.setUTCHours(12, 0, 0, 0);
     const castleBattleEnd = new Date(battleStart);
-    castleBattleEnd.setHours(18, 0, 0, 0);
+    castleBattleEnd.setUTCHours(18, 0, 0, 0);
 
     events.push({
       id: `kvk-castle-${kvkNumber}`,
@@ -103,22 +103,22 @@ const generateEvents = (): GameEvent[] => {
   for (let i = 0; i < 10; i++) {
     const transferNumber = i + 1;
     const cycleStart = new Date(transfer1Start);
-    cycleStart.setDate(cycleStart.getDate() + (i * 56)); // 8 weeks = 56 days
+    cycleStart.setUTCDate(cycleStart.getUTCDate() + (i * 56)); // 8 weeks = 56 days
     
     // Pre-Transfer Phase: Sunday 00:00 UTC to Wednesday 00:00 UTC
     const preTransferStart = new Date(cycleStart);
     const preTransferEnd = new Date(cycleStart);
-    preTransferEnd.setDate(preTransferEnd.getDate() + 3);
+    preTransferEnd.setUTCDate(preTransferEnd.getUTCDate() + 3);
     
     // Invitational Transfer Phase: Wednesday 00:00 UTC to Friday 00:00 UTC
     const inviteStart = new Date(preTransferEnd);
     const inviteEnd = new Date(inviteStart);
-    inviteEnd.setDate(inviteEnd.getDate() + 2);
+    inviteEnd.setUTCDate(inviteEnd.getUTCDate() + 2);
     
     // Open Transfer Phase: Friday 00:00 UTC to Sunday 00:00 UTC
     const openStart = new Date(inviteEnd);
     const openEnd = new Date(openStart);
-    openEnd.setDate(openEnd.getDate() + 2);
+    openEnd.setUTCDate(openEnd.getUTCDate() + 2);
 
     events.push({
       id: `transfer-pre-${transferNumber}`,

@@ -72,6 +72,7 @@ const BattleRegistryMain: React.FC = () => {
         entries={hook.entries}
         managers={hook.managers}
         isEditorOrCoEditor={hook.isEditorOrCoEditor}
+        isManager={hook.isManager}
         assignManagerInput={hook.assignManagerInput}
         setAssignManagerInput={hook.setAssignManagerInput}
         managerSearchResults={hook.managerSearchResults}

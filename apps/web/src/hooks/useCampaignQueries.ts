@@ -86,7 +86,7 @@ async function fetchSettlerLeaderboard(minSettlers: number, minTcLevel: number):
   // Get all linked users grouped by kingdom
   const { data, error } = await supabase
     .from('profiles')
-    .select('linked_kingdom, discord_id, linked_tc_level')
+    .select('linked_kingdom, discord_username, linked_tc_level')
     .not('linked_player_id', 'is', null)
     .not('linked_kingdom', 'is', null);
 
@@ -102,7 +102,7 @@ async function fetchSettlerLeaderboard(minSettlers: number, minTcLevel: number):
     if (!kingdomMap.has(k)) kingdomMap.set(k, { tickets: 0, atlas_users: 0 });
     const entry = kingdomMap.get(k)!;
     entry.atlas_users++;
-    if (row.discord_id && (row.linked_tc_level ?? 0) >= minTcLevel) {
+    if (row.discord_username && (row.linked_tc_level ?? 0) >= minTcLevel) {
       entry.tickets++;
     }
   }
@@ -146,7 +146,7 @@ async function fetchKingdomSettlers(kingdomNumber: number, minTcLevel: number): 
   if (!supabase) return [];
   const { data, error } = await supabase
     .from('profiles')
-    .select('linked_username, linked_tc_level, discord_id')
+    .select('linked_username, linked_tc_level, discord_username')
     .eq('linked_kingdom', kingdomNumber)
     .not('linked_player_id', 'is', null)
     .order('linked_tc_level', { ascending: false });
@@ -157,7 +157,7 @@ async function fetchKingdomSettlers(kingdomNumber: number, minTcLevel: number): 
   }
 
   return data.map((row) => {
-    const isDiscordLinked = !!row.discord_id;
+    const isDiscordLinked = !!row.discord_username;
     const tcLevel = row.linked_tc_level ?? 0;
     let status: SettlerDetail['status'] = 'qualifying';
     if (!isDiscordLinked && tcLevel >= minTcLevel) status = 'needs_discord';

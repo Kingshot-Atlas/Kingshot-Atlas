@@ -2,211 +2,240 @@
 description: Comprehensive security testing workflow for Kingshot Atlas system
 ---
 
-# Security Testing Workflow (securitytest)
+# Security Audit Workflow — Kingshot Atlas
 
-**Purpose:** Perform comprehensive security analysis of the Kingshot Atlas system including vulnerability assessment, penetration testing, and security posture evaluation.
+**Purpose:** Regularly audit the Supabase database and frontend for security vulnerabilities. Catches new tables without RLS, overly permissive policies, exposed functions, and leaked sensitive data.
 
-**Usage:** Run "Security-specialist, do a securitytest" to execute this workflow.
+**Frequency:** Run after every database migration, new table creation, or monthly.
 
-## Phase 1: Reconnaissance & Information Gathering
+**Project ID:** `qdczmafwcvnwfvixxbwg`
 
-### 1.1 System Architecture Analysis
-- Map all entry points: API endpoints, web interfaces, database connections
-- Identify technology stack: React, FastAPI, Supabase/PostgreSQL
-- Document data flow: client → API → database → external services
-- List all external dependencies and third-party services
+---
 
-### 1.2 Configuration Review
-- Examine environment variables and secrets management
-- Review CORS policies and CSP headers
-- Check authentication and authorization configurations
-- Analyze API rate limiting and input validation
+## Phase 1: Supabase Security Advisors
 
-### 1.3 Attack Surface Mapping
-- Identify all user input vectors
-- Map file upload/download capabilities
-- Document API endpoints and their access levels
-- List administrative interfaces and privileged operations
+Run the built-in Supabase security and performance advisors.
 
-## Phase 2: Vulnerability Assessment
-
-### 2.1 Web Application Security
-- Test for OWASP Top 10 vulnerabilities:
-  - Injection attacks (SQL, NoSQL, command)
-  - Broken authentication
-  - Sensitive data exposure
-  - XML external entities (XXE)
-  - Broken access control
-  - Security misconfiguration
-  - Cross-site scripting (XSS)
-  - Insecure deserialization
-  - Using components with known vulnerabilities
-  - Insufficient logging & monitoring
-
-### 2.2 API Security Testing
-- Test authentication bypasses
-- Check for authorization flaws
-- Validate input sanitization
-- Test for rate limiting bypasses
-- Examine error message information disclosure
-
-### 2.3 Database Security
-- Test for SQL injection vulnerabilities
-- Check database connection security
-- Review data encryption at rest and in transit
-- Examine database access controls
-
-### 2.4 Infrastructure Security
-- Review deployment configurations
-- Check for exposed services
-- Test network security controls
-- Examine logging and monitoring
-
-## Phase 3: Penetration Testing
-
-### 3.1 Authenticated Testing
-- Test privilege escalation paths
-- Examine session management
-- Test user impersonation risks
-- Check for lateral movement opportunities
-
-### 3.2 Unauthenticated Testing
-- Test for anonymous access to protected resources
-- Check for information disclosure
-- Test for account enumeration
-- Examine password reset flows
-
-### 3.3 Client-Side Security
-- Test for XSS vulnerabilities
-- Check for CSRF protection
-- Examine client-side data storage
-- Test for insecure direct object references
-
-## Phase 4: Security Configuration Review
-
-### 4.1 Headers & Policies
-- Verify security headers (HSTS, CSP, X-Frame-Options)
-- Check CORS configuration
-- Review cookie security settings
-- Examine content security policies
-
-### 4.2 Authentication & Authorization
-- Review password policies
-- Check multi-factor authentication
-- Examine session timeout settings
-- Test account lockout mechanisms
-
-### 4.3 Data Protection
-- Verify encryption implementation
-- Check data masking in logs
-- Review PII handling
-- Test data backup security
-
-## Phase 5: Reporting & Recommendations
-
-### 5.1 Risk Assessment
-- Categorize vulnerabilities by severity (Critical, High, Medium, Low)
-- Assess potential impact and likelihood
-- Calculate risk scores
-- Prioritize remediation efforts
-
-### 5.2 Security Score Calculation
-- Calculate overall security posture score (0-100)
-- Provide confidence levels for assessments
-- Generate trend analysis if previous tests exist
-- Benchmark against industry standards
-
-### 5.3 Remediation Plan
-- Provide specific fix recommendations
-- Estimate remediation effort and complexity
-- Suggest security controls to implement
-- Recommend monitoring improvements
-
-## Execution Commands
-
-### Automated Security Scans
-```bash
-# Dependency vulnerability scanning
-npm audit
-pip-audit
-
-# Static code analysis
-semgrep --config=auto .
-bandit -r apps/api/
-
-# Infrastructure scanning
-nmap -sV -oX nmap_scan.xml localhost
-sslyze --regular ks-atlas.com
+```
+Use mcp3_get_advisors with project_id: qdczmafwcvnwfvixxbwg, type: security
+Use mcp3_get_advisors with project_id: qdczmafwcvnwfvixxbwg, type: performance
 ```
 
-### Manual Testing Procedures
-```bash
-# API endpoint enumeration
-curl -s https://ks-atlas.com/api/v1/ | jq .
+**Expected:** 0 lints. If any appear, fix immediately.
 
-# Header analysis
-curl -I https://ks-atlas.com
+---
 
-# CORS testing
-curl -H "Origin: https://evil.com" https://ks-atlas.com/api/kingdoms
+## Phase 2: RLS Audit — All Tables
+
+Check every public table has RLS enabled:
+
+```sql
+-- Run via mcp3_execute_sql
+SELECT tablename,
+       rowsecurity as rls_enabled
+FROM pg_tables
+WHERE schemaname = 'public'
+ORDER BY tablename;
 ```
 
-## Security Report Template
+**Expected:** ALL tables show `rls_enabled: true`. Fix any `false` immediately:
+```sql
+ALTER TABLE public.<table_name> ENABLE ROW LEVEL SECURITY;
+```
 
-### Executive Summary
-- Overall security posture: [Score]/100
-- Critical vulnerabilities found: [Count]
-- High-risk issues: [Count]
-- Confidence level: [High/Medium/Low]
+---
 
-### Detailed Findings
-| Vulnerability | Severity | Impact | Likelihood | Risk Score | Recommendation |
-|---------------|----------|---------|------------|------------|---------------|
+## Phase 3: RLS Policy Deep Inspection
 
-### Compliance Assessment
-- OWASP Top 10 compliance: [Score]%
-- Industry standards alignment: [Status]
-- Data protection compliance: [Status]
+Check for overly permissive policies (especially anon access):
 
-### Action Items
-1. [Immediate critical fixes]
-2. [High-priority improvements]
-3. [Medium-term enhancements]
-4. [Long-term security roadmap]
+```sql
+-- Run via mcp3_execute_sql
+SELECT schemaname, tablename, policyname,
+       permissive, roles, cmd, qual
+FROM pg_policies
+WHERE schemaname = 'public'
+ORDER BY tablename, policyname;
+```
 
-## Tools & Resources
+**Red flags to check:**
+- Any policy with `roles: {public}` or `roles: {anon}` that has `qual: true` (unrestricted)
+- Any policy granting anon INSERT/UPDATE/DELETE access
+- Policies named for one role but applied to another (e.g., "Service role..." applied to {public})
+- Duplicate policies on the same table with same cmd
 
-### Security Testing Tools
-- **OWASP ZAP** - Web application security scanner
-- **Burp Suite** - Web vulnerability testing
-- **SQLMap** - SQL injection testing
-- **Nikto** - Web server scanner
-- **Nmap** - Network discovery and security auditing
+---
 
-### Code Analysis Tools
-- **Semgrep** - Static analysis
-- **Bandit** - Python security linter
-- **ESLint Security Plugin** - JavaScript security
-- **Safety** - Python dependency scanning
+## Phase 4: Column-Level Privilege Audit (profiles table)
 
-### Monitoring & Logging
-- Security event logging
-- Intrusion detection systems
-- Access pattern analysis
-- Anomaly detection
+Verify sensitive columns are restricted from anon and authenticated:
 
-## Success Criteria
+```sql
+-- Run via mcp3_execute_sql
+SELECT grantee, privilege_type, column_name
+FROM information_schema.column_privileges
+WHERE table_name = 'profiles' AND table_schema = 'public'
+AND grantee IN ('anon', 'authenticated')
+ORDER BY grantee, column_name;
+```
 
-- All critical vulnerabilities identified and documented
-- Security posture score calculated with confidence intervals
-- Actionable remediation plan provided
-- Security baseline established for future comparisons
-- Executive summary suitable for non-technical stakeholders
+**Sensitive columns that MUST NOT appear for anon:**
+`email`, `stripe_customer_id`, `stripe_subscription_id`, `discord_id`, `is_admin`, `alt_accounts`, `coordinates`, `referred_by`, `subscription_source`, `subscription_started_at`, `linked_last_synced`
 
-## Notes & Considerations
+**Sensitive columns that MUST NOT appear for authenticated:**
+`email`, `stripe_customer_id`, `stripe_subscription_id`, `alt_accounts`, `referred_by`, `subscription_source`, `subscription_started_at`
 
-- Always obtain proper authorization before testing
-- Test in non-production environments first
-- Document all findings with reproducible steps
-- Consider business context when assessing risk
-- Provide both technical and business impact assessments
+---
+
+## Phase 5: Function EXECUTE Privilege Audit
+
+Check that admin/cron functions are NOT callable by anon:
+
+```sql
+-- Run via mcp3_execute_sql
+SELECT p.proname,
+       has_function_privilege('anon', p.oid, 'EXECUTE') as anon_can_call,
+       has_function_privilege('authenticated', p.oid, 'EXECUTE') as auth_can_call
+FROM pg_proc p
+JOIN pg_namespace n ON p.pronamespace = n.oid
+WHERE n.nspname = 'public'
+AND p.prorettype != 'trigger'::regtype
+AND p.proname NOT LIKE 'is_%'
+AND p.proname NOT LIKE 'fn_%'
+AND p.proname NOT LIKE 'kingdom_has_%'
+ORDER BY p.proname;
+```
+
+**Red flags:**
+- Admin/cron functions with `anon_can_call: true` (e.g., `deplete_kingdom_funds`, `backfill_*`, `disable_kvk_triggers`)
+- User-callable functions with `anon_can_call: true` (e.g., `submit_kvk_partial`, `submit_endorsement`)
+
+**Fix pattern:**
+```sql
+REVOKE EXECUTE ON FUNCTION public.<func_name>(<args>) FROM PUBLIC, anon, authenticated;
+-- For user-callable functions, grant back to authenticated:
+GRANT EXECUTE ON FUNCTION public.<func_name>(<args>) TO authenticated;
+```
+
+---
+
+## Phase 6: Anonymous Access Smoke Tests
+
+Test that anon cannot access sensitive data:
+
+```sql
+-- Run via mcp3_execute_sql
+-- Test 1: Anon cannot read emails
+SET ROLE anon;
+SELECT id, email FROM profiles LIMIT 1;
+-- EXPECTED: permission denied
+
+-- Test 2: Anon cannot read discord_link_attempts
+SET ROLE anon;
+SELECT * FROM discord_link_attempts LIMIT 1;
+-- EXPECTED: empty result or permission denied
+
+-- Test 3: Anon CAN read safe profile columns
+SET ROLE anon;
+SELECT id, username, linked_username FROM profiles LIMIT 1;
+-- EXPECTED: returns data
+```
+
+---
+
+## Phase 7: Statement & Lock Timeout Audit
+
+Verify timeouts are set to prevent DoS:
+
+```sql
+-- Run via mcp3_execute_sql
+SELECT rolname,
+       (SELECT setting FROM pg_catalog.pg_db_role_setting drs
+        CROSS JOIN unnest(drs.setconfig) AS setting
+        WHERE drs.setrole = r.oid AND setting LIKE 'statement_timeout%') as statement_timeout,
+       (SELECT setting FROM pg_catalog.pg_db_role_setting drs
+        CROSS JOIN unnest(drs.setconfig) AS setting
+        WHERE drs.setrole = r.oid AND setting LIKE 'lock_timeout%') as lock_timeout
+FROM pg_roles r
+WHERE rolname IN ('anon', 'authenticated', 'authenticator');
+```
+
+**Expected:**
+- `anon`: statement_timeout=8s, lock_timeout=4s
+- `authenticated`: statement_timeout=15s, lock_timeout=8s
+- `authenticator`: statement_timeout=15s
+
+---
+
+## Phase 8: Frontend Query Audit
+
+Check that no frontend code selects restricted columns from profiles:
+
+```bash
+# Search for select('*') on profiles — should NOT exist (use get_my_profile RPC instead)
+grep -rn "from('profiles').*select('\*')" apps/web/src/
+
+# Search for restricted columns in profile queries
+grep -rn "from('profiles')" apps/web/src/ | grep -E "email|stripe_customer_id|stripe_subscription_id|alt_accounts"
+```
+
+**Expected:** No matches. Any `select('*')` on profiles should use the `get_my_profile()` RPC instead.
+
+---
+
+## Phase 9: View Security Check
+
+Verify views use security_invoker:
+
+```sql
+-- Run via mcp3_execute_sql
+SELECT viewname,
+       (SELECT option_value FROM pg_options_to_table(v.reloptions)
+        WHERE option_name = 'security_invoker') as security_invoker
+FROM pg_views pv
+JOIN pg_class v ON v.relname = pv.viewname
+WHERE schemaname = 'public';
+```
+
+**Expected:** All views should have `security_invoker = true` (or be confirmed safe).
+
+---
+
+## Phase 10: Dependency Vulnerability Scan
+
+// turbo
+```bash
+cd /Users/giovanni/projects/ai/Kingshot\ Atlas/apps/web && npm audit --production 2>&1 | head -30
+```
+
+**Expected:** 0 critical or high vulnerabilities. Fix with `npm audit fix` if safe.
+
+---
+
+## Reporting Template
+
+After completing all phases, provide a summary:
+
+```
+# Security Audit Report — [DATE]
+
+## Results
+| Phase | Status | Issues Found |
+|-------|--------|-------------|
+| 1. Supabase Advisors | ✅/⚠️ | ... |
+| 2. RLS Enabled | ✅/⚠️ | ... |
+| 3. Policy Inspection | ✅/⚠️ | ... |
+| 4. Column Privileges | ✅/⚠️ | ... |
+| 5. Function Privileges | ✅/⚠️ | ... |
+| 6. Anon Smoke Tests | ✅/⚠️ | ... |
+| 7. Timeouts | ✅/⚠️ | ... |
+| 8. Frontend Queries | ✅/⚠️ | ... |
+| 9. View Security | ✅/⚠️ | ... |
+| 10. Dependencies | ✅/⚠️ | ... |
+
+## Actions Taken
+- ...
+
+## Recommended Next Steps
+- ...
+```

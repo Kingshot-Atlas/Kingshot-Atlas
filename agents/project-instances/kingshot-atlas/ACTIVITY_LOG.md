@@ -3,6 +3,37 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-28 | Product Engineer | COMPLETED
+Task: KvK #11 matchup anomaly fix + Battle Registry manager edit permissions
+Files: `BattleRegistryDashboard.tsx`, `BattleRegistryMain.tsx`, Supabase RLS
+Changes:
+1. **KvK #11 data fix** — Deleted erroneous record (K807 vs K675). K675's real opponent is K790 (confirmed both sides). Matchup count: 169 → 168 (even).
+2. **Manager edit permissions** — Managers can now edit/delete ALL entries (not just manual). Added `isManager` prop to Dashboard. Updated RLS DELETE policy and `is_registry_manager()` to include kingdom_editors.
+3. **Build verified** — 3.74s, 0 errors.
+Result: Deployed to production.
+
+## 2026-02-27 14:46 | Product Engineer | COMPLETED
+Task: Battle Registry Dashboard — table format, scroll-to-edit, UX polish
+Files: `BattleRegistryDashboard.tsx`
+Changes:
+1. **Table format** — Converted all 3 expanded sections (Time Availability, Troop Distribution, Alliance Breakdown) from flex layouts to proper HTML tables. All columns center-aligned except usernames (left-aligned). Tables have `overflowX: auto` for mobile.
+2. **Scroll-to-edit** — Clicking ✏️ on a manual entry now scrolls to the edit form via `useRef` + `scrollIntoView`.
+3. **Row highlight** — Currently-editing entry glows orange in the player list table.
+4. **Bug fix** — Clear stale delete confirmation when starting an edit.
+5. **Build verified** — 3.55s, 0 errors. No new i18n keys needed.
+Result: Deployed to production via Cloudflare Pages (commit 113b375).
+
+## 2026-02-27 | Platform Engineer | COMPLETED
+Task: Post-security-hardening database functionality audit
+Files: `Profile.tsx` (fix), Supabase migrations (3)
+Changes:
+1. **Profile.tsx** — Fixed `select('*')` on profiles (broken by column restrictions). Replaced with auth-aware column selection: authenticated users get full column set, anon users get restricted set.
+2. **DB: Grant referred_by back to authenticated** — `referred_by` is a referral code/username (not PII), needed by Profile page referral badge and admin ReferralIntelligence component.
+3. **DB: Lock down admin RPC functions** — `recalculate_all_kingdom_scores` and `verify_and_fix_rank_consistency` were still callable by anon. Revoked from PUBLIC/anon, granted to authenticated only.
+4. **Full audit** — Verified all 73 profile SELECT queries across 40 files, all RPC calls, all UPDATE operations, edge functions, and backend API. Only Profile.tsx was broken.
+5. **Build verified** — 3.39s, 0 errors
+Result: All database-related functionality confirmed working with security hardening in place.
+
 ## 2026-02-27 | Ops Lead + Product Engineer | COMPLETED
 Task: Component refactoring Phase 4 + SEO check + Mobile UX audit + Deploy
 Files: `TransferBoard.tsx`, `KingdomReviews.tsx`, `BotDashboard.tsx`, `transfer/RecruiterModeContent.tsx`, `transfer/KingdomListings.tsx`, `kingdom-reviews/types.ts`, `kingdom-reviews/ReviewCard.tsx`, `kingdom-reviews/ReviewForm.tsx`, `bot-dashboard/types.ts`, `bot-dashboard/BotAnalyticsTab.tsx`, `bot-dashboard/BotMessageTab.tsx`, `KingdomDirectory.tsx`, `CompareTray.tsx`

@@ -92,7 +92,7 @@ const KingdomCommunities: React.FC = () => {
         // Single profiles fetch — powers both Colonies and Settlers tabs
         const { data: profiles, error: profilesError } = await supabase
           .from('profiles')
-          .select('linked_kingdom, discord_id, linked_tc_level')
+          .select('linked_kingdom, discord_username, linked_tc_level')
           .not('linked_kingdom', 'is', null)
           .not('linked_player_id', 'is', null);
 
@@ -106,7 +106,7 @@ const KingdomCommunities: React.FC = () => {
             if (!kingdomCounts[k]) kingdomCounts[k] = { atlas_users: 0, settlers: 0 };
             if ((p.linked_tc_level ?? 0) >= 20) {
               kingdomCounts[k].atlas_users++;
-              if (p.discord_id) {
+              if (p.discord_username) {
                 kingdomCounts[k].settlers++;
               }
             }

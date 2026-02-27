@@ -18,7 +18,7 @@
 /**
  * Current transfer groups — update with each new Transfer Event.
  * Each entry is [minKingdom, maxKingdom].
- * Last updated for: Transfer Event #4 (February 2026)
+ * Last updated for: Transfer Event #4 (March 2026)
  */
 export const TRANSFER_GROUPS: Array<[number, number]> = [
   [1, 25],
