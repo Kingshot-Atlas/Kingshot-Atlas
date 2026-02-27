@@ -103,10 +103,8 @@ const BattleRegistryMain: React.FC = () => {
         formUsername={hook.formUsername}
         formAlliance={hook.formAlliance}
         setFormAlliance={hook.setFormAlliance}
-        formTimeSlot={hook.formTimeSlot}
-        setFormTimeSlot={hook.setFormTimeSlot}
-        formTimeSlotTo={hook.formTimeSlotTo}
-        setFormTimeSlotTo={hook.setFormTimeSlotTo}
+        formTimeSlots={hook.formTimeSlots}
+        setFormTimeSlots={hook.setFormTimeSlots}
         formInfantryTier={hook.formInfantryTier}
         setFormInfantryTier={hook.setFormInfantryTier}
         formInfantryTg={hook.formInfantryTg}

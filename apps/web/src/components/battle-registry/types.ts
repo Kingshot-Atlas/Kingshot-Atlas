@@ -10,6 +10,11 @@ export interface BattleRegistry {
   created_at: string;
 }
 
+export interface TimeSlotRange {
+  from: string;
+  to: string;
+}
+
 export interface BattleRegistryEntry {
   id: string;
   registry_id: string;
@@ -19,6 +24,7 @@ export interface BattleRegistryEntry {
   alliance_tag: string;
   time_slot: string;
   time_slot_to: string | null;
+  time_slots: TimeSlotRange[] | null;
   infantry_tier: number | null;
   infantry_tg: number | null;
   cavalry_tier: number | null;

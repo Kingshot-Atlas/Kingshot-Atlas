@@ -15,8 +15,16 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import {
   BattleRegistry, BattleRegistryEntry,
   ManagerEntry, ManagerSearchResult,
-  RegistryView, TIME_SLOTS,
+  RegistryView, TIME_SLOTS, TimeSlotRange,
 } from './types';
+
+// Helper: get effective time slots from an entry (supports both old and new format)
+export function getEntryTimeSlots(entry: BattleRegistryEntry): TimeSlotRange[] {
+  if (entry.time_slots && Array.isArray(entry.time_slots) && entry.time_slots.length > 0) {
+    return entry.time_slots;
+  }
+  return [{ from: entry.time_slot, to: entry.time_slot_to ?? entry.time_slot }];
+}
 
 export function useBattleRegistry() {
   const { registryId } = useParams<{ registryId?: string }>();
@@ -44,8 +52,9 @@ export function useBattleRegistry() {
   // Form state
   const [formUsername, setFormUsername] = useState('');
   const [formAlliance, setFormAlliance] = useState('');
-  const [formTimeSlot, setFormTimeSlot] = useState(TIME_SLOTS[0] ?? '12:00');
-  const [formTimeSlotTo, setFormTimeSlotTo] = useState(TIME_SLOTS[TIME_SLOTS.length - 1] ?? '18:00');
+  const [formTimeSlots, setFormTimeSlots] = useState<TimeSlotRange[]>([
+    { from: TIME_SLOTS[0] ?? '12:00', to: TIME_SLOTS[TIME_SLOTS.length - 1] ?? '18:00' },
+  ]);
   const [formInfantryTier, setFormInfantryTier] = useState<number | null>(null);
   const [formInfantryTg, setFormInfantryTg] = useState<number | null>(null);
   const [formCavalryTier, setFormCavalryTier] = useState<number | null>(null);
@@ -169,8 +178,7 @@ export function useBattleRegistry() {
   const prefillForm = (entry: BattleRegistryEntry) => {
     setFormUsername(entry.username);
     setFormAlliance(entry.alliance_tag);
-    setFormTimeSlot(entry.time_slot);
-    setFormTimeSlotTo(entry.time_slot_to ?? entry.time_slot);
+    setFormTimeSlots(getEntryTimeSlots(entry));
     setFormInfantryTier(entry.infantry_tier);
     setFormInfantryTg(entry.infantry_tg);
     setFormCavalryTier(entry.cavalry_tier);
@@ -320,22 +328,36 @@ export function useBattleRegistry() {
       showToast(t('battleRegistry.toastAllianceRequired', 'Alliance tag must be exactly 3 characters.'), 'error');
       return;
     }
-    // Validate time range
-    const fromIdx = TIME_SLOTS.indexOf(formTimeSlot);
-    const toIdx = TIME_SLOTS.indexOf(formTimeSlotTo);
-    if (fromIdx < 0 || toIdx < 0 || toIdx < fromIdx) {
-      showToast(t('battleRegistry.toastInvalidTimeRange', 'Invalid time range. "To" must be equal to or after "From".'), 'error');
-      return;
+    // Validate time ranges
+    for (const slot of formTimeSlots) {
+      const fi = TIME_SLOTS.indexOf(slot.from);
+      const ti = TIME_SLOTS.indexOf(slot.to);
+      if (fi < 0 || ti < 0 || ti < fi) {
+        showToast(t('battleRegistry.toastInvalidTimeRange', 'Invalid time range. "To" must be equal to or after "From".'), 'error');
+        return;
+      }
+    }
+    // Check for overlaps
+    const sorted = [...formTimeSlots].sort((a, b) => TIME_SLOTS.indexOf(a.from) - TIME_SLOTS.indexOf(b.from));
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = sorted[i - 1]!;
+      const curr = sorted[i]!;
+      if (TIME_SLOTS.indexOf(curr.from) <= TIME_SLOTS.indexOf(prev.to)) {
+        showToast(t('battleRegistry.toastOverlappingSlots', 'Time slots cannot overlap. Please fix your time ranges.'), 'error');
+        return;
+      }
     }
     setSaving(true);
     try {
+      const firstSlot = formTimeSlots[0]!;
       const payload = {
         registry_id: registryId,
         user_id: user.id,
         username: formUsername.trim(),
         alliance_tag: formAlliance.trim().toUpperCase(),
-        time_slot: formTimeSlot,
-        time_slot_to: formTimeSlotTo,
+        time_slot: firstSlot.from,
+        time_slot_to: firstSlot.to,
+        time_slots: formTimeSlots,
         infantry_tier: formInfantryTier,
         infantry_tg: formInfantryTg,
         cavalry_tier: formCavalryTier,
@@ -431,6 +453,7 @@ export function useBattleRegistry() {
         alliance_tag: data.alliance_tag.trim().toUpperCase(),
         time_slot: data.time_slot,
         time_slot_to: data.time_slot_to,
+        time_slots: [{ from: data.time_slot, to: data.time_slot_to }],
         infantry_tier: data.infantry_tier,
         infantry_tg: data.infantry_tg,
         cavalry_tier: data.cavalry_tier,
@@ -471,6 +494,7 @@ export function useBattleRegistry() {
         alliance_tag: data.alliance_tag.trim().toUpperCase(),
         time_slot: data.time_slot,
         time_slot_to: data.time_slot_to,
+        time_slots: [{ from: data.time_slot, to: data.time_slot_to }],
         infantry_tier: data.infantry_tier,
         infantry_tg: data.infantry_tg,
         cavalry_tier: data.cavalry_tier,
@@ -506,7 +530,7 @@ export function useBattleRegistry() {
     kingdomRegistries, submittedRegistries,
     // Form
     formUsername, setFormUsername, formAlliance, setFormAlliance,
-    formTimeSlot, setFormTimeSlot, formTimeSlotTo, setFormTimeSlotTo,
+    formTimeSlots, setFormTimeSlots,
     formInfantryTier, setFormInfantryTier, formInfantryTg, setFormInfantryTg,
     formCavalryTier, setFormCavalryTier, formCavalryTg, setFormCavalryTg,
     formArchersTier, setFormArchersTier, formArchersTg, setFormArchersTg,

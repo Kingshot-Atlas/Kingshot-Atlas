@@ -3,10 +3,23 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { colors, neonGlow, FONT_DISPLAY } from '../../utils/styles';
 import {
-  BattleRegistry, BattleRegistryEntry, RegistryView,
+  BattleRegistry, BattleRegistryEntry, RegistryView, TimeSlotRange,
   TIME_SLOTS, TROOP_TYPES, TROOP_LABELS, TROOP_COLORS,
   MIN_TIER, MAX_TIER, MIN_TG, MAX_TG,
 } from './types';
+
+// ─── Overlap detection helper ───────────────────────────────────────────
+function findOverlap(slots: TimeSlotRange[]): [number, number] | null {
+  const sorted = slots.map((s, i) => ({ ...s, idx: i })).sort((a, b) => TIME_SLOTS.indexOf(a.from) - TIME_SLOTS.indexOf(b.from));
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = sorted[i - 1]!;
+    const curr = sorted[i]!;
+    if (TIME_SLOTS.indexOf(curr.from) <= TIME_SLOTS.indexOf(prev.to)) {
+      return [prev.idx, curr.idx];
+    }
+  }
+  return null;
+}
 
 // ─── UTC → Local Time Helper ────────────────────────────────────────────
 function utcToLocalLabel(utcTime: string): string {
@@ -121,8 +134,7 @@ interface BattleRegistryFormProps {
   // Form fields
   formUsername: string;
   formAlliance: string; setFormAlliance: (v: string) => void;
-  formTimeSlot: string; setFormTimeSlot: (v: string) => void;
-  formTimeSlotTo: string; setFormTimeSlotTo: (v: string) => void;
+  formTimeSlots: TimeSlotRange[]; setFormTimeSlots: (v: TimeSlotRange[]) => void;
   formInfantryTier: number | null; setFormInfantryTier: (v: number | null) => void;
   formInfantryTg: number | null; setFormInfantryTg: (v: number | null) => void;
   formCavalryTier: number | null; setFormCavalryTier: (v: number | null) => void;
@@ -138,7 +150,7 @@ interface BattleRegistryFormProps {
 const BattleRegistryForm: React.FC<BattleRegistryFormProps> = ({
   isMobile, registry, existingEntry, saving,
   formUsername, formAlliance, setFormAlliance,
-  formTimeSlot, setFormTimeSlot, formTimeSlotTo, setFormTimeSlotTo,
+  formTimeSlots, setFormTimeSlots,
   formInfantryTier, setFormInfantryTier, formInfantryTg, setFormInfantryTg,
   formCavalryTier, setFormCavalryTier, formCavalryTg, setFormCavalryTg,
   formArchersTier, setFormArchersTier, formArchersTg, setFormArchersTg,
@@ -231,23 +243,95 @@ const BattleRegistryForm: React.FC<BattleRegistryFormProps> = ({
           </div>
         </div>
 
-        {/* Time Range */}
+        {/* Time Ranges */}
         <div style={{ ...cardStyle, marginBottom: '1rem' }}>
           <h3 style={{ color: colors.text, fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.5rem' }}>🕐 {t('battleRegistry.timeAvailability', 'Time Availability (UTC)')}</h3>
           <p style={{ color: colors.textMuted, fontSize: '0.75rem', marginBottom: '0.75rem', lineHeight: 1.5 }}>
             {t('battleRegistry.timeRangeDesc', 'Select the time range when you can be online for the castle battle.')}
           </p>
-          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? '0.5rem' : '0.75rem' }}>
-            <div style={{ flex: 1 }}>
-              <label style={labelStyle}>{t('battleRegistry.timeFrom', 'From')}</label>
-              <TimeSlotDropdown value={formTimeSlot} onChange={(v) => { if (!isClosed) { setFormTimeSlot(v); const fi = TIME_SLOTS.indexOf(v); const ti = TIME_SLOTS.indexOf(formTimeSlotTo); if (fi > ti) setFormTimeSlotTo(v); } }} disabled={isClosed} isMobile={isMobile} />
-            </div>
-            <span style={{ color: colors.textMuted, fontSize: '0.8rem', fontWeight: 600, textAlign: 'center', paddingTop: isMobile ? '0' : '1.3rem', flexShrink: 0 }}>{t('battleRegistry.timeTo', 'to')}</span>
-            <div style={{ flex: 1 }}>
-              <label style={labelStyle}>{t('battleRegistry.timeTo_label', 'To')}</label>
-              <TimeSlotDropdown value={formTimeSlotTo} onChange={(v) => { if (!isClosed) setFormTimeSlotTo(v); }} disabled={isClosed} isMobile={isMobile} minSlot={formTimeSlot} />
-            </div>
-          </div>
+          {(() => {
+            const overlap = findOverlap(formTimeSlots);
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {formTimeSlots.map((slot, idx) => {
+                  const isOverlapping = overlap !== null && (overlap[0] === idx || overlap[1] === idx);
+                  const fromIdx = TIME_SLOTS.indexOf(slot.from);
+                  const toIdx = TIME_SLOTS.indexOf(slot.to);
+                  const isInvalidRange = fromIdx >= 0 && toIdx >= 0 && toIdx < fromIdx;
+                  return (
+                    <div key={idx} style={{
+                      padding: '0.75rem', borderRadius: '10px',
+                      border: `1px solid ${isOverlapping || isInvalidRange ? '#ef444460' : colors.borderSubtle}`,
+                      backgroundColor: isOverlapping || isInvalidRange ? '#ef444408' : 'transparent',
+                    }}>
+                      {formTimeSlots.length > 1 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                          <span style={{ color: colors.textMuted, fontSize: '0.7rem', fontWeight: 600 }}>
+                            {t('battleRegistry.timeSlotLabel', 'Time Slot {{n}}', { n: idx + 1 })}
+                          </span>
+                          {!isClosed && (
+                            <button onClick={() => setFormTimeSlots(formTimeSlots.filter((_, i) => i !== idx))}
+                              style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer', padding: '0.15rem 0.4rem', borderRadius: '4px', opacity: 0.7 }}
+                              onMouseEnter={e => { e.currentTarget.style.opacity = '1'; }}
+                              onMouseLeave={e => { e.currentTarget.style.opacity = '0.7'; }}>
+                              ✕ {t('battleRegistry.removeSlot', 'Remove')}
+                            </button>
+                          )}
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? '0.5rem' : '0.75rem' }}>
+                        <div style={{ flex: 1 }}>
+                          <label style={labelStyle}>{t('battleRegistry.timeFrom', 'From')}</label>
+                          <TimeSlotDropdown value={slot.from} onChange={(v) => {
+                            if (isClosed) return;
+                            const updated = [...formTimeSlots];
+                            updated[idx] = { ...updated[idx]!, from: v };
+                            const fi = TIME_SLOTS.indexOf(v);
+                            const ti = TIME_SLOTS.indexOf(updated[idx]!.to);
+                            if (fi > ti) updated[idx] = { ...updated[idx]!, to: v };
+                            setFormTimeSlots(updated);
+                          }} disabled={isClosed} isMobile={isMobile} />
+                        </div>
+                        <span style={{ color: colors.textMuted, fontSize: '0.8rem', fontWeight: 600, textAlign: 'center', paddingTop: isMobile ? '0' : '1.3rem', flexShrink: 0 }}>{t('battleRegistry.timeTo', 'to')}</span>
+                        <div style={{ flex: 1 }}>
+                          <label style={labelStyle}>{t('battleRegistry.timeTo_label', 'To')}</label>
+                          <TimeSlotDropdown value={slot.to} onChange={(v) => {
+                            if (isClosed) return;
+                            const updated = [...formTimeSlots];
+                            updated[idx] = { ...updated[idx]!, to: v };
+                            setFormTimeSlots(updated);
+                          }} disabled={isClosed} isMobile={isMobile} minSlot={slot.from} />
+                        </div>
+                      </div>
+                      {isInvalidRange && (
+                        <p style={{ color: '#ef4444', fontSize: '0.65rem', marginTop: '0.35rem', fontWeight: 600 }}>
+                          ⚠️ {t('battleRegistry.toastInvalidTimeRange', 'Invalid time range. "To" must be equal to or after "From".')}
+                        </p>
+                      )}
+                      {isOverlapping && !isInvalidRange && (
+                        <p style={{ color: '#ef4444', fontSize: '0.65rem', marginTop: '0.35rem', fontWeight: 600 }}>
+                          ⚠️ {t('battleRegistry.toastOverlappingSlots', 'Time slots cannot overlap. Please fix your time ranges.')}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+                {!isClosed && formTimeSlots.length < 4 && (
+                  <button onClick={() => setFormTimeSlots([...formTimeSlots, { from: TIME_SLOTS[0] ?? '12:00', to: TIME_SLOTS[TIME_SLOTS.length - 1] ?? '18:00' }])}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                      padding: '0.55rem', borderRadius: '8px', border: `1px dashed ${colors.border}`,
+                      backgroundColor: 'transparent', color: '#22d3ee', fontSize: '0.8rem', fontWeight: 600,
+                      cursor: 'pointer', transition: 'all 0.15s', minHeight: '44px',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#22d3ee'; e.currentTarget.style.backgroundColor = '#22d3ee08'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = colors.border; e.currentTarget.style.backgroundColor = 'transparent'; }}>
+                    + {t('battleRegistry.addTimeSlot', 'Add Another Time Slot')}
+                  </button>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Troop Types */}

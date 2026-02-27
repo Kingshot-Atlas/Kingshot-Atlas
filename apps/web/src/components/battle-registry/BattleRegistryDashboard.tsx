@@ -9,6 +9,16 @@ import {
   TIME_SLOTS, TROOP_TYPES, TROOP_LABELS, TROOP_COLORS,
   TroopType, MIN_TIER, MAX_TIER, MIN_TG, MAX_TG,
 } from './types';
+import { getEntryTimeSlots } from './useBattleRegistry';
+
+// Sort players by max troop tier desc, then max TG desc
+function sortPlayersByStrength(a: BattleRegistryEntry, b: BattleRegistryEntry): number {
+  const maxTier = (e: BattleRegistryEntry) => Math.max(e.infantry_tier ?? 0, e.cavalry_tier ?? 0, e.archers_tier ?? 0);
+  const maxTg = (e: BattleRegistryEntry) => Math.max(e.infantry_tg ?? -1, e.cavalry_tg ?? -1, e.archers_tg ?? -1);
+  const ta = maxTier(a), tb = maxTier(b);
+  if (ta !== tb) return tb - ta;
+  return maxTg(b) - maxTg(a);
+}
 
 // Parse "T11/TG8" → { tier: 11, tg: 8 } or "T9" → { tier: 9, tg: -1 }
 function parseTroopCombo(label: string): { tier: number; tg: number } {
@@ -90,6 +100,8 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [copiedList, setCopiedList] = useState(false);
   const [expandedRosterCombos, setExpandedRosterCombos] = useState<Set<string>>(new Set());
+  const [expandedTimeSlots, setExpandedTimeSlots] = useState<Set<string>>(new Set());
+  const [expandedAlliances, setExpandedAlliances] = useState<Set<string>>(new Set());
 
   const resetManualForm = () => {
     setManualUsername(''); setManualAlliance('');
@@ -142,7 +154,8 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
       if (e.infantry_tier != null) troops.push(`Inf T${e.infantry_tier}${e.infantry_tg != null ? `/TG${e.infantry_tg}` : ''}`);
       if (e.cavalry_tier != null) troops.push(`Cav T${e.cavalry_tier}${e.cavalry_tg != null ? `/TG${e.cavalry_tg}` : ''}`);
       if (e.archers_tier != null) troops.push(`Arc T${e.archers_tier}${e.archers_tg != null ? `/TG${e.archers_tg}` : ''}`);
-      const time = e.time_slot_to && e.time_slot_to !== e.time_slot ? `${e.time_slot}-${e.time_slot_to}` : e.time_slot;
+      const slots = getEntryTimeSlots(e);
+      const time = slots.map(s => s.from === s.to ? s.from : `${s.from}-${s.to}`).join(', ');
       return `[${e.alliance_tag}] ${e.username} | ${time} UTC | ${troops.join(', ') || '—'}`;
     });
     const header = `BATTLE REGISTRY K${registry.kingdom_number}${registry.kvk_number ? ` — KvK #${registry.kvk_number}` : ''} (${entries.length} players)`;
@@ -162,16 +175,52 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
     const dist: Record<string, number> = {};
     TIME_SLOTS.forEach(slot => { dist[slot] = 0; });
     entries.forEach(e => {
-      const fromIdx = TIME_SLOTS.indexOf(e.time_slot);
-      const toIdx = e.time_slot_to ? TIME_SLOTS.indexOf(e.time_slot_to) : fromIdx;
-      const start = fromIdx >= 0 ? fromIdx : 0;
-      const end = toIdx >= start ? toIdx : start;
-      for (let i = start; i <= end; i++) {
-        const slot = TIME_SLOTS[i];
-        if (slot) dist[slot] = (dist[slot] ?? 0) + 1;
-      }
+      const slots = getEntryTimeSlots(e);
+      slots.forEach(range => {
+        const fromIdx = TIME_SLOTS.indexOf(range.from);
+        const toIdx = TIME_SLOTS.indexOf(range.to);
+        const start = fromIdx >= 0 ? fromIdx : 0;
+        const end = toIdx >= start ? toIdx : start;
+        for (let i = start; i <= end; i++) {
+          const slot = TIME_SLOTS[i];
+          if (slot) dist[slot] = (dist[slot] ?? 0) + 1;
+        }
+      });
     });
     return dist;
+  }, [entries]);
+
+  // Players available per time slot (for collapsible sections)
+  const timeSlotPlayers = useMemo(() => {
+    const map: Record<string, BattleRegistryEntry[]> = {};
+    TIME_SLOTS.forEach(slot => { map[slot] = []; });
+    entries.forEach(e => {
+      const slots = getEntryTimeSlots(e);
+      slots.forEach(range => {
+        const fromIdx = TIME_SLOTS.indexOf(range.from);
+        const toIdx = TIME_SLOTS.indexOf(range.to);
+        const start = fromIdx >= 0 ? fromIdx : 0;
+        const end = toIdx >= start ? toIdx : start;
+        for (let i = start; i <= end; i++) {
+          const slot = TIME_SLOTS[i];
+          if (slot && !map[slot]!.some(x => x.id === e.id)) map[slot]!.push(e);
+        }
+      });
+    });
+    // Sort each slot's players by strength
+    Object.values(map).forEach(arr => arr.sort(sortPlayersByStrength));
+    return map;
+  }, [entries]);
+
+  // Players per alliance (for collapsible sections)
+  const alliancePlayers = useMemo(() => {
+    const map: Record<string, BattleRegistryEntry[]> = {};
+    entries.forEach(e => {
+      if (!map[e.alliance_tag]) map[e.alliance_tag] = [];
+      map[e.alliance_tag]!.push(e);
+    });
+    Object.values(map).forEach(arr => arr.sort(sortPlayersByStrength));
+    return map;
   }, [entries]);
 
   const maxTimeCount = useMemo(() => {
@@ -456,25 +505,62 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
           </div>
         )}
 
-        {/* ─── Time Distribution Chart ────────────────────────────────── */}
+        {/* ─── Time Distribution Chart (collapsible) ─────────────────── */}
         <div style={cardStyle}>
           <h3 style={{ color: colors.text, fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.75rem' }}>🕐 {t('battleRegistry.timeDistribution', 'Time Availability Distribution')}</h3>
           {entries.length === 0 ? (
             <p style={{ color: colors.textMuted, fontSize: '0.8rem' }}>{t('battleRegistry.noEntriesYet', 'No registrations yet.')}</p>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
               {TIME_SLOTS.slice(0, -1).map((slot, idx) => {
                 const nextSlot = TIME_SLOTS[idx + 1];
-                const rangeLabel = `${slot} - ${nextSlot}`;
+                const rangeLabel = `${slot} – ${nextSlot}`;
                 const count = timeDistribution[slot] || 0;
                 const pct = maxTimeCount > 0 ? (count / maxTimeCount) * 100 : 0;
+                const isExpanded = expandedTimeSlots.has(slot);
+                const players = timeSlotPlayers[slot] || [];
                 return (
-                  <div key={slot} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ color: colors.textSecondary, fontSize: '0.75rem', fontWeight: 600, width: '90px', textAlign: 'right', flexShrink: 0 }}>{rangeLabel}</span>
-                    <div style={{ flex: 1, height: '20px', backgroundColor: colors.bg, borderRadius: '4px', overflow: 'hidden', position: 'relative' }}>
-                      <div style={{ height: '100%', width: `${pct}%`, backgroundColor: count > 0 ? '#22c55e' : 'transparent', borderRadius: '4px', transition: 'width 0.3s ease', minWidth: count > 0 ? '2px' : '0' }} />
-                    </div>
-                    <span style={{ color: count > 0 ? '#22c55e' : colors.textMuted, fontSize: '0.75rem', fontWeight: 600, width: '24px', textAlign: 'right', flexShrink: 0 }}>{count}</span>
+                  <div key={slot}>
+                    <button
+                      onClick={() => { if (count > 0) setExpandedTimeSlots(prev => { const n = new Set(prev); if (n.has(slot)) n.delete(slot); else n.add(slot); return n; }); }}
+                      style={{
+                        width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.5rem',
+                        borderRadius: '6px', border: `1px solid ${isExpanded ? '#22c55e30' : 'transparent'}`,
+                        backgroundColor: isExpanded ? '#22c55e08' : 'transparent',
+                        cursor: count > 0 ? 'pointer' : 'default', transition: 'all 0.15s',
+                      }}
+                    >
+                      {count > 0 && (
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5"
+                          style={{ transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s', flexShrink: 0 }}>
+                          <path d="M9 18l6-6-6-6" />
+                        </svg>
+                      )}
+                      <span style={{ color: colors.textSecondary, fontSize: '0.75rem', fontWeight: 600, width: '90px', textAlign: 'right', flexShrink: 0 }}>{rangeLabel}</span>
+                      <div style={{ flex: 1, height: '20px', backgroundColor: colors.bg, borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${pct}%`, backgroundColor: count > 0 ? '#22c55e' : 'transparent', borderRadius: '4px', transition: 'width 0.3s ease', minWidth: count > 0 ? '2px' : '0' }} />
+                      </div>
+                      <span style={{ color: count > 0 ? '#22c55e' : colors.textMuted, fontSize: '0.75rem', fontWeight: 600, width: '24px', textAlign: 'right', flexShrink: 0 }}>{count}</span>
+                    </button>
+                    {isExpanded && players.length > 0 && (
+                      <div style={{ padding: '0.4rem 0 0.4rem 1.8rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                        {players.map(p => {
+                          const maxT = Math.max(p.infantry_tier ?? 0, p.cavalry_tier ?? 0, p.archers_tier ?? 0);
+                          const maxTg = Math.max(p.infantry_tg ?? -1, p.cavalry_tg ?? -1, p.archers_tg ?? -1);
+                          return (
+                            <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem' }}>
+                              <span style={{ color: '#a855f7', fontWeight: 600 }}>[{p.alliance_tag}]</span>
+                              <span style={{ color: colors.text }}>{p.username}</span>
+                              {maxT > 0 && (
+                                <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
+                                  T{maxT}{maxTg >= 0 ? `/TG${maxTg}` : ''}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -563,9 +649,9 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
                                     <span style={{ color: '#a855f7', fontWeight: 600 }}>[{p.alliance_tag}]</span>
                                     <span style={{ color: colors.text }}>{p.username}</span>
                                     <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
-                                      {p.time_slot_to && p.time_slot_to !== p.time_slot
-                                        ? `${p.time_slot}\u2013${p.time_slot_to}`
-                                        : p.time_slot}
+                                      {getEntryTimeSlots(p).map((s, si) => (
+                                        <span key={si}>{si > 0 ? ', ' : ''}{s.from === s.to ? s.from : `${s.from}\u2013${s.to}`}</span>
+                                      ))}
                                     </span>
                                   </div>
                                 ))}
@@ -582,17 +668,61 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
           </div>
         )}
 
-        {/* ─── Alliance Breakdown ─────────────────────────────────────── */}
+        {/* ─── Alliance Breakdown (collapsible) ─────────────────────── */}
         {allianceDistribution.length > 0 && (
           <div style={cardStyle}>
             <h3 style={{ color: colors.text, fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.75rem' }}>🏰 {t('battleRegistry.allianceBreakdown', 'Alliance Breakdown')}</h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-              {allianceDistribution.map(([tag, count]) => (
-                <div key={tag} style={{ padding: '0.3rem 0.6rem', borderRadius: '6px', backgroundColor: '#a855f710', border: '1px solid #a855f725', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <span style={{ color: '#a855f7', fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.05em' }}>[{tag}]</span>
-                  <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>× {count}</span>
-                </div>
-              ))}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              {allianceDistribution.map(([tag, count]) => {
+                const maxAllianceCount = allianceDistribution[0]?.[1] ?? 1;
+                const pct = maxAllianceCount > 0 ? (count / maxAllianceCount) * 100 : 0;
+                const isExpanded = expandedAlliances.has(tag);
+                const players = alliancePlayers[tag] || [];
+                return (
+                  <div key={tag}>
+                    <button
+                      onClick={() => setExpandedAlliances(prev => { const n = new Set(prev); if (n.has(tag)) n.delete(tag); else n.add(tag); return n; })}
+                      style={{
+                        width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.6rem',
+                        borderRadius: '6px', border: `1px solid ${isExpanded ? '#a855f730' : 'transparent'}`,
+                        backgroundColor: isExpanded ? '#a855f708' : 'transparent',
+                        cursor: 'pointer', transition: 'all 0.15s',
+                      }}
+                    >
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2.5"
+                        style={{ transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s', flexShrink: 0 }}>
+                        <path d="M9 18l6-6-6-6" />
+                      </svg>
+                      <span style={{ color: '#a855f7', fontSize: '0.8rem', fontWeight: 700, width: '40px', textAlign: 'left', flexShrink: 0, letterSpacing: '0.05em' }}>[{tag}]</span>
+                      <div style={{ flex: 1, height: '20px', backgroundColor: colors.bg, borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${pct}%`, backgroundColor: '#a855f7', borderRadius: '4px', opacity: 0.5, transition: 'width 0.3s ease', minWidth: '2px' }} />
+                      </div>
+                      <span style={{ color: '#a855f7', fontSize: '0.75rem', fontWeight: 600, width: '24px', textAlign: 'right', flexShrink: 0 }}>{count}</span>
+                    </button>
+                    {isExpanded && players.length > 0 && (
+                      <div style={{ padding: '0.4rem 0 0.4rem 1.8rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                        {players.map(p => {
+                          const maxT = Math.max(p.infantry_tier ?? 0, p.cavalry_tier ?? 0, p.archers_tier ?? 0);
+                          const maxTg = Math.max(p.infantry_tg ?? -1, p.cavalry_tg ?? -1, p.archers_tg ?? -1);
+                          const slots = getEntryTimeSlots(p);
+                          const timeLabel = slots.map(s => s.from === s.to ? s.from : `${s.from}–${s.to}`).join(', ');
+                          return (
+                            <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem' }}>
+                              <span style={{ color: colors.text, fontWeight: 600 }}>{p.username}</span>
+                              {maxT > 0 && (
+                                <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
+                                  T{maxT}{maxTg >= 0 ? `/TG${maxTg}` : ''}
+                                </span>
+                              )}
+                              <span style={{ color: colors.textMuted, fontSize: '0.6rem' }}>{timeLabel}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -627,9 +757,9 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
                       </td>
                       <td style={{ padding: '0.5rem 0.35rem', color: '#a855f7', textAlign: 'center', fontWeight: 600 }}>[{entry.alliance_tag}]</td>
                       <td style={{ padding: '0.5rem 0.35rem', color: colors.textSecondary, textAlign: 'center', whiteSpace: 'nowrap' }}>
-                        {entry.time_slot_to && entry.time_slot_to !== entry.time_slot
-                          ? `${entry.time_slot}–${entry.time_slot_to}`
-                          : entry.time_slot}
+                        {getEntryTimeSlots(entry).map((s, i) => (
+                          <span key={i}>{i > 0 ? ', ' : ''}{s.from === s.to ? s.from : `${s.from}–${s.to}`}</span>
+                        ))}
                       </td>
                       <td style={{ padding: '0.5rem 0.35rem', textAlign: 'center', color: TROOP_COLORS.infantry }}>
                         {entry.infantry_tier != null ? `T${entry.infantry_tier}` : '—'}
