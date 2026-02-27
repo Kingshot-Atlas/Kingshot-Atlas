@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { colors, neonGlow, FONT_DISPLAY } from '../../utils/styles';
@@ -117,6 +117,7 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
   const [expandedTroopCombos, setExpandedTroopCombos] = useState<Set<string>>(new Set());
   const [expandedTimeFrames, setExpandedTimeFrames] = useState<Set<string>>(new Set());
   const [expandedAlliances, setExpandedAlliances] = useState<Set<string>>(new Set());
+  const manualFormRef = useRef<HTMLDivElement>(null);
 
   const resetManualForm = () => {
     setManualUsername(''); setManualAlliance('');
@@ -154,6 +155,7 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
   };
 
   const startEditing = (entry: BattleRegistryEntry) => {
+    setConfirmDelete(null);
     setEditingEntryId(entry.id);
     setManualUsername(entry.username);
     setManualAlliance(entry.alliance_tag);
@@ -165,6 +167,7 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
     setManualArcTier(entry.archers_tier);
     setManualArcTg(entry.archers_tg);
     setShowManualForm(true);
+    setTimeout(() => manualFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
   };
 
   const cancelEditing = () => {
@@ -367,7 +370,7 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
 
         {/* ─── Manual Add Player Form ──────────────────────────────────── */}
         {showManualForm && (
-          <div style={{ ...cardStyle, borderColor: '#f9731630' }}>
+          <div ref={manualFormRef} style={{ ...cardStyle, borderColor: '#f9731630' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
               <h4 style={{ color: '#f97316', fontSize: '0.85rem', fontWeight: 700, margin: 0 }}>
                 {editingEntryId ? `✏️ ${t('battleRegistry.editPlayerTitle', 'Edit Player Entry')}` : `➕ ${t('battleRegistry.manualAddTitle', 'Add Player Manually')}`}
@@ -543,25 +546,27 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
                       </div>
                       <span style={{ color: frame.count > 0 ? '#22c55e' : colors.textMuted, fontSize: '0.75rem', fontWeight: 600, width: '24px', textAlign: 'right', flexShrink: 0 }}>{frame.count}</span>
                     </button>
-                    {/* Expanded: #, Alliance, Username, Troop Tier/TG */}
+                    {/* Expanded table: #, Alliance, Username, Troop Tier/TG */}
                     {isExpanded && frame.players.length > 0 && (
-                      <div style={{ padding: '0.4rem 0 0.4rem 1.8rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                        {frame.players.map((p, pi) => {
-                          const maxT = Math.max(p.infantry_tier ?? 0, p.cavalry_tier ?? 0, p.archers_tier ?? 0);
-                          const maxTg = Math.max(p.infantry_tg ?? -1, p.cavalry_tg ?? -1, p.archers_tg ?? -1);
-                          return (
-                            <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem' }}>
-                              <span style={{ color: colors.textMuted, fontSize: '0.65rem', width: '18px', textAlign: 'right', flexShrink: 0 }}>{pi + 1}</span>
-                              <span style={{ color: '#a855f7', fontWeight: 600 }}>[{p.alliance_tag}]</span>
-                              <span style={{ color: colors.text }}>{p.username}</span>
-                              {maxT > 0 && (
-                                <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
-                                  T{maxT}{maxTg >= 0 ? `/TG${maxTg}` : ''}
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })}
+                      <div style={{ padding: '0.3rem 0 0.3rem 1.2rem', overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.72rem' }}>
+                          <tbody>
+                            {frame.players.map((p, pi) => {
+                              const maxT = Math.max(p.infantry_tier ?? 0, p.cavalry_tier ?? 0, p.archers_tier ?? 0);
+                              const maxTg = Math.max(p.infantry_tg ?? -1, p.cavalry_tg ?? -1, p.archers_tg ?? -1);
+                              return (
+                                <tr key={p.id}>
+                                  <td style={{ padding: '0.2rem 0.3rem', color: colors.textMuted, textAlign: 'center', width: '28px', fontSize: '0.65rem' }}>{pi + 1}</td>
+                                  <td style={{ padding: '0.2rem 0.3rem', color: '#a855f7', fontWeight: 600, textAlign: 'center', whiteSpace: 'nowrap' }}>[{p.alliance_tag}]</td>
+                                  <td style={{ padding: '0.2rem 0.3rem', color: colors.text, textAlign: 'left' }}>{p.username}</td>
+                                  <td style={{ padding: '0.2rem 0.3rem', color: colors.textMuted, textAlign: 'center', fontSize: '0.65rem', whiteSpace: 'nowrap' }}>
+                                    {maxT > 0 ? `T${maxT}${maxTg >= 0 ? `/TG${maxTg}` : ''}` : '—'}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
                       </div>
                     )}
                   </div>
@@ -613,20 +618,24 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
                               </div>
                               <span style={{ color: TROOP_COLORS[type], fontSize: '0.7rem', fontWeight: 600, width: '18px', textAlign: 'right', flexShrink: 0 }}>{combo.count}</span>
                             </button>
-                            {/* Expanded: #, Alliance, Username, Time Slots */}
+                            {/* Expanded table: #, Alliance, Username, Time Slots */}
                             {isExpanded && (
-                              <div style={{ padding: '0.35rem 0 0.35rem 1.8rem', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
-                                {combo.players.map((p, pi) => {
-                                  const timeLabel = getEntryTimeSlots(p).map(s => s.from === s.to ? s.from : `${s.from}–${s.to}`).join(', ');
-                                  return (
-                                    <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem' }}>
-                                      <span style={{ color: colors.textMuted, fontSize: '0.65rem', width: '18px', textAlign: 'right', flexShrink: 0 }}>{pi + 1}</span>
-                                      <span style={{ color: '#a855f7', fontWeight: 600 }}>[{p.alliance_tag}]</span>
-                                      <span style={{ color: colors.text }}>{p.username}</span>
-                                      <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>{timeLabel}</span>
-                                    </div>
-                                  );
-                                })}
+                              <div style={{ padding: '0.25rem 0 0.25rem 1.2rem', overflowX: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.72rem' }}>
+                                  <tbody>
+                                    {combo.players.map((p, pi) => {
+                                      const timeLabel = getEntryTimeSlots(p).map(s => s.from === s.to ? s.from : `${s.from}–${s.to}`).join(', ');
+                                      return (
+                                        <tr key={p.id}>
+                                          <td style={{ padding: '0.2rem 0.3rem', color: colors.textMuted, textAlign: 'center', width: '28px', fontSize: '0.65rem' }}>{pi + 1}</td>
+                                          <td style={{ padding: '0.2rem 0.3rem', color: '#a855f7', fontWeight: 600, textAlign: 'center', whiteSpace: 'nowrap' }}>[{p.alliance_tag}]</td>
+                                          <td style={{ padding: '0.2rem 0.3rem', color: colors.text, textAlign: 'left' }}>{p.username}</td>
+                                          <td style={{ padding: '0.2rem 0.3rem', color: colors.textMuted, textAlign: 'center', fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{timeLabel}</td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
                               </div>
                             )}
                           </div>
@@ -671,26 +680,28 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
                       </div>
                       <span style={{ color: '#a855f7', fontSize: '0.75rem', fontWeight: 600, width: '24px', textAlign: 'right', flexShrink: 0 }}>{count}</span>
                     </button>
-                    {/* Expanded: #, Username, Troop Tier/TG, Time Slots */}
+                    {/* Expanded table: #, Username, Troop Tier/TG, Time Slots */}
                     {isExpanded && players.length > 0 && (
-                      <div style={{ padding: '0.4rem 0 0.4rem 1.8rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                        {players.map((p, pi) => {
-                          const maxT = Math.max(p.infantry_tier ?? 0, p.cavalry_tier ?? 0, p.archers_tier ?? 0);
-                          const maxTg = Math.max(p.infantry_tg ?? -1, p.cavalry_tg ?? -1, p.archers_tg ?? -1);
-                          const timeLabel = getEntryTimeSlots(p).map(s => s.from === s.to ? s.from : `${s.from}–${s.to}`).join(', ');
-                          return (
-                            <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem' }}>
-                              <span style={{ color: colors.textMuted, fontSize: '0.65rem', width: '18px', textAlign: 'right', flexShrink: 0 }}>{pi + 1}</span>
-                              <span style={{ color: colors.text, fontWeight: 600 }}>{p.username}</span>
-                              {maxT > 0 && (
-                                <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
-                                  T{maxT}{maxTg >= 0 ? `/TG${maxTg}` : ''}
-                                </span>
-                              )}
-                              <span style={{ color: colors.textMuted, fontSize: '0.6rem' }}>{timeLabel}</span>
-                            </div>
-                          );
-                        })}
+                      <div style={{ padding: '0.3rem 0 0.3rem 1.2rem', overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.72rem' }}>
+                          <tbody>
+                            {players.map((p, pi) => {
+                              const maxT = Math.max(p.infantry_tier ?? 0, p.cavalry_tier ?? 0, p.archers_tier ?? 0);
+                              const maxTg = Math.max(p.infantry_tg ?? -1, p.cavalry_tg ?? -1, p.archers_tg ?? -1);
+                              const timeLabel = getEntryTimeSlots(p).map(s => s.from === s.to ? s.from : `${s.from}–${s.to}`).join(', ');
+                              return (
+                                <tr key={p.id}>
+                                  <td style={{ padding: '0.2rem 0.3rem', color: colors.textMuted, textAlign: 'center', width: '28px', fontSize: '0.65rem' }}>{pi + 1}</td>
+                                  <td style={{ padding: '0.2rem 0.3rem', color: colors.text, fontWeight: 600, textAlign: 'left' }}>{p.username}</td>
+                                  <td style={{ padding: '0.2rem 0.3rem', color: colors.textMuted, textAlign: 'center', fontSize: '0.65rem', whiteSpace: 'nowrap' }}>
+                                    {maxT > 0 ? `T${maxT}${maxTg >= 0 ? `/TG${maxTg}` : ''}` : '—'}
+                                  </td>
+                                  <td style={{ padding: '0.2rem 0.3rem', color: colors.textMuted, textAlign: 'center', fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{timeLabel}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
                       </div>
                     )}
                   </div>
@@ -721,7 +732,7 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
                 </thead>
                 <tbody>
                   {entries.map(entry => (
-                    <tr key={entry.id} style={{ borderBottom: `1px solid ${colors.borderSubtle}` }}>
+                    <tr key={entry.id} style={{ borderBottom: `1px solid ${colors.borderSubtle}`, backgroundColor: editingEntryId === entry.id ? '#f9731612' : undefined, outline: editingEntryId === entry.id ? '1px solid #f9731640' : undefined }}>
                       <td style={{ padding: '0.5rem 0.35rem', color: colors.text, fontWeight: 600 }}>
                         {entry.username}
                         {entry.added_by && !entry.user_id && (
