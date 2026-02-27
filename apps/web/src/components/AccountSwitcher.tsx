@@ -20,6 +20,14 @@ interface PlayerAccount {
   created_at: string;
 }
 
+interface PlayerVerificationData {
+  player_id?: string;
+  username: string;
+  avatar_url: string;
+  kingdom: number;
+  town_center_level: number;
+}
+
 interface AccountSwitcherProps {
   onSwitch?: () => void;
 }
@@ -262,7 +270,7 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
   const POLL_INTERVAL_MS = 8000;
   const MAX_POLL_ATTEMPTS = 15;
 
-  const checkVerificationOnce = async (playerId: string, code: string): Promise<{ verified: boolean; freshData?: any }> => {
+  const checkVerificationOnce = async (playerId: string, code: string): Promise<{ verified: boolean; freshData?: PlayerVerificationData }> => {
     try {
       const response = await fetch(`${API_BASE}/api/v1/player-link/verify`, {
         method: 'POST',
@@ -296,7 +304,7 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
     pollingActiveRef.current = true;
     setPolling(true);
 
-    const insertAccount = async (freshData: any): Promise<boolean> => {
+    const insertAccount = async (freshData: PlayerVerificationData): Promise<boolean> => {
       const { error } = await supabase!
         .from('player_accounts')
         .insert({

@@ -2,12 +2,14 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 
 const PrepSchedulerLanding: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle(t('prepScheduler.pageTitle', 'KvK Prep Scheduler'));
+  useMetaTags(PAGE_META_TAGS.prepScheduler);
   const isMobile = useIsMobile();
 
   const features = [

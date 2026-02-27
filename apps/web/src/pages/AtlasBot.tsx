@@ -4,6 +4,7 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
+import Breadcrumbs from '../components/Breadcrumbs';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 
@@ -180,6 +181,7 @@ const AtlasBot: React.FC = () => {
         overflow: 'hidden'
       }}>
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '700px', margin: '0 auto' }}>
+          <Breadcrumbs items={PAGE_BREADCRUMBS.atlasBot} />
           {/* Bot Avatar */}
           <img
             src="/AtlasBotAvatar.webp"

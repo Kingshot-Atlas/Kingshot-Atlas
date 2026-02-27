@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 import { useToolAccess } from '../hooks/useToolAccess';
@@ -13,6 +14,7 @@ const ACCENT_BORDER = '#f9731630';
 const BaseDesignerLanding: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle(t('baseDesigner.pageTitle', 'Alliance Base Designer'));
+  useMetaTags(PAGE_META_TAGS.baseDesigner);
   const isMobile = useIsMobile();
   const { hasAccess, reason, grantedBy } = useToolAccess();
 

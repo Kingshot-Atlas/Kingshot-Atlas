@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
+import Breadcrumbs from '../components/Breadcrumbs';
 import { useTranslation } from 'react-i18next';
 import changelogJson from '../data/changelog.json';
 
@@ -24,6 +25,10 @@ const Changelog: React.FC = () => {
   useMetaTags(PAGE_META_TAGS.changelog);
   useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.changelog });
   const isMobile = useIsMobile();
+  const [showAll, setShowAll] = useState(false);
+  const INITIAL_COUNT = 5;
+  const visibleEntries = showAll ? changelogData : changelogData.slice(0, INITIAL_COUNT);
+  const hiddenCount = changelogData.length - INITIAL_COUNT;
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -63,6 +68,7 @@ const Changelog: React.FC = () => {
         overflow: 'hidden'
       }}>
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
+          <Breadcrumbs items={PAGE_BREADCRUMBS.changelog} />
           <h1 style={{ 
             fontSize: isMobile ? '1.5rem' : '2rem', 
             fontWeight: 'bold', 
@@ -116,7 +122,7 @@ const Changelog: React.FC = () => {
             backgroundColor: '#2a2a2a',
           }} />
 
-          {changelogData.map((entry, index) => (
+          {visibleEntries.map((entry, index) => (
             <div 
               key={index} 
               style={{ 
@@ -267,6 +273,30 @@ const Changelog: React.FC = () => {
               </div>
             </div>
           ))}
+
+          {/* Show more / Show less toggle */}
+          {changelogData.length > INITIAL_COUNT && (
+            <div style={{ textAlign: 'center', padding: '1rem 0 0.5rem', paddingLeft: isMobile ? '2rem' : '2.5rem' }}>
+              <button
+                onClick={() => setShowAll(!showAll)}
+                style={{
+                  background: 'none',
+                  border: '1px solid #2a2a2a',
+                  borderRadius: '8px',
+                  color: '#22d3ee',
+                  padding: '0.6rem 1.5rem',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {showAll
+                  ? t('changelog.showLess', 'Show Less')
+                  : t('changelog.showOlder', `Show ${hiddenCount} Older Updates`)}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Discord CTA */}

@@ -23,6 +23,14 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .page-transition,
+  .s-tier-badge {
+    animation: none;
+  }
+}
+
 /* Card Hover Effects */
 .kingdom-card {
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),

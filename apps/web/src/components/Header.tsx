@@ -276,6 +276,8 @@ const Header: React.FC = () => {
             {/* Hamburger Menu */}
             <button
               onClick={() => setShowMobileMenu(!showMobileMenu)}
+              aria-label={showMobileMenu ? 'Close menu' : 'Open menu'}
+              aria-expanded={showMobileMenu}
               style={{
                 padding: '0.5rem',
                 minWidth: '44px',

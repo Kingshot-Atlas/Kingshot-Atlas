@@ -1,14 +1,12 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Kingdom, FilterOptions, SortOptions, getPowerTier } from '../types';
-import { addRanksToKingdoms } from '../utils/rankCalculation';
-import { apiService, dataLoadError } from '../services/api';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { SortOptions } from '../types';
+import { dataLoadError } from '../services/api';
 import { DataLoadError } from '../components/DataLoadError';
 import KingdomCard from '../components/KingdomCard';
 import ParticleEffect from '../components/ParticleEffect';
 import LazyCard from '../components/LazyCard';
 import { useToast } from '../components/Toast';
-import { logger } from '../utils/logger';
 import SkeletonCard from '../components/SkeletonCard';
 import KingdomTable from '../components/KingdomTable';
 import SearchAutocomplete from '../components/SearchAutocomplete';
@@ -21,7 +19,7 @@ import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useAuth } from '../contexts/AuthContext';
 import { useFavoritesContext } from '../contexts/FavoritesContext';
 import { neonGlow, colors } from '../utils/styles';
-import { countActiveFilters, DEFAULT_FILTERS, getOutcomeValue } from '../utils/kingdomStats';
+import { countActiveFilters, DEFAULT_FILTERS } from '../utils/kingdomStats';
 import { DataSyncIndicator } from '../components/DataSyncIndicator';
 import QuickActions from '../components/homepage/QuickActions';
 import TransferHubBanner from '../components/homepage/TransferHubBanner';
@@ -32,7 +30,8 @@ import SupporterSpotlight from '../components/homepage/SupporterSpotlight';
 import MobileCountdowns from '../components/homepage/MobileCountdowns';
 import { useScrollDepth } from '../hooks/useScrollDepth';
 import { useTranslation } from 'react-i18next';
-import { getTransferGroupOptions, parseTransferGroupValue } from '../config/transferGroups';
+import { getTransferGroupOptions } from '../config/transferGroups';
+import { useKingdomDirectoryData } from '../hooks/useKingdomDirectoryData';
 
 const KingdomDirectory: React.FC = () => {
   const { t } = useTranslation();
@@ -40,73 +39,40 @@ const KingdomDirectory: React.FC = () => {
   useMetaTags(PAGE_META_TAGS.home);
   useScrollDepth('Kingdom Directory');
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
   const { showToast } = useToast();
   const { user, profile } = useAuth();
   const { loadPreferences, savePreferences } = usePreferences();
+  const { favorites, toggleFavorite: contextToggleFavorite } = useFavoritesContext();
+  const isMobile = useIsMobile();
+
+  // ─── Data hook (search, filter, sort, pagination, data fetching) ──
+  const {
+    allKingdoms, loading,
+    filteredKingdoms, displayedKingdoms,
+    searchQuery, setSearchQuery, debouncedSearch,
+    filters, setFilters,
+    sort, setSort,
+    showFavoritesOnly, setShowFavoritesOnly,
+    transferGroupFilter, setTransferGroupFilter,
+    hasAnyFilter, clearAllFilters,
+    displayCount, setDisplayCount,
+    loadingMore, handleLoadMore,
+    recentlyViewed, setRecentlyViewed,
+  } = useKingdomDirectoryData();
+
+  // ─── UI-only state ────────────────────────────────────────────────
   const searchInputRef = useRef<HTMLInputElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
-  const [allKingdoms, setAllKingdoms] = useState<Kingdom[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') || '');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>(() => {
     const prefs = loadPreferences();
     return prefs.viewMode;
   });
   const [showFilters, setShowFilters] = useState(false);
-  const [displayCount, setDisplayCount] = useState(15);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [selectedCardIndex, setSelectedCardIndex] = useState(-1);
-  const [filters, setFilters] = useState<FilterOptions>({
-    status: 'all',
-    minKvKs: 0,
-    maxKvKs: 99,
-    minPrepWinRate: 0,
-    minBattleWinRate: 0,
-    tier: 'all',
-    minAtlasScore: 0
-  });
-  const [sort, _setSort] = useState<SortOptions>(() => {
-    const prefs = loadPreferences();
-    return {
-      sortBy: (prefs.sortBy as SortOptions['sortBy']) || 'overall_score',
-      order: (prefs.sortOrder as 'asc' | 'desc') || 'desc'
-    };
-  });
-  const setSort = (newSort: SortOptions) => {
-    _setSort(newSort);
-    savePreferences({ sortBy: newSort.sortBy, sortOrder: newSort.order });
-  };
-  
-  
-  const { favorites, toggleFavorite: contextToggleFavorite } = useFavoritesContext();
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(() => searchParams.get('favorites') === 'true');
-
-  // Sync showFavoritesOnly with URL query param (header heart badge toggle)
-  useEffect(() => {
-    const favParam = searchParams.get('favorites') === 'true';
-    setShowFavoritesOnly(favParam);
-  }, [searchParams]);
-  
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const isMobile = useIsMobile();
-  const [recentlyViewed, setRecentlyViewed] = useState<number[]>(() => {
-    const saved = localStorage.getItem('kingshot_recently_viewed');
-    return saved ? JSON.parse(saved) : [];
-  });
-  
-  
   const [showPostKvKModal, setShowPostKvKModal] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false); // Closed by default
-  const [transferGroupFilter, _setTransferGroupFilter] = useState<string>(() => {
-    return localStorage.getItem('kingshot_transferGroup') || 'all';
-  });
-  const setTransferGroupFilter = (val: string) => {
-    _setTransferGroupFilter(val);
-    localStorage.setItem('kingshot_transferGroup', val);
-  };
 
   // Handler for KvK submission - requires login + linked Kingshot account + TC20+
   const handleSubmitKvKClick = () => {
@@ -192,46 +158,10 @@ const KingdomDirectory: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCardIndex, viewMode, navigate]);
 
-
-  // Debounced search - 300ms delay
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
   // Save view mode preference
   useEffect(() => {
     savePreferences({ viewMode });
   }, [viewMode, savePreferences]);
-
-  // Sync search query to URL
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams);
-    if (debouncedSearch) {
-      params.set('q', debouncedSearch);
-    } else {
-      params.delete('q');
-    }
-    setSearchParams(params, { replace: true });
-  }, [debouncedSearch, searchParams, setSearchParams]);
-
-  useEffect(() => {
-    const loadKingdoms = async () => {
-      setLoading(true);
-      try {
-        const data = await apiService.getKingdoms(undefined, sort);
-        setAllKingdoms(data);
-      } catch (error) {
-        logger.error('Failed to load kingdoms:', error);
-        showToast('Failed to load kingdoms', 'error');
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadKingdoms();
-  }, [sort, showToast]);
 
   const toggleFavorite = useCallback((kingdomNumber: number) => {
     // Gate favorites to logged-in users only
@@ -248,89 +178,6 @@ const KingdomDirectory: React.FC = () => {
       showToast(`K${kingdomNumber} added to favorites`, 'success');
     }
   }, [showToast, user, navigate, favorites, contextToggleFavorite]);
-
-  const hasAnyFilter = countActiveFilters(filters) > 0 || transferGroupFilter !== 'all' || sort.sortBy !== 'overall_score' || sort.order !== 'desc' || debouncedSearch.trim() !== '' || showFavoritesOnly;
-  const clearAllFilters = () => {
-    setFilters(DEFAULT_FILTERS);
-    setSort({ sortBy: 'overall_score', order: 'desc' });
-    setTransferGroupFilter('all');
-    setSearchQuery('');
-    setShowFavoritesOnly(false);
-    localStorage.removeItem('kingshot_rankings_kvkFilter');
-    localStorage.removeItem('kingshot_rankings_displayCount');
-    showToast(t('home.filtersCleared', 'All filters cleared'), 'info');
-  };
-
-  const filteredKingdoms = useMemo(() => {
-    let result = [...allKingdoms];
-    
-    if (showFavoritesOnly) {
-      result = result.filter(k => favorites.includes(k.kingdom_number));
-    }
-    
-    if (debouncedSearch.trim()) {
-      const query = debouncedSearch.trim();
-      result = result.filter(k => k.kingdom_number.toString().includes(query));
-    }
-    
-    if (filters.minKvKs && filters.minKvKs > 0) {
-      result = result.filter(k => k.total_kvks >= filters.minKvKs!);
-    }
-    if (filters.maxKvKs && filters.maxKvKs < 99) {
-      result = result.filter(k => k.total_kvks <= filters.maxKvKs!);
-    }
-    if (filters.minPrepWinRate && filters.minPrepWinRate > 0) {
-      result = result.filter(k => k.prep_win_rate >= filters.minPrepWinRate!);
-    }
-    if (filters.minBattleWinRate && filters.minBattleWinRate > 0) {
-      result = result.filter(k => k.battle_win_rate >= filters.minBattleWinRate!);
-    }
-    if (filters.tier && filters.tier !== 'all') {
-      result = result.filter(k => (k.power_tier || getPowerTier(k.overall_score)) === filters.tier);
-    }
-    if (filters.status && filters.status !== 'all') {
-      result = result.filter(k => k.most_recent_status === filters.status);
-    }
-
-    // Transfer group filter
-    const tgRange = parseTransferGroupValue(transferGroupFilter);
-    if (tgRange) {
-      const [min, max] = tgRange;
-      result = result.filter(k => k.kingdom_number >= min && k.kingdom_number <= max);
-    }
-    
-    return result;
-  }, [allKingdoms, debouncedSearch, filters, showFavoritesOnly, favorites, transferGroupFilter]);
-
-  // Add rank based on overall_score order (all kingdoms, not just filtered)
-  // Also apply frontend sorting for calculated fields
-  const rankedKingdoms = useMemo(() => {
-    const ranked = addRanksToKingdoms(filteredKingdoms, allKingdoms);
-    
-    // For calculated fields (comebacks, reversals), sort in frontend
-    if (['comebacks', 'reversals', 'dominations', 'invasions'].includes(sort.sortBy)) {
-      return [...ranked].sort((a, b) => {
-        const aVal = getOutcomeValue(a, sort.sortBy);
-        const bVal = getOutcomeValue(b, sort.sortBy);
-        return sort.order === 'desc' ? bVal - aVal : aVal - bVal;
-      });
-    }
-    
-    return ranked;
-  }, [allKingdoms, filteredKingdoms, sort.sortBy, sort.order]);
-
-  const displayedKingdoms = useMemo(() => rankedKingdoms.slice(0, displayCount), [rankedKingdoms, displayCount]);
-
-  // Load more function with loading feedback
-  const handleLoadMore = useCallback(() => {
-    if (loadingMore) return;
-    setLoadingMore(true);
-    // Brief delay for visual feedback
-    setTimeout(() => {
-      setDisplayCount(prev => Math.min(prev + 15, filteredKingdoms.length));
-      setLoadingMore(false);
-    }, 300);
-  }, [loadingMore, filteredKingdoms.length]);
 
   // Infinite scroll using IntersectionObserver
   useEffect(() => {

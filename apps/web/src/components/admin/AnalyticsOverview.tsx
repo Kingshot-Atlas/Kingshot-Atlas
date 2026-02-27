@@ -81,7 +81,6 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
   onIncrementKvK,
 }) => {
   const { t } = useTranslation();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const homepageCTR = useMemo(() => analyticsService.getHomepageCTR(), []);
 
   // Fetch real sparkline data from Supabase (daily active users + daily signups)

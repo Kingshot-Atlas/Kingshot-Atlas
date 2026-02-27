@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
@@ -64,10 +64,11 @@ const TransfereeDashboard: React.FC<{
   const [expiringItems, setExpiringItems] = useState<Array<{ record_type: string; record_id: string; kingdom_number: number; hours_remaining: number }>>([]);
   const [submittedOutcomes, setSubmittedOutcomes] = useState<Set<string>>(new Set());
 
+  const loadAllRef = useRef(() => {});
+
   useEffect(() => {
     if (!user) return;
-    loadAll();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    loadAllRef.current();
   }, [user]);
 
   // Real-time unread count refresh: subscribe to new messages across active apps
@@ -216,6 +217,7 @@ const TransfereeDashboard: React.FC<{
       setLoading(false);
     }
   };
+  loadAllRef.current = loadAll;
 
   const handleSubmitOutcome = async (applicationId: string, didTransfer: boolean, satisfaction?: number, _feedback?: string) => {
     if (!supabase || !user) return;

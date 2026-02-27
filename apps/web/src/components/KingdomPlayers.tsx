@@ -125,8 +125,7 @@ const KingdomPlayers: React.FC<KingdomPlayersProps> = ({
     };
 
     fetchPlayers();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [kingdomNumber]);
+  }, [kingdomNumber, goldKingdoms]);
 
   if (loading) {
     return (

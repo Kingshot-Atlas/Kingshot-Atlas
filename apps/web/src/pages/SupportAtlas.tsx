@@ -5,6 +5,7 @@ import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
+import Breadcrumbs from '../components/Breadcrumbs';
 import { useAuth } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
 import SupportButton from '../components/SupportButton';
@@ -86,6 +87,7 @@ const SupportAtlas: React.FC = () => {
         overflow: 'hidden'
       }}>
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
+          <Breadcrumbs items={PAGE_BREADCRUMBS.support} />
           <h1 style={{ 
             fontSize: isMobile ? '1.5rem' : '2rem', 
             fontWeight: 'bold', 

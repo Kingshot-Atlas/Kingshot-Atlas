@@ -9,6 +9,7 @@ export type { ChipProps, ChipVariant, ChipSize } from './Chip';
 
 // === AVAILABLE BUT UNADOPTED (well-designed, should replace inline recreations) ===
 export { default as Card } from './Card';
+export { default as PageSection } from './PageSection';
 export { Input } from './Input';
 export type { InputProps } from './Input';
 export { TextArea } from './TextArea';

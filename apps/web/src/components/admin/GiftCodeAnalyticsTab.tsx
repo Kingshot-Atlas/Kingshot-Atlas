@@ -79,56 +79,7 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
     fetchActiveCodes();
   }, [fetchActiveCodes]);
 
-  useEffect(() => {
-    fetchStats();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timeRange]);
-
-  const handleAddCode = async () => {
-    if (!newCode.trim()) return;
-    setAddingCode(true);
-    try {
-      const headers = await getAuthHeaders();
-      const res = await fetch(`${API_URL}/api/v1/player-link/gift-codes/add`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...headers },
-        body: JSON.stringify({
-          code: newCode.trim(),
-          expire_date: newExpiry || null,
-        }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setNewCode('');
-      setNewExpiry('');
-      await fetchActiveCodes();
-    } catch (err) {
-      logger.error('Failed to add gift code:', err);
-    } finally {
-      setAddingCode(false);
-    }
-  };
-
-  const handleDeactivate = async (code: string) => {
-    try {
-      if (!supabase) return;
-      await supabase.from('gift_codes').update({ is_active: false }).eq('code', code);
-      await fetchActiveCodes();
-    } catch (err) {
-      logger.error('Failed to deactivate code:', err);
-    }
-  };
-
-  const handleActivate = async (code: string) => {
-    try {
-      if (!supabase) return;
-      await supabase.from('gift_codes').update({ is_active: true }).eq('code', code);
-      await fetchActiveCodes();
-    } catch (err) {
-      logger.error('Failed to activate code:', err);
-    }
-  };
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     setLoading(true);
     try {
       const now = new Date();
@@ -216,6 +167,54 @@ export const GiftCodeAnalyticsTab: React.FC = () => {
       logger.error('Failed to fetch gift code stats:', err);
     } finally {
       setLoading(false);
+    }
+  }, [timeRange]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  const handleAddCode = async () => {
+    if (!newCode.trim()) return;
+    setAddingCode(true);
+    try {
+      const headers = await getAuthHeaders();
+      const res = await fetch(`${API_URL}/api/v1/player-link/gift-codes/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...headers },
+        body: JSON.stringify({
+          code: newCode.trim(),
+          expire_date: newExpiry || null,
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setNewCode('');
+      setNewExpiry('');
+      await fetchActiveCodes();
+    } catch (err) {
+      logger.error('Failed to add gift code:', err);
+    } finally {
+      setAddingCode(false);
+    }
+  };
+
+  const handleDeactivate = async (code: string) => {
+    try {
+      if (!supabase) return;
+      await supabase.from('gift_codes').update({ is_active: false }).eq('code', code);
+      await fetchActiveCodes();
+    } catch (err) {
+      logger.error('Failed to deactivate code:', err);
+    }
+  };
+
+  const handleActivate = async (code: string) => {
+    try {
+      if (!supabase) return;
+      await supabase.from('gift_codes').update({ is_active: true }).eq('code', code);
+      await fetchActiveCodes();
+    } catch (err) {
+      logger.error('Failed to activate code:', err);
     }
   };
 

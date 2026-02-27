@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { colors, transitions } from '../utils/styles';
 
 interface BreadcrumbItem {
   name: string;
@@ -23,7 +24,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items }) => {
       aria-label="Breadcrumb"
       style={{
         fontSize: '0.8rem',
-        color: '#9ca3af',
+        color: colors.textSecondary,
         marginBottom: '0.75rem',
         display: 'flex',
         alignItems: 'center',
@@ -38,7 +39,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items }) => {
         return (
           <React.Fragment key={item.url}>
             {index > 0 && (
-              <span style={{ color: '#4b5563', margin: '0 0.15rem' }} aria-hidden="true">
+              <span style={{ color: colors.textMuted, margin: '0 0.15rem' }} aria-hidden="true">
                 ›
               </span>
             )}
@@ -50,12 +51,12 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items }) => {
               <Link
                 to={path}
                 style={{
-                  color: '#9ca3af',
+                  color: colors.textSecondary,
                   textDecoration: 'none',
-                  transition: 'color 0.15s',
+                  transition: `color ${transitions.fast}`,
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#22d3ee'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = '#9ca3af'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = colors.primary; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = colors.textSecondary; }}
               >
                 {item.name}
               </Link>

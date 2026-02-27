@@ -15,6 +15,7 @@ import KvKPhaseBanner from './components/KvKPhaseBanner';
 import CampaignSettlersBanner from './components/CampaignSettlersBanner';
 import { useKeyboardShortcuts, useKeyboardHelp } from './hooks/useKeyboardShortcuts';
 import { usePageTracking } from './hooks/useAnalytics';
+import { useDefaultMetaTags } from './hooks/useDefaultMetaTags';
 // REMOVED: useKingdomsRealtime was causing resource exhaustion on Supabase Nano instance
 // Every visitor opened 2 realtime channels (kingdoms + kvk_history) draining CPU/IO
 // Kingdom data changes rarely — React Query caching with refetchOnWindowFocus is sufficient
@@ -69,13 +70,13 @@ const BattleRegistryLanding = lazy(() => import('./pages/BattleRegistryLanding')
 const NotFound = () => {
   const { t } = useTranslation();
   return (
-    <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '2rem' }}>
-      <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🔍</div>
-      <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>404</h1>
-      <p style={{ color: '#6b7280', marginBottom: '1.5rem', maxWidth: '400px' }}>
+    <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-8">
+      <div className="text-[4rem] mb-4">🔍</div>
+      <h1 className="text-[2rem] font-bold text-white mb-2">404</h1>
+      <p className="text-text-muted mb-6 max-w-[400px]">
         {t('errors.pageNotFound', 'This page doesn\'t exist. It may have been moved or removed.')}
       </p>
-      <Link to="/" style={{ padding: '0.75rem 1.5rem', backgroundColor: '#22d3ee', color: '#000', borderRadius: '8px', fontWeight: 600, textDecoration: 'none' }}>
+      <Link to="/" className="py-3 px-6 bg-primary text-black rounded-lg font-semibold no-underline hover:bg-primary-hover transition-colors">
         {t('common.backToHome', 'Back to Home')}
       </Link>
     </div>
@@ -84,14 +85,20 @@ const NotFound = () => {
 
 // Loading fallback component
 const PageLoader = () => (
-  <div style={{ 
-    display: 'flex', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    minHeight: '200px',
-    color: '#6b7280' 
-  }}>
-    Loading...
+  <div
+    role="status"
+    aria-live="polite"
+    style={{ 
+      display: 'flex', 
+      flexDirection: 'column',
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      minHeight: '200px',
+      gap: '1rem'
+    }}
+  >
+    <div className="loading-spinner-sm" />
+    <span className="sr-only">Loading page...</span>
   </div>
 );
 
@@ -101,15 +108,6 @@ const PageTransition: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return (
     <div key={location.pathname} className="page-transition">
       {children}
-      <style>{`
-        .page-transition {
-          animation: pageIn 0.3s ease-out;
-        }
-        @keyframes pageIn {
-          from { opacity: 0; transform: translateY(8px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 };
@@ -118,17 +116,18 @@ function AppContent() {
   const { showHelp, openHelp, closeHelp } = useKeyboardHelp();
   useKeyboardShortcuts({ onShowHelp: openHelp });
   usePageTracking(); // Track page views for analytics
+  useDefaultMetaTags(); // Baseline canonical, description, hreflang on every route change
   
   // Realtime subscriptions REMOVED (2026-02-25 incident)
   // Kingdom data changes rarely — React Query handles caching + refetch on window focus
 
   return (
-    <div className="min-h-screen bg-bg">
+    <div className="min-h-screen bg-bg flex flex-col">
       <Header />
       <CampaignSettlersBanner />
       <KvKPhaseBanner />
       <KeyboardShortcutsModal isOpen={showHelp} onClose={closeHelp} />
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 flex-1" aria-label="Main content">
         <PageTransition>
           <Suspense fallback={<PageLoader />}>
             <Routes>

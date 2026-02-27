@@ -26,8 +26,21 @@ export const TransferHubAdminTab: React.FC = () => {
   const [confirmAction, setConfirmAction] = useState<{ id: string; action: string; name: string } | null>(null);
 
   useEffect(() => {
-    fetchAll();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    const init = async () => {
+      if (!supabase) return;
+      setLoading(true);
+      try {
+        await Promise.all([
+          fetchEditors(),
+          fetchFunds(),
+          fetchProfiles(),
+          fetchStats(),
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    init();
   }, []);
 
   const fetchAll = async () => {

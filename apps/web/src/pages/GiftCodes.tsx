@@ -18,6 +18,14 @@ interface GiftCode {
   is_expired?: boolean;
 }
 
+interface RawGiftCode {
+  code?: string;
+  title?: string;
+  expire_date?: string;
+  expiresAt?: string;
+  is_expired?: boolean;
+}
+
 const GiftCodes: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle(t('giftCodes.pageTitle', 'Gift Codes'));
@@ -53,7 +61,7 @@ const GiftCodes: React.FC = () => {
     setLoadingCodes(true);
     try {
       // Try backend proxy first, fall back to direct kingshot.net fetch
-      let rawCodes: any[] = [];
+      let rawCodes: RawGiftCode[] = [];
       let source = 'unknown';
 
       try {
@@ -79,8 +87,8 @@ const GiftCodes: React.FC = () => {
       }
 
       const fetchedCodes: GiftCode[] = rawCodes
-        .filter((c: any) => !c.is_expired)
-        .map((c: any) => ({
+        .filter((c: RawGiftCode) => !c.is_expired)
+        .map((c: RawGiftCode) => ({
           code: c.code || c.title || '',
           expire_date: c.expire_date || c.expiresAt,
         }))

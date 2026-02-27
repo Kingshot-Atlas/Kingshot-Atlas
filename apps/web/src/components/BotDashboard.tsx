@@ -2,7 +2,7 @@
  * Discord Bot Dashboard Component
  * Admin interface for managing Atlas Discord bot
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { logger } from '../utils/logger';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
@@ -136,10 +136,7 @@ export const BotDashboard: React.FC = () => {
     loadBotData();
   }, []);
 
-  useEffect(() => {
-    if (activeTab === 'analytics' && !analytics) loadAnalytics();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+  const loadAnalyticsRef = useRef(() => {});
 
   const loadAnalytics = async () => {
     setAnalyticsLoading(true);
@@ -159,6 +156,12 @@ export const BotDashboard: React.FC = () => {
       setAnalyticsLoading(false);
     }
   };
+  loadAnalyticsRef.current = loadAnalytics;
+
+  useEffect(() => {
+    if (activeTab !== 'analytics' || analytics) return;
+    loadAnalyticsRef.current();
+  }, [activeTab, analytics]);
 
   const loadBotData = async () => {
     setLoading(true);

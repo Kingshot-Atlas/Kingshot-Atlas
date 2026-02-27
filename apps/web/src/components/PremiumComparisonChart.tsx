@@ -38,6 +38,15 @@ const calculateRadarData = (kingdom: KingdomProfile) => {
   ];
 };
 
+// Color palette for multiple kingdoms
+const colorPalette = [
+  '#22d3ee', // Cyan
+  '#a855f7', // Purple  
+  '#22c55e', // Green
+  '#f97316', // Orange
+  '#fbbf24', // Gold
+];
+
 const PremiumComparisonChart: React.FC<PremiumComparisonChartProps> = ({ 
   kingdoms, 
   maxKingdoms = 5,
@@ -47,15 +56,6 @@ const PremiumComparisonChart: React.FC<PremiumComparisonChartProps> = ({
   const isMobile = useIsMobile();
   const { trackFeature } = useAnalytics();
   const { features, tier } = usePremium();
-  
-  // Color palette for multiple kingdoms
-  const colorPalette = [
-    '#22d3ee', // Cyan
-    '#a855f7', // Purple  
-    '#22c55e', // Green
-    '#f97316', // Orange
-    '#fbbf24', // Gold
-  ];
   
   const availableSlots = features.multiCompare || 2;
   const canViewAll = kingdoms.length <= availableSlots;
@@ -70,7 +70,6 @@ const PremiumComparisonChart: React.FC<PremiumComparisonChartProps> = ({
         color: color || '#22d3ee'
       };
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kingdoms, availableSlots]);
   
   const handleToggle = useCallback(() => {

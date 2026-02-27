@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAdminPendingCounts, useUnreadEmailCount, useAdminFeedback, useAdminFeedbackCounts, useInvalidateAdmin } from '../hooks/useAdminQueries';
 import { useAuth } from '../contexts/AuthContext';
@@ -100,6 +100,16 @@ const AdminDashboard: React.FC = () => {
 
   // Pending counts now managed by useAdminPendingCounts React Query hook
 
+  // Ref holding latest fetch functions — lets effects call them without dependency churn
+  const fetchRef = useRef<{
+    analytics: () => void;
+    submissions: () => void;
+    corrections: () => void;
+    transferSubmissions: () => void;
+    kvkErrors: () => void;
+    invalidatePendingCounts: () => void;
+  }>({ analytics: () => {}, submissions: () => {}, corrections: () => {}, transferSubmissions: () => {}, kvkErrors: () => {}, invalidatePendingCounts: () => {} });
+
   // Fetch current KvK from API on mount
   useEffect(() => {
     if (isAdmin) {
@@ -111,11 +121,10 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     if (!isAdmin || activeTab !== 'analytics') return;
     const interval = setInterval(() => {
-      fetchAnalytics();
-      invalidatePendingCounts();
+      fetchRef.current.analytics();
+      fetchRef.current.invalidatePendingCounts();
     }, 60000);
     return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin, activeTab]);
 
   // Unread email count now managed by useUnreadEmailCount React Query hook (30s polling)
@@ -128,7 +137,7 @@ const AdminDashboard: React.FC = () => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       switch (e.key.toLowerCase()) {
-        case 'r': fetchAnalytics(); break;
+        case 'r': fetchRef.current.analytics(); break;
         case '1': setActiveTab('analytics'); break;
         case '2': setActiveTab('submissions'); break;
         case '3': setActiveTab('transfer-hub'); break;
@@ -138,25 +147,23 @@ const AdminDashboard: React.FC = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin]);
 
   useEffect(() => {
     if (!isAdmin) return;
     
     if (activeTab === 'analytics') {
-      fetchAnalytics();
+      fetchRef.current.analytics();
     } else if (activeTab === 'submissions') {
-      fetchSubmissions();
+      fetchRef.current.submissions();
     } else if (activeTab === 'corrections') {
-      fetchCorrections();
+      fetchRef.current.corrections();
     } else if (activeTab === 'transfer-status') {
-      fetchTransferSubmissions();
+      fetchRef.current.transferSubmissions();
     } else if (activeTab === 'kvk-errors') {
-      fetchKvkErrors();
+      fetchRef.current.kvkErrors();
     // feedback tab is now handled by useAdminFeedback/useAdminFeedbackCounts React Query hooks
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, filter, isAdmin]);
 
   // invalidatePendingCounts, fetchFeedback, fetchFeedbackCounts now handled by React Query hooks
@@ -729,6 +736,9 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  // Keep fetchRef current so effects always call the latest versions
+  fetchRef.current = { analytics: fetchAnalytics, submissions: fetchSubmissions, corrections: fetchCorrections, transferSubmissions: fetchTransferSubmissions, kvkErrors: fetchKvkErrors, invalidatePendingCounts };
+
   const reviewTransferSubmission = async (id: string, status: 'approved' | 'rejected') => {
     try {
       if (status === 'approved') {
@@ -802,27 +812,29 @@ const AdminDashboard: React.FC = () => {
         onTabChange={setActiveTab}
       />
 
-      {/* Filter (not for analytics) */}
-      {(['submissions', 'corrections', 'kvk-errors', 'transfer-status', 'feedback'] as const).includes(activeTab as never) && (
-        <div style={{ marginBottom: '1rem' }}>
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#111116',
-              color: '#ffffff',
-              border: '1px solid #2a2a2a',
-              borderRadius: '6px'
-            }}
-          >
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-            <option value="all">All</option>
-          </select>
-        </div>
-      )}
+      {/* Tab Content Area — consistent spacing between nav and content */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {/* Filter (not for analytics) */}
+        {(['submissions', 'corrections', 'kvk-errors', 'transfer-status', 'feedback'] as const).includes(activeTab as never) && (
+          <div>
+            <select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#111116',
+                color: '#ffffff',
+                border: '1px solid #2a2a2a',
+                borderRadius: '6px'
+              }}
+            >
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+              <option value="all">All</option>
+            </select>
+          </div>
+        )}
 
       <Suspense fallback={<SkeletonGrid cards={4} cardHeight="100px" />}>
       {loading && activeTab !== 'import' ? (
@@ -954,6 +966,7 @@ const AdminDashboard: React.FC = () => {
         <NotificationSenderTab />
       ) : null}
       </Suspense>
+      </div>
 
       {/* Reject Modal with Reason */}
       {rejectModalOpen && (

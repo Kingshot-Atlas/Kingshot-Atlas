@@ -90,6 +90,7 @@ describe('simulatorUtils', () => {
         battle_losses: 0,
         dominations: 0,
         invasions: 0,
+        overall_score: 0,
         recent_kvks: [],
       });
       const simulatedKvKs: SimulatedKvK[] = [{ prepResult: 'W', battleResult: 'W' }];
@@ -130,7 +131,7 @@ describe('simulatorUtils', () => {
 
     it('should correctly calculate tier for high scores', () => {
       const kingdom = createMockKingdom({
-        overall_score: 9.5,
+        overall_score: 62,
         prep_wins: 15,
         prep_losses: 1,
         battle_wins: 15,

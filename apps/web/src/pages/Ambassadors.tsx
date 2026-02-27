@@ -8,6 +8,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { logger } from '../utils/logger';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
+import Breadcrumbs from '../components/Breadcrumbs';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
 
@@ -143,6 +144,7 @@ const Ambassadors: React.FC = () => {
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: isMobile ? '1rem 0' : '2rem 0' }}>
+      <Breadcrumbs items={PAGE_BREADCRUMBS.ambassadors} />
       {/* Hero Header */}
       <div style={{
         textAlign: 'center',

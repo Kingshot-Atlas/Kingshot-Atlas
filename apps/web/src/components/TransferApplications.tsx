@@ -442,10 +442,15 @@ const MyApplicationsTracker: React.FC<{
   const [recruiterContacts, setRecruiterContacts] = useState<Map<number, string[]>>(new Map());
 
   useEffect(() => {
-    loadApplications();
-    loadInvites();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+    if (!supabase || !user) {
+      setLoading(false);
+      return;
+    }
+    const init = async () => {
+      await Promise.all([loadApplications(), loadInvites()]);
+    };
+    init();
+  }, [user]); // loadApplications/loadInvites use only user + supabase (module-level)
 
   // Fetch recruiter contacts for accepted applications
   useEffect(() => {

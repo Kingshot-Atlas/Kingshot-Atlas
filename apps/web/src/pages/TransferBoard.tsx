@@ -1252,6 +1252,21 @@ const TransferBoard: React.FC = () => {
           opacity: 1,
         }}>
           {/* Funded kingdoms first */}
+          {kingdomsWithFunds.length > 0 && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              paddingBottom: '0.35rem',
+            }}>
+              <span style={{ fontSize: '0.8rem' }}>⭐</span>
+              <span style={{ color: colors.gold, fontSize: '0.8rem', fontWeight: 600 }}>
+                {t('transferHub.featuredKingdoms', 'Featured Kingdoms')}
+              </span>
+              <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
+                {kingdomsWithFunds.length}
+              </span>
+              <div style={{ flex: 1, height: '1px', backgroundColor: colors.border }} />
+            </div>
+          )}
           {kingdomsWithFunds.map((kingdom) => {
             const fund = fundMap.get(kingdom.kingdom_number) || null;
             const matchResult = matchScoreMap.get(kingdom.kingdom_number);
@@ -1276,12 +1291,17 @@ const TransferBoard: React.FC = () => {
           {/* Separator if both groups exist */}
           {kingdomsWithFunds.length > 0 && kingdomsWithoutFunds.length > 0 && (
             <div style={{
-              display: 'flex', alignItems: 'center', gap: '1rem',
-              margin: '0.5rem 0', color: '#4b5563', fontSize: '0.75rem',
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              margin: '0.75rem 0 0.35rem',
             }}>
-              <div style={{ flex: 1, height: '1px', backgroundColor: '#2a2a2a' }} />
-              <span>{t('transferHub.standardListings', 'Standard Listings')}</span>
-              <div style={{ flex: 1, height: '1px', backgroundColor: '#2a2a2a' }} />
+              <span style={{ fontSize: '0.8rem' }}>🏰</span>
+              <span style={{ color: colors.textSecondary, fontSize: '0.8rem', fontWeight: 600 }}>
+                {t('transferHub.standardListings', 'Standard Listings')}
+              </span>
+              <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
+                {kingdomsWithoutFunds.length}
+              </span>
+              <div style={{ flex: 1, height: '1px', backgroundColor: colors.border }} />
             </div>
           )}
 

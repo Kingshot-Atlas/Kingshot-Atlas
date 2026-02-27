@@ -18,13 +18,17 @@ export interface UserData {
 
 class UserDataService {
   private userId: string | null = null;
-  private syncRetryCount = 0;
+  private _syncRetryCount = 0;
   private maxRetries = 3;
   private onSyncErrorCallback: ((error: string) => void) | null = null;
   private _lastSyncStatus: 'idle' | 'syncing' | 'success' | 'error' = 'idle';
 
   get lastSyncStatus() {
     return this._lastSyncStatus;
+  }
+
+  get syncRetryCount() {
+    return this._syncRetryCount;
   }
 
   onSyncError(callback: (error: string) => void) {
@@ -122,7 +126,7 @@ class UserDataService {
       }
 
       this._lastSyncStatus = 'success';
-      this.syncRetryCount = 0;
+      this._syncRetryCount = 0;
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Unknown sync error';
       logger.debug(`Cloud sync failed (attempt ${retryAttempt + 1}/${this.maxRetries}):`, errorMsg);
@@ -136,7 +140,7 @@ class UserDataService {
 
       // All retries exhausted
       this._lastSyncStatus = 'error';
-      this.syncRetryCount = retryAttempt + 1;
+      this._syncRetryCount = retryAttempt + 1;
       logger.debug('Cloud sync failed after all retries — localStorage still works');
       if (this.onSyncErrorCallback) {
         this.onSyncErrorCallback('Favorites saved locally but cloud sync failed. They\'ll sync next time you\'re online.');

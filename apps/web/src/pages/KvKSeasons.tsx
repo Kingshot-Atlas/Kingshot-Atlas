@@ -6,6 +6,7 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS, getSeasonBreadcrumbs } from '../hooks/useStructuredData';
+import Breadcrumbs from '../components/Breadcrumbs';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { CURRENT_KVK, getKvKButtonStates } from '../constants';
@@ -180,6 +181,7 @@ const KvKSeasons: React.FC = () => {
         overflow: 'hidden'
       }}>
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '800px', margin: '0 auto' }}>
+          <Breadcrumbs items={seasonNum ? getSeasonBreadcrumbs(seasonNum) : PAGE_BREADCRUMBS.seasons} />
           <h1 style={{ 
             fontSize: isMobile ? '1.5rem' : '2rem', 
             fontWeight: 'bold', 

@@ -1216,4 +1216,95 @@ import SmartTooltip from './shared/SmartTooltip';
 
 ---
 
-*Last Updated: 2026-02-13 by Design Lead — Added Shared Component Library audit, removed dead components*
+## PageSection Component
+
+Reusable section wrapper for consistent spacing, headers, dividers, and collapsible content.
+
+```tsx
+import { PageSection } from '../components/shared';
+
+// Basic section with title
+<PageSection title="My Section" icon="⚡">
+  <p>Content here</p>
+</PageSection>
+
+// Collapsible section (default collapsed)
+<PageSection title="Advanced Settings" collapsible defaultCollapsed>
+  <p>Hidden by default, click header to expand</p>
+</PageSection>
+
+// With header action and divider
+<PageSection
+  title="Results"
+  icon="📊"
+  divider
+  headerAction={<Button size="sm">Export</Button>}
+>
+  <ResultsList />
+</PageSection>
+```
+
+### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `string` | — | Section heading text |
+| `icon` | `string` | — | Emoji/icon before title |
+| `spacing` | `'none' \| 'sm' \| 'md' \| 'lg'` | `'md'` | Vertical padding preset |
+| `divider` | `boolean` | `false` | Show top border divider |
+| `collapsible` | `boolean` | `false` | Enable collapse toggle |
+| `defaultCollapsed` | `boolean` | `false` | Start collapsed |
+| `headerAction` | `ReactNode` | — | Slot for buttons/links in header |
+| `className` | `string` | — | Additional CSS classes |
+
+---
+
+## Breadcrumbs Pattern
+
+Every page with structured `BreadcrumbList` data should also render a visible `<Breadcrumbs>` component.
+
+```tsx
+import Breadcrumbs from '../components/Breadcrumbs';
+import { PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
+
+// In hero section, before <h1>
+<Breadcrumbs items={PAGE_BREADCRUMBS.myPage} />
+```
+
+### Pages with visual breadcrumbs
+About, Leaderboards, CompareKingdoms, Tools, TransferBoard, Changelog, SupportAtlas, AtlasBot, Ambassadors, KvKSeasons, KingdomCommunities
+
+### Dynamic breadcrumbs
+```tsx
+// For kingdom profiles
+<Breadcrumbs items={getKingdomBreadcrumbs(kingdomNumber)} />
+
+// For KvK seasons
+<Breadcrumbs items={seasonNum ? getSeasonBreadcrumbs(seasonNum) : PAGE_BREADCRUMBS.seasons} />
+```
+
+---
+
+## Collapsible Content Pattern
+
+For content-heavy pages, limit initial visible items and provide a toggle:
+
+```tsx
+const [showAll, setShowAll] = useState(false);
+const INITIAL_COUNT = 5;
+const visible = showAll ? allItems : allItems.slice(0, INITIAL_COUNT);
+
+{visible.map(item => <ItemCard key={item.id} {...item} />)}
+
+{allItems.length > INITIAL_COUNT && (
+  <button onClick={() => setShowAll(!showAll)}>
+    {showAll ? 'Show Less' : `Show ${allItems.length - INITIAL_COUNT} More`}
+  </button>
+)}
+```
+
+Used on: **Changelog** (older entries collapsed by default)
+
+---
+
+*Last Updated: 2026-02-15 by Design Lead — Added PageSection, Breadcrumbs pattern, collapsible content pattern*

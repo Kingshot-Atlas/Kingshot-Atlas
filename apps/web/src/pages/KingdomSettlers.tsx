@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useActiveCampaign, useSettlerLeaderboard, useCampaignWinners, useKingdomSettlers } from '../hooks/useCampaignQueries';
 import type { Campaign, KingdomSettlerStats, SettlerDetail } from '../hooks/useCampaignQueries';
 import { formatPrize, getPrizeTierColor } from '../utils/campaignUtils';
@@ -502,6 +503,7 @@ type CampaignTab = 'about' | 'leaderboard' | 'winners';
 
 const KingdomSettlers: React.FC = () => {
   const { t } = useTranslation();
+  useMetaTags(PAGE_META_TAGS.kingdomSettlers);
   const [activeTab, setActiveTab] = useState<CampaignTab>('about');
   const { data: campaign, isLoading } = useActiveCampaign();
 

@@ -12,7 +12,7 @@
 |--------|--------|-------|
 | Frontend | ✅ Operational | React + TypeScript, Vite build, Cloudflare Pages |
 | Backend | ✅ Operational | FastAPI on Render, 12 routers, dual-DB (SQLite + Supabase) |
-| Tests | ✅ Passing | API tests + Playwright E2E + Lighthouse in CI |
+| Tests | ✅ Passing | 299 unit tests (0 failures), 331 Playwright E2E passing, Lighthouse in CI, V8 coverage with CI thresholds |
 | Deployment | ✅ Live | Cloudflare Pages (frontend), Render (API + Discord bot) |
 | Discord Bot | ✅ Operational | CF Worker proxy, Settler/Supporter role sync, telemetry, /kingdom /compare /predict /history /codes /redeem /link commands |
 | SEO | ✅ Enhanced | Dynamic sitemap (1328 URLs), edge-side meta injection (HTMLRewriter), hreflang for 9 languages, BreadcrumbList JSON-LD, per-page canonicals |

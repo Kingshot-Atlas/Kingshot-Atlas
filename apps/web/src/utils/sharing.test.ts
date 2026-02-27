@@ -83,7 +83,18 @@ describe('generateTransferListingCard', () => {
       fillText: vi.fn(),
       beginPath: vi.fn(),
       fill: vi.fn(),
+      stroke: vi.fn(),
       roundRect: vi.fn(),
+      drawImage: vi.fn(),
+      save: vi.fn(),
+      restore: vi.fn(),
+      clip: vi.fn(),
+      arc: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      closePath: vi.fn(),
+      setLineDash: vi.fn(),
+      measureText: vi.fn(() => ({ width: 80 })),
       createLinearGradient: vi.fn(() => ({
         addColorStop: vi.fn(),
       })),
@@ -111,8 +122,8 @@ describe('generateTransferListingCard', () => {
 
   it('creates a canvas with correct dimensions (2x scale)', async () => {
     await generateTransferListingCard(172, 54.32, 'A', true);
-    expect(mockCanvas.width).toBe(1200); // 600 * 2
-    expect(mockCanvas.height).toBe(630); // 315 * 2
+    expect(mockCanvas.width).toBe(1240); // 620 * 2
+    expect(mockCanvas.height).toBe(800); // 400 * 2
   });
 
   it('returns a PNG blob', async () => {
@@ -123,40 +134,44 @@ describe('generateTransferListingCard', () => {
 
   it('renders kingdom number on canvas', async () => {
     await generateTransferListingCard(172, 54.32, 'A', true);
-    expect(mockCtx.fillText).toHaveBeenCalledWith('#172', expect.any(Number), expect.any(Number));
+    expect(mockCtx.fillText).toHaveBeenCalledWith('Kingdom 172', expect.any(Number), expect.any(Number));
   });
 
   it('renders recruiting status', async () => {
     await generateTransferListingCard(100, 45.0, 'B', true);
     expect(mockCtx.fillText).toHaveBeenCalledWith(
-      expect.stringContaining('Recruiting'),
+      expect.stringContaining('RECRUITING'),
       expect.any(Number),
       expect.any(Number)
     );
   });
 
-  it('renders not recruiting status', async () => {
+  it('does not render recruiting badge when not recruiting', async () => {
     await generateTransferListingCard(100, 45.0, 'B', false);
-    expect(mockCtx.fillText).toHaveBeenCalledWith(
-      expect.stringContaining('Not Recruiting'),
-      expect.any(Number),
-      expect.any(Number)
-    );
+    const calls = (mockCtx.fillText as ReturnType<typeof vi.fn>).mock.calls;
+    const recruitingCalls = calls.filter((c: unknown[]) => typeof c[0] === 'string' && c[0].includes('RECRUITING'));
+    expect(recruitingCalls).toHaveLength(0);
   });
 
   it('renders atlas score', async () => {
     await generateTransferListingCard(172, 54.32, 'A', true);
-    expect(mockCtx.fillText).toHaveBeenCalledWith('54.32', expect.any(Number), expect.any(Number));
+    const calls = (mockCtx.fillText as ReturnType<typeof vi.fn>).mock.calls;
+    const scoreCalls = calls.filter((c: unknown[]) => typeof c[0] === 'string' && c[0].includes('54.32'));
+    expect(scoreCalls.length).toBeGreaterThan(0);
   });
 
   it('renders language when provided', async () => {
     await generateTransferListingCard(172, 54.32, 'A', true, 'English');
-    expect(mockCtx.fillText).toHaveBeenCalledWith('English', expect.any(Number), expect.any(Number));
+    const calls = (mockCtx.fillText as ReturnType<typeof vi.fn>).mock.calls;
+    const langCalls = calls.filter((c: unknown[]) => typeof c[0] === 'string' && c[0].includes('English'));
+    expect(langCalls.length).toBeGreaterThan(0);
   });
 
   it('renders fund tier when provided (non-standard)', async () => {
     await generateTransferListingCard(172, 54.32, 'A', true, undefined, 'gold');
-    expect(mockCtx.fillText).toHaveBeenCalledWith('Gold', expect.any(Number), expect.any(Number));
+    const calls = (mockCtx.fillText as ReturnType<typeof vi.fn>).mock.calls;
+    const tierCalls = calls.filter((c: unknown[]) => typeof c[0] === 'string' && c[0].includes('Gold'));
+    expect(tierCalls.length).toBeGreaterThan(0);
   });
 
   it('rejects when canvas context unavailable', async () => {

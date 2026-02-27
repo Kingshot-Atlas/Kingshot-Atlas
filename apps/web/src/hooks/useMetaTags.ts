@@ -1,5 +1,8 @@
 import { useEffect } from 'react';
 
+// All supported languages — mirrors SUPPORTED_LANGUAGES in i18n.ts
+const HREFLANG_LANGS = ['en', 'es', 'fr', 'zh', 'de', 'ko', 'ja', 'ar', 'tr'] as const;
+
 interface MetaTagsOptions {
   title?: string;
   description?: string;
@@ -87,6 +90,25 @@ export const useMetaTags = (options: MetaTagsOptions) => {
         document.head.appendChild(canonical);
       }
       canonical.href = url;
+
+      // Manage hreflang tags for international SEO (9 languages + x-default)
+      // SPA with client-side language detection: all hreflang URLs point to the same page
+      const existingHreflangs = document.querySelectorAll('link[rel="alternate"][hreflang]');
+      existingHreflangs.forEach(el => el.remove());
+
+      const xDefault = document.createElement('link');
+      xDefault.setAttribute('rel', 'alternate');
+      xDefault.setAttribute('hreflang', 'x-default');
+      xDefault.setAttribute('href', url);
+      document.head.appendChild(xDefault);
+
+      for (const lang of HREFLANG_LANGS) {
+        const link = document.createElement('link');
+        link.setAttribute('rel', 'alternate');
+        link.setAttribute('hreflang', lang);
+        link.setAttribute('href', url);
+        document.head.appendChild(link);
+      }
     }
 
     updateMeta('og:type', type);
@@ -107,6 +129,9 @@ export const useMetaTags = (options: MetaTagsOptions) => {
       if (canonical) {
         canonical.href = `https://ks-atlas.com${window.location.pathname}`;
       }
+      // Remove hreflang tags on cleanup (next page will set its own)
+      const hreflangs = document.querySelectorAll('link[rel="alternate"][hreflang]');
+      hreflangs.forEach(el => el.remove());
     };
   }, [options]);
 };
@@ -268,6 +293,36 @@ export const PAGE_META_TAGS = {
     title: 'Privacy Policy - Kingshot Atlas',
     description: 'Kingshot Atlas Privacy Policy. How we collect, use, and protect your data. We never sell user information.',
     url: 'https://ks-atlas.com/privacy',
+    type: 'website'
+  },
+  battlePlanner: {
+    title: 'KvK Battle Planner - Synchronized Rally Timing | Kingshot Atlas',
+    description: 'Plan multi-rally castle hits with precision timing. Calculate exact call delays so every rally lands within seconds. Free KvK battle coordination tool.',
+    url: 'https://ks-atlas.com/tools/battle-planner',
+    type: 'website'
+  },
+  battleRegistry: {
+    title: 'KvK Battle Registry - Track Castle Battle Availability | Kingshot Atlas',
+    description: 'Know exactly who\'s showing up to castle battle and what they\'re bringing. Collect time slots, troop tiers, and truegold levels. Free KvK coordination tool.',
+    url: 'https://ks-atlas.com/tools/battle-registry-info',
+    type: 'website'
+  },
+  prepScheduler: {
+    title: 'KvK Prep Scheduler - Automated Buff Slot Assignment | Kingshot Atlas',
+    description: 'Stop losing Prep Phase points to disorganized scheduling. Auto-assign 30-minute buff slots based on speedups and availability. Free for Silver+ kingdoms.',
+    url: 'https://ks-atlas.com/tools/prep-scheduler-info',
+    type: 'website'
+  },
+  baseDesigner: {
+    title: 'Alliance Base Designer - Plan Your Territory Layout | Kingshot Atlas',
+    description: 'Plan your alliance base layout on an isometric grid. Drag-and-drop buildings, assign player positions, and share the plan with leadership. Free coordination tool.',
+    url: 'https://ks-atlas.com/tools/base-designer/about',
+    type: 'website'
+  },
+  kingdomSettlers: {
+    title: 'Kingdom Settlers Campaign - Rally Your Kingdom | Kingshot Atlas',
+    description: 'The Kingdom Settlers campaign: the more Settlers your kingdom has on Atlas, the more raffle tickets you earn. Link your Discord and rally your kingdom!',
+    url: 'https://ks-atlas.com/campaigns/kingdom-settlers',
     type: 'website'
   }
 } as const satisfies Record<string, MetaTagsOptions>;

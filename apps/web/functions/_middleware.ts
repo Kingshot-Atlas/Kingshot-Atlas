@@ -236,6 +236,36 @@ const STATIC_META: Record<string, PageMeta> = {
     url: 'https://ks-atlas.com/privacy',
     type: 'website',
   },
+  '/tools/battle-planner': {
+    title: 'KvK Battle Planner - Synchronized Rally Timing | Kingshot Atlas',
+    description: 'Plan multi-rally castle hits with precision timing. Calculate exact call delays so every rally lands within seconds. Free KvK battle coordination tool.',
+    url: 'https://ks-atlas.com/tools/battle-planner',
+    type: 'website',
+  },
+  '/tools/battle-registry-info': {
+    title: 'KvK Battle Registry - Track Castle Battle Availability | Kingshot Atlas',
+    description: 'Know exactly who\'s showing up to castle battle and what they\'re bringing. Collect time slots, troop tiers, and truegold levels. Free KvK coordination tool.',
+    url: 'https://ks-atlas.com/tools/battle-registry-info',
+    type: 'website',
+  },
+  '/tools/prep-scheduler-info': {
+    title: 'KvK Prep Scheduler - Automated Buff Slot Assignment | Kingshot Atlas',
+    description: 'Stop losing Prep Phase points to disorganized scheduling. Auto-assign 30-minute buff slots based on speedups and availability. Free for Silver+ kingdoms.',
+    url: 'https://ks-atlas.com/tools/prep-scheduler-info',
+    type: 'website',
+  },
+  '/tools/base-designer/about': {
+    title: 'Alliance Base Designer - Plan Your Territory Layout | Kingshot Atlas',
+    description: 'Plan your alliance base layout on an isometric grid. Drag-and-drop buildings, assign player positions, and share the plan with leadership. Free coordination tool.',
+    url: 'https://ks-atlas.com/tools/base-designer/about',
+    type: 'website',
+  },
+  '/campaigns/kingdom-settlers': {
+    title: 'Kingdom Settlers Campaign - Rally Your Kingdom | Kingshot Atlas',
+    description: 'The Kingdom Settlers campaign: the more Settlers your kingdom has on Atlas, the more raffle tickets you earn. Link your Discord and rally your kingdom!',
+    url: 'https://ks-atlas.com/campaigns/kingdom-settlers',
+    type: 'website',
+  },
 };
 
 // ---------------------------------------------------------------------------

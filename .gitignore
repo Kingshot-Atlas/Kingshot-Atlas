@@ -61,6 +61,10 @@ coverage/
 .coverage
 htmlcov/
 
+# Test artifacts
+test-results/
+playwright-report/
+
 # Misc
 *.bak
 *.tmp
