@@ -427,7 +427,7 @@ export function useBattleRegistry() {
 
   const submitManualEntry = async (data: {
     username: string; alliance_tag: string;
-    time_slot: string; time_slot_to: string;
+    time_slots: TimeSlotRange[];
     infantry_tier: number | null; infantry_tg: number | null;
     cavalry_tier: number | null; cavalry_tg: number | null;
     archers_tier: number | null; archers_tg: number | null;
@@ -437,12 +437,14 @@ export function useBattleRegistry() {
       showToast(t('battleRegistry.toastAllianceRequired', 'Alliance tag must be exactly 3 characters.'), 'error');
       return;
     }
-    const fromIdx = TIME_SLOTS.indexOf(data.time_slot);
-    const toIdx = TIME_SLOTS.indexOf(data.time_slot_to);
-    if (fromIdx < 0 || toIdx < 0 || toIdx < fromIdx) {
-      showToast(t('battleRegistry.toastInvalidTimeRange', 'Invalid time range. "To" must be equal to or after "From".'), 'error');
-      return;
+    for (const slot of data.time_slots) {
+      const fi = TIME_SLOTS.indexOf(slot.from), ti = TIME_SLOTS.indexOf(slot.to);
+      if (fi < 0 || ti < 0 || ti < fi) {
+        showToast(t('battleRegistry.toastInvalidTimeRange', 'Invalid time range. "To" must be equal to or after "From".'), 'error');
+        return;
+      }
     }
+    const first = data.time_slots[0] ?? { from: TIME_SLOTS[0] ?? '12:00', to: TIME_SLOTS[TIME_SLOTS.length - 1] ?? '18:00' };
     setSaving(true);
     try {
       const payload = {
@@ -451,9 +453,9 @@ export function useBattleRegistry() {
         added_by: user.id,
         username: data.username.trim(),
         alliance_tag: data.alliance_tag.trim().toUpperCase(),
-        time_slot: data.time_slot,
-        time_slot_to: data.time_slot_to,
-        time_slots: [{ from: data.time_slot, to: data.time_slot_to }],
+        time_slot: first.from,
+        time_slot_to: first.to,
+        time_slots: data.time_slots,
         infantry_tier: data.infantry_tier,
         infantry_tg: data.infantry_tg,
         cavalry_tier: data.cavalry_tier,
@@ -471,7 +473,7 @@ export function useBattleRegistry() {
 
   const updateManualEntry = async (entryId: string, data: {
     username: string; alliance_tag: string;
-    time_slot: string; time_slot_to: string;
+    time_slots: TimeSlotRange[];
     infantry_tier: number | null; infantry_tg: number | null;
     cavalry_tier: number | null; cavalry_tg: number | null;
     archers_tier: number | null; archers_tg: number | null;
@@ -481,20 +483,22 @@ export function useBattleRegistry() {
       showToast(t('battleRegistry.toastAllianceRequired', 'Alliance tag must be exactly 3 characters.'), 'error');
       return;
     }
-    const fromIdx = TIME_SLOTS.indexOf(data.time_slot);
-    const toIdx = TIME_SLOTS.indexOf(data.time_slot_to);
-    if (fromIdx < 0 || toIdx < 0 || toIdx < fromIdx) {
-      showToast(t('battleRegistry.toastInvalidTimeRange', 'Invalid time range. "To" must be equal to or after "From".'), 'error');
-      return;
+    for (const slot of data.time_slots) {
+      const fi = TIME_SLOTS.indexOf(slot.from), ti = TIME_SLOTS.indexOf(slot.to);
+      if (fi < 0 || ti < 0 || ti < fi) {
+        showToast(t('battleRegistry.toastInvalidTimeRange', 'Invalid time range. "To" must be equal to or after "From".'), 'error');
+        return;
+      }
     }
+    const first = data.time_slots[0] ?? { from: TIME_SLOTS[0] ?? '12:00', to: TIME_SLOTS[TIME_SLOTS.length - 1] ?? '18:00' };
     setSaving(true);
     try {
       const { error } = await supabase.from('battle_registry_entries').update({
         username: data.username.trim(),
         alliance_tag: data.alliance_tag.trim().toUpperCase(),
-        time_slot: data.time_slot,
-        time_slot_to: data.time_slot_to,
-        time_slots: [{ from: data.time_slot, to: data.time_slot_to }],
+        time_slot: first.from,
+        time_slot_to: first.to,
+        time_slots: data.time_slots,
         infantry_tier: data.infantry_tier,
         infantry_tg: data.infantry_tg,
         cavalry_tier: data.cavalry_tier,
