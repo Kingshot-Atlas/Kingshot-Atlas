@@ -57,6 +57,9 @@ const BattleRegistryMain: React.FC = () => {
         setCreateKvkNumber={hook.setCreateKvkNumber}
         createNotes={hook.createNotes}
         setCreateNotes={hook.setCreateNotes}
+        createWebhookUrl={hook.createWebhookUrl}
+        setCreateWebhookUrl={hook.setCreateWebhookUrl}
+        duplicateWarningRegistries={hook.duplicateWarningRegistries}
         createRegistry={hook.createRegistry}
         saving={hook.saving}
       />
@@ -83,6 +86,10 @@ const BattleRegistryMain: React.FC = () => {
         removeManager={hook.removeManager}
         closeRegistry={hook.closeRegistry}
         reopenRegistry={hook.reopenRegistry}
+        lockRegistry={hook.lockRegistry}
+        unlockRegistry={hook.unlockRegistry}
+        archiveRegistry={hook.archiveRegistry}
+        updateWebhookUrl={hook.updateWebhookUrl}
         navigate={hook.navigate}
         setView={hook.setView}
         submitManualEntry={hook.submitManualEntry}

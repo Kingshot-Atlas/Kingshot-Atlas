@@ -4,6 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { colors, neonGlow, FONT_DISPLAY } from '../../utils/styles';
 import { BattleRegistry } from './types';
 
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
 interface BattleRegistryListProps {
   isMobile: boolean;
   user: { id: string } | null;
@@ -24,6 +28,9 @@ interface BattleRegistryListProps {
   setCreateKvkNumber: (v: number) => void;
   createNotes: string;
   setCreateNotes: (v: string) => void;
+  createWebhookUrl: string;
+  setCreateWebhookUrl: (v: string) => void;
+  duplicateWarningRegistries: BattleRegistry[];
   createRegistry: () => Promise<void>;
   saving: boolean;
 }
@@ -33,7 +40,8 @@ const BattleRegistryList: React.FC<BattleRegistryListProps> = ({
   myRegistries, kingdomRegistries, submittedRegistries, navigate,
   isEditorOrCoEditor, isManager,
   createKingdom, setCreateKingdom, createKvkNumber, setCreateKvkNumber,
-  createNotes, setCreateNotes, createRegistry, saving,
+  createNotes, setCreateNotes, createWebhookUrl, setCreateWebhookUrl,
+  duplicateWarningRegistries, createRegistry, saving,
 }) => {
   const { t } = useTranslation();
 
@@ -197,9 +205,28 @@ const BattleRegistryList: React.FC<BattleRegistryListProps> = ({
                 <label style={labelStyle}>{t('battleRegistry.kvkNumber', 'KvK Number (optional)')}</label>
                 <input type="number" value={createKvkNumber || ''} onChange={(e) => setCreateKvkNumber(parseInt(e.target.value) || 0)} placeholder="e.g. 11" style={inputStyle} />
               </div>
+              {/* Duplicate Kingdom+KvK Warning */}
+              {duplicateWarningRegistries.length > 0 && (
+                <div style={{ padding: '0.6rem 0.75rem', backgroundColor: '#f9731610', border: '1px solid #f9731630', borderRadius: '8px' }}>
+                  <p style={{ color: '#f97316', fontSize: '0.75rem', fontWeight: 700, margin: '0 0 0.3rem' }}>⚠️ {t('battleRegistry.duplicateKvkWarning', 'A registry already exists for K{{kingdom}} KvK #{{kvk}}', { kingdom: createKingdom, kvk: createKvkNumber })}</p>
+                  {duplicateWarningRegistries.map(r => (
+                    <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.7rem', color: colors.textMuted, marginTop: '0.15rem' }}>
+                      <span style={{ padding: '0.1rem 0.3rem', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 600, backgroundColor: r.status === 'active' ? `${colors.success}20` : r.status === 'archived' ? '#a855f720' : `${colors.textMuted}20`, color: r.status === 'active' ? colors.success : r.status === 'archived' ? '#a855f7' : colors.textMuted }}>{r.status}</span>
+                      <span>{t('battleRegistry.createdOn', 'Created {{date}}', { date: formatDate(r.created_at) })}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div>
                 <label style={labelStyle}>{t('battleRegistry.notesForPlayers', 'Notes for Players (optional)')}</label>
                 <textarea value={createNotes} onChange={(e) => setCreateNotes(e.target.value)} placeholder={t('battleRegistry.notesPlaceholder', 'Any instructions or reminders...')} rows={3} maxLength={500} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5 }} />
+              </div>
+              <div>
+                <label style={labelStyle}>🔔 {t('battleRegistry.discordWebhook', 'Discord Webhook URL (optional)')}</label>
+                <input type="url" value={createWebhookUrl} onChange={(e) => setCreateWebhookUrl(e.target.value)}
+                  placeholder="https://discord.com/api/webhooks/..."
+                  style={inputStyle} />
+                <p style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.2rem' }}>{t('battleRegistry.discordWebhookDesc', 'Get notified in Discord when players register, registry is locked, etc.')}</p>
               </div>
               <button onClick={createRegistry} disabled={saving || !createKingdom || !hasQualifyingTier(createKingdom)}
                 style={{ padding: isMobile ? '0.75rem 1.25rem' : '0.6rem 1.25rem', backgroundColor: createKingdom && hasQualifyingTier(createKingdom) ? '#ef444420' : `${colors.textMuted}10`, border: `1px solid ${createKingdom && hasQualifyingTier(createKingdom) ? '#ef444450' : colors.border}`, borderRadius: '8px', color: createKingdom && hasQualifyingTier(createKingdom) ? '#ef4444' : colors.textMuted, fontSize: '0.85rem', fontWeight: 600, cursor: createKingdom && hasQualifyingTier(createKingdom) ? 'pointer' : 'not-allowed', width: isMobile ? '100%' : 'fit-content', opacity: saving ? 0.6 : 1, minHeight: '44px' }}>
@@ -210,26 +237,55 @@ const BattleRegistryList: React.FC<BattleRegistryListProps> = ({
         )}
 
         {/* My Registries */}
-        {myRegistries.length > 0 && (
-          <div style={cardStyle}>
-            <h3 style={{ color: colors.text, fontSize: '1rem', marginBottom: '0.75rem', fontWeight: 700 }}>📁 {t('battleRegistry.myRegistries', 'My Registries')}</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {myRegistries.map(s => (
-                <div key={s.id} onClick={() => navigate(`/tools/battle-registry/${s.id}`)}
-                  style={{ padding: '0.75rem', borderRadius: '8px', cursor: 'pointer', backgroundColor: colors.bg, border: `1px solid ${colors.borderSubtle}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <span style={{ color: colors.text, fontWeight: 600, fontSize: '0.85rem' }}>{t('battleRegistry.kingdom', 'Kingdom')} {s.kingdom_number}</span>
-                    {s.kvk_number && <span style={{ color: colors.textMuted, fontSize: '0.75rem', marginLeft: '0.5rem' }}>KvK #{s.kvk_number}</span>}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 600, backgroundColor: s.status === 'active' ? `${colors.success}20` : `${colors.textMuted}20`, color: s.status === 'active' ? colors.success : colors.textMuted }}>{s.status}</span>
-                    <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>→</span>
+        {myRegistries.length > 0 && (() => {
+          const activeOrClosed = myRegistries.filter(s => s.status !== 'archived');
+          const archived = myRegistries.filter(s => s.status === 'archived');
+          return (
+            <>
+              {activeOrClosed.length > 0 && (
+                <div style={cardStyle}>
+                  <h3 style={{ color: colors.text, fontSize: '1rem', marginBottom: '0.75rem', fontWeight: 700 }}>📁 {t('battleRegistry.myRegistries', 'My Registries')}</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {activeOrClosed.map(s => (
+                      <div key={s.id} onClick={() => navigate(`/tools/battle-registry/${s.id}`)}
+                        style={{ padding: '0.75rem', borderRadius: '8px', cursor: 'pointer', backgroundColor: colors.bg, border: `1px solid ${colors.borderSubtle}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <span style={{ color: colors.text, fontWeight: 600, fontSize: '0.85rem' }}>{t('battleRegistry.kingdom', 'Kingdom')} {s.kingdom_number}</span>
+                          {s.kvk_number && <span style={{ color: colors.textMuted, fontSize: '0.75rem', marginLeft: '0.5rem' }}>KvK #{s.kvk_number}</span>}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          {s.locked_at && <span style={{ fontSize: '0.7rem' }}>🔒</span>}
+                          <span style={{ padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 600, backgroundColor: s.status === 'active' ? `${colors.success}20` : `${colors.textMuted}20`, color: s.status === 'active' ? colors.success : colors.textMuted }}>{s.status}</span>
+                          <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>→</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              )}
+              {archived.length > 0 && (
+                <div style={{ ...cardStyle, marginTop: '1rem', borderColor: '#a855f720' }}>
+                  <h3 style={{ color: '#a855f7', fontSize: '1rem', marginBottom: '0.75rem', fontWeight: 700 }}>📦 {t('battleRegistry.archivedRegistries', 'Archived Registries')}</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {archived.map(s => (
+                      <div key={s.id} onClick={() => navigate(`/tools/battle-registry/${s.id}`)}
+                        style={{ padding: '0.75rem', borderRadius: '8px', cursor: 'pointer', backgroundColor: colors.bg, border: `1px solid ${colors.borderSubtle}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: 0.7 }}>
+                        <div>
+                          <span style={{ color: colors.text, fontWeight: 600, fontSize: '0.85rem' }}>{t('battleRegistry.kingdom', 'Kingdom')} {s.kingdom_number}</span>
+                          {s.kvk_number && <span style={{ color: colors.textMuted, fontSize: '0.75rem', marginLeft: '0.5rem' }}>KvK #{s.kvk_number}</span>}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{ padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 600, backgroundColor: '#a855f720', color: '#a855f7' }}>archived</span>
+                          <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>→</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          );
+        })()}
 
         {/* Empty State */}
         {myRegistries.length === 0 && kingdomRegistries.length === 0 && submittedRegistries.length === 0 && user && (

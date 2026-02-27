@@ -175,6 +175,7 @@ const BattleRegistryForm: React.FC<BattleRegistryFormProps> = ({
   };
 
   const isClosed = registry.status === 'closed' || registry.status === 'archived';
+  const isLocked = !!registry.locked_at && !isManager;
 
   const troopFields: Array<{
     type: typeof TROOP_TYPES[number];
@@ -209,6 +210,11 @@ const BattleRegistryForm: React.FC<BattleRegistryFormProps> = ({
               <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#6b7280' }}>🔒 {t('battleRegistry.registryClosed', 'REGISTRATION CLOSED')}</span>
             </div>
           )}
+          {isLocked && (
+            <div style={{ marginTop: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.2rem 0.6rem', backgroundColor: '#f9731615', border: '1px solid #f9731630', borderRadius: '20px' }}>
+              <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#f97316' }}>🔒 {t('battleRegistry.registryLocked', 'ENTRIES LOCKED')}</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -234,8 +240,8 @@ const BattleRegistryForm: React.FC<BattleRegistryFormProps> = ({
             <div>
               <label style={labelStyle}>{t('battleRegistry.allianceTag', 'Alliance Tag')} *</label>
               <input type="text" value={formAlliance} maxLength={3} onChange={(e) => setFormAlliance(e.target.value.toUpperCase())}
-                disabled={isClosed}
-                style={{ ...inputStyle, textTransform: 'uppercase', letterSpacing: '0.1em', ...(isClosed ? { opacity: 0.6, cursor: 'not-allowed' } : {}) }} placeholder="e.g. ABC" />
+                disabled={isClosed || isLocked}
+                style={{ ...inputStyle, textTransform: 'uppercase', letterSpacing: '0.1em', ...((isClosed || isLocked) ? { opacity: 0.6, cursor: 'not-allowed' } : {}) }} placeholder="e.g. ABC" />
               {formAlliance.length > 0 && formAlliance.length !== 3 && (
                 <p style={{ color: colors.error, fontSize: '0.65rem', marginTop: '0.2rem' }}>⚠️ {t('battleRegistry.allianceMustBe3', 'Must be exactly 3 characters.')}</p>
               )}
@@ -290,7 +296,7 @@ const BattleRegistryForm: React.FC<BattleRegistryFormProps> = ({
                             const ti = TIME_SLOTS.indexOf(updated[idx]!.to);
                             if (fi > ti) updated[idx] = { ...updated[idx]!, to: v };
                             setFormTimeSlots(updated);
-                          }} disabled={isClosed} isMobile={isMobile} />
+                          }} disabled={isClosed || isLocked} isMobile={isMobile} />
                         </div>
                         <span style={{ color: colors.textMuted, fontSize: '0.8rem', fontWeight: 600, textAlign: 'center', paddingTop: isMobile ? '0' : '1.3rem', flexShrink: 0 }}>{t('battleRegistry.timeTo', 'to')}</span>
                         <div style={{ flex: 1 }}>
@@ -300,7 +306,7 @@ const BattleRegistryForm: React.FC<BattleRegistryFormProps> = ({
                             const updated = [...formTimeSlots];
                             updated[idx] = { ...updated[idx]!, to: v };
                             setFormTimeSlots(updated);
-                          }} disabled={isClosed} isMobile={isMobile} minSlot={slot.from} />
+                          }} disabled={isClosed || isLocked} isMobile={isMobile} minSlot={slot.from} />
                         </div>
                       </div>
                       {isInvalidRange && (
@@ -316,7 +322,7 @@ const BattleRegistryForm: React.FC<BattleRegistryFormProps> = ({
                     </div>
                   );
                 })}
-                {!isClosed && formTimeSlots.length < 4 && (
+                {!isClosed && !isLocked && formTimeSlots.length < 4 && (
                   <button onClick={() => setFormTimeSlots([...formTimeSlots, { from: TIME_SLOTS[0] ?? '12:00', to: TIME_SLOTS[TIME_SLOTS.length - 1] ?? '18:00' }])}
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
@@ -351,7 +357,7 @@ const BattleRegistryForm: React.FC<BattleRegistryFormProps> = ({
                   <div>
                     <label style={{ ...labelStyle, color: TROOP_COLORS[type] }}>{t('battleRegistry.tier', 'Tier')}</label>
                     <select value={tier ?? ''} onChange={(e) => setTier(e.target.value ? parseInt(e.target.value) : null)}
-                      disabled={isClosed} style={{ ...selectStyle, ...(isClosed ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}>
+                      disabled={isClosed || isLocked} style={{ ...selectStyle, ...((isClosed || isLocked) ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}>
                       <option value="">—</option>
                       {Array.from({ length: MAX_TIER - MIN_TIER + 1 }, (_, i) => MIN_TIER + i).map(n => (
                         <option key={n} value={n}>T{n}</option>
@@ -361,7 +367,7 @@ const BattleRegistryForm: React.FC<BattleRegistryFormProps> = ({
                   <div>
                     <label style={{ ...labelStyle, color: TROOP_COLORS[type] }}>{t('battleRegistry.truegoldLevel', 'Truegold Level')}</label>
                     <select value={tg ?? ''} onChange={(e) => setTg(e.target.value ? parseInt(e.target.value) : null)}
-                      disabled={isClosed} style={{ ...selectStyle, ...(isClosed ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}>
+                      disabled={isClosed || isLocked} style={{ ...selectStyle, ...((isClosed || isLocked) ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}>
                       <option value="">—</option>
                       {Array.from({ length: MAX_TG - MIN_TG + 1 }, (_, i) => MIN_TG + i).map(n => (
                         <option key={n} value={n}>TG{n}</option>
@@ -375,7 +381,7 @@ const BattleRegistryForm: React.FC<BattleRegistryFormProps> = ({
         </div>
 
         {/* Submit */}
-        {!isClosed && (
+        {!isClosed && !isLocked && (
           <button onClick={submitEntry} disabled={saving || !formUsername.trim() || formAlliance.trim().length !== 3}
             style={{
               width: '100%', padding: isMobile ? '0.9rem' : '0.75rem', borderRadius: '10px', border: 'none',

@@ -8,6 +8,9 @@ export interface BattleRegistry {
   status: 'active' | 'closed' | 'archived';
   notes: string | null;
   created_at: string;
+  locked_at: string | null;
+  locked_by: string | null;
+  discord_webhook_url: string | null;
 }
 
 export interface TimeSlotRange {

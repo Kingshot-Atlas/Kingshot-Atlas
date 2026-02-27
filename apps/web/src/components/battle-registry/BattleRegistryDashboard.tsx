@@ -67,6 +67,10 @@ interface BattleRegistryDashboardProps {
   // Actions
   closeRegistry: () => Promise<void>;
   reopenRegistry: () => Promise<void>;
+  lockRegistry: () => Promise<void>;
+  unlockRegistry: () => Promise<void>;
+  archiveRegistry: () => Promise<void>;
+  updateWebhookUrl: (url: string) => Promise<void>;
   navigate: (path: string) => void;
   setView: (v: RegistryView) => void;
   // Manual entry
@@ -94,7 +98,8 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
   assignManagerInput, setAssignManagerInput,
   managerSearchResults, showManagerDropdown, setShowManagerDropdown: _setShowManagerDropdown,
   managerSearchRef, addManager, removeManager,
-  closeRegistry, reopenRegistry, navigate: _navigate, setView,
+  closeRegistry, reopenRegistry, lockRegistry, unlockRegistry, archiveRegistry,
+  updateWebhookUrl, navigate: _navigate, setView,
   submitManualEntry, updateManualEntry, deleteEntry, saving,
 }) => {
   const { t } = useTranslation();
@@ -112,6 +117,8 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
   const [manualCavTg, setManualCavTg] = useState<number | null>(null);
   const [manualArcTier, setManualArcTier] = useState<number | null>(null);
   const [manualArcTg, setManualArcTg] = useState<number | null>(null);
+  const [webhookInput, setWebhookInput] = useState(registry.discord_webhook_url || '');
+  const [showSettings, setShowSettings] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [copiedList, setCopiedList] = useState(false);
@@ -387,9 +394,14 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
           <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
             <span style={{
               padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700,
-              backgroundColor: registry.status === 'active' ? `${colors.success}20` : `${colors.textMuted}20`,
-              color: registry.status === 'active' ? colors.success : colors.textMuted,
+              backgroundColor: registry.status === 'active' ? `${colors.success}20` : registry.status === 'archived' ? '#a855f720' : `${colors.textMuted}20`,
+              color: registry.status === 'active' ? colors.success : registry.status === 'archived' ? '#a855f7' : colors.textMuted,
             }}>{registry.status.toUpperCase()}</span>
+            {registry.locked_at && (
+              <span style={{ padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700, backgroundColor: '#f9731620', color: '#f97316' }}>
+                🔒 {t('battleRegistry.locked', 'LOCKED')}
+              </span>
+            )}
             <span style={{
               padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 600,
               backgroundColor: '#ef444415', color: '#ef4444',
@@ -419,10 +431,22 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
               {copiedList ? `✓ ${t('battleRegistry.copied', 'Copied!')}` : `📋 ${t('battleRegistry.exportList', 'Copy Player List')}`}
             </button>
           )}
+          {registry.status === 'active' && !registry.locked_at && (
+            <button onClick={lockRegistry}
+              style={{ padding: isMobile ? '0.65rem 0.85rem' : '0.45rem 0.85rem', borderRadius: '8px', border: '1px solid #f9731640', backgroundColor: '#f9731610', color: '#f97316', fontSize: isMobile ? '0.85rem' : '0.8rem', fontWeight: 600, cursor: 'pointer', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+              🔒 {t('battleRegistry.lockEntries', 'Lock Entries')}
+            </button>
+          )}
+          {registry.status === 'active' && registry.locked_at && (
+            <button onClick={unlockRegistry}
+              style={{ padding: isMobile ? '0.65rem 0.85rem' : '0.45rem 0.85rem', borderRadius: '8px', border: `1px solid ${colors.success}40`, backgroundColor: `${colors.success}10`, color: colors.success, fontSize: isMobile ? '0.85rem' : '0.8rem', fontWeight: 600, cursor: 'pointer', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+              🔓 {t('battleRegistry.unlockEntries', 'Unlock Entries')}
+            </button>
+          )}
           {registry.status === 'active' && (
             <button onClick={closeRegistry}
               style={{ padding: isMobile ? '0.65rem 0.85rem' : '0.45rem 0.85rem', borderRadius: '8px', border: `1px solid ${colors.error}40`, backgroundColor: `${colors.error}10`, color: colors.error, fontSize: isMobile ? '0.85rem' : '0.8rem', fontWeight: 600, cursor: 'pointer', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
-              🔒 {t('battleRegistry.closeRegistrations', 'Close Registrations')}
+              ⛔ {t('battleRegistry.closeRegistrations', 'Close Registrations')}
             </button>
           )}
           {registry.status === 'closed' && (
@@ -431,7 +455,35 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
               🔓 {t('battleRegistry.reopenRegistrations', 'Reopen Registrations')}
             </button>
           )}
+          {registry.status === 'closed' && (
+            <button onClick={archiveRegistry}
+              style={{ padding: isMobile ? '0.65rem 0.85rem' : '0.45rem 0.85rem', borderRadius: '8px', border: '1px solid #a855f740', backgroundColor: '#a855f710', color: '#a855f7', fontSize: isMobile ? '0.85rem' : '0.8rem', fontWeight: 600, cursor: 'pointer', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+              📦 {t('battleRegistry.archiveRegistry', 'Archive')}
+            </button>
+          )}
         </div>
+
+        {/* Locked Banner */}
+        {registry.locked_at && (
+          <div style={{ ...cardStyle, borderColor: '#f9731630', backgroundColor: '#f9731608', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>🔒</span>
+            <div>
+              <p style={{ color: '#f97316', fontSize: '0.8rem', fontWeight: 700, margin: 0 }}>{t('battleRegistry.lockedBannerTitle', 'Registry Locked')}</p>
+              <p style={{ color: colors.textMuted, fontSize: '0.7rem', margin: '0.15rem 0 0', lineHeight: 1.4 }}>{t('battleRegistry.lockedBannerDesc', 'Players cannot submit or edit entries. Only managers can make changes.')}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Archived Banner */}
+        {registry.status === 'archived' && (
+          <div style={{ ...cardStyle, borderColor: '#a855f730', backgroundColor: '#a855f708', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>📦</span>
+            <div>
+              <p style={{ color: '#a855f7', fontSize: '0.8rem', fontWeight: 700, margin: 0 }}>{t('battleRegistry.archivedBannerTitle', 'Archived Registry')}</p>
+              <p style={{ color: colors.textMuted, fontSize: '0.7rem', margin: '0.15rem 0 0', lineHeight: 1.4 }}>{t('battleRegistry.archivedBannerDesc', 'This registry has been archived. It is read-only for historical reference.')}</p>
+            </div>
+          </div>
+        )}
 
         {/* ─── Manual Add Player Form ──────────────────────────────────── */}
         {showManualForm && (
@@ -585,6 +637,34 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* ─── Settings (Webhook, etc.) ────────────────────────────────── */}
+        {isEditorOrCoEditor && (
+          <div style={cardStyle}>
+            <button onClick={() => setShowSettings(!showSettings)}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'none', border: 'none', color: colors.textSecondary, fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: 0, width: '100%' }}>
+              <span style={{ transition: 'transform 0.2s', transform: showSettings ? 'rotate(90deg)' : 'rotate(0deg)', display: 'inline-block' }}>▶</span>
+              ⚙️ {t('battleRegistry.settings', 'Settings')}
+            </button>
+            {showSettings && (
+              <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div>
+                  <label style={{ color: colors.textSecondary, fontSize: '0.7rem', fontWeight: 600, display: 'block', marginBottom: '0.2rem' }}>🔔 {t('battleRegistry.discordWebhook', 'Discord Webhook URL (optional)')}</label>
+                  <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    <input type="url" value={webhookInput} onChange={e => setWebhookInput(e.target.value)}
+                      placeholder="https://discord.com/api/webhooks/..."
+                      style={{ flex: 1, padding: '0.4rem 0.6rem', backgroundColor: colors.bg, border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.text, fontSize: '0.8rem', outline: 'none', boxSizing: 'border-box' }} />
+                    <button onClick={() => updateWebhookUrl(webhookInput)} disabled={webhookInput === (registry.discord_webhook_url || '')}
+                      style={{ padding: '0.4rem 0.75rem', borderRadius: '6px', border: `1px solid ${webhookInput !== (registry.discord_webhook_url || '') ? '#22c55e40' : colors.border}`, backgroundColor: webhookInput !== (registry.discord_webhook_url || '') ? '#22c55e15' : 'transparent', color: webhookInput !== (registry.discord_webhook_url || '') ? '#22c55e' : colors.textMuted, fontSize: '0.75rem', fontWeight: 600, cursor: webhookInput !== (registry.discord_webhook_url || '') ? 'pointer' : 'default' }}>
+                      {t('battleRegistry.save', 'Save')}
+                    </button>
+                  </div>
+                  <p style={{ color: colors.textMuted, fontSize: '0.6rem', marginTop: '0.2rem' }}>{t('battleRegistry.discordWebhookDesc', 'Get notified in Discord when players register, registry is locked, etc.')}</p>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
