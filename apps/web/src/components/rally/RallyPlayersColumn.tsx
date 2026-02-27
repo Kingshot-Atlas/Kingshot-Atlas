@@ -62,12 +62,12 @@ const RallyPlayersColumn: React.FC<RallyPlayersColumnProps> = ({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
 
-      {/* Rally Leaders */}
-      <div role="region" aria-label="Rally leaders" style={{ ...CARD, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      {/* Rally Captains */}
+      <div role="region" aria-label="Rally captains" style={{ ...CARD, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={cardHeader()}>👥 RALLY LEADERS</h3>
+          <h3 style={cardHeader()}>👥 {t('rallyCoordinator.rallyCaptains', 'RALLY CAPTAINS')}</h3>
           <div style={{ display: 'flex', gap: '4px' }}>
-            <button onClick={onAddAlly} className="rally-focusable" aria-label="Add an ally rally leader" style={{
+            <button onClick={onAddAlly} className="rally-focusable" aria-label="Add an ally rally captain" style={{
               padding: isMobile ? '0.4rem 0.6rem' : '0.3rem 0.5rem', minHeight: isMobile ? '44px' : '32px',
               backgroundColor: `${ALLY_COLOR}15`,
               border: `1px solid ${ALLY_COLOR}30`, borderRadius: '5px',
@@ -75,7 +75,7 @@ const RallyPlayersColumn: React.FC<RallyPlayersColumnProps> = ({
             }}>
               {t('rallyCoordinator.addAlly')}
             </button>
-            <button onClick={onAddEnemy} className="rally-focusable" aria-label="Add an enemy rally leader" style={{
+            <button onClick={onAddEnemy} className="rally-focusable" aria-label="Add an enemy rally captain" style={{
               padding: isMobile ? '0.4rem 0.6rem' : '0.3rem 0.5rem', minHeight: isMobile ? '44px' : '32px',
               backgroundColor: `${ENEMY_COLOR}15`,
               border: `1px solid ${ENEMY_COLOR}30`, borderRadius: '5px',
@@ -150,7 +150,7 @@ const RallyPlayersColumn: React.FC<RallyPlayersColumnProps> = ({
         {players.length === 0 && (
           <div style={{ textAlign: 'center', padding: '0.75rem 0.5rem' }}>
             <p style={{ color: '#d1d5db', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-              {t('rallyCoordinator.emptyPlayersTitle', 'No rally leaders yet')}
+              {t('rallyCoordinator.emptyPlayersTitle', 'No rally captains yet')}
             </p>
             <p style={{ color: '#9ca3af', fontSize: '0.65rem', lineHeight: 1.5, marginBottom: '0.5rem' }}>
               {t('rallyCoordinator.emptyPlayersGuide', 'Start by adding allies and enemies with their march times. Then drag them into the Rally or Counter queue.')}

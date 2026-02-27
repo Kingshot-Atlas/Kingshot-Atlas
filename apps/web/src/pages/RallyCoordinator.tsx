@@ -8,12 +8,15 @@ import {
   ALLY_COLOR, ENEMY_COLOR,
   RALLY_COLORS, COUNTER_COLORS,
   CARD, cardHeader, focusRingStyle,
-  getBuildingLabel,
+  getBuildingLabel, STORAGE_KEY_PLAYERS, loadFromStorage,
   IntervalSlider, GanttChart, PlayerModal, CallOrderOutput,
   QueueDropZone,
   RallyPlayersColumn, BuffConfirmPopup,
-  useRallyCoordinator,
+  useBattlePlanner,
 } from '../components/rally';
+import SessionManager from '../components/rally/SessionManager';
+import BattleLeadersPanel from '../components/rally/BattleLeadersPanel';
+import type { RallyPlayer } from '../components/rally/types';
 
 const RallyCoordinator: React.FC = () => {
   const { t } = useTranslation();
@@ -21,7 +24,8 @@ const RallyCoordinator: React.FC = () => {
   const isMobile = useIsMobile();
 
   const isTablet = useIsTablet();
-  const rc = useRallyCoordinator();
+  const rc = useBattlePlanner();
+  const localPlayerCount = (loadFromStorage<RallyPlayer[]>(STORAGE_KEY_PLAYERS, [])).length;
 
   // Mobile tab state
   const [mobileTab, setMobileTab] = useState<'players' | 'rally' | 'counter'>('players');
@@ -254,6 +258,46 @@ const RallyCoordinator: React.FC = () => {
         maxWidth: '1400px', margin: '0 auto',
         padding: isMobile ? '0.5rem' : '0.75rem 1.5rem 2rem',
       }}>
+        {/* Session Manager */}
+        <div style={{ marginBottom: isMobile ? '0.5rem' : '0.75rem' }}>
+          <SessionManager
+            session={rc.session}
+            sessions={rc.sessions}
+            leaders={rc.leaders}
+            inSession={rc.inSession}
+            isSessionLoading={rc.isSessionLoading}
+            isReadOnly={rc.isReadOnly}
+            kingdomNumber={rc.kingdomNumber}
+            isMobile={isMobile}
+            selectedBuilding={rc.selectedBuilding}
+            setSelectedBuilding={rc.setSelectedBuilding}
+            buildingQueueCounts={rc.buildingQueueCounts}
+            onCreateSession={rc.createSession}
+            onArchiveSession={rc.archiveSession}
+            onActivateSession={rc.activateSession}
+            onDeleteSession={rc.deleteSession}
+            onMigrateLocalData={rc.migrateLocalData}
+            localPlayerCount={localPlayerCount}
+          />
+        </div>
+
+        {/* Battle Leaders Panel — only when session active */}
+        {rc.inSession && (
+          <div style={{ marginBottom: isMobile ? '0.5rem' : '0.75rem' }}>
+            <BattleLeadersPanel
+              leaders={rc.leaders}
+              sessionId={rc.session?.id ?? null}
+              isReadOnly={rc.isReadOnly}
+              isSessionEditor={rc.isSessionEditor}
+              isMobile={isMobile}
+              selectedBuilding={rc.selectedBuilding}
+              onAddLeader={rc.addLeader}
+              onUpdateLeaderAssignment={rc.updateLeaderAssignment}
+              onRemoveLeader={rc.removeLeader}
+            />
+          </div>
+        )}
+
         {/* Mobile Tab Bar */}
         {isMobile && (
           <>

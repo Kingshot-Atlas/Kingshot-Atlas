@@ -110,8 +110,8 @@ const QueueDropZone: React.FC<QueueDropZoneProps> = ({
           </div>
           <p style={{ fontSize: '0.75rem', textAlign: 'center', fontWeight: '600', color: '#d1d5db', marginBottom: '0.25rem' }}>
             {queueType === 'rally'
-              ? t('rallyCoordinator.emptyRallyTitle', 'No rally leaders queued')
-              : t('rallyCoordinator.emptyCounterTitle', 'No counter leaders queued')}
+              ? t('rallyCoordinator.emptyRallyTitle', 'No rally captains queued')
+              : t('rallyCoordinator.emptyCounterTitle', 'No counter captains queued')}
           </p>
           <p style={{ fontSize: '0.7rem', textAlign: 'center' }}>
             {isMobile ? t('rallyCoordinator.tapToAddMobile', 'Use the player pills above to add') : t('rallyCoordinator.dropToAdd', 'Drop players here or click to add')}
