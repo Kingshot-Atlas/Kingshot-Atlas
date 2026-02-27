@@ -63,7 +63,7 @@ const PrivacyPolicy: React.FC = () => {
         <div style={sectionStyle}>
           <h2 style={headingStyle}>1. Introduction</h2>
           <p style={paraStyle}>
-            Kingshot Atlas ("Atlas", "we", "us", "our") operates the website at{' '}
+            Kingshot Atlas (&quot;Atlas&quot;, &quot;we&quot;, &quot;us&quot;, &quot;our&quot;) operates the website at{' '}
             <a href="https://ks-atlas.com" style={{ color: '#22d3ee', textDecoration: 'none' }}>ks-atlas.com</a>
             {' '}and the Atlas Discord Bot. This Privacy Policy explains what information we collect, how we use it, and your rights regarding your data.
           </p>
@@ -145,7 +145,7 @@ const PrivacyPolicy: React.FC = () => {
         <div style={sectionStyle}>
           <h2 style={headingStyle}>4. Data Storage & Security</h2>
           <p style={paraStyle}>
-            Your data is stored in <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" style={{ color: '#22d3ee', textDecoration: 'none' }}>Supabase</a> with row-level security (RLS) policies to ensure users can only access data they're authorized to see. Our infrastructure is hosted on Cloudflare (frontend), Render (API), and Cloudflare Workers (Discord bot proxy).
+            Your data is stored in <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" style={{ color: '#22d3ee', textDecoration: 'none' }}>Supabase</a> with row-level security (RLS) policies to ensure users can only access data they&apos;re authorized to see. Our infrastructure is hosted on Cloudflare (frontend), Render (API), and Cloudflare Workers (Discord bot proxy).
           </p>
           <p style={paraStyle}>
             We take reasonable measures to protect your data, including encrypted connections (HTTPS/TLS), secure authentication tokens, and access controls. However, no method of transmission or storage is 100% secure, and we cannot guarantee absolute security.
@@ -220,7 +220,7 @@ const PrivacyPolicy: React.FC = () => {
 
         {/* 9. Children's Privacy */}
         <div style={sectionStyle}>
-          <h2 style={headingStyle}>9. Children's Privacy</h2>
+          <h2 style={headingStyle}>9. Children&apos;s Privacy</h2>
           <p style={paraStyle}>
             Atlas is not directed at children under the age of 13. We do not knowingly collect personal information from children under 13. If you believe a child under 13 has provided us with personal data, please contact us and we will promptly delete it.
           </p>
@@ -246,7 +246,7 @@ const PrivacyPolicy: React.FC = () => {
         <div style={sectionStyle}>
           <h2 style={headingStyle}>12. Changes to This Policy</h2>
           <p style={paraStyle}>
-            We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated "Last updated" date. Continued use of Atlas after changes constitutes acceptance of the revised policy. For significant changes, we will make reasonable efforts to notify users.
+            We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated &quot;Last updated&quot; date. Continued use of Atlas after changes constitutes acceptance of the revised policy. For significant changes, we will make reasonable efforts to notify users.
           </p>
         </div>
 

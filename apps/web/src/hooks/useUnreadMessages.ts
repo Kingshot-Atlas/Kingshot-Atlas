@@ -21,7 +21,7 @@ export function useUnreadMessages(): number {
       .from('transfer_applications')
       .select('id')
       .eq('applicant_user_id', userId)
-      .in('status', ['pending', 'viewed', 'accepted']);
+      .in('status', ['pending', 'viewed', 'interested', 'accepted']);
 
     // 2. As recruiter — find kingdoms they edit, then find apps for those kingdoms
     const { data: editorRows } = await supabase
@@ -36,7 +36,7 @@ export function useUnreadMessages(): number {
         .from('transfer_applications')
         .select('id')
         .in('kingdom_number', kNums)
-        .in('status', ['pending', 'viewed', 'accepted']);
+        .in('status', ['pending', 'viewed', 'interested', 'accepted']);
       recruiterAppIds = (recruiterApps || []).map((a: { id: string }) => a.id);
     }
 

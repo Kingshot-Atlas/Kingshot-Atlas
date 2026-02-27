@@ -57,20 +57,20 @@ const WinRates: React.FC<WinRatesProps> = ({
           </span>
         </div>
         <div style={{ fontSize: '0.8rem', color: '#fff', marginBottom: '0.25rem' }}>
-          {prepWins}W – {prepLosses}L
+          {prepWins}{t('stats.winAbbrev', 'W')} – {prepLosses}{t('stats.lossAbbrev', 'L')}
         </div>
         {prepStreak >= 2 && (
           <div style={{ fontSize: '0.7rem', color: '#22c55e', marginBottom: '0.25rem' }}>
-            {t('stats.currentStreak')}: {prepStreak}W
+            {t('stats.currentStreak')}: {prepStreak}{t('stats.winAbbrev', 'W')}
           </div>
         )}
         {prepStreak < 2 && prepLossStreak >= 2 && (
           <div style={{ fontSize: '0.7rem', color: '#ef4444', marginBottom: '0.25rem' }}>
-            {t('stats.currentStreak')}: {prepLossStreak}L
+            {t('stats.currentStreak')}: {prepLossStreak}{t('stats.lossAbbrev', 'L')}
           </div>
         )}
         <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: '0.3rem' }}>
-          {t('stats.bestStreak')}: {prepBestStreak}W
+          {t('stats.bestStreak')}: {prepBestStreak}{t('stats.winAbbrev', 'W')}
         </div>
         <div style={{ height: '5px', backgroundColor: '#2a2a30', borderRadius: '2px', overflow: 'hidden' }}>
           <div style={{
@@ -102,20 +102,20 @@ const WinRates: React.FC<WinRatesProps> = ({
           </span>
         </div>
         <div style={{ fontSize: '0.8rem', color: '#fff', marginBottom: '0.25rem' }}>
-          {battleWins}W – {battleLosses}L
+          {battleWins}{t('stats.winAbbrev', 'W')} – {battleLosses}{t('stats.lossAbbrev', 'L')}
         </div>
         {battleStreak >= 2 && (
           <div style={{ fontSize: '0.7rem', color: '#22c55e', marginBottom: '0.25rem' }}>
-            {t('stats.currentStreak')}: {battleStreak}W
+            {t('stats.currentStreak')}: {battleStreak}{t('stats.winAbbrev', 'W')}
           </div>
         )}
         {battleStreak < 2 && battleLossStreak >= 2 && (
           <div style={{ fontSize: '0.7rem', color: '#ef4444', marginBottom: '0.25rem' }}>
-            {t('stats.currentStreak')}: {battleLossStreak}L
+            {t('stats.currentStreak')}: {battleLossStreak}{t('stats.lossAbbrev', 'L')}
           </div>
         )}
         <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: '0.3rem' }}>
-          {t('stats.bestStreak')}: {battleBestStreak}W
+          {t('stats.bestStreak')}: {battleBestStreak}{t('stats.winAbbrev', 'W')}
         </div>
         <div style={{ height: '5px', backgroundColor: '#2a2a30', borderRadius: '2px', overflow: 'hidden' }}>
           <div style={{

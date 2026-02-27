@@ -242,6 +242,9 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
           <div 
             onClick={handleCardClick}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleCardClick(); } }}
+            role="button"
+            tabIndex={0}
             style={{ 
               fontSize: isMobile ? '1.15rem' : '1.4rem', 
               fontWeight: '700', 
@@ -306,8 +309,8 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'default' }}>
             <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <span style={{ fontSize: '0.75rem', color: colors.textMuted, lineHeight: '1.2' }}>Atlas</span>
-              <span style={{ fontSize: '0.75rem', color: colors.textMuted, lineHeight: '1.2' }}>Score</span>
+              <span style={{ fontSize: '0.75rem', color: colors.textMuted, lineHeight: '1.2' }}>{t('kingdomCard.atlasLabel', 'Atlas')}</span>
+              <span style={{ fontSize: '0.75rem', color: colors.textMuted, lineHeight: '1.2' }}>{t('kingdomCard.scoreLabel', 'Score')}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
               <span 
@@ -335,6 +338,8 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
             {kvkChips.map(chip => (
               <div
                 key={chip.key}
+                role="button"
+                tabIndex={0}
                 onClick={(e) => {
                   e.stopPropagation();
                   trackFeature('KvK Chip Click', { kingdom: kingdom.kingdom_number, chip: chip.key });
@@ -343,6 +348,19 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
                   } else if (chip.mode) {
                     setMatchupModalMode(chip.mode);
                     setShowMatchupModal(true);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    trackFeature('KvK Chip Click', { kingdom: kingdom.kingdom_number, chip: chip.key });
+                    if (chip.key === 'submitAll') {
+                      setShowSubmitModal(true);
+                    } else if (chip.mode) {
+                      setMatchupModalMode(chip.mode);
+                      setShowMatchupModal(true);
+                    }
                   }
                 }}
                 style={{

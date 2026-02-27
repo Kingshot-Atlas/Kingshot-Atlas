@@ -106,7 +106,10 @@ const ProfileFeatures: React.FC = () => {
         transition: 'transform 0.2s, border-color 0.2s',
         cursor: 'pointer'
       }}
+      role="button"
+      tabIndex={0}
       onClick={() => navigate(`/kingdom/${kingdom.kingdom_number}`)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/kingdom/${kingdom.kingdom_number}`); } }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-2px)';
         e.currentTarget.style.borderColor = themeColor + '40';
@@ -193,7 +196,10 @@ const ProfileFeatures: React.FC = () => {
       cursor: 'pointer',
       transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
     }}
+    role="button"
+    tabIndex={0}
     onClick={() => navigate(`/kingdom/${review.kingdom_number}`)}
+    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/kingdom/${review.kingdom_number}`); } }}
     onMouseEnter={(e) => {
       e.currentTarget.style.transform = 'translateY(-2px)';
       e.currentTarget.style.borderColor = themeColor + '50';
@@ -213,7 +219,7 @@ const ProfileFeatures: React.FC = () => {
             fontWeight: '700',
             fontFamily: "'Cinzel', 'Times New Roman', serif"
           }}>
-            Kingdom {review.kingdom_number}
+            {t('common.kingdom', 'Kingdom')} {review.kingdom_number}
           </span>
           <span style={{ color: '#fbbf24', fontSize: '0.9rem' }}>
             {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}

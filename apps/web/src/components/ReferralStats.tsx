@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import {
   ReferralTier,
@@ -15,14 +16,15 @@ import ReferralBadge from './ReferralBadge';
 import SmartTooltip from './shared/SmartTooltip';
 import { supabase } from '../lib/supabase';
 
-const SOURCE_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
-  referral_link: { label: 'Referral Links', icon: '🔗', color: '#22d3ee' },
-  endorsement: { label: 'Endorsements', icon: '🗳️', color: '#a855f7' },
-  review_invite: { label: 'Reviews', icon: '⭐', color: '#fbbf24' },
-  transfer_listing: { label: 'Transfer Hub', icon: '🔄', color: '#22c55e' },
+const SOURCE_ICONS: Record<string, { icon: string; color: string }> = {
+  referral_link: { icon: '🔗', color: '#22d3ee' },
+  endorsement: { icon: '🗳️', color: '#a855f7' },
+  review_invite: { icon: '⭐', color: '#fbbf24' },
+  transfer_listing: { icon: '🔄', color: '#22c55e' },
 };
 
 const ReferralStats: React.FC = () => {
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const isMobile = useIsMobile();
   const { trackFeature } = useAnalytics();
@@ -83,12 +85,11 @@ const ReferralStats: React.FC = () => {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.75rem' }}>
           <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
-            Referral Program
+            {t('referralProgram.title', 'Referral Program')}
           </h3>
         </div>
         <p style={{ color: '#9ca3af', fontSize: '0.85rem', margin: 0, lineHeight: 1.5, textAlign: 'center' }}>
-          Link your Kingshot account (TC25+) to unlock your personal referral link.
-          Bring players to Atlas and earn badges, Discord roles, and recognition.
+          {t('referralProgram.unlockDesc', 'Link your Kingshot account (TC25+) to unlock your personal referral link. Bring players to Atlas and earn badges, Discord roles, and recognition.')}
         </p>
       </div>
     );
@@ -121,7 +122,7 @@ const ReferralStats: React.FC = () => {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
-            Referral Program
+            {t('referralProgram.title', 'Referral Program')}
           </h3>
           {currentTier && <ReferralBadge tier={currentTier} />}
         </div>
@@ -130,7 +131,7 @@ const ReferralStats: React.FC = () => {
           fontWeight: 'bold',
           color: currentTierColor,
         }}>
-          {referralCount} referral{referralCount !== 1 ? 's' : ''}
+          {t('referralProgram.referralCount', '{{count}} referrals', { count: referralCount })}
         </span>
       </div>
 
@@ -144,7 +145,7 @@ const ReferralStats: React.FC = () => {
             marginBottom: '0.35rem',
           }}>
             <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
-              Next: {REFERRAL_TIER_LABELS[nextTier.tier]}
+              {t('referralProgram.next', 'Next')}: {REFERRAL_TIER_LABELS[nextTier.tier]}
             </span>
             <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
               {referralCount}/{nextTier.threshold}
@@ -176,7 +177,7 @@ const ReferralStats: React.FC = () => {
           margin: '0 0 0.75rem 0',
           fontWeight: 500,
         }}>
-          🏛️ You&apos;ve reached the highest referral tier!
+          🏛️ {t('referralProgram.maxTierReached', "You've reached the highest referral tier!")}
         </p>
       )}
 
@@ -191,10 +192,10 @@ const ReferralStats: React.FC = () => {
           const reached = referralCount >= threshold;
           const tierColor = REFERRAL_TIER_COLORS[tier];
           const tierDescriptions: Record<ReferralTier, string> = {
-            scout: 'First badge earned. You\'re on the radar.',
-            recruiter: 'Proven recruiter. Your kingdom notices.',
-            consul: 'Unlocks Consul Discord role. Recognized voice in the community.',
-            ambassador: 'Top tier. Ambassador role + badge, priority support, and #vip-lounge access.',
+            scout: t('referralProgram.scoutDesc', "First badge earned. You're on the radar."),
+            recruiter: t('referralProgram.recruiterDesc', 'Proven recruiter. Your kingdom notices.'),
+            consul: t('referralProgram.consulDesc', 'Unlocks Consul Discord role. Recognized voice in the community.'),
+            ambassador: t('referralProgram.ambassadorDesc', 'Top tier. Ambassador role + badge, priority support, and #vip-lounge access.'),
           };
           return (
             <SmartTooltip
@@ -204,7 +205,7 @@ const ReferralStats: React.FC = () => {
               content={
                 <div style={{ fontSize: '0.75rem', color: '#d1d5db' }}>
                   <div style={{ fontWeight: 600, color: tierColor, marginBottom: '0.2rem' }}>
-                    {REFERRAL_TIER_LABELS[tier]} — {threshold} referrals
+                    {REFERRAL_TIER_LABELS[tier]} — {t('referralProgram.thresholdReferrals', '{{count}} referrals', { count: threshold })}
                   </div>
                   {tierDescriptions[tier]}
                 </div>
@@ -239,8 +240,14 @@ const ReferralStats: React.FC = () => {
           marginBottom: '0.75rem',
           flexWrap: 'wrap',
         }}>
-          {sourceBreakdown.map(({ source, count }) => {
-            const cfg = SOURCE_CONFIG[source] || { label: source, icon: '📊', color: '#6b7280' };
+          {sourceBreakdown.map(({ source, count: srcCount }) => {
+            const sourceLabels: Record<string, string> = {
+              referral_link: t('referralProgram.sourceLinks', 'Referral Links'),
+              endorsement: t('referralProgram.sourceEndorsements', 'Endorsements'),
+              review_invite: t('referralProgram.sourceReviews', 'Reviews'),
+              transfer_listing: t('referralProgram.sourceTransferHub', 'Transfer Hub'),
+            };
+            const cfg = SOURCE_ICONS[source] || { icon: '📊', color: '#6b7280' };
             return (
               <div key={source} style={{
                 display: 'flex',
@@ -254,8 +261,8 @@ const ReferralStats: React.FC = () => {
                 color: cfg.color,
               }}>
                 <span>{cfg.icon}</span>
-                <span style={{ fontWeight: 600 }}>{count}</span>
-                <span style={{ color: '#9ca3af' }}>{cfg.label}</span>
+                <span style={{ fontWeight: 600 }}>{srcCount}</span>
+                <span style={{ color: '#9ca3af' }}>{sourceLabels[source] || source}</span>
               </div>
             );
           })}
@@ -283,7 +290,7 @@ const ReferralStats: React.FC = () => {
           minHeight: '48px',
         }}
       >
-        {copied ? '✓ Link Copied!' : '📋 Copy Your Referral Link'}
+        {copied ? t('referralProgram.linkCopied', '✓ Link Copied!') : t('referralProgram.copyLink', '📋 Copy Your Referral Link')}
       </button>
     </div>
   );

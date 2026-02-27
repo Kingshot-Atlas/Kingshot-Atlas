@@ -9,11 +9,11 @@ interface TransferStatusProps {
   onSubmitStatus?: () => void;
 }
 
-const getStatusDescription = (status: string) => {
+const getStatusDescription = (status: string, t: (key: string, fallback: string) => string) => {
   switch (status) {
-    case 'Leading': return '20 regular invites, 10 open slots, lower power cap';
-    case 'Ordinary': return '35 regular invites, up to 3 special invites, 20 open slots, higher power cap';
-    default: return 'Not yet reported';
+    case 'Leading': return t('transferStatuses.leadingDesc', '20 regular invites, 10 open slots, lower power cap');
+    case 'Ordinary': return t('transferStatuses.ordinaryDesc', '35 regular invites, up to 3 special invites, 20 open slots, higher power cap');
+    default: return t('transferStatuses.unknownDesc', 'Not yet reported');
   }
 };
 
@@ -26,10 +26,10 @@ const TransferStatus: React.FC<TransferStatusProps> = ({ status, onSubmitStatus 
   const tooltipContent = (
     <div style={{ fontSize: '0.7rem' }}>
       <span style={{ color: isUnannounced ? '#9ca3af' : statusColor, fontWeight: 'bold' }}>
-        {isUnannounced ? 'Unknown' : status}
+        {isUnannounced ? t('transferStatuses.Unknown', 'Unknown') : t(`transferStatuses.${status}`, status)}
       </span>
       <span style={{ color: '#9ca3af', marginLeft: '0.3rem' }}>
-        — {getStatusDescription(status)}
+        — {getStatusDescription(status, t)}
       </span>
       {isUnannounced && onSubmitStatus && (
         <div style={{ color: '#22d3ee', fontSize: '0.65rem', marginTop: '0.2rem' }}>{t('kingdomCard.tapToSubmit')}</div>
@@ -58,7 +58,7 @@ const TransferStatus: React.FC<TransferStatusProps> = ({ status, onSubmitStatus 
             borderBottom: '1px dashed #6b728060',
           } : {}),
         }}>
-          {status}
+          {t(`transferStatuses.${status}`, status)}
         </span>
       </div>
     </SmartTooltip>

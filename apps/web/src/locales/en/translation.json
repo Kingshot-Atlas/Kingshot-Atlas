@@ -86,7 +86,20 @@
     "battleWR": "Battle WR",
     "totalKvKs": "Total KvKs",
     "currentStreak": "Current Streak",
-    "bestStreak": "Best Streak"
+    "bestStreak": "Best Streak",
+    "winAbbrev": "W",
+    "lossAbbrev": "L",
+    "streak": "Streak",
+    "best": "Best"
+  },
+  "transferStatuses": {
+    "Unannounced": "Unannounced",
+    "Leading": "Leading",
+    "Ordinary": "Ordinary",
+    "Unknown": "Unknown",
+    "leadingDesc": "20 regular invites, 10 open slots, lower power cap",
+    "ordinaryDesc": "35 regular invites, up to 3 special invites, 20 open slots, higher power cap",
+    "unknownDesc": "Not yet reported"
   },
   "tiers": {
     "allTiers": "All Tiers",
@@ -131,6 +144,8 @@
     "submitKvK": "Submit KvK {{num}}",
     "addKvKMatchup": "Add KvK {{num}} Matchup",
     "transferStatus": "Transfer Status",
+    "atlasLabel": "Atlas",
+    "scoreLabel": "Score",
     "scoreTooltip": "Rewards experience and consistency over lucky streaks",
     "missingKvK": "Missing KvK #{{num}}",
     "tapToSubmit": "tap to submit",
@@ -3433,5 +3448,98 @@
     "reachGold": "Reach Gold Tier",
     "tryRegistry": "View the Registry",
     "allTools": "← All Tools"
+  },
+  "transferReadiness": {
+    "title": "Transfer Readiness",
+    "createDesc": "Create a Transfer Profile to get matched with kingdoms and apply directly from the Transfer Hub.",
+    "createProfile": "Create Transfer Profile →",
+    "editProfile": "Edit Transfer Profile →",
+    "powerSet": "Power set",
+    "languageSet": "Language set",
+    "kvkAvailability": "KvK availability",
+    "savingPreference": "Saving preference",
+    "lookingForTags": "Looking for tags",
+    "groupSize": "Group size",
+    "playerBio": "Player bio",
+    "playSchedule": "Play schedule",
+    "contactMethod": "Contact method",
+    "visibleToRecruiters": "Visible to recruiters"
+  },
+  "referralProgram": {
+    "title": "Referral Program",
+    "unlockDesc": "Link your Kingshot account (TC25+) to unlock your personal referral link. Bring players to Atlas and earn badges, Discord roles, and recognition.",
+    "referralCount": "{{count}} referrals",
+    "next": "Next",
+    "maxTierReached": "You've reached the highest referral tier!",
+    "scoutDesc": "First badge earned. You're on the radar.",
+    "recruiterDesc": "Proven recruiter. Your kingdom notices.",
+    "consulDesc": "Unlocks Consul Discord role. Recognized voice in the community.",
+    "ambassadorDesc": "Top tier. Ambassador role + badge, priority support, and #vip-lounge access.",
+    "thresholdReferrals": "{{count}} referrals",
+    "sourceLinks": "Referral Links",
+    "sourceEndorsements": "Endorsements",
+    "sourceReviews": "Reviews",
+    "sourceTransferHub": "Transfer Hub",
+    "copyLink": "📋 Copy Your Referral Link",
+    "linkCopied": "✓ Link Copied!"
+  },
+  "playersFromKingdom": {
+    "title": "Players from Kingdom {{num}}",
+    "loading": "Loading players...",
+    "countOfTotal": "{{shown}} of {{total}} players",
+    "count": "{{count}} players",
+    "noPlayers": "No other players from your kingdom yet.",
+    "inviteMembers": "Invite your alliance members to join!",
+    "viewKingdomProfile": "View Kingdom {{num}} Profile →"
+  },
+  "achievementNames": {
+    "first_review": {
+      "title": "First Words",
+      "description": "Write your first kingdom review"
+    },
+    "reviewer": {
+      "title": "Reviewer",
+      "description": "Write 5 kingdom reviews"
+    },
+    "compare_novice": {
+      "title": "Analyst",
+      "description": "Compare 10 kingdoms"
+    },
+    "explorer": {
+      "title": "Explorer",
+      "description": "View 25 different kingdoms"
+    },
+    "collector": {
+      "title": "Collector",
+      "description": "Save 10 favorites"
+    },
+    "sharer": {
+      "title": "Networker",
+      "description": "Share 5 kingdom links"
+    },
+    "contributor": {
+      "title": "Contributor",
+      "description": "Submit 3 KvK results"
+    },
+    "data_hero": {
+      "title": "Data Hero",
+      "description": "Have 5 corrections approved"
+    },
+    "dedicated": {
+      "title": "Dedicated",
+      "description": "Active for 7 days"
+    },
+    "leaderboard_watcher": {
+      "title": "Rankings Expert",
+      "description": "View leaderboards 10 times"
+    },
+    "veteran_explorer": {
+      "title": "Veteran Explorer",
+      "description": "View 100 different kingdoms"
+    },
+    "super_contributor": {
+      "title": "Super Contributor",
+      "description": "Submit 10 KvK results"
+    }
   }
 }

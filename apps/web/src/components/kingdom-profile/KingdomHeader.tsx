@@ -62,9 +62,9 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
 
   const getStatusDescription = (s: string) => {
     switch (s) {
-      case 'Leading': return '20 regular invites, 10 open slots, lower power cap';
-      case 'Ordinary': return '35 regular invites, up to 3 special invites, 20 open slots, higher power cap';
-      default: return 'Not yet reported';
+      case 'Leading': return t('transferStatuses.leadingDesc', '20 regular invites, 10 open slots, lower power cap');
+      case 'Ordinary': return t('transferStatuses.ordinaryDesc', '35 regular invites, up to 3 special invites, 20 open slots, higher power cap');
+      default: return t('transferStatuses.unknownDesc', 'Not yet reported');
     }
   };
 
@@ -281,7 +281,7 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
               content={
                 <div style={{ fontSize: '0.7rem' }}>
                   <div style={{ color: statusColor, fontWeight: 'bold', marginBottom: '2px' }}>
-                    {status === 'Unannounced' ? t('kingdomProfile.noData', 'No Data') : status}
+                    {status === 'Unannounced' ? t('kingdomProfile.noData', 'No Data') : t(`transferStatuses.${status}`, status)}
                   </div>
                   <div style={{ color: '#9ca3af' }}>{getStatusDescription(status)}</div>
                   {!hasPendingSubmission && (
@@ -310,7 +310,7 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
                   gap: '0.25rem'
                 }}
               >
-                {hasPendingSubmission ? '⏳ Pending' : status}
+                {hasPendingSubmission ? `⏳ ${t('common.pending', 'Pending')}` : t(`transferStatuses.${status}`, status)}
               </span>
             </SmartTooltip>
             {isKingdomEditor && !hasPendingSubmission && (

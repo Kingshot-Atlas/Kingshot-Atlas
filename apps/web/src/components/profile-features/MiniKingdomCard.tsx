@@ -85,7 +85,7 @@ export const MiniKingdomCard: React.FC<MiniKingdomCardProps> = ({
           fontFamily: "'Cinzel', serif",
           letterSpacing: '0.02em'
         }}>
-          Kingdom {kingdom.kingdom_number}
+          {t('common.kingdom', 'Kingdom')} {kingdom.kingdom_number}
         </span>
         <SmartTooltip
           accentColor={tierColors[tier]}

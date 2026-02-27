@@ -179,7 +179,7 @@ async function fetchRecruiterDashboard(userId: string): Promise<RecruiterDashboa
   // Get unread message count using persistent read tracking
   let unreadMsgCount = 0;
   const perAppUnread: Record<string, number> = {};
-  const appIds = enrichedApps.filter(a => ['pending', 'viewed', 'accepted'].includes(a.status)).map(a => a.id);
+  const appIds = enrichedApps.filter(a => ['pending', 'viewed', 'interested', 'accepted'].includes(a.status)).map(a => a.id);
   if (appIds.length > 0) {
     // Fetch last_read_at per application for this user
     const { data: readRows } = await supabase

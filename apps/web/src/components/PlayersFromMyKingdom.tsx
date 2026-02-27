@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
@@ -48,6 +49,7 @@ interface PlayersFromMyKingdomProps {
 const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({ 
   themeColor = '#22d3ee' 
 }) => {
+  const { t } = useTranslation();
   const { profile, user } = useAuth();
   const isMobile = useIsMobile();
   const goldKingdoms = useGoldKingdoms();
@@ -113,7 +115,7 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
         marginBottom: '1.5rem',
         border: '1px solid #2a2a2a',
       }}>
-        <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>Loading players...</div>
+        <div style={{ color: '#6b7280', fontSize: '0.85rem' }}>{t('playersFromKingdom.loading', 'Loading players...')}</div>
       </div>
     );
   }
@@ -134,13 +136,13 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span style={{ fontSize: '1.1rem' }}>👥</span>
           <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
-            Players from Kingdom {myKingdom}
+            {t('playersFromKingdom.title', 'Players from Kingdom {{num}}', { num: myKingdom })}
           </h3>
         </div>
         <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
           {totalCount > players.length
-            ? `${players.length} of ${totalCount} players`
-            : `${players.length} ${players.length === 1 ? 'player' : 'players'}`
+            ? t('playersFromKingdom.countOfTotal', '{{shown}} of {{total}} players', { shown: players.length, total: totalCount })
+            : t('playersFromKingdom.count', '{{count}} players', { count: players.length })
           }
         </span>
       </div>
@@ -152,9 +154,9 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
           color: '#6b7280',
           fontSize: '0.85rem'
         }}>
-          <p style={{ margin: 0 }}>No other players from your kingdom yet.</p>
+          <p style={{ margin: 0 }}>{t('playersFromKingdom.noPlayers', 'No other players from your kingdom yet.')}</p>
           <p style={{ margin: '0.5rem 0 0', fontSize: '0.75rem' }}>
-            Invite your alliance members to join!
+            {t('playersFromKingdom.inviteMembers', 'Invite your alliance members to join!')}
           </p>
         </div>
       ) : (
@@ -317,7 +319,7 @@ const PlayersFromMyKingdom: React.FC<PlayersFromMyKingdomProps> = ({
             textDecoration: 'none',
           }}
         >
-          View Kingdom {myKingdom} Profile →
+          {t('playersFromKingdom.viewKingdomProfile', 'View Kingdom {{num}} Profile →', { num: myKingdom })}
         </Link>
       </div>
     </div>

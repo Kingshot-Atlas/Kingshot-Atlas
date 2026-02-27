@@ -16,7 +16,7 @@
 | Deployment | ✅ Live | Cloudflare Pages (frontend), Render (API + Discord bot) |
 | Discord Bot | ✅ Operational | CF Worker proxy, Settler/Supporter role sync, telemetry, /kingdom /compare /predict /history /codes /redeem /link commands |
 | SEO | ✅ Enhanced | Dynamic sitemap (1328 URLs), edge-side meta injection (HTMLRewriter), hreflang for 9 languages, BreadcrumbList JSON-LD, per-page canonicals |
-| i18n | ✅ 9 Languages | EN, ES, FR, ZH, DE, KO, JA, AR, TR |
+| i18n | ✅ 12 Languages | EN, ES, FR, ZH, DE, KO, JA, AR, TR, ID, RU, PT (98.1% PT coverage) |
 | Consistency Lint | ✅ Strict | 0 warnings, CI blocks drift on every PR |
 | Codebase Health | ✅ Audited | ~1340 lines dead code removed, structured logging, centralized config, admin.py split into 8 modules, console.log→logger.ts |
 | Subscribers | ✅ 5 Active | ~$24.96 MRR, 2 tiers (Free + Atlas Supporter $4.99/mo or $49.99/yr) |
@@ -128,7 +128,7 @@
 | Metric | Current | Target |
 |--------|---------|--------|
 | Kingdoms tracked | 1,204+ | Growing ✅ |
-| Languages supported | 9 | 9 ✅ |
+| Languages supported | 10 | 10 ✅ (added Indonesian) |
 | Active subscribers | 5 | Growing |
 | MRR | ~$24.96 | Growing — annual plan now available |
 | API routers | 12 | — |

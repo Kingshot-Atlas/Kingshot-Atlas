@@ -60,7 +60,7 @@ const TermsOfService: React.FC = () => {
         <div style={sectionStyle}>
           <h2 style={headingStyle}>1. Acceptance of Terms</h2>
           <p style={paraStyle}>
-            By accessing or using Kingshot Atlas ("Atlas", "we", "us"), you agree to be bound by these Terms of Service. If you do not agree, do not use the service. We may update these terms at any time; continued use after changes constitutes acceptance.
+            By accessing or using Kingshot Atlas (&quot;Atlas&quot;, &quot;we&quot;, &quot;us&quot;), you agree to be bound by these Terms of Service. If you do not agree, do not use the service. We may update these terms at any time; continued use after changes constitutes acceptance.
           </p>
         </div>
 
@@ -115,7 +115,7 @@ const TermsOfService: React.FC = () => {
             The Atlas platform itself — including its design, code, analytics algorithms, and original content — is the intellectual property of the Kingshot Atlas project. All game-related content, names, logos, and imagery belong to their respective copyright holders (Century Games and others).
           </p>
           <p style={paraStyle}>
-            You may not reproduce, distribute, or create derivative works from Atlas's proprietary content without permission. Game content is used under fair use for community analytics purposes.
+            You may not reproduce, distribute, or create derivative works from Atlas&apos;s proprietary content without permission. Game content is used under fair use for community analytics purposes.
           </p>
         </div>
 
@@ -124,8 +124,8 @@ const TermsOfService: React.FC = () => {
           <h2 style={headingStyle}>6. Prohibited Conduct</h2>
           <p style={paraStyle}>You agree not to:</p>
           <ul style={{ ...paraStyle, paddingLeft: '1.25rem', marginTop: '0.25rem' }}>
-            <li style={{ marginBottom: '0.3rem' }}>Use Atlas for any unlawful purpose or in violation of any game's terms of service</li>
-            <li style={{ marginBottom: '0.3rem' }}>Attempt to gain unauthorized access to Atlas systems or other users' accounts</li>
+            <li style={{ marginBottom: '0.3rem' }}>Use Atlas for any unlawful purpose or in violation of any game&apos;s terms of service</li>
+            <li style={{ marginBottom: '0.3rem' }}>Attempt to gain unauthorized access to Atlas systems or other users&apos; accounts</li>
             <li style={{ marginBottom: '0.3rem' }}>Scrape, crawl, or automatically extract data from Atlas beyond normal use</li>
             <li style={{ marginBottom: '0.3rem' }}>Submit false data, spam, or content intended to manipulate rankings</li>
             <li style={{ marginBottom: '0.3rem' }}>Impersonate other players or kingdoms</li>
@@ -137,7 +137,7 @@ const TermsOfService: React.FC = () => {
         <div style={sectionStyle}>
           <h2 style={headingStyle}>7. Subscriptions & Payments</h2>
           <p style={paraStyle}>
-            Atlas offers optional paid subscriptions ("Atlas Supporter") processed through Stripe. Subscriptions auto-renew unless canceled. You may cancel at any time from your profile or via the Stripe customer portal. Refunds are handled on a case-by-case basis.
+            Atlas offers optional paid subscriptions (&quot;Atlas Supporter&quot;) processed through Stripe. Subscriptions auto-renew unless canceled. You may cancel at any time from your profile or via the Stripe customer portal. Refunds are handled on a case-by-case basis.
           </p>
           <p style={paraStyle}>
             We reserve the right to change subscription pricing with reasonable notice. Existing subscribers will be notified before any price changes take effect.
@@ -174,7 +174,7 @@ const TermsOfService: React.FC = () => {
         <div style={sectionStyle}>
           <h2 style={headingStyle}>10. Disclaimers</h2>
           <p style={paraStyle}>
-            Atlas is provided "as is" without warranty of any kind. We do not guarantee the accuracy, completeness, or timeliness of any data displayed. Kingdom rankings, scores, and analytics are based on community-submitted data and may contain errors.
+            Atlas is provided &quot;as is&quot; without warranty of any kind. We do not guarantee the accuracy, completeness, or timeliness of any data displayed. Kingdom rankings, scores, and analytics are based on community-submitted data and may contain errors.
           </p>
           <p style={paraStyle}>
             We are not responsible for any actions taken by Century Games or any game developer in response to your use of Atlas. Use of Atlas is at your own risk.

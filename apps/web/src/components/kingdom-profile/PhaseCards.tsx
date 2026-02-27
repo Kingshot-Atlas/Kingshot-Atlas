@@ -107,7 +107,7 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({
                   fontWeight: 'bold',
                   border: '1px solid #22c55e30'
                 }}>
-                  {prepStreak}W Streak
+                  {prepStreak}{t('stats.winAbbrev', 'W')} {t('stats.streak', 'Streak')}
                 </span>
               </div>
             )}
@@ -125,7 +125,7 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({
             <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.25rem' }}>{t('kingdomProfile.winRate', 'Win Rate')}</div>
             {prepBestStreak >= 3 && (
               <div style={{ color: '#6b7280', fontSize: '0.65rem', marginTop: '0.25rem' }}>
-                Best: {prepBestStreak}W
+                {t('stats.best', 'Best')}: {prepBestStreak}{t('stats.winAbbrev', 'W')}
               </div>
             )}
           </div>
@@ -145,7 +145,7 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({
                   fontWeight: 'bold',
                   border: '1px solid #ef444430'
                 }}>
-                  {prepStreak}L Streak
+                  {prepStreak}{t('stats.lossAbbrev', 'L')} {t('stats.streak', 'Streak')}
                 </span>
               </div>
             )}
@@ -186,7 +186,7 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({
                   fontWeight: 'bold',
                   border: '1px solid #22c55e30'
                 }}>
-                  {battleStreak}W Streak
+                  {battleStreak}{t('stats.winAbbrev', 'W')} {t('stats.streak', 'Streak')}
                 </span>
               </div>
             )}
@@ -204,7 +204,7 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({
             <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.25rem' }}>{t('kingdomProfile.winRate', 'Win Rate')}</div>
             {battleBestStreak >= 3 && (
               <div style={{ color: '#6b7280', fontSize: '0.65rem', marginTop: '0.25rem' }}>
-                Best: {battleBestStreak}W
+                {t('stats.best', 'Best')}: {battleBestStreak}{t('stats.winAbbrev', 'W')}
               </div>
             )}
           </div>
@@ -224,7 +224,7 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({
                   fontWeight: 'bold',
                   border: '1px solid #ef444430'
                 }}>
-                  {battleStreak}L Streak
+                  {battleStreak}{t('stats.lossAbbrev', 'L')} {t('stats.streak', 'Streak')}
                 </span>
               </div>
             )}

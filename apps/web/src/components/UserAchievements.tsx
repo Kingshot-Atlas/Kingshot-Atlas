@@ -331,10 +331,10 @@ const UnlockToast: React.FC<UnlockToastProps> = ({ achievement, onDismiss }) => 
             {t('achievements.achievementUnlocked')}
           </div>
           <div style={{ color: achievement.color, fontWeight: '700', fontSize: '0.95rem' }}>
-            {achievement.title}
+            {t(`achievementNames.${achievement.id}.title`, achievement.title)}
           </div>
           <div style={{ color: '#9ca3af', fontSize: '0.75rem' }}>
-            {achievement.description}
+            {t(`achievementNames.${achievement.id}.description`, achievement.description)}
           </div>
         </div>
       </div>
@@ -416,10 +416,10 @@ const UserAchievements: React.FC = () => {
               maxWidth={200}
               content={
                 <div style={{ fontSize: '0.7rem' }}>
-                  <div style={{ color: a.color, fontWeight: 'bold', marginBottom: '2px' }}>{a.title} ✓</div>
-                  <div style={{ color: '#9ca3af', lineHeight: 1.4 }}>{a.description}</div>
+                  <div style={{ color: a.color, fontWeight: 'bold', marginBottom: '2px' }}>{t(`achievementNames.${a.id}.title`, a.title)} ✓</div>
+                  <div style={{ color: '#9ca3af', lineHeight: 1.4 }}>{t(`achievementNames.${a.id}.description`, a.description)}</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '3px' }}>
-                    <span style={{ color: '#22c55e', fontSize: '0.65rem', fontWeight: '500' }}>Achievement Unlocked!</span>
+                    <span style={{ color: '#22c55e', fontSize: '0.65rem', fontWeight: '500' }}>{t('achievements.achievementUnlocked')}</span>
                     <span style={{ fontSize: '0.6rem', color: RARITY_COLORS[a.rarity], fontWeight: '600' }}>{a.rarity}</span>
                   </div>
                 </div>
@@ -438,7 +438,7 @@ const UserAchievements: React.FC = () => {
                 }}
               >
                 <span style={{ fontSize: '1rem' }}>{a.icon}</span>
-                <span style={{ fontSize: '0.75rem', color: a.color, fontWeight: '600' }}>{a.title}</span>
+                <span style={{ fontSize: '0.75rem', color: a.color, fontWeight: '600' }}>{t(`achievementNames.${a.id}.title`, a.title)}</span>
               </div>
             </SmartTooltip>
           ))}
@@ -460,11 +460,11 @@ const UserAchievements: React.FC = () => {
                   maxWidth={220}
                   content={
                     <div style={{ fontSize: '0.7rem' }}>
-                      <div style={{ color: '#fff', fontWeight: 'bold', marginBottom: '2px' }}>{a.icon} {a.title}</div>
-                      <div style={{ color: '#9ca3af', lineHeight: 1.4, marginBottom: '3px' }}>{a.description}</div>
-                      <div style={{ color: a.color, fontWeight: '500' }}>Progress: {progress}/{a.requirement} ({Math.round(percent)}%)</div>
+                      <div style={{ color: '#fff', fontWeight: 'bold', marginBottom: '2px' }}>{a.icon} {t(`achievementNames.${a.id}.title`, a.title)}</div>
+                      <div style={{ color: '#9ca3af', lineHeight: 1.4, marginBottom: '3px' }}>{t(`achievementNames.${a.id}.description`, a.description)}</div>
+                      <div style={{ color: a.color, fontWeight: '500' }}>{t('achievements.progress', 'Progress: {{current}}/{{total}} ({{percent}}%)', { current: progress, total: a.requirement, percent: Math.round(percent) })}</div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
-                        <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>{a.requirement - progress} more to unlock</span>
+                        <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('achievements.moreToUnlock', '{{count}} more to unlock', { count: a.requirement - progress })}</span>
                         <span style={{ fontSize: '0.6rem', color: RARITY_COLORS[a.rarity], fontWeight: '600' }}>{a.rarity}</span>
                       </div>
                     </div>
@@ -475,7 +475,7 @@ const UserAchievements: React.FC = () => {
                     <span style={{ fontSize: '0.9rem', opacity: 0.5, cursor: 'default' }}>{a.icon}</span>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: '0.15rem' }}>
-                        {a.title} ({progress}/{a.requirement})
+                        {t(`achievementNames.${a.id}.title`, a.title)} ({progress}/{a.requirement})
                       </div>
                       <div style={{ height: '4px', backgroundColor: '#2a2a2a', borderRadius: '2px' }}>
                         <div style={{ height: '100%', width: `${percent}%`, backgroundColor: a.color, borderRadius: '2px', opacity: 0.6 }} />

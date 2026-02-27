@@ -3,6 +3,45 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-28 | Product Engineer | COMPLETED
+Task: Fix remaining English words in Indonesian (ID) translated pages
+Files: `public/locales/id/translation.json`, `src/locales/id/translation.json`, `src/locales/en/translation.json`, `TransferStatus.tsx`, `WinRates.tsx`, `KingdomCard.tsx`, `PhaseCards.tsx`
+Changes:
+1. **Component i18n fixes** — Added `t()` calls for hardcoded English in TransferStatus.tsx (Unannounced/Leading/Ordinary status values + descriptions), WinRates.tsx (W/L abbreviations), KingdomCard.tsx (Atlas/Score labels), PhaseCards.tsx (W/L/Best/Streak labels)
+2. **New English i18n keys** — Added `transferStatuses.*`, `stats.winAbbrev`, `stats.lossAbbrev`, `stats.streak`, `stats.best`, `kingdomCard.atlasLabel`, `kingdomCard.scoreLabel`
+3. **Indonesian translations fixed** — Translated 60+ English words across all sections: Prep→Persiapan, Battle→Pertempuran, Streak→Beruntun, Win Rate→Rasio Kemenangan, Comeback→Kebangkitan, Reversal→Pembalikan, W→M (Menang), L→K (Kalah), Score→Skor, transfer statuses + descriptions
+4. **Build verified** — `npm run build` passes with no errors
+Result: All visible English words in Indonesian UI now properly translated. Affected sections: kingdomCard, kingdomProfile, simulator, pathToTier, performanceTrend, radarLabels, table, leaderboards, outcomes, miniKingdomCard, reportKvkError, profileFeatures, admin.
+
+## 2026-02-28 | Product Engineer | COMPLETED
+Task: Increase Portuguese (PT) translation quality — fix Spanish remnants + expand coverage
+Files: `src/locales/pt/translation.json`, `public/locales/pt/translation.json`
+Changes:
+1. **Full rebuild from scratch** — Replaced broken ES→PT automated conversion with comprehensive EN→PT + ES→PT mapping system (300+ exact translations, 200+ word-level ES→PT replacements)
+2. **Fixed ~375 Spanish remnant strings** — Sentences containing Spanish words (mientras, necesitas, acceder, Gestionar, etc.) replaced with proper Portuguese
+3. **110 path-based manual overrides** — High-quality hand-written Portuguese for key UI strings (tools descriptions, error messages, onboarding flows, battlePlanner, transferHub, recruiter, etc.)
+4. **Coverage: 98.1%** (3,133 of 3,202 translated; remaining 69 are intentionally English: game terms, brand names, universal abbreviations)
+5. **Build verified** — `npm run build` passes with no errors, dev server running at localhost:3003
+Result: Portuguese translation quality dramatically improved. No Spanish remnants remain. App supported languages: 12 (EN, ES, FR, ZH, DE, KO, JA, AR, TR, ID, RU, PT).
+
+## 2026-02-28 | Product Engineer | COMPLETED
+Task: Increase Indonesian (ID) translation coverage from 36.4% to 94.4%
+Files: `public/locales/id/translation.json`, `src/locales/id/translation.json`, `scripts/gen_id_part{1-11}.py`, `scripts/gen_id_main.py`
+Changes:
+1. **Created 11-part translation dictionary** — 1,963 unique English→Indonesian mappings covering all app sections (prepScheduler, botDashboard, recruiter, transferHub, battlePlanner, battleRegistry, etc.)
+2. **Recursive merge script** — `gen_id_main.py` combines all parts, preserves existing translations, applies dictionary recursively to English source, counts coverage including intentionally-kept-English gaming terms
+3. **Coverage: 36.4% → 94.4%** (1,160 → 3,011 of 3,191 string keys translated)
+4. **Build verified** — `npm run build` passes with no errors
+Result: Indonesian language now at 94.4% coverage. Remaining ~180 untranslated keys are deeply nested section-specific strings. App supported languages: 10 (EN, ES, FR, ZH, DE, KO, JA, AR, TR, ID).
+
+## 2026-02-27 08:15 | Product Engineer | COMPLETED
+Task: Fix "Player ID already linked to another Atlas account" false positive
+Files: `src/components/LinkKingshotAccount.tsx`
+Changes:
+1. **Root cause** — `handleVerify()` duplicate check queried `profiles` for any row with matching `linked_player_id` but did NOT exclude the current user. If user's profile already had the ID linked (e.g. stale frontend state showed Link form again), they'd be blocked by their own record.
+2. **Fix** — Added `supabase.auth.getSession()` to get current user ID, then `.neq('id', currentUserId)` to exclude self from uniqueness query. Matches existing pattern in `AccountSwitcher.tsx`.
+Result: Build passes. Users can re-link their own player ID without false "already linked" error. Other users' IDs still correctly blocked.
+
 ## 2026-02-28 03:15 | Design Lead | COMPLETED
 Task: Revert footer to original look + fix footer jumping during page load
 Files: `src/components/SiteFooter.tsx`, `src/App.tsx`

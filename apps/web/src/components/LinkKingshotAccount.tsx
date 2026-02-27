@@ -281,11 +281,20 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
 
       // Check if this player ID is already linked to another Atlas account
       if (supabase) {
-        const { data: existing } = await supabase
+        const { data: { session } } = await supabase.auth.getSession();
+        const currentUserId = session?.user?.id;
+
+        let query = supabase
           .from('profiles')
           .select('username')
-          .eq('linked_player_id', playerId.trim())
-          .maybeSingle();
+          .eq('linked_player_id', playerId.trim());
+
+        // Exclude current user — they may be re-linking their own ID
+        if (currentUserId) {
+          query = query.neq('id', currentUserId);
+        }
+
+        const { data: existing } = await query.maybeSingle();
 
         if (existing) {
           setError(t('linkAccount.alreadyLinked', 'This Player ID is already linked to another Atlas account.'));

@@ -74,7 +74,7 @@ const Messages: React.FC = () => {
         .from('transfer_applications')
         .select('id, kingdom_number, status, applied_at, applicant_user_id')
         .eq('applicant_user_id', user.id)
-        .in('status', ['pending', 'viewed', 'accepted']);
+        .in('status', ['pending', 'viewed', 'interested', 'accepted']);
 
       // Get all applications where user is kingdom editor
       const { data: editorRows } = await supabase
@@ -89,7 +89,7 @@ const Messages: React.FC = () => {
           .from('transfer_applications')
           .select('id, kingdom_number, status, applied_at, applicant_user_id')
           .in('kingdom_number', editorKingdoms)
-          .in('status', ['pending', 'viewed', 'accepted']);
+          .in('status', ['pending', 'viewed', 'interested', 'accepted']);
         recruiterApps = data || [];
       }
 

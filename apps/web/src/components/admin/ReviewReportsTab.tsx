@@ -162,7 +162,7 @@ export const ReviewReportsTab: React.FC<ReviewReportsTabProps> = ({ filter }) =>
                   border: '1px solid #1e1e1e', marginBottom: '0.5rem',
                   fontSize: '0.8rem', color: '#9ca3af', lineHeight: 1.5, fontStyle: 'italic',
                 }}>
-                  "{report.details}"
+                  &quot;{report.details}&quot;
                 </div>
               )}
 

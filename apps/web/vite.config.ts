@@ -78,9 +78,10 @@ export default defineConfig({
             if (id.includes('@tanstack/react-query')) return 'query';
             if (id.includes('@tanstack/react-virtual')) return 'virtual';
             if (id.includes('@headlessui') || id.includes('@heroicons')) return 'ui';
+            if (id.includes('@floating-ui')) return 'ui';
             if (id.includes('@supabase')) return 'supabase';
             if (id.includes('@sentry')) return 'sentry';
-            if (id.includes('i18next') || id.includes('react-i18next')) return 'i18n';
+            if (id.includes('i18next') || id.includes('react-i18next') || id.includes('i18next-browser-languagedetector') || id.includes('i18next-http-backend')) return 'i18n';
             if (id.includes('recharts') || id.includes('d3-') || id.includes('victory')) return 'charts';
             if (id.includes('html2canvas')) return 'html2canvas';
             if (id.includes('zod')) return 'zod';

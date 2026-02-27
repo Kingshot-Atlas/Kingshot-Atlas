@@ -741,7 +741,7 @@ export const ReferralIntelligence: React.FC = () => {
           <div style={{ ...cardStyle, marginBottom: '1rem' }}>
             <h4 style={{ color: '#fff', fontSize: '0.85rem', margin: '0 0 0.75rem', fontWeight: '600' }}>✏️ Manually Assign Referral</h4>
             <p style={{ color: '#6b7280', fontSize: '0.75rem', margin: '0 0 1rem', lineHeight: 1.5 }}>
-              Add a verified referral for a user who wasn't automatically tracked. Enter the referrer's and referred user's linked username or player ID.
+              Add a verified referral for a user who wasn&apos;t automatically tracked. Enter the referrer&apos;s and referred user&apos;s linked username or player ID.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <div>

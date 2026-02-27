@@ -7,8 +7,8 @@ import Header from './components/Header';
 import ErrorBoundary from './components/ErrorBoundary';
 import RouteErrorBoundary from './components/RouteErrorBoundary';
 import { ToastProvider } from './components/Toast';
-import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
-import FeedbackWidget from './components/FeedbackWidget';
+const KeyboardShortcutsModal = lazy(() => import('./components/KeyboardShortcutsModal'));
+const FeedbackWidget = lazy(() => import('./components/FeedbackWidget'));
 import SignupNudgeBar from './components/SignupNudgeBar';
 import SiteFooter from './components/SiteFooter';
 import KvKPhaseBanner from './components/KvKPhaseBanner';
@@ -126,7 +126,7 @@ function AppContent() {
       <Header />
       <CampaignSettlersBanner />
       <KvKPhaseBanner />
-      <KeyboardShortcutsModal isOpen={showHelp} onClose={closeHelp} />
+      <Suspense fallback={null}><KeyboardShortcutsModal isOpen={showHelp} onClose={closeHelp} /></Suspense>
       <main className="container mx-auto px-4 py-8 flex-1" aria-label="Main content">
         <PageTransition>
           <Suspense fallback={<PageLoader />}>
@@ -184,7 +184,7 @@ function AppContent() {
         </PageTransition>
       </main>
       <SiteFooter />
-      <FeedbackWidget />
+      <Suspense fallback={null}><FeedbackWidget /></Suspense>
       <SignupNudgeBar />
     </div>
   );

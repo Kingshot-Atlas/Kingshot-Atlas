@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 import { useAnalytics } from '../hooks/useAnalytics';
 
@@ -7,6 +8,7 @@ const TransferReadinessScore: React.FC<{
   hasLinkedAccount: boolean;
   isMobile: boolean;
 }> = ({ userId, hasLinkedAccount, isMobile }) => {
+  const { t } = useTranslation();
   const { trackFeature } = useAnalytics();
   const [transferProfile, setTransferProfile] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,12 +59,12 @@ const TransferReadinessScore: React.FC<{
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
           <span style={{ fontSize: '1rem' }}>🚀</span>
           <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
-            Transfer Readiness
+            {t('transferReadiness.title', 'Transfer Readiness')}
           </h3>
           <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: '400' }}>0%</span>
         </div>
         <p style={{ color: '#9ca3af', fontSize: '0.8rem', margin: '0 0 0.75rem 0', lineHeight: 1.5 }}>
-          Create a Transfer Profile to get matched with kingdoms and apply directly from the Transfer Hub.
+          {t('transferReadiness.createDesc', 'Create a Transfer Profile to get matched with kingdoms and apply directly from the Transfer Hub.')}
         </p>
         <a
           href="/transfer-hub"
@@ -82,7 +84,7 @@ const TransferReadinessScore: React.FC<{
             minHeight: '44px',
           }}
         >
-          Create Transfer Profile →
+          {t('transferReadiness.createProfile', 'Create Transfer Profile →')}
         </a>
       </div>
     );
@@ -91,16 +93,16 @@ const TransferReadinessScore: React.FC<{
   // Calculate readiness
   const tp = transferProfile;
   const checks = [
-    { label: 'Power set', done: !!(tp.power_million && (tp.power_million as number) > 0) },
-    { label: 'Language set', done: !!tp.main_language },
-    { label: 'KvK availability', done: !!tp.kvk_availability },
-    { label: 'Saving preference', done: !!tp.saving_for_kvk },
-    { label: 'Looking for tags', done: Array.isArray(tp.looking_for) && (tp.looking_for as string[]).length > 0 },
-    { label: 'Group size', done: !!tp.group_size },
-    { label: 'Player bio', done: !!(tp.player_bio && (tp.player_bio as string).trim()) },
-    { label: 'Play schedule', done: Array.isArray(tp.play_schedule) && (tp.play_schedule as unknown[]).length > 0 },
-    { label: 'Contact method', done: !!tp.contact_method },
-    { label: 'Visible to recruiters', done: !!tp.visible_to_recruiters },
+    { label: t('transferReadiness.powerSet', 'Power set'), done: !!(tp.power_million && (tp.power_million as number) > 0) },
+    { label: t('transferReadiness.languageSet', 'Language set'), done: !!tp.main_language },
+    { label: t('transferReadiness.kvkAvailability', 'KvK availability'), done: !!tp.kvk_availability },
+    { label: t('transferReadiness.savingPreference', 'Saving preference'), done: !!tp.saving_for_kvk },
+    { label: t('transferReadiness.lookingForTags', 'Looking for tags'), done: Array.isArray(tp.looking_for) && (tp.looking_for as string[]).length > 0 },
+    { label: t('transferReadiness.groupSize', 'Group size'), done: !!tp.group_size },
+    { label: t('transferReadiness.playerBio', 'Player bio'), done: !!(tp.player_bio && (tp.player_bio as string).trim()) },
+    { label: t('transferReadiness.playSchedule', 'Play schedule'), done: Array.isArray(tp.play_schedule) && (tp.play_schedule as unknown[]).length > 0 },
+    { label: t('transferReadiness.contactMethod', 'Contact method'), done: !!tp.contact_method },
+    { label: t('transferReadiness.visibleToRecruiters', 'Visible to recruiters'), done: !!tp.visible_to_recruiters },
   ];
 
   const doneCount = checks.filter(c => c.done).length;
@@ -123,7 +125,7 @@ const TransferReadinessScore: React.FC<{
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span style={{ fontSize: '1rem' }}>🚀</span>
           <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
-            Transfer Readiness
+            {t('transferReadiness.title', 'Transfer Readiness')}
           </h3>
         </div>
         <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: barColor }}>{pct}%</span>
@@ -164,7 +166,7 @@ const TransferReadinessScore: React.FC<{
           textDecoration: 'none',
         }}
       >
-        Edit Transfer Profile →
+        {t('transferReadiness.editProfile', 'Edit Transfer Profile →')}
       </a>
     </div>
   );
