@@ -3,6 +3,17 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-27 | Product Engineer | COMPLETED
+Task: Critical recommendations — bundle optimization, accessibility, language fix
+Files: `Header.tsx`, `ReportDataModal.tsx`, `ReportKvKErrorModal.tsx`, `ContributionSuccessModal.tsx`, `RateKingdomModal.tsx`, `i18n.ts`, `KingdomCard.tsx`, `ProfileFeatures.tsx`, `editor-claiming/*`, `transfer/types.ts`, `KingdomListingCard.tsx`, `EditorClaiming.tsx`
+Changes:
+1. **Language fix** — Renamed "Bahasa Indonesia" → "Indonesian" in language selector (i18n.ts)
+2. **Bundle size** — Lazy-loaded AuthModal + NotificationBell in Header (index.js 339KB→332KB gzip 100→98KB)
+3. **Component decomposition** — EditorClaiming.tsx (1319→5 lines) split into 6 sub-components in editor-claiming/; KingdomListingCard shared types extracted to transfer/types.ts
+4. **Accessibility** — Added role="button", tabIndex, onKeyDown to KingdomCard (title + KvK chips) and ProfileFeatures (3 navigable cards); Added Escape key dismiss to ReportDataModal, ReportKvKErrorModal, ContributionSuccessModal, RateKingdomModal
+5. **Build verified** — 3.96s, 0 errors. Two commits deployed: 5d234e2, 7985427
+Result: Bundle size reduced, a11y improved (8 components fixed), EditorClaiming fully decomposed. All changes deployed to production via CF Pages.
+
 ## 2026-02-28 | Product Engineer | COMPLETED
 Task: Fix remaining English words in Indonesian (ID) translated pages
 Files: `public/locales/id/translation.json`, `src/locales/id/translation.json`, `src/locales/en/translation.json`, `TransferStatus.tsx`, `WinRates.tsx`, `KingdomCard.tsx`, `PhaseCards.tsx`
