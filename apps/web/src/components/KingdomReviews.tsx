@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth, getCacheBustedAvatarUrl } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import AuthModal from './AuthModal';
-import { getDisplayTier, SUBSCRIPTION_COLORS, SubscriptionTier, ReferralTier, isReferralEligible } from '../utils/constants';
-import ReferralBadge from './ReferralBadge';
-import { colors, neonGlow } from '../utils/styles';
+import { isReferralEligible } from '../utils/constants';
+import { colors } from '../utils/styles';
 import { reviewService, ReviewWithVoteStatus, ReviewReply, Review, ReportReason } from '../services/reviewService';
 import { logger } from '../utils/logger';
 import { isSupabaseConfigured } from '../lib/supabase';
@@ -12,37 +11,9 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
 import { incrementStat } from './UserAchievements';
 import { useGoldKingdoms } from '../hooks/useGoldKingdoms';
-
-interface KingdomReviewsProps {
-  kingdomNumber: number;
-  compact?: boolean;
-}
-
-const MIN_TC_LEVEL = 20;
-const MIN_COMMENT_LENGTH = 10;
-const MAX_COMMENT_LENGTH = 200;
-
-// Get username color based on display tier (includes admin and gilded)
-const getUsernameColor = (tier: SubscriptionTier): string => {
-  switch (tier) {
-    case 'admin': return SUBSCRIPTION_COLORS.admin;
-    case 'gilded': return SUBSCRIPTION_COLORS.gilded;
-    case 'supporter': return SUBSCRIPTION_COLORS.supporter;
-    default: return colors.text;
-  }
-};
-
-// Get avatar border color
-const getAvatarBorderColor = (tier: SubscriptionTier): string => {
-  switch (tier) {
-    case 'admin': return SUBSCRIPTION_COLORS.admin;
-    case 'gilded': return SUBSCRIPTION_COLORS.gilded;
-    case 'supporter': return SUBSCRIPTION_COLORS.supporter;
-    default: return colors.text;
-  }
-};
-
-type SortOption = 'newest' | 'helpful' | 'highest' | 'lowest';
+import ReviewCard from './kingdom-reviews/ReviewCard';
+import ReviewForm from './kingdom-reviews/ReviewForm';
+import { KingdomReviewsProps, SortOption, MIN_TC_LEVEL } from './kingdom-reviews/types';
 
 const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact = false }) => {
   const { t } = useTranslation();
@@ -442,192 +413,16 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
         </div>
       )}
 
-      {showForm && user && canSubmitNewReview && (
-        <div style={{ 
-          backgroundColor: colors.bg, 
-          borderRadius: '8px', 
-          padding: '1rem', 
-          marginBottom: '1rem',
-          border: `1px solid ${colors.border}`
-        }}>
-          {/* Show linked Kingshot account profile */}
-          {(() => {
-            const displayTier = getDisplayTier(profile?.subscription_tier, profile?.linked_username, profile?.linked_kingdom, goldKingdoms);
-            const usernameColor = getUsernameColor(displayTier);
-            const avatarBorderColor = getAvatarBorderColor(displayTier);
-            const isPaidOrAdmin = displayTier === 'supporter' || displayTier === 'admin';
-            
-            return (
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '0.75rem', 
-                marginBottom: '0.75rem',
-                padding: '0.5rem',
-                backgroundColor: '#151515',
-                borderRadius: '6px',
-                border: `1px solid ${colors.border}`
-              }}>
-                {/* Avatar with tier-colored border */}
-                <div style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  backgroundColor: colors.surfaceHover,
-                  border: `2px solid ${avatarBorderColor}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden',
-                  flexShrink: 0,
-                  ...(displayTier !== 'free' ? { boxShadow: `0 0 8px ${avatarBorderColor}40` } : {})
-                }}>
-                  {profile?.linked_avatar_url ? (
-                    <img 
-                      src={getCacheBustedAvatarUrl(profile.linked_avatar_url)} 
-                      alt="" 
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <span style={{ fontSize: '0.9rem', color: usernameColor }}>
-                      {(profile?.linked_username || 'U').charAt(0).toUpperCase()}
-                    </span>
-                  )}
-                </div>
-                
-                {/* Username with tier color */}
-                <span style={{ 
-                  color: usernameColor, 
-                  fontSize: '0.85rem', 
-                  fontWeight: '600',
-                  ...(isPaidOrAdmin ? neonGlow(usernameColor) : {})
-                }}>
-                  {profile?.linked_username}
-                </span>
-                
-                {/* Tier badge */}
-                {displayTier === 'admin' && (
-                  <span style={{
-                    fontSize: '0.55rem',
-                    padding: '0.1rem 0.25rem',
-                    backgroundColor: `${SUBSCRIPTION_COLORS.admin}15`,
-                    border: `1px solid ${SUBSCRIPTION_COLORS.admin}40`,
-                    borderRadius: '3px',
-                    color: SUBSCRIPTION_COLORS.admin,
-                    fontWeight: '600',
-                  }}>
-                    ADMIN
-                  </span>
-                )}
-                {displayTier === 'supporter' && (
-                  <span style={{
-                    fontSize: '0.55rem',
-                    padding: '0.1rem 0.25rem',
-                    backgroundColor: `${SUBSCRIPTION_COLORS.supporter}15`,
-                    border: `1px solid ${SUBSCRIPTION_COLORS.supporter}40`,
-                    borderRadius: '3px',
-                    color: SUBSCRIPTION_COLORS.supporter,
-                    fontWeight: '600',
-                  }}>
-                    SUPPORTER
-                  </span>
-                )}
-                {profile?.referral_tier && (
-                  <ReferralBadge tier={profile.referral_tier as ReferralTier} />
-                )}
-              </div>
-            );
-          })()}
-          <div style={{ marginBottom: '0.75rem' }}>
-            <span style={{ color: colors.textMuted, fontSize: '0.8rem', marginRight: '0.5rem' }}>{t('reviews.rating', 'Rating:')}</span>
-            {[1,2,3,4,5].map(n => (
-              <button
-                key={n}
-                onClick={() => setNewReview(prev => ({ ...prev, rating: n }))}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: isMobile ? '1.5rem' : '1.25rem',
-                  padding: isMobile ? '0.5rem' : '0.25rem',
-                  minWidth: isMobile ? '44px' : 'auto',
-                  minHeight: isMobile ? '44px' : 'auto',
-                  color: n <= newReview.rating ? '#fbbf24' : '#4a4a4a'
-                }}
-              >★</button>
-            ))}
-          </div>
-          <textarea
-            placeholder={t('reviews.placeholder', 'Brief review, max 200 characters...')}
-            value={newReview.comment}
-            onChange={(e) => setNewReview(prev => ({ ...prev, comment: e.target.value }))}
-            maxLength={MAX_COMMENT_LENGTH}
-            style={{
-              width: '100%',
-              padding: '0.5rem',
-              backgroundColor: '#151515',
-              border: `1px solid ${colors.border}`,
-              borderRadius: '6px',
-              color: colors.text,
-              minHeight: '80px',
-              resize: 'vertical',
-              fontSize: '0.85rem',
-              marginBottom: '0.75rem'
-            }}
-          />
-          {/* Character counter */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-0.5rem', marginBottom: '0.5rem' }}>
-            <span style={{
-              fontSize: '0.7rem',
-              color: newReview.comment.length >= MAX_COMMENT_LENGTH ? '#ef4444'
-                : newReview.comment.length >= MAX_COMMENT_LENGTH * 0.8 ? '#f59e0b'
-                : '#6b7280'
-            }}>
-              {newReview.comment.length}/{MAX_COMMENT_LENGTH}
-            </span>
-          </div>
-
-          {/* Review preview */}
-          {newReview.comment.trim().length >= MIN_COMMENT_LENGTH && (
-            <div style={{
-              backgroundColor: colors.bg,
-              border: `1px solid ${colors.border}`,
-              borderRadius: '6px',
-              padding: '0.5rem 0.75rem',
-              marginBottom: '0.75rem'
-            }}>
-              <div style={{ fontSize: '0.65rem', color: colors.textMuted, marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('reviews.preview', 'Preview')}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.25rem' }}>
-                <span style={{ color: '#fbbf24', fontSize: '0.75rem' }}>
-                  {'★'.repeat(newReview.rating)}{'☆'.repeat(5 - newReview.rating)}
-                </span>
-              </div>
-              <p style={{ color: colors.textSecondary, fontSize: '0.8rem', lineHeight: 1.4, margin: 0 }}>
-                {newReview.comment.trim()}
-              </p>
-            </div>
-          )}
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <button
-              onClick={handleSubmitReview}
-              disabled={!newReview.comment.trim() || newReview.comment.length < MIN_COMMENT_LENGTH || submitting}
-              style={{
-                padding: isMobile ? '0.75rem 1.5rem' : '0.5rem 1.5rem',
-                minHeight: isMobile ? '44px' : 'auto',
-                backgroundColor: newReview.comment.trim() && newReview.comment.length >= MIN_COMMENT_LENGTH && !submitting ? '#22d3ee' : '#2a2a2a',
-                border: 'none',
-                borderRadius: '6px',
-                color: colors.text,
-                cursor: newReview.comment.trim() && newReview.comment.length >= MIN_COMMENT_LENGTH && !submitting ? 'pointer' : 'not-allowed',
-                fontSize: isMobile ? '0.9rem' : '0.85rem'
-              }}
-            >
-              {submitting ? t('reviews.submitting', 'Submitting...') : t('reviews.submitReview', 'Submit Review')}
-            </button>
-          </div>
-        </div>
+      {showForm && user && canSubmitNewReview && profile && (
+        <ReviewForm
+          profile={profile}
+          goldKingdoms={goldKingdoms}
+          isMobile={isMobile}
+          newReview={newReview}
+          submitting={submitting}
+          onSetNewReview={setNewReview}
+          onSubmit={handleSubmitReview}
+        />
       )}
 
       {/* Loading state */}
@@ -835,462 +630,48 @@ const KingdomReviews: React.FC<KingdomReviewsProps> = ({ kingdomNumber, compact 
               {t('reviews.beFirst', 'No reviews yet. Be the first to share your experience!')}
             </div>
           ) : (
-            sortedReviews.slice(0, visibleCount).map(review => {
-              // Get tier for display - use linked username for admin check
-              const displayTier = getDisplayTier(review.author_subscription_tier, review.author_linked_username, review.author_linked_kingdom, goldKingdoms);
-              const usernameColor = getUsernameColor(displayTier);
-              const avatarBorderColor = getAvatarBorderColor(displayTier);
-              const isPaidOrAdmin = displayTier === 'supporter' || displayTier === 'admin';
-              const isOwnReview = user?.id === review.user_id;
-              const isAdmin = profile?.is_admin;
-              const isEditing = editingReviewId === review.id;
-              const isVerifiedReviewer = review.author_linked_kingdom === kingdomNumber;
-              
-              return (
-                <div key={review.id} style={{
-                  backgroundColor: colors.bg,
-                  borderRadius: '8px',
-                  padding: '0.75rem',
-                  border: isOwnReview ? '1px solid #22d3ee30' : '1px solid #2a2a2a'
-                }}>
-                  {isEditing ? (
-                    // Edit mode
-                    <div>
-                      <div style={{ marginBottom: '0.75rem' }}>
-                        <span style={{ color: colors.textMuted, fontSize: '0.8rem', marginRight: '0.5rem' }}>{t('reviews.rating', 'Rating:')}</span>
-                        {[1,2,3,4,5].map(n => (
-                          <button
-                            key={n}
-                            onClick={() => setEditForm(prev => ({ ...prev, rating: n }))}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              cursor: 'pointer',
-                              fontSize: '1rem',
-                              color: n <= editForm.rating ? '#fbbf24' : '#4a4a4a'
-                            }}
-                          >★</button>
-                        ))}
-                      </div>
-                      <textarea
-                        value={editForm.comment}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, comment: e.target.value }))}
-                        maxLength={MAX_COMMENT_LENGTH}
-                        style={{
-                          width: '100%',
-                          padding: '0.5rem',
-                          backgroundColor: '#151515',
-                          border: `1px solid ${colors.border}`,
-                          borderRadius: '6px',
-                          color: colors.text,
-                          minHeight: '60px',
-                          resize: 'vertical',
-                          fontSize: '0.8rem',
-                          marginBottom: '0.5rem'
-                        }}
-                      />
-                      {/* Edit character counter */}
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-0.25rem', marginBottom: '0.25rem' }}>
-                        <span style={{
-                          fontSize: '0.65rem',
-                          color: editForm.comment.length >= MAX_COMMENT_LENGTH ? '#ef4444'
-                            : editForm.comment.length >= MAX_COMMENT_LENGTH * 0.8 ? '#f59e0b'
-                            : '#6b7280'
-                        }}>
-                          {editForm.comment.length}/{MAX_COMMENT_LENGTH}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button
-                          onClick={() => handleUpdateReview(review.id)}
-                          disabled={submitting || editForm.comment.length < MIN_COMMENT_LENGTH}
-                          style={{
-                            padding: isMobile ? '0.5rem 1rem' : '0.3rem 0.75rem',
-                            minHeight: isMobile ? '44px' : 'auto',
-                            backgroundColor: '#22d3ee',
-                            border: 'none',
-                            borderRadius: '4px',
-                            color: colors.text,
-                            fontSize: isMobile ? '0.8rem' : '0.75rem',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          {submitting ? t('reviews.saving', 'Saving...') : t('common.save', 'Save')}
-                        </button>
-                        <button
-                          onClick={() => setEditingReviewId(null)}
-                          style={{
-                            padding: isMobile ? '0.5rem 1rem' : '0.3rem 0.75rem',
-                            minHeight: isMobile ? '44px' : 'auto',
-                            backgroundColor: colors.border,
-                            border: 'none',
-                            borderRadius: '4px',
-                            color: colors.textSecondary,
-                            fontSize: isMobile ? '0.8rem' : '0.75rem',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          {t('common.cancel', 'Cancel')}
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    // Display mode
-                    <>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                        {/* Author profile with linked account */}
-                        <Link 
-                          to={`/profile/${review.user_id}`}
-                          style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            gap: '0.5rem',
-                            textDecoration: 'none',
-                            flexWrap: 'wrap'
-                          }}
-                        >
-                          {/* Avatar with tier-colored border */}
-                          <div style={{
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '50%',
-                            backgroundColor: colors.surfaceHover,
-                            border: `2px solid ${avatarBorderColor}`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            overflow: 'hidden',
-                            flexShrink: 0,
-                            ...(displayTier !== 'free' ? { boxShadow: `0 0 6px ${avatarBorderColor}40` } : {})
-                          }}>
-                            {review.author_linked_avatar_url ? (
-                              <img 
-                                src={review.author_linked_avatar_url} 
-                                alt="" 
-                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                referrerPolicy="no-referrer"
-                              />
-                            ) : (
-                              <span style={{ fontSize: '0.75rem', color: usernameColor }}>
-                                {(review.author_linked_username || 'U').charAt(0).toUpperCase()}
-                              </span>
-                            )}
-                          </div>
-                          
-                          {/* Username with tier color */}
-                          <span style={{ 
-                            color: usernameColor, 
-                            fontSize: '0.85rem', 
-                            fontWeight: '600',
-                            ...(isPaidOrAdmin ? neonGlow(usernameColor) : {})
-                          }}>
-                            {review.author_linked_username}
-                          </span>
-                          
-                          {/* Reviewer's kingdom badge */}
-                          {review.author_linked_kingdom && (
-                            <span style={{
-                              fontSize: '0.6rem',
-                              padding: '0.1rem 0.3rem',
-                              backgroundColor: colors.surfaceHover,
-                              border: '1px solid #3a3a3a',
-                              borderRadius: '3px',
-                              color: colors.textMuted,
-                            }}>
-                              K{review.author_linked_kingdom}
-                            </span>
-                          )}
-                          
-                          {/* Verified Reviewer badge - shown when reviewer's home kingdom matches */}
-                          {isVerifiedReviewer && (
-                            <span style={{
-                              fontSize: '0.55rem',
-                              padding: '0.15rem 0.35rem',
-                              backgroundColor: '#22c55e15',
-                              border: '1px solid #22c55e40',
-                              borderRadius: '3px',
-                              color: '#22c55e',
-                              fontWeight: '600',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.2rem'
-                            }}>
-                              ✓ VERIFIED
-                            </span>
-                          )}
-                          
-                          {/* Tier badge */}
-                          {displayTier === 'admin' && (
-                            <span style={{
-                              fontSize: '0.5rem',
-                              padding: '0.1rem 0.2rem',
-                              backgroundColor: `${SUBSCRIPTION_COLORS.admin}15`,
-                              border: `1px solid ${SUBSCRIPTION_COLORS.admin}40`,
-                              borderRadius: '3px',
-                              color: SUBSCRIPTION_COLORS.admin,
-                              fontWeight: '600',
-                            }}>
-                              ADMIN
-                            </span>
-                          )}
-                          {displayTier === 'supporter' && (
-                            <span style={{
-                              fontSize: '0.5rem',
-                              padding: '0.1rem 0.2rem',
-                              backgroundColor: `${SUBSCRIPTION_COLORS.supporter}15`,
-                              border: `1px solid ${SUBSCRIPTION_COLORS.supporter}40`,
-                              borderRadius: '3px',
-                              color: SUBSCRIPTION_COLORS.supporter,
-                              fontWeight: '600',
-                            }}>
-                              SUPPORTER
-                            </span>
-                          )}
-                          {review.author_referral_tier && (
-                            <ReferralBadge tier={review.author_referral_tier as ReferralTier} />
-                          )}
-                        </Link>
-                        
-                        {/* Rating stars */}
-                        <span style={{ color: '#fbbf24', fontSize: '0.8rem', flexShrink: 0 }}>
-                          {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
-                        </span>
-                      </div>
-                      
-                      <p style={{ color: colors.textSecondary, fontSize: '0.8rem', lineHeight: 1.5, margin: 0 }}>
-                        {review.comment}
-                      </p>
-                      
-                      {/* Footer: date, helpful votes, actions */}
-                      <div style={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between', 
-                        alignItems: 'center',
-                        marginTop: '0.5rem',
-                        flexWrap: 'wrap',
-                        gap: '0.5rem'
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <span style={{ color: '#4a4a4a', fontSize: '0.7rem' }}>
-                            {new Date(review.created_at).toLocaleDateString()}
-                          </span>
-                          
-                          {/* Helpful vote button */}
-                          <button
-                            onClick={() => handleToggleHelpful(review.id, review.user_has_voted)}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.25rem',
-                              padding: '0.2rem 0.4rem',
-                              borderRadius: '4px',
-                              backgroundColor: review.user_has_voted ? '#22d3ee15' : 'transparent',
-                              color: review.user_has_voted ? '#22d3ee' : '#6b7280',
-                              fontSize: '0.7rem'
-                            }}
-                          >
-                            <span>👍</span>
-                            <span>{review.helpful_count > 0 ? review.helpful_count : ''}</span>
-                            <span style={{ marginLeft: '0.1rem' }}>{t('reviews.helpful', 'Helpful')}</span>
-                          </button>
-                        </div>
-                        
-                        {/* Reply, Share & Report buttons */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                          {user && (
-                            <button
-                              onClick={() => {
-                                setReplyingToId(replyingToId === review.id ? null : review.id);
-                                loadRepliesForReview(review.id);
-                              }}
-                              style={{
-                                background: 'none',
-                                border: 'none',
-                                color: colors.textMuted,
-                                fontSize: '0.7rem',
-                                cursor: 'pointer',
-                                padding: '0.2rem 0.4rem'
-                              }}
-                            >
-                              💬 {t('reviews.reply', 'Reply')}
-                            </button>
-                          )}
-                          <button
-                            onClick={() => {
-                              const refSuffix = profile && isReferralEligible(profile) && profile.linked_username
-                                ? `?ref=${encodeURIComponent(profile.linked_username)}&src=review`
-                                : '';
-                              const url = `${window.location.origin}/kingdom/${kingdomNumber}${refSuffix}#reviews`;
-                              navigator.clipboard.writeText(url);
-                            }}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              color: colors.textMuted,
-                              fontSize: '0.7rem',
-                              cursor: 'pointer',
-                              padding: '0.2rem 0.4rem'
-                            }}
-                          >
-                            🔗 {t('reviews.share', 'Share')}
-                          </button>
-                          {user && !isOwnReview && (
-                            <button
-                              onClick={() => {
-                                setReportingReviewId(review.id);
-                                setReportReason('inappropriate');
-                                setReportDetails('');
-                              }}
-                              style={{
-                                background: 'none',
-                                border: 'none',
-                                color: '#4a4a4a',
-                                fontSize: '0.7rem',
-                                cursor: 'pointer',
-                                padding: '0.2rem 0.4rem'
-                              }}
-                              title="Report this review"
-                            >
-                              🚩
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Edit/Delete buttons for own reviews or admin */}
-                        {(isOwnReview || isAdmin) && (
-                          <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            {isOwnReview && (
-                              <button
-                                onClick={() => startEditing(review)}
-                                style={{
-                                  background: 'none',
-                                  border: 'none',
-                                  color: colors.textMuted,
-                                  fontSize: '0.7rem',
-                                  cursor: 'pointer',
-                                  padding: '0.2rem 0.4rem'
-                                }}
-                              >
-                                {t('common.edit', 'Edit')}
-                              </button>
-                            )}
-                            <button
-                              onClick={() => handleDeleteReview(review.id)}
-                              style={{
-                                background: 'none',
-                                border: 'none',
-                                color: '#ef4444',
-                                fontSize: '0.7rem',
-                                cursor: 'pointer',
-                                padding: '0.2rem 0.4rem'
-                              }}
-                            >
-                              {t('common.delete', 'Delete')}
-                            </button>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Replies section */}
-                      {(reviewReplies[review.id]?.length ?? 0) > 0 && (
-                        <div style={{ marginTop: '0.75rem', paddingLeft: '1rem', borderLeft: '2px solid #2a2a2a' }}>
-                          {(reviewReplies[review.id] || []).map(reply => (
-                            <div key={reply.id} style={{ 
-                              marginBottom: '0.5rem',
-                              padding: '0.5rem',
-                              backgroundColor: '#151515',
-                              borderRadius: '6px'
-                            }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                                <span style={{ fontSize: '0.75rem', fontWeight: '600', color: colors.text }}>
-                                  {reply.author_linked_username}
-                                </span>
-                                {reply.is_official_reply && (
-                                  <span style={{
-                                    fontSize: '0.5rem',
-                                    padding: '0.1rem 0.25rem',
-                                    backgroundColor: '#22c55e15',
-                                    border: '1px solid #22c55e40',
-                                    borderRadius: '3px',
-                                    color: '#22c55e',
-                                    fontWeight: '600'
-                                  }}>
-                                    OFFICIAL
-                                  </span>
-                                )}
-                                <span style={{ fontSize: '0.6rem', color: '#4a4a4a' }}>
-                                  {new Date(reply.created_at).toLocaleDateString()}
-                                </span>
-                              </div>
-                              <p style={{ color: colors.textSecondary, fontSize: '0.75rem', lineHeight: 1.4, margin: 0 }}>
-                                {reply.reply_text}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Reply form */}
-                      {replyingToId === review.id && (
-                        <div style={{ marginTop: '0.75rem', paddingLeft: '1rem', borderLeft: '2px solid #22d3ee40' }}>
-                          <textarea
-                            value={replyText}
-                            onChange={(e) => setReplyText(e.target.value)}
-                            placeholder={t('reviews.replyPlaceholder', 'Write a reply...')}
-                            style={{
-                              width: '100%',
-                              padding: '0.5rem',
-                              backgroundColor: '#151515',
-                              border: `1px solid ${colors.border}`,
-                              borderRadius: '6px',
-                              color: colors.text,
-                              minHeight: '50px',
-                              resize: 'vertical',
-                              fontSize: '0.75rem',
-                              marginBottom: '0.5rem'
-                            }}
-                          />
-                          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                            <button
-                              onClick={() => { setReplyingToId(null); setReplyText(''); }}
-                              style={{
-                                padding: '0.3rem 0.6rem',
-                                backgroundColor: colors.border,
-                                border: 'none',
-                                borderRadius: '4px',
-                                color: colors.textSecondary,
-                                fontSize: '0.7rem',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              {t('common.cancel', 'Cancel')}
-                            </button>
-                            <button
-                              onClick={() => handleSubmitReply(review.id)}
-                              disabled={submittingReply || replyText.length < 5}
-                              style={{
-                                padding: '0.3rem 0.6rem',
-                                backgroundColor: replyText.length >= 5 ? '#22d3ee' : '#2a2a2a',
-                                border: 'none',
-                                borderRadius: '4px',
-                                color: colors.text,
-                                fontSize: '0.7rem',
-                                cursor: replyText.length >= 5 ? 'pointer' : 'not-allowed'
-                              }}
-                            >
-                              {submittingReply ? t('reviews.sending', 'Sending...') : t('reviews.reply', 'Reply')}
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              );
-            })
+            sortedReviews.slice(0, visibleCount).map(review => (
+              <ReviewCard
+                key={review.id}
+                review={review}
+                kingdomNumber={kingdomNumber}
+                isMobile={isMobile}
+                user={user}
+                profile={profile}
+                goldKingdoms={goldKingdoms}
+                editingReviewId={editingReviewId}
+                editForm={editForm}
+                submitting={submitting}
+                replyingToId={replyingToId}
+                replyText={replyText}
+                submittingReply={submittingReply}
+                reviewReplies={reviewReplies}
+                onSetEditForm={setEditForm}
+                onUpdateReview={handleUpdateReview}
+                onCancelEdit={() => setEditingReviewId(null)}
+                onStartEditing={startEditing}
+                onDeleteReview={handleDeleteReview}
+                onToggleHelpful={handleToggleHelpful}
+                onToggleReply={(reviewId) => {
+                  setReplyingToId(replyingToId === reviewId ? null : reviewId);
+                  loadRepliesForReview(reviewId);
+                }}
+                onSetReplyText={setReplyText}
+                onSubmitReply={handleSubmitReply}
+                onReport={(reviewId) => {
+                  setReportingReviewId(reviewId);
+                  setReportReason('inappropriate');
+                  setReportDetails('');
+                }}
+                onShareReview={() => {
+                  const refSuffix = profile && isReferralEligible(profile) && profile.linked_username
+                    ? `?ref=${encodeURIComponent(profile.linked_username)}&src=review`
+                    : '';
+                  const url = `${window.location.origin}/kingdom/${kingdomNumber}${refSuffix}#reviews`;
+                  navigator.clipboard.writeText(url);
+                }}
+              />
+            ))
           )}
           {/* Showing x of y + View More */}
           {sortedReviews.length > 0 && (

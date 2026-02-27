@@ -895,15 +895,15 @@ const KingdomDirectory: React.FC = () => {
           onClick={scrollToTop}
           style={{
             position: 'fixed',
-            bottom: '1rem',
+            bottom: 'max(1rem, env(safe-area-inset-bottom))',
             left: '1rem',
             width: '44px',
             height: '44px',
             padding: 0,
-            backgroundColor: '#111111',
-            border: '1px solid #2a2a2a',
+            backgroundColor: colors.surface,
+            border: `1px solid ${colors.border}`,
             borderRadius: '50%',
-            color: '#22d3ee',
+            color: colors.primary,
             cursor: 'pointer',
             boxShadow: '0 4px 15px rgba(0, 0, 0, 0.4)',
             zIndex: 1000,
@@ -913,12 +913,12 @@ const KingdomDirectory: React.FC = () => {
             justifyContent: 'center'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#1a1a1a';
-            e.currentTarget.style.borderColor = '#22d3ee';
+            e.currentTarget.style.backgroundColor = colors.surfaceHover;
+            e.currentTarget.style.borderColor = colors.primary;
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#111111';
-            e.currentTarget.style.borderColor = '#2a2a2a';
+            e.currentTarget.style.backgroundColor = colors.surface;
+            e.currentTarget.style.borderColor = colors.border;
           }}
           aria-label="Back to top"
         >

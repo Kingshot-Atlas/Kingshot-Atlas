@@ -58,7 +58,7 @@ const CompareTray: React.FC<CompareTrayProps> = ({
         aria-label="Open compare kingdoms panel"
         style={{ 
           position: 'fixed', 
-          bottom: isMobile ? '1rem' : '1.5rem', 
+          bottom: isMobile ? 'max(1rem, env(safe-area-inset-bottom))' : '1.5rem', 
           right: isMobile ? '1rem' : '1.5rem', 
           padding: isMobile ? '0.875rem 1.25rem' : '1rem 1.5rem',
           minHeight: '48px',
