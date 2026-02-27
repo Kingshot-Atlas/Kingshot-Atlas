@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import AuthModal from './AuthModal';
+const AuthModal = lazy(() => import('./AuthModal'));
 import KvKCountdown from './KvKCountdown';
-import NotificationBell from './NotificationBell';
+const NotificationBell = lazy(() => import('./NotificationBell'));
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { useTranslation } from 'react-i18next';
@@ -201,7 +201,7 @@ const Header: React.FC = () => {
               </svg>
             </a>
             {/* Notification Bell - mobile */}
-            {user && <NotificationBell />}
+            {user && <Suspense fallback={null}><NotificationBell /></Suspense>}
             {/* Mobile Language Switcher */}
             <div ref={mobileLangMenuRef} style={{ position: 'relative' }}>
               <button
@@ -355,7 +355,7 @@ const Header: React.FC = () => {
           unreadMsgCount={unreadMsgCount}
         />
       )}
-      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      {showAuthModal && <Suspense fallback={null}><AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} /></Suspense>}
     </header>
   );
 };

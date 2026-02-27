@@ -240,6 +240,13 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
     return true;
   }, [user, errorType, submitting, needsKvkSelect, selectedKvK, needsKingdom, corrOpponent, needsResults, corrPrep, corrBattle, missingKvkNumber]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handleEsc);
+    return () => document.removeEventListener('keydown', handleEsc);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async () => {
