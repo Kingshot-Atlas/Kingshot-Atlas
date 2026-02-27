@@ -8,29 +8,10 @@ import { registerChannel, unregisterChannel } from '../lib/realtimeGuard';
 import { colors, neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { logger } from '../utils/logger';
-import { translateMessage, getBrowserLanguage } from '../utils/translateMessage';
-
-// ─── Types ────────────────────────────────────────────────────
-interface Conversation {
-  application_id: string;
-  kingdom_number: number;
-  status: string;
-  other_party_name: string;
-  other_party_id: string;
-  role: 'recruiter' | 'transferee';
-  last_message: string;
-  last_message_at: string;
-  last_sender_id: string;
-  unread_count: number;
-  applied_at: string;
-}
-
-interface ChatMessage {
-  id: string;
-  sender_user_id: string;
-  message: string;
-  created_at: string;
-}
+import { getBrowserLanguage } from '../utils/translateMessage';
+import type { Conversation, ChatMessage } from './messages/types';
+import ConversationListItem from './messages/ConversationListItem';
+import ChatBubble from './messages/ChatBubble';
 
 // ─── Rate Limiter ─────────────────────────────────────────────
 const MSG_COOLDOWN_MS = 2000;
@@ -55,8 +36,6 @@ const Messages: React.FC = () => {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const msgEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [translations, setTranslations] = useState<Record<string, string>>({});
-  const [translatingId, setTranslatingId] = useState<string | null>(null);
   const browserLang = getBrowserLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [otherReadAt, setOtherReadAt] = useState<string | null>(null);
@@ -602,75 +581,17 @@ const Messages: React.FC = () => {
                 <div style={{ padding: '1.5rem', textAlign: 'center', color: colors.textMuted, fontSize: '0.75rem' }}>
                   {t('messages.noSearchResults', 'No conversations found.')}
                 </div>
-              ) : filteredConversations.map(convo => {
-                const isActive = activeConvo === convo.application_id;
-                const isUnread = convo.unread_count > 0;
-                const isMine = convo.last_sender_id === user?.id;
-                return (
-                  <div
-                    key={convo.application_id}
-                    onClick={() => setActiveConvo(convo.application_id)}
-                    style={{
-                      padding: isMobile ? '0.85rem 1rem' : '0.75rem 0.85rem',
-                      cursor: 'pointer',
-                      backgroundColor: isActive ? '#22d3ee08' : 'transparent',
-                      borderBottom: `1px solid ${colors.border}`,
-                      borderLeft: isActive ? '3px solid #22d3ee' : '3px solid transparent',
-                      transition: 'background-color 0.15s',
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                          <span style={{
-                            fontWeight: isUnread ? '700' : '500',
-                            color: isUnread ? '#fff' : colors.text,
-                            fontSize: '0.82rem',
-                          }}>
-                            {convo.other_party_name}
-                          </span>
-                          <span style={{
-                            padding: '0.05rem 0.3rem',
-                            backgroundColor: convo.role === 'recruiter' ? '#a855f710' : '#22d3ee10',
-                            border: `1px solid ${convo.role === 'recruiter' ? '#a855f720' : '#22d3ee20'}`,
-                            borderRadius: '3px',
-                            fontSize: '0.5rem',
-                            color: convo.role === 'recruiter' ? '#a855f7' : '#22d3ee',
-                            fontWeight: '600',
-                            textTransform: 'uppercase',
-                          }}>
-                            {convo.role === 'recruiter' ? t('messages.recruiter', 'Recruiter') : t('messages.transferee', 'Recruit Candidate')}
-                          </span>
-                        </div>
-                        {convo.last_message && (
-                          <p style={{
-                            margin: '0.15rem 0 0',
-                            fontSize: '0.72rem',
-                            color: isUnread ? '#d1d5db' : colors.textMuted,
-                            fontWeight: isUnread ? '500' : '400',
-                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                          }}>
-                            {isMine ? `${t('messages.you', 'You')}: ` : ''}{convo.last_message}
-                          </p>
-                        )}
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.2rem', flexShrink: 0 }}>
-                        <span style={{ fontSize: '0.6rem', color: isUnread ? '#22d3ee' : colors.textMuted }}>
-                          {formatTime(convo.last_message_at)}
-                        </span>
-                        {isUnread && (
-                          <span style={{
-                            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                            minWidth: '18px', height: '18px', padding: '0 5px',
-                            backgroundColor: '#ef4444', borderRadius: '9px',
-                            fontSize: '0.55rem', fontWeight: '700', color: '#fff',
-                          }}>{convo.unread_count}</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              ) : filteredConversations.map(convo => (
+                <ConversationListItem
+                  key={convo.application_id}
+                  convo={convo}
+                  isActive={activeConvo === convo.application_id}
+                  isMobile={isMobile}
+                  currentUserId={user?.id || ''}
+                  formatTime={formatTime}
+                  onClick={() => setActiveConvo(convo.application_id)}
+                />
+              ))}
               </div>
             </div>
           )}
@@ -735,81 +656,17 @@ const Messages: React.FC = () => {
                         {t('messages.emptyChat', 'No messages yet. Say hello!')}
                       </div>
                     ) : (
-                      messages.map(msg => {
-                        const isMe = msg.sender_user_id === user?.id;
-                        const senderName = !isMe ? senderNames[msg.sender_user_id] : undefined;
-                        const translated = translations[msg.id];
-                        return (
-                          <div key={msg.id} style={{
-                            display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start',
-                          }}>
-                            <div style={{
-                              maxWidth: isMobile ? '85%' : '75%',
-                              padding: '0.4rem 0.6rem',
-                              backgroundColor: isMe ? '#3b82f615' : '#ffffff08',
-                              border: `1px solid ${isMe ? '#3b82f630' : '#ffffff15'}`,
-                              borderRadius: isMe ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
-                            }}>
-                              {senderName && (
-                                <div style={{ color: '#a78bfa', fontSize: '0.6rem', fontWeight: 600, marginBottom: '0.1rem' }}>
-                                  {senderName}
-                                </div>
-                              )}
-                              <p style={{
-                                color: '#d1d5db', fontSize: isMobile ? '0.85rem' : '0.78rem',
-                                margin: 0, lineHeight: 1.5, wordBreak: 'break-word',
-                              }}>
-                                {msg.message}
-                              </p>
-                              {translated && (
-                                <p style={{
-                                  color: '#a78bfa', fontSize: isMobile ? '0.78rem' : '0.72rem',
-                                  margin: '0.15rem 0 0', lineHeight: 1.4, wordBreak: 'break-word',
-                                  fontStyle: 'italic', borderTop: '1px solid #ffffff10', paddingTop: '0.15rem',
-                                }}>
-                                  {translated}
-                                </p>
-                              )}
-                              <div style={{
-                                display: 'flex', alignItems: 'center',
-                                justifyContent: isMe ? 'flex-end' : 'flex-start',
-                                gap: '0.3rem', marginTop: '0.1rem',
-                              }}>
-                                <span style={{ color: '#4b5563', fontSize: '0.5rem' }}>
-                                  {(() => { const d = new Date(msg.created_at); const now = new Date(); const isToday = d.toDateString() === now.toDateString(); const yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1); const isYesterday = d.toDateString() === yesterday.toDateString(); const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }); if (isToday) return time; if (isYesterday) return `Yesterday ${time}`; return `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${time}`; })()}
-                                </span>
-                                {isMe && (
-                                  <span style={{ color: otherReadAt && new Date(otherReadAt) >= new Date(msg.created_at) ? '#3b82f6' : '#4b5563', fontSize: '0.5rem', fontWeight: 600 }}>
-                                    {otherReadAt && new Date(otherReadAt) >= new Date(msg.created_at) ? '✓✓' : '✓'}
-                                  </span>
-                                )}
-                                {!isMe && browserLang !== 'en' && (
-                                  <button
-                                    onClick={async () => {
-                                      if (translated) { setTranslations(prev => { const n = { ...prev }; delete n[msg.id]; return n; }); return; }
-                                      setTranslatingId(msg.id);
-                                      try {
-                                        const result = await translateMessage(msg.message, browserLang);
-                                        setTranslations(prev => ({ ...prev, [msg.id]: result }));
-                                      } catch { /* translation failed silently */ }
-                                      setTranslatingId(null);
-                                    }}
-                                    disabled={translatingId === msg.id}
-                                    style={{
-                                      background: 'none', border: 'none',
-                                      color: translated ? '#a78bfa' : '#6b7280',
-                                      fontSize: '0.5rem', cursor: 'pointer', padding: '0 0.15rem',
-                                      fontWeight: 600, opacity: translatingId === msg.id ? 0.5 : 1,
-                                    }}
-                                  >
-                                    {translatingId === msg.id ? '⏳' : translated ? t('messages.hideTranslation', 'Hide') : `🌐 ${t('messages.translate', 'Translate')}`}
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })
+                      messages.map(msg => (
+                        <ChatBubble
+                          key={msg.id}
+                          msg={msg}
+                          isMe={msg.sender_user_id === user?.id}
+                          isMobile={isMobile}
+                          senderName={msg.sender_user_id !== user?.id ? senderNames[msg.sender_user_id] : undefined}
+                          otherReadAt={otherReadAt}
+                          browserLang={browserLang}
+                        />
+                      ))
                     )}
                     {otherTyping && (
                       <div style={{

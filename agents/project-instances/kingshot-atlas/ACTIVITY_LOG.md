@@ -3,6 +3,12 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-27 | Platform Engineer | COMPLETED
+Task: Fix admin broadcast notification RLS policy violation (error 42501)
+Files: Supabase migration `allow_admin_insert_any_notification`
+Changes: Added RLS policy "Admins can insert any notification" on `notifications` table — allows users with `is_admin=true` to insert any notification type. The existing policy only whitelisted specific peer-to-peer types (new_application, etc.) and blocked `system_announcement` used by the admin broadcast feature.
+Result: Admin "Send to All Users" broadcast in NotificationSenderTab now works. No frontend changes needed.
+
 ## 2026-02-27 | Product Engineer | COMPLETED
 Task: Critical recommendations — bundle optimization, accessibility, language fix
 Files: `Header.tsx`, `ReportDataModal.tsx`, `ReportKvKErrorModal.tsx`, `ContributionSuccessModal.tsx`, `RateKingdomModal.tsx`, `i18n.ts`, `KingdomCard.tsx`, `ProfileFeatures.tsx`, `editor-claiming/*`, `transfer/types.ts`, `KingdomListingCard.tsx`, `EditorClaiming.tsx`

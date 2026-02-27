@@ -179,6 +179,8 @@ const ApplyModal: React.FC<{
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
       style={{
         position: 'fixed',
         top: 0, left: 0, right: 0, bottom: 0,

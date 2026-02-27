@@ -430,6 +430,8 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
       style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}
       onClick={onClose}
     >

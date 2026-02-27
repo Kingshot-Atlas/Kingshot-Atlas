@@ -149,6 +149,8 @@ const ReportDataModal: React.FC<ReportDataModalProps> = ({ kingdom, isOpen, onCl
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
       style={{
         position: 'fixed',
         inset: 0,

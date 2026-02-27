@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../../hooks/useMediaQuery';
@@ -48,8 +48,16 @@ const EndorsementOverlay: React.FC<EndorsementOverlayProps> = ({
     window.history.replaceState({}, '', newUrl);
   };
 
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') handleClose(); };
+    document.addEventListener('keydown', handleEsc);
+    return () => document.removeEventListener('keydown', handleEsc);
+  }, []);
+
   return (
     <div
+      role="dialog"
+      aria-modal="true"
       style={{
         position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
         backgroundColor: 'rgba(0, 0, 0, 0.9)',

@@ -365,7 +365,7 @@ const KvKMatchupSubmission: React.FC<KvKMatchupSubmissionProps> = ({
   // Report sub-view
   if (showReport) {
     return createPortal(
-      <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }} onClick={() => setShowReport(false)}>
+      <div role="dialog" aria-modal="true" style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }} onClick={() => setShowReport(false)}>
         <div style={{ backgroundColor: '#131318', borderRadius: '16px', border: '1px solid #2a2a2a', padding: '1.5rem', maxWidth: '420px', width: '100%' }} onClick={e => e.stopPropagation()}>
           <h3 style={{ color: '#fff', margin: '0 0 1rem', fontSize: '1rem', fontFamily: FONT_DISPLAY }}>
             🚩 Report Matchup Issue
@@ -400,6 +400,8 @@ const KvKMatchupSubmission: React.FC<KvKMatchupSubmissionProps> = ({
 
   return createPortal(
     <div
+      role="dialog"
+      aria-modal="true"
       style={{
         position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
