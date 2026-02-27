@@ -115,7 +115,7 @@ const TransfereeAppCard: React.FC<TransfereeAppCardProps> = ({
         const row = payload.new as AppMessage;
         setMessages(prev => prev.some(m => m.id === row.id) ? prev : [...prev, row]);
         if (row.sender_user_id !== user?.id) {
-          try { new Audio('/sounds/message.wav').play().catch(() => {}); } catch {}
+          try { new Audio('/sounds/message.wav').play().catch(() => {}); } catch { /* audio play best-effort */ }
         }
       })
       .subscribe();

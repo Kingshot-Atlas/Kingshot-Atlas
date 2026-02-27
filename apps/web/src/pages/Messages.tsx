@@ -312,7 +312,7 @@ const Messages: React.FC = () => {
         setMessages(prev => prev.some(m => m.id === row.id) ? prev : [...prev, row]);
         // Play sound for incoming messages
         if (row.sender_user_id !== user.id) {
-          try { new Audio('/sounds/message.wav').play().catch(() => {}); } catch {}
+          try { new Audio('/sounds/message.wav').play().catch(() => {}); } catch { /* audio play best-effort */ }
         }
         // Mark as read immediately since we're viewing
         sb.from('message_read_status')
@@ -413,7 +413,7 @@ const Messages: React.FC = () => {
                 : c
             ));
             // Play sound
-            try { new Audio('/sounds/message.wav').play().catch(() => {}); } catch {}
+            try { new Audio('/sounds/message.wav').play().catch(() => {}); } catch { /* audio play best-effort */ }
           }
         })
         .subscribe();
@@ -791,7 +791,7 @@ const Messages: React.FC = () => {
                                       try {
                                         const result = await translateMessage(msg.message, browserLang);
                                         setTranslations(prev => ({ ...prev, [msg.id]: result }));
-                                      } catch {}
+                                      } catch { /* translation failed silently */ }
                                       setTranslatingId(null);
                                     }}
                                     disabled={translatingId === msg.id}

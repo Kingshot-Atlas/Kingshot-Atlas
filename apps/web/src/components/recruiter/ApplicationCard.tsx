@@ -140,7 +140,7 @@ const ApplicationCard: React.FC<{
           return [...prev, row];
         });
         if (row.sender_user_id !== user?.id) {
-          try { new Audio('/sounds/message.wav').play().catch(() => {}); } catch {}
+          try { new Audio('/sounds/message.wav').play().catch(() => {}); } catch { /* audio play best-effort */ }
           // Mark as read since user is viewing this conversation
           if (user && sb) {
             sb.from('message_read_status')

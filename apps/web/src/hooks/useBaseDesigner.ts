@@ -246,14 +246,14 @@ export function useBaseDesigner(readOnlyDesign?: BaseDesign | null) {
 
   // Save to localStorage as backup
   const saveToLocal = useCallback((designs: BaseDesign[]) => {
-    try { localStorage.setItem('atlas_base_designs', JSON.stringify(designs)); } catch {}
+    try { localStorage.setItem('atlas_base_designs', JSON.stringify(designs)); } catch { /* storage full or unavailable */ }
   }, []);
 
   const getLocalDesigns = useCallback((): BaseDesign[] => {
     try {
       const saved = localStorage.getItem('atlas_base_designs');
       return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
+    } catch { /* corrupted storage */ return []; }
   }, []);
 
   // Save/Load/Export/Import
@@ -444,7 +444,7 @@ export function useBaseDesigner(readOnlyDesign?: BaseDesign | null) {
               return;
             }
           }
-        } catch {}
+        } catch { /* cloud restore failed, fall through */ }
       }
       // Fallback: restore from localStorage
       if (!cancelled) {
@@ -463,7 +463,7 @@ export function useBaseDesigner(readOnlyDesign?: BaseDesign | null) {
             if (s.zoom != null) setZoom(s.zoom);
             if (s.showLabels != null) setShowLabels(s.showLabels);
           }
-        } catch {}
+        } catch { /* local restore failed */ }
       }
     };
     restore().finally(() => {
@@ -480,7 +480,7 @@ export function useBaseDesigner(readOnlyDesign?: BaseDesign | null) {
       localStorage.setItem('atlas_base_designer_session', JSON.stringify({
         buildings, designName, centerX, centerY, zoom, showLabels, savedAt: new Date().toISOString(),
       }));
-    } catch {}
+    } catch { /* storage full or unavailable */ }
   }, [buildings, designName, centerX, centerY, zoom, showLabels]);
 
   // Keyboard shortcuts

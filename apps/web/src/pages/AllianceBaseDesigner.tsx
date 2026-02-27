@@ -322,7 +322,7 @@ const AllianceBaseDesigner: React.FC = () => {
                       designer.setZoom(8);
                       try {
                         localStorage.removeItem('atlas_base_designer_session');
-                      } catch {}
+                      } catch { /* storage unavailable */ }
                     }
                   }}
                   style={{

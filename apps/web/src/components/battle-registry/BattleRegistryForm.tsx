@@ -159,7 +159,7 @@ const BattleRegistryForm: React.FC<BattleRegistryFormProps> = ({
     color: colors.textSecondary, fontSize: '0.75rem', fontWeight: 600, display: 'block', marginBottom: '0.3rem',
   };
   const selectStyle: React.CSSProperties = {
-    ...inputStyle, cursor: 'pointer', appearance: 'auto' as 'auto',
+    ...inputStyle, cursor: 'pointer', appearance: 'auto' as const,
   };
 
   const isClosed = registry.status === 'closed' || registry.status === 'archived';

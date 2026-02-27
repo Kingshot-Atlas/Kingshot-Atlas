@@ -90,7 +90,7 @@ const TransfereeDashboard: React.FC<{
           setPerAppUnread(prev => ({ ...prev, [appId]: (prev[appId] || 0) + 1 }));
           setUnreadMsgCount(prev => prev + 1);
           setPerAppLastMsg(prev => ({ ...prev, [appId]: { message: row.message, created_at: row.created_at } }));
-          try { new Audio('/sounds/message.wav').play().catch(() => {}); } catch {}
+          try { new Audio('/sounds/message.wav').play().catch(() => {}); } catch { /* audio play best-effort */ }
         })
         .subscribe();
     }).filter(Boolean);
