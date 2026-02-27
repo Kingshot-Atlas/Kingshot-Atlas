@@ -332,8 +332,8 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
         </div>
       </ProfileField>
 
-      {/* Kingdom Bio (Silver+) */}
-      <ProfileField label="Kingdom Bio" tierRequired="silver" currentTier={fund.tier}>
+      {/* Kingdom Bio (Free+) */}
+      <ProfileField label="Kingdom Bio" tierRequired="standard" currentTier={fund.tier}>
         <textarea
           value={profileDraft.recruitment_pitch ?? fund.recruitment_pitch ?? ''}
           onChange={(e) => setProfileDraft(d => ({ ...d, recruitment_pitch: e.target.value.slice(0, 150) || null }))}
@@ -347,8 +347,8 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
         </span>
       </ProfileField>
 
-      {/* Languages (Silver+) */}
-      <ProfileField label="Languages" tierRequired="silver" currentTier={fund.tier}>
+      {/* Languages (Free+) */}
+      <ProfileField label="Languages" tierRequired="standard" currentTier={fund.tier}>
         <div style={{ marginBottom: '0.4rem' }}>
           <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>{t('recruiter.mainLanguage', 'Main Language')}</span>
           <select
