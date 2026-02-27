@@ -3,6 +3,17 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-27 | Product Engineer | COMPLETED
+Task: Accessibility deep pass + component decomposition (Messages, ReferralIntelligence)
+Files: `ReportDataModal.tsx`, `ReportKvKErrorModal.tsx`, `KvKMatchupSubmission.tsx`, `TransferApplications.tsx`, `ContributionSuccessModal.tsx`, `RateKingdomModal.tsx`, `DesignModal.tsx`, `EndorsementOverlay.tsx`, `Messages.tsx`, `ReferralIntelligence.tsx`, `pages/messages/*`, `referral-intelligence/types.ts`
+Changes:
+1. **A11y: role=dialog + aria-modal** — Added to 8 modals that were missing proper dialog semantics
+2. **A11y: Escape key** — Added dismiss-on-Escape to DesignModal and EndorsementOverlay (8 modals now have Escape support total)
+3. **Decompose Messages.tsx** — 906→762 lines; extracted ConversationListItem, ChatBubble, and types to pages/messages/
+4. **Decompose ReferralIntelligence.tsx** — 807→757 lines; extracted types + SOURCE_CONFIG to referral-intelligence/types.ts
+5. **Build verified** — 4.09s, 0 errors. Commit ea4a183 deployed via CF Pages.
+Result: All modals now have proper a11y dialog semantics. Both oversized components now under 800-line lint threshold.
+
 ## 2026-02-27 | Platform Engineer | COMPLETED
 Task: Fix admin broadcast notification RLS policy violation (error 42501)
 Files: Supabase migration `allow_admin_insert_any_notification`
