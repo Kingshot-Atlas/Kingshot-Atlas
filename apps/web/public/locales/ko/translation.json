@@ -167,6 +167,7 @@
     "atlasScoreDesc": "경험과 꾸준함에 보상",
     "atlasRank": "Atlas 순위",
     "lastKvk": "지난 KvK",
+    "ofTotal": "{{total}}개 중",
     "linkToSee": "연동하여 확인",
     "transferStatus": "이적 상태",
     "tapToUpdate": "탭하여 업데이트",

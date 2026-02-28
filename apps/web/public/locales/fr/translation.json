@@ -167,6 +167,7 @@
     "atlasScoreDesc": "Récompense l'expérience et la régularité",
     "atlasRank": "Rang Atlas",
     "lastKvk": "dernier KvK",
+    "ofTotal": "sur {{total}}",
     "linkToSee": "Liez pour voir",
     "transferStatus": "Statut de Transfert",
     "tapToUpdate": "Appuyez pour mettre à jour",

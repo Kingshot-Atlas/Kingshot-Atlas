@@ -182,6 +182,7 @@
     "atlasScoreDesc": "Rewards experience and consistency",
     "atlasRank": "Atlas Rank",
     "lastKvk": "last KvK",
+    "ofTotal": "of {{total}}",
     "linkToSee": "Link to see",
     "transferStatus": "Transfer Status",
     "tapToUpdate": "Tap to update",

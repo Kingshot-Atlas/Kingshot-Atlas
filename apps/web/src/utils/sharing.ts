@@ -694,8 +694,8 @@ export const generateTransferListingCard = async (
   drawStatCell(ctx, leftX + cellW + gap, perfY, cellW, cellH, '⚡', 'KVKS', String(data.totalKvks), '#ffffff');
 
   // Prep Win Rate + Battle Win Rate
-  drawStatCell(ctx, leftX, perfY + cellH + gap, cellW, cellH, '🛡️', 'PREP WIN RATE', `${data.prepWinRate}%`, '#eab308');
-  drawStatCell(ctx, leftX + cellW + gap, perfY + cellH + gap, cellW, cellH, '⚔️', 'BATTLE WIN RATE', `${data.battleWinRate}%`, '#a855f7');
+  drawStatCell(ctx, leftX, perfY + cellH + gap, cellW, cellH, '🛡️', 'PREP WIN RATE', `${parseFloat((data.prepWinRate * 100).toFixed(1))}%`, '#eab308');
+  drawStatCell(ctx, leftX + cellW + gap, perfY + cellH + gap, cellW, cellH, '⚔️', 'BATTLE WIN RATE', `${parseFloat((data.battleWinRate * 100).toFixed(1))}%`, '#f97316');
 
   // Dominations + Comebacks
   drawStatCell(ctx, leftX, perfY + (cellH + gap) * 2, cellW, cellH, '👑', 'DOMINATIONS', String(data.dominations), '#22c55e');

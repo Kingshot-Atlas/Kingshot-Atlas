@@ -167,6 +167,7 @@
     "atlasScoreDesc": "経験と安定性を評価",
     "atlasRank": "Atlasランク",
     "lastKvk": "前回のKvK",
+    "ofTotal": "{{total}}中",
     "linkToSee": "リンクして確認",
     "transferStatus": "トランスファー状態",
     "tapToUpdate": "タップして更新",

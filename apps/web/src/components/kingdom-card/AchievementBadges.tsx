@@ -15,7 +15,10 @@ interface AchievementBadgesProps {
 }
 
 export const getAchievements = (kingdom: Kingdom, t?: (key: string, fallback: string, opts?: Record<string, unknown>) => string): Achievement[] => {
-  const tr = t || ((_k: string, fb: string) => fb);
+  const tr = t || ((_k: string, fb: string, opts?: Record<string, unknown>) => {
+    if (!opts) return fb;
+    return fb.replace(/\{\{(\w+)\}\}/g, (_, key) => String(opts[key] ?? key));
+  });
   const achievements: Achievement[] = [];
   const isSupremeRuler = kingdom.prep_losses === 0 && kingdom.battle_losses === 0 && kingdom.total_kvks > 0;
   const isPrepMaster = kingdom.prep_losses === 0 && kingdom.prep_wins > 0;
