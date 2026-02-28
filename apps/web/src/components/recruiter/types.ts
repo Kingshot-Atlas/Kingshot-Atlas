@@ -104,6 +104,7 @@ export interface IncomingApplication {
     looking_for: string[];
     is_anonymous: boolean;
     linked_player_id?: string;
+    play_schedule?: { start: string; end: string }[];
   };
 }
 

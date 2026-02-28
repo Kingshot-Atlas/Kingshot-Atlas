@@ -577,7 +577,7 @@ const MyApplicationsTracker: React.FC<{
 
   // Client-side expiry: treat apps past expires_at as expired immediately
   const appsWithClientExpiry = applications.map((a) => {
-    if (['pending', 'viewed', 'interested'].includes(a.status) && a.expires_at && new Date(a.expires_at).getTime() <= now) {
+    if (a.status === 'pending' && a.expires_at && new Date(a.expires_at).getTime() <= now) {
       return { ...a, status: 'expired' as typeof a.status };
     }
     return a;

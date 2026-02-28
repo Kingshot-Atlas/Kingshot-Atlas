@@ -114,7 +114,7 @@ async function fetchRecruiterDashboard(userId: string): Promise<RecruiterDashboa
     const profileIds = [...new Set(apps.map((a: IncomingApplication) => a.transfer_profile_id))];
     const { data: profiles } = await supabase
       .from('transfer_profiles')
-      .select('id, user_id, username, current_kingdom, tc_level, power_million, power_range, main_language, kvk_availability, saving_for_kvk, group_size, player_bio, contact_method, contact_discord, contact_coordinates, contact_info, looking_for, is_anonymous, last_active_at')
+      .select('id, user_id, username, current_kingdom, tc_level, power_million, power_range, main_language, kvk_availability, saving_for_kvk, group_size, player_bio, contact_method, contact_discord, contact_coordinates, contact_info, looking_for, is_anonymous, last_active_at, play_schedule')
       .in('id', profileIds);
 
     const applicantUserIds = [...new Set(apps.map((a: IncomingApplication) => a.applicant_user_id))];

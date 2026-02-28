@@ -472,6 +472,26 @@ const ApplicationCard: React.FC<{
             </div>
           )}
 
+          {profile.play_schedule && profile.play_schedule.length > 0 && (
+            <div style={{ marginTop: '0.5rem' }}>
+              <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>{t('appCard.playSchedule', 'Play Schedule (UTC)')}</span>
+              <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+                {profile.play_schedule.map((slot, i) => (
+                  <span key={i} style={{
+                    padding: '0.1rem 0.4rem',
+                    backgroundColor: '#22c55e10',
+                    border: '1px solid #22c55e20',
+                    borderRadius: '4px',
+                    fontSize: '0.6rem',
+                    color: '#22c55e',
+                  }}>
+                    {slot.start} – {slot.end}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           {(application.applicant_note || application.preferred_alliance) && (
             <div style={{
               marginTop: '0.5rem',
