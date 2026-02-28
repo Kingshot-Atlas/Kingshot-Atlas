@@ -19,7 +19,7 @@ logger = logging.getLogger("atlas.admin")
 ADMIN_API_KEY = os.getenv("ADMIN_API_KEY", "")
 
 # Default KvK number (fallback if not set in database)
-DEFAULT_CURRENT_KVK = 10
+DEFAULT_CURRENT_KVK = 11
 
 # Per-request admin info using contextvars (thread/async-safe)
 _current_admin_info_var: contextvars.ContextVar[Dict[str, Any]] = contextvars.ContextVar(

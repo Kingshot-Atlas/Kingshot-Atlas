@@ -303,11 +303,11 @@ def create_submission(
     return db_submission
 
 
-# Schema for KvK #10 submission with mandatory screenshot
+# Schema for KvK submission with mandatory screenshot
 class KvK10SubmissionCreate(BaseModel):
     kingdom_number: int = Field(..., ge=1, le=9999, description="Your kingdom number")
     opponent_kingdom: int = Field(..., ge=1, le=9999, description="Opponent kingdom number")
-    kvk_number: int = Field(10, description="KvK number (locked to 10)")
+    kvk_number: int = Field(..., ge=1, le=999, description="KvK number")
     prep_result: Literal['W', 'L'] = Field(..., description="Prep phase result")
     battle_result: Literal['W', 'L'] = Field(..., description="Battle phase result")
     notes: Optional[str] = Field(None, max_length=500)
@@ -345,17 +345,13 @@ def create_kvk10_submission(
     except Exception as e:
         logger.warning(f"Could not fetch profile for submitter name: {e}")
     
-    # Validate KvK number is 10
-    if submission.kvk_number != 10:
-        raise HTTPException(status_code=400, detail="This endpoint only accepts KvK #10 submissions")
-    
     # Validate kingdoms are different
     if submission.kingdom_number == submission.opponent_kingdom:
         raise HTTPException(status_code=400, detail="Your kingdom cannot be the same as opponent kingdom")
     
     # Check for duplicate submission (same matchup, same KvK, pending or approved)
     existing_submission = db.query(KVKSubmission).filter(
-        KVKSubmission.kvk_number == 10,
+        KVKSubmission.kvk_number == submission.kvk_number,
         KVKSubmission.kingdom_number == submission.kingdom_number,
         KVKSubmission.opponent_kingdom == submission.opponent_kingdom,
         KVKSubmission.status.in_(['pending', 'approved'])
@@ -365,7 +361,7 @@ def create_kvk10_submission(
         if existing_submission.status == 'approved':
             raise HTTPException(
                 status_code=409, 
-                detail=f"KvK #10 results for K{submission.kingdom_number} vs K{submission.opponent_kingdom} have already been approved."
+                detail=f"KvK #{submission.kvk_number} results for K{submission.kingdom_number} vs K{submission.opponent_kingdom} have already been approved."
             )
         else:
             raise HTTPException(
@@ -424,7 +420,7 @@ def create_kvk10_submission(
                 raise HTTPException(status_code=400, detail="Invalid image format. Only PNG, JPEG, and WebP are allowed.")
             
             # Generate unique filename
-            filename = f"kvk10/{verified_user_id}_{submission.kingdom_number}_{uuid.uuid4().hex[:8]}.{file_ext}"
+            filename = f"kvk{submission.kvk_number}/{verified_user_id}_{submission.kingdom_number}_{uuid.uuid4().hex[:8]}.{file_ext}"
             
             # Try to upload to Supabase Storage
             try:
@@ -491,7 +487,7 @@ def create_kvk10_submission(
                 )
                 
                 if is_valid_image2:
-                    filename2 = f"kvk10/{verified_user_id}_{submission.kingdom_number}_{uuid.uuid4().hex[:8]}_2.{file_ext2}"
+                    filename2 = f"kvk{submission.kvk_number}/{verified_user_id}_{submission.kingdom_number}_{uuid.uuid4().hex[:8]}_2.{file_ext2}"
                     try:
                         from api.supabase_client import get_supabase_admin
                         supabase = get_supabase_admin()
@@ -513,11 +509,11 @@ def create_kvk10_submission(
         submitter_id=verified_user_id,
         submitter_name=submitter_name,
         kingdom_number=submission.kingdom_number,
-        kvk_number=10,
+        kvk_number=submission.kvk_number,
         opponent_kingdom=submission.opponent_kingdom,
         prep_result=submission.prep_result,
         battle_result=submission.battle_result,
-        date_or_order_index=f"KvK10_{datetime.now(timezone.utc).strftime('%Y%m%d')}",
+        date_or_order_index=f"KvK{submission.kvk_number}_{datetime.now(timezone.utc).strftime('%Y%m%d')}",
         screenshot_url=screenshot_url,
         screenshot2_url=screenshot2_url,
         notes=submission.notes,
@@ -533,7 +529,7 @@ def create_kvk10_submission(
     db.commit()
     db.refresh(db_submission)
     
-    logger.info(f"KvK #10 submission created: K{submission.kingdom_number} vs K{submission.opponent_kingdom} by {verified_user_id} (auto_approved={is_admin})")
+    logger.info(f"KvK #{submission.kvk_number} submission created: K{submission.kingdom_number} vs K{submission.opponent_kingdom} by {verified_user_id} (auto_approved={is_admin})")
     
     # If admin, auto-approve: insert KvK records into Supabase immediately
     if is_admin:
