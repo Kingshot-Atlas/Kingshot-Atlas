@@ -70,12 +70,7 @@ const BattleLeadersPanel: React.FC<BattleLeadersPanelProps> = ({
           .or(`username.ilike.%${sanitized}%,linked_username.ilike.%${sanitized}%`)
           .limit(8);
 
-        const existing = new Set(leaders.map(l => l.user_id));
-        setSearchResults(
-          (data ?? [])
-            .filter((u: KingdomUser) => !existing.has(u.id))
-            .slice(0, 5)
-        );
+        setSearchResults((data ?? []).slice(0, 5));
       } catch {
         setSearchResults([]);
       } finally {

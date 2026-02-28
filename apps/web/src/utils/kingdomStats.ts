@@ -9,6 +9,17 @@ import { Kingdom, KVKRecord, FilterOptions as TypeFilterOptions } from '../types
 export type { FilterOptions } from '../types';
 
 /**
+ * Filter to only complete matchups (both prep AND battle results present).
+ * Partial matchups (prep-only or battle-only) should not affect any stats.
+ */
+const filterCompleteMatchups = (kvkResults: KVKRecord[]): KVKRecord[] =>
+  kvkResults.filter(r => 
+    r.prep_result && r.battle_result &&
+    ['win', 'loss', 'w', 'l'].includes(r.prep_result.toLowerCase()) && 
+    ['win', 'loss', 'w', 'l'].includes(r.battle_result.toLowerCase())
+  );
+
+/**
  * Calculate streak data from KvK results
  */
 export interface StreakData {
@@ -32,29 +43,41 @@ export const calculateStreaks = (kvkResults: KVKRecord[]): StreakData => {
     };
   }
 
-  const sorted = [...kvkResults].sort((a, b) => b.kvk_number - a.kvk_number);
+  // Only count complete matchups (both prep AND battle results)
+  const sorted = [...filterCompleteMatchups(kvkResults)].sort((a, b) => b.kvk_number - a.kvk_number);
+  
+  if (sorted.length === 0) {
+    return {
+      prepWinStreak: 0,
+      prepLossStreak: 0,
+      battleWinStreak: 0,
+      battleLossStreak: 0,
+      currentPrepStreak: { type: 'win', count: 0 },
+      currentBattleStreak: { type: 'win', count: 0 }
+    };
+  }
   
   let maxPrepWin = 0, maxPrepLoss = 0, maxBattleWin = 0, maxBattleLoss = 0;
   let currentPrepWin = 0, currentPrepLoss = 0, currentBattleWin = 0, currentBattleLoss = 0;
   
   sorted.forEach((result) => {
     // Prep streak
-    if (result.prep_result === 'win') {
+    if (result.prep_result?.toLowerCase() === 'win') {
       currentPrepWin++;
       currentPrepLoss = 0;
       maxPrepWin = Math.max(maxPrepWin, currentPrepWin);
-    } else if (result.prep_result === 'loss') {
+    } else if (result.prep_result?.toLowerCase() === 'loss') {
       currentPrepLoss++;
       currentPrepWin = 0;
       maxPrepLoss = Math.max(maxPrepLoss, currentPrepLoss);
     }
     
     // Battle streak
-    if (result.battle_result === 'win') {
+    if (result.battle_result?.toLowerCase() === 'win') {
       currentBattleWin++;
       currentBattleLoss = 0;
       maxBattleWin = Math.max(maxBattleWin, currentBattleWin);
-    } else if (result.battle_result === 'loss') {
+    } else if (result.battle_result?.toLowerCase() === 'loss') {
       currentBattleLoss++;
       currentBattleWin = 0;
       maxBattleLoss = Math.max(maxBattleLoss, currentBattleLoss);
@@ -69,9 +92,9 @@ export const calculateStreaks = (kvkResults: KVKRecord[]): StreakData => {
 
   for (const result of sorted) {
     if (currentPrepCount === 0) {
-      currentPrepType = result.prep_result as 'win' | 'loss';
+      currentPrepType = result.prep_result?.toLowerCase() as 'win' | 'loss';
     }
-    if (result.prep_result === currentPrepType) {
+    if (result.prep_result?.toLowerCase() === currentPrepType) {
       currentPrepCount++;
     } else {
       break;
@@ -80,9 +103,9 @@ export const calculateStreaks = (kvkResults: KVKRecord[]): StreakData => {
 
   for (const result of sorted) {
     if (currentBattleCount === 0) {
-      currentBattleType = result.battle_result as 'win' | 'loss';
+      currentBattleType = result.battle_result?.toLowerCase() as 'win' | 'loss';
     }
-    if (result.battle_result === currentBattleType) {
+    if (result.battle_result?.toLowerCase() === currentBattleType) {
       currentBattleCount++;
     } else {
       break;
@@ -139,9 +162,10 @@ export const calculateOutcomeStats = (kvkResults: KVKRecord[]): OutcomeStats => 
     return { dominations: 0, comebacks: 0, reversals: 0, invasions: 0 };
   }
 
-  return kvkResults.reduce((acc, result) => {
-    const prepWin = result.prep_result === 'win';
-    const battleWin = result.battle_result === 'win';
+  // Only count complete matchups (both prep AND battle results)
+  return filterCompleteMatchups(kvkResults).reduce((acc, result) => {
+    const prepWin = result.prep_result?.toLowerCase() === 'win';
+    const battleWin = result.battle_result?.toLowerCase() === 'win';
 
     if (prepWin && battleWin) acc.dominations++;
     else if (!prepWin && battleWin) acc.comebacks++;
@@ -169,10 +193,12 @@ export const calculateWinRates = (kvkResults: KVKRecord[]): WinRates => {
     return { prepWinRate: 0, battleWinRate: 0, prepWins: 0, prepLosses: 0, battleWins: 0, battleLosses: 0 };
   }
 
-  const prepWins = kvkResults.filter(r => r.prep_result === 'win').length;
-  const prepLosses = kvkResults.filter(r => r.prep_result === 'loss').length;
-  const battleWins = kvkResults.filter(r => r.battle_result === 'win').length;
-  const battleLosses = kvkResults.filter(r => r.battle_result === 'loss').length;
+  // Only count complete matchups (both prep AND battle results)
+  const complete = filterCompleteMatchups(kvkResults);
+  const prepWins = complete.filter(r => r.prep_result?.toLowerCase() === 'win').length;
+  const prepLosses = complete.filter(r => r.prep_result?.toLowerCase() === 'loss').length;
+  const battleWins = complete.filter(r => r.battle_result?.toLowerCase() === 'win').length;
+  const battleLosses = complete.filter(r => r.battle_result?.toLowerCase() === 'loss').length;
 
   const prepTotal = prepWins + prepLosses;
   const battleTotal = battleWins + battleLosses;

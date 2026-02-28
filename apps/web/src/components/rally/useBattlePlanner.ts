@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePremium } from '../../contexts/PremiumContext';
 import { useGoldKingdoms } from '../../hooks/useGoldKingdoms';
@@ -13,7 +14,7 @@ import {
   BUFF_DURATION_MS, STORAGE_KEY_PLAYERS, STORAGE_KEY_PRESETS, STORAGE_KEY_BUFF_TIMERS,
   loadFromStorage, saveToStorage,
   playEnemyBuffExpireSound, playAllyBuffExpireSound,
-  calculateRallyTimings,
+  calculateRallyTimings, getBuildingLabel,
 } from './types';
 import { useTouchDragReorder } from './RallySubComponents';
 import { useBattlePlannerSession } from './useBattlePlannerSession';
@@ -28,6 +29,7 @@ export function useBattlePlanner() {
   const goldKingdoms = useGoldKingdoms();
   const { hasPromoAccess } = useKvk11Promo();
   const { showToast } = useToast();
+  const { t } = useTranslation();
 
   // ─── Access Gating ───
   const isAdmin = !!(profile?.username && ADMIN_USERNAMES.includes(profile.username.toLowerCase()));
@@ -242,24 +244,30 @@ export function useBattlePlanner() {
   const addToQueue = useCallback((player: RallyPlayer, useBuffed: boolean = false) => {
     if (queuedPlayerIds.has(player.id)) return;
     const mt = getMarchTime(player, useBuffed);
-    if (mt <= 0) return;
+    if (mt <= 0) {
+      showToast(t('battlePlanner.noMarchTime', 'Set march times for {{building}} first', { building: getBuildingLabel(selectedBuilding, t) }), 'info');
+      return;
+    }
     const newSlot: RallySlot = { playerId: player.id, playerName: player.name, marchTime: mt, team: player.team, useBuffed };
     persistRallySlots([...rallyQueue, newSlot]);
     if ('vibrate' in navigator) navigator.vibrate(30);
     setLastAnnouncement(`${player.name} added to rally queue`);
     requestAnimationFrame(() => { rallyQueueRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); });
-  }, [queuedPlayerIds, getMarchTime, persistRallySlots, rallyQueue]);
+  }, [queuedPlayerIds, getMarchTime, persistRallySlots, rallyQueue, showToast, t, selectedBuilding]);
 
   const addToCounterQueue = useCallback((player: RallyPlayer, useBuffed: boolean = false) => {
     if (counterQueuedIds.has(player.id)) return;
     const mt = getMarchTime(player, useBuffed);
-    if (mt <= 0) return;
+    if (mt <= 0) {
+      showToast(t('battlePlanner.noMarchTime', 'Set march times for {{building}} first', { building: getBuildingLabel(selectedBuilding, t) }), 'info');
+      return;
+    }
     const newSlot: RallySlot = { playerId: player.id, playerName: player.name, marchTime: mt, team: player.team, useBuffed };
     persistCounterSlots([...counterQueue, newSlot]);
     if ('vibrate' in navigator) navigator.vibrate(30);
     setLastAnnouncement(`${player.name} added to counter queue`);
     requestAnimationFrame(() => { counterQueueRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); });
-  }, [counterQueuedIds, getMarchTime, persistCounterSlots, counterQueue]);
+  }, [counterQueuedIds, getMarchTime, persistCounterSlots, counterQueue, showToast, t, selectedBuilding]);
 
   const removeFromQueue = useCallback((index: number) => {
     const removed = rallyQueue[index];

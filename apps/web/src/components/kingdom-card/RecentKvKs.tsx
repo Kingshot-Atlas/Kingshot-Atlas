@@ -42,8 +42,8 @@ const RecentKvKs: React.FC<RecentKvKsProps> = ({ recentKvks }) => {
         const outcome = noResults ? (isPending ? 'Bye' : 'Bye') : getOutcome(kvk.prep_result!, kvk.battle_result!);
         const outcomeInfo = isPending ? pendingInfo : isByeResult ? byeInfo : OUTCOMES[outcome];
         
-        const prepDisplay = noResults ? '-' : (isWinResult(kvk.prep_result) ? 'W' : 'L');
-        const battleDisplay = noResults ? '-' : (isWinResult(kvk.battle_result) ? 'W' : 'L');
+        const prepDisplay = (isByeResult || !kvk.prep_result) ? '-' : (isWinResult(kvk.prep_result) ? 'W' : 'L');
+        const battleDisplay = (isByeResult || !kvk.battle_result) ? '-' : (isWinResult(kvk.battle_result) ? 'W' : 'L');
         
         const tooltipContent = (
           <div style={{ minWidth: '120px' }}>
@@ -56,11 +56,11 @@ const RecentKvKs: React.FC<RecentKvKsProps> = ({ recentKvks }) => {
               <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '0.3rem' }}>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>{t('kingdomCard.prep')}</div>
-                  <div style={{ fontWeight: 'bold', color: isWinResult(kvk.prep_result) ? '#22c55e' : '#ef4444' }}>{prepDisplay}</div>
+                  <div style={{ fontWeight: 'bold', color: !kvk.prep_result ? '#6b7280' : (isWinResult(kvk.prep_result) ? '#22c55e' : '#ef4444'), opacity: isPending ? 0.7 : 1 }}>{prepDisplay}</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>{t('kingdomCard.battle')}</div>
-                  <div style={{ fontWeight: 'bold', color: isWinResult(kvk.battle_result) ? '#22c55e' : '#ef4444' }}>{battleDisplay}</div>
+                  <div style={{ fontWeight: 'bold', color: !kvk.battle_result ? '#6b7280' : (isWinResult(kvk.battle_result) ? '#22c55e' : '#ef4444'), opacity: isPending ? 0.7 : 1 }}>{battleDisplay}</div>
                 </div>
               </div>
             )}

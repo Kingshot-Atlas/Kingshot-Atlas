@@ -28,8 +28,6 @@ interface BattleRegistryListProps {
   setCreateKvkNumber: (v: number) => void;
   createNotes: string;
   setCreateNotes: (v: string) => void;
-  createWebhookUrl: string;
-  setCreateWebhookUrl: (v: string) => void;
   duplicateWarningRegistries: BattleRegistry[];
   createRegistry: () => Promise<void>;
   saving: boolean;
@@ -40,7 +38,7 @@ const BattleRegistryList: React.FC<BattleRegistryListProps> = ({
   myRegistries, kingdomRegistries, submittedRegistries, navigate,
   isEditorOrCoEditor, isManager,
   createKingdom, setCreateKingdom, createKvkNumber, setCreateKvkNumber,
-  createNotes, setCreateNotes, createWebhookUrl, setCreateWebhookUrl,
+  createNotes, setCreateNotes,
   duplicateWarningRegistries, createRegistry, saving,
 }) => {
   const { t } = useTranslation();
@@ -220,13 +218,6 @@ const BattleRegistryList: React.FC<BattleRegistryListProps> = ({
               <div>
                 <label style={labelStyle}>{t('battleRegistry.notesForPlayers', 'Notes for Players (optional)')}</label>
                 <textarea value={createNotes} onChange={(e) => setCreateNotes(e.target.value)} placeholder={t('battleRegistry.notesPlaceholder', 'Any instructions or reminders...')} rows={3} maxLength={500} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5 }} />
-              </div>
-              <div>
-                <label style={labelStyle}>🔔 {t('battleRegistry.discordWebhook', 'Discord Webhook URL (optional)')}</label>
-                <input type="url" value={createWebhookUrl} onChange={(e) => setCreateWebhookUrl(e.target.value)}
-                  placeholder="https://discord.com/api/webhooks/..."
-                  style={inputStyle} />
-                <p style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.2rem' }}>{t('battleRegistry.discordWebhookDesc', 'Get notified in Discord when players register, registry is locked, etc.')}</p>
               </div>
               <button onClick={createRegistry} disabled={saving || !createKingdom || !hasQualifyingTier(createKingdom)}
                 style={{ padding: isMobile ? '0.75rem 1.25rem' : '0.6rem 1.25rem', backgroundColor: createKingdom && hasQualifyingTier(createKingdom) ? '#ef444420' : `${colors.textMuted}10`, border: `1px solid ${createKingdom && hasQualifyingTier(createKingdom) ? '#ef444450' : colors.border}`, borderRadius: '8px', color: createKingdom && hasQualifyingTier(createKingdom) ? '#ef4444' : colors.textMuted, fontSize: '0.85rem', fontWeight: 600, cursor: createKingdom && hasQualifyingTier(createKingdom) ? 'pointer' : 'not-allowed', width: isMobile ? '100%' : 'fit-content', opacity: saving ? 0.6 : 1, minHeight: '44px' }}>

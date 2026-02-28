@@ -320,6 +320,30 @@ export function useBattlePlannerSession(): UseBattlePlannerSessionReturn {
     }
   }, [session?.id, showToast]);
 
+  const updateLeaderAssignment = useCallback(async (leaderId: string, building: BuildingKey | null) => {
+    if (!supabase) return;
+
+    // Optimistic UI update
+    setLeaders(prev => prev.map(l =>
+      l.id === leaderId ? { ...l, building_assignment: building } : l
+    ));
+
+    try {
+      const { error } = await supabase
+        .from('battle_planner_leaders')
+        .update({ building_assignment: building })
+        .eq('id', leaderId);
+      if (error) throw error;
+    } catch (err) {
+      console.error('Failed to update leader assignment:', err);
+      // Revert optimistic update on failure
+      setLeaders(prev => prev.map(l =>
+        l.id === leaderId ? { ...l, building_assignment: building === null ? l.building_assignment : null } : l
+      ));
+      showToast(t('battlePlanner.captainAssignFailed', 'Failed to update assignment'), 'error');
+    }
+  }, [showToast, t]);
+
   const addLeader = useCallback(async (userId: string, buildingAssignment?: BuildingKey | null) => {
     if (!supabase || !user?.id || !session?.id) return;
     try {
@@ -332,8 +356,13 @@ export function useBattlePlannerSession(): UseBattlePlannerSessionReturn {
           assigned_by: user.id,
         });
       if (error) {
-        // Handle duplicate leader (unique constraint on session_id + user_id)
+        // Handle duplicate leader — re-assign building instead of failing
         if (error.code === '23505') {
+          const existing = leaders.find(l => l.user_id === userId);
+          if (existing && buildingAssignment) {
+            await updateLeaderAssignment(existing.id, buildingAssignment);
+            return;
+          }
           showToast(t('battlePlanner.captainAlreadyExists', 'This user is already a captain in this session'), 'info');
           return;
         }
@@ -349,20 +378,7 @@ export function useBattlePlannerSession(): UseBattlePlannerSessionReturn {
       console.error('Failed to add leader:', err);
       showToast(t('battlePlanner.captainAddFailed', 'Failed to add captain'), 'error');
     }
-  }, [user?.id, session?.id, showToast]);
-
-  const updateLeaderAssignment = useCallback(async (leaderId: string, building: BuildingKey | null) => {
-    if (!supabase) return;
-    try {
-      const { error } = await supabase
-        .from('battle_planner_leaders')
-        .update({ building_assignment: building })
-        .eq('id', leaderId);
-      if (error) throw error;
-    } catch (err) {
-      console.error('Failed to update leader assignment:', err);
-    }
-  }, []);
+  }, [user?.id, session?.id, leaders, showToast, t, updateLeaderAssignment]);
 
   const removeLeader = useCallback(async (leaderId: string) => {
     if (!supabase) return;

@@ -7,6 +7,7 @@ import { colors, transition } from '../utils/styles';
 import { Card } from './shared';
 import { useTranslation } from 'react-i18next';
 import { logger } from '../utils/logger';
+import { getAuthHeaders } from '../services/authHeaders';
 
 interface PlayerAccount {
   id: string;
@@ -78,6 +79,8 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
   const [pendingPlayer, setPendingPlayer] = useState<{ player_id: string; username: string; avatar_url: string; kingdom: number; town_center_level: number } | null>(restored?.pendingPlayer ?? null);
   const [polling, setPolling] = useState(false);
   const [pollCount, setPollCount] = useState(0);
+  const [detectedName, setDetectedName] = useState<string | null>(null);
+  const [pollTimedOut, setPollTimedOut] = useState(false);
   const pollingActiveRef = useRef(false);
   const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -214,9 +217,10 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
 
     setVerifying(true);
     try {
+      const authHeaders = await getAuthHeaders({ requireAuth: false });
       const response = await fetch(`${API_BASE}/api/v1/player-link/verify`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ player_id: id }),
       });
 
@@ -266,19 +270,22 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
 
   // ─── Auto-Polling Verification ───────────────────────────────────────────
   // Polls Century Games API every 8s after user clicks verify.
-  // Stays within the 10/min backend rate limit. Max 2 minutes.
+  // Stays within the 10/min backend rate limit. Max ~5 minutes.
+  // Century Games API caches player names for several minutes after a change.
   const POLL_INTERVAL_MS = 8000;
-  const MAX_POLL_ATTEMPTS = 15;
+  const MAX_POLL_ATTEMPTS = 38;
 
   const checkVerificationOnce = async (playerId: string, code: string): Promise<{ verified: boolean; freshData?: PlayerVerificationData }> => {
     try {
+      const authHeaders = await getAuthHeaders({ requireAuth: false });
       const response = await fetch(`${API_BASE}/api/v1/player-link/verify`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ player_id: playerId }),
       });
       if (!response.ok) return { verified: false };
       const freshData = await response.json();
+      setDetectedName(freshData.username || null);
       const nameUpper = (freshData.username || '').toUpperCase();
       return { verified: nameUpper.includes(code), freshData };
     } catch {
@@ -290,6 +297,7 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
     pollingActiveRef.current = false;
     setPolling(false);
     setPollCount(0);
+    setDetectedName(null);
     if (pollTimeoutRef.current) {
       clearTimeout(pollTimeoutRef.current);
       pollTimeoutRef.current = null;
@@ -303,6 +311,8 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
 
     pollingActiveRef.current = true;
     setPolling(true);
+    setPollTimedOut(false);
+    setDetectedName(null);
 
     const insertAccount = async (freshData: PlayerVerificationData): Promise<boolean> => {
       const { error } = await supabase!
@@ -335,7 +345,8 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
       if (attempt > MAX_POLL_ATTEMPTS) {
         pollingActiveRef.current = false;
         setPolling(false);
-        showToast(t('accountSwitcher.pollTimeout', 'Verification timed out after {{seconds}}s. Make sure "{{code}}" is in your in-game name and try again.', { seconds: Math.round(MAX_POLL_ATTEMPTS * POLL_INTERVAL_MS / 1000), code }), 'error');
+        setPollTimedOut(true);
+        showToast(t('accountSwitcher.pollTimeout', 'Verification timed out. The game server may be slow to update. You can try again — the code is still valid.'), 'error');
         return;
       }
 
@@ -674,6 +685,11 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
                   <div style={{ fontSize: '0.65rem', color: colors.textMuted, marginTop: '0.15rem' }}>
                     {t('accountSwitcher.pollAttempt', 'Attempt {{count}} of {{max}} · Rechecking every {{seconds}}s', { count: pollCount, max: MAX_POLL_ATTEMPTS, seconds: Math.round(POLL_INTERVAL_MS / 1000) })}
                   </div>
+                  {detectedName && (
+                    <div style={{ fontSize: '0.65rem', color: colors.textMuted, marginTop: '0.25rem' }}>
+                      {t('accountSwitcher.detectedName', 'Game server sees: "{{name}}"', { name: detectedName })}
+                    </div>
+                  )}
                 </div>
               </div>
               <button
@@ -692,6 +708,56 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
               >
                 {t('accountSwitcher.stopChecking', 'Stop Checking')}
               </button>
+            </div>
+          ) : pollTimedOut ? (
+            <div>
+              <div style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', backgroundColor: '#ef444410', border: '1px solid #ef444430', marginBottom: '0.5rem' }}>
+                <div style={{ fontSize: '0.8rem', color: '#ef4444', fontWeight: '600', marginBottom: '0.25rem' }}>
+                  {t('accountSwitcher.timedOutTitle', 'Verification timed out')}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: colors.textMuted, lineHeight: 1.4 }}>
+                  {t('accountSwitcher.timedOutDesc', 'The game server may take a few minutes to update your name. Make sure "{{code}}" is in your in-game name and try again.', { code: verifyCode })}
+                </div>
+                {detectedName && (
+                  <div style={{ fontSize: '0.7rem', color: colors.textMuted, marginTop: '0.25rem' }}>
+                    {t('accountSwitcher.lastDetected', 'Last name seen: "{{name}}"', { name: detectedName })}
+                  </div>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  onClick={startVerificationPolling}
+                  style={{
+                    flex: 1,
+                    padding: '0.5rem 0.75rem',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: '#f59e0b',
+                    color: '#000',
+                    fontSize: '0.8rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    minHeight: isMobile ? '44px' : 'auto',
+                  }}
+                >
+                  {t('accountSwitcher.retryVerify', 'Try Again')}
+                </button>
+                <button
+                  onClick={resetAddFlow}
+                  style={{
+                    padding: '0.5rem',
+                    borderRadius: '6px',
+                    border: `1px solid ${colors.border}`,
+                    backgroundColor: 'transparent',
+                    color: colors.textMuted,
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                    minHeight: isMobile ? '44px' : 'auto',
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
             </div>
           ) : (
             <div style={{ display: 'flex', gap: '0.5rem' }}>

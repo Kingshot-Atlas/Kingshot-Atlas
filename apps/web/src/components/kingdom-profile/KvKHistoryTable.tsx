@@ -200,9 +200,6 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
                 kvk.opponent_kingdom === 0 || 
                 kvk.prep_result === 'B' || kvk.battle_result === 'B'
               );
-              // No results = show dashes
-              const noResults = isPending || isByeResult;
-              
               // Style for each state
               const pendingStyle = { bg: '#eab30815', text: '#eab308', label: t('outcomes.Pending', 'Pending'), description: t('outcomes.pendingDesc', 'Results not yet reported') };
               const byeStyle = { bg: '#6b728020', text: '#6b7280', label: t('outcomes.Bye', 'Bye'), description: t('outcomes.byeDesc', 'No opponent this round') };
@@ -249,20 +246,22 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
                   </td>
                   <td style={{ padding: isMobile ? '0.5rem 0.35rem' : '0.65rem 0.5rem', textAlign: 'center' }}>
                     <span style={{ 
-                      color: noResults ? '#6b7280' : (isWin(kvk.prep_result!) ? '#22c55e' : '#ef4444'), 
+                      color: (isByeResult || !kvk.prep_result) ? '#6b7280' : (isWin(kvk.prep_result) ? '#22c55e' : '#ef4444'), 
                       fontWeight: '600',
-                      fontSize: isMobile ? '0.75rem' : '0.85rem'
+                      fontSize: isMobile ? '0.75rem' : '0.85rem',
+                      opacity: isPending ? 0.6 : 1
                     }}>
-                      {noResults ? '-' : (isWin(kvk.prep_result!) ? 'W' : 'L')}
+                      {(isByeResult || !kvk.prep_result) ? '-' : (isWin(kvk.prep_result) ? 'W' : 'L')}
                     </span>
                   </td>
                   <td style={{ padding: isMobile ? '0.5rem 0.35rem' : '0.65rem 0.5rem', textAlign: 'center' }}>
                     <span style={{ 
-                      color: noResults ? '#6b7280' : (isWin(kvk.battle_result!) ? '#22c55e' : '#ef4444'), 
+                      color: (isByeResult || !kvk.battle_result) ? '#6b7280' : (isWin(kvk.battle_result) ? '#22c55e' : '#ef4444'), 
                       fontWeight: '600',
-                      fontSize: isMobile ? '0.75rem' : '0.85rem'
+                      fontSize: isMobile ? '0.75rem' : '0.85rem',
+                      opacity: isPending ? 0.6 : 1
                     }}>
-                      {noResults ? '-' : (isWin(kvk.battle_result!) ? 'W' : 'L')}
+                      {(isByeResult || !kvk.battle_result) ? '-' : (isWin(kvk.battle_result) ? 'W' : 'L')}
                     </span>
                   </td>
                   <td style={{ padding: isMobile ? '0.5rem 0.35rem' : '0.65rem 0.5rem', textAlign: 'center' }}>

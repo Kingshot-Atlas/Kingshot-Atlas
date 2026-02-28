@@ -6,6 +6,7 @@ import { Button, Card } from './shared';
 import { supabase } from '../lib/supabase';
 import { useTranslation } from 'react-i18next';
 import { logger } from '../utils/logger';
+import { getAuthHeaders } from '../services/authHeaders';
 
 // Get username color based on subscription tier (includes admin and gilded)
 const getUsernameColor = (tier: string): string => {
@@ -213,10 +214,12 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
 
   const verifyPlayer = async (id: string): Promise<LinkedPlayerData> => {
+    const authHeaders = await getAuthHeaders({ requireAuth: false });
     const response = await fetch(`${API_BASE}/api/v1/player-link/verify`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...authHeaders,
       },
       body: JSON.stringify({ player_id: id }),
     });
@@ -238,10 +241,12 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
   };
 
   const refreshPlayer = async (id: string): Promise<LinkedPlayerData> => {
+    const authHeaders = await getAuthHeaders({ requireAuth: false });
     const response = await fetch(`${API_BASE}/api/v1/player-link/refresh`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...authHeaders,
       },
       body: JSON.stringify({ player_id: id }),
     });

@@ -66,7 +66,6 @@ export function useBattleRegistry() {
   const [createKingdom, setCreateKingdom] = useState<number>(0);
   const [createKvkNumber, setCreateKvkNumber] = useState<number>(0);
   const [createNotes, setCreateNotes] = useState('');
-  const [createWebhookUrl, setCreateWebhookUrl] = useState('');
   const [duplicateWarningRegistries, setDuplicateWarningRegistries] = useState<BattleRegistry[]>([]);
 
   // Manager assignment state
@@ -331,16 +330,9 @@ export function useBattleRegistry() {
       const { data, error } = await supabase.from('battle_registries').insert({
         kingdom_number: createKingdom, created_by: user.id,
         kvk_number: createKvkNumber || null, notes: createNotes || null,
-        discord_webhook_url: createWebhookUrl.trim() || null,
       }).select().single();
       if (error) throw error;
       if (data) {
-        // Send Discord notification for new registry
-        if (data.discord_webhook_url) {
-          sendWebhookNotification(data.id, 'registry_created', {
-            kingdom: createKingdom, kvk: createKvkNumber || undefined,
-          }).catch(() => { /* silent — notification failure shouldn't block */ });
-        }
         navigate(`/tools/battle-registry/${data.id}`);
       }
     } catch (err) { logger.error('Failed to create registry:', err); showToast(t('battleRegistry.toastCreateFailed', 'Failed to create registry.'), 'error'); }
@@ -401,12 +393,6 @@ export function useBattleRegistry() {
         const { error } = await supabase.from('battle_registry_entries').insert(payload);
         if (error) throw error;
         showToast(t('battleRegistry.toastSubmitted', 'Registration submitted!'), 'success');
-        // Notify Discord on new entry
-        if (registry?.discord_webhook_url) {
-          sendWebhookNotification(registryId, 'entry_submitted', {
-            username: formUsername.trim(), alliance: formAlliance.trim().toUpperCase(),
-          }).catch(() => {});
-        }
       }
       await fetchEntries(registryId);
     } catch (err) { logger.error('Failed to submit entry:', err); showToast(t('battleRegistry.toastSubmitFailed', 'Failed to submit registration.'), 'error'); }
@@ -419,9 +405,6 @@ export function useBattleRegistry() {
       await supabase.from('battle_registries').update({ status: 'closed' }).eq('id', registry.id);
       setRegistry({ ...registry, status: 'closed' });
       showToast(t('battleRegistry.toastClosed', 'Registry closed.'), 'success');
-      if (registry.discord_webhook_url) {
-        sendWebhookNotification(registry.id, 'registry_closed', { kingdom: registry.kingdom_number }).catch(() => {});
-      }
     } catch (err) { logger.error('Failed to close registry:', err); }
   };
 
@@ -431,9 +414,6 @@ export function useBattleRegistry() {
       await supabase.from('battle_registries').update({ status: 'active', locked_at: null, locked_by: null }).eq('id', registry.id);
       setRegistry({ ...registry, status: 'active', locked_at: null, locked_by: null });
       showToast(t('battleRegistry.toastReopened', 'Registry reopened.'), 'success');
-      if (registry.discord_webhook_url) {
-        sendWebhookNotification(registry.id, 'registry_reopened', { kingdom: registry.kingdom_number }).catch(() => {});
-      }
     } catch (err) { logger.error('Failed to reopen registry:', err); }
   };
 
@@ -444,9 +424,6 @@ export function useBattleRegistry() {
       await supabase.from('battle_registries').update({ locked_at: now, locked_by: user.id }).eq('id', registry.id);
       setRegistry({ ...registry, locked_at: now, locked_by: user.id });
       showToast(t('battleRegistry.toastLocked', 'Registry locked. Only managers can edit entries.'), 'success');
-      if (registry.discord_webhook_url) {
-        sendWebhookNotification(registry.id, 'registry_locked', { kingdom: registry.kingdom_number }).catch(() => {});
-      }
     } catch (err) { logger.error('Failed to lock registry:', err); }
   };
 
@@ -468,24 +445,6 @@ export function useBattleRegistry() {
     } catch (err) { logger.error('Failed to archive registry:', err); }
   };
 
-  const updateWebhookUrl = async (url: string) => {
-    if (!supabase || !registry) return;
-    try {
-      await supabase.from('battle_registries').update({ discord_webhook_url: url.trim() || null }).eq('id', registry.id);
-      setRegistry({ ...registry, discord_webhook_url: url.trim() || null });
-      showToast(t('battleRegistry.toastWebhookSaved', 'Discord webhook URL saved.'), 'success');
-    } catch (err) { logger.error('Failed to save webhook URL:', err); }
-  };
-
-  // ─── Discord Webhook Notification ──────────────────────────────────
-  const sendWebhookNotification = async (regId: string, eventType: string, data?: Record<string, unknown>) => {
-    if (!supabase) return;
-    try {
-      await supabase.functions.invoke('notify-battle-registry', {
-        body: { registry_id: regId, event_type: eventType, data },
-      });
-    } catch (err) { logger.error('Webhook notification failed:', err); }
-  };
 
   const addManager = async (userId: string, username: string) => {
     if (!supabase || !user?.id || !registry) return;
@@ -633,11 +592,10 @@ export function useBattleRegistry() {
     managerSearchResults, managers, showManagerDropdown, setShowManagerDropdown,
     managerSearchRef,
     // Create extras
-    createWebhookUrl, setCreateWebhookUrl,
     duplicateWarningRegistries, setDuplicateWarningRegistries,
     // Actions
     createRegistry, submitEntry, submitManualEntry, updateManualEntry, deleteEntry,
     closeRegistry, reopenRegistry, lockRegistry, unlockRegistry, archiveRegistry,
-    addManager, removeManager, updateWebhookUrl, sendWebhookNotification,
+    addManager, removeManager,
   };
 }

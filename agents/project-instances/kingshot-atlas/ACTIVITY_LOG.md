@@ -3,6 +3,42 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-02-28 06:15 | Platform Engineer | COMPLETED
+Task: Fix KvK #11 Prep Result submission — "Prep Not Open Yet" bug
+Files: Supabase `kvk_schedule` table (data fix, no code changes)
+Changes:
+1. **Root cause** — `kvk_schedule` table had `prep_open_at` = Mar 1 10:00 UTC instead of Feb 28 10:00 UTC for KvK #11. Off-by-one day error when rows were originally seeded. All entries had the same +1 day error on `prep_open_at` and `battle_open_at`.
+2. **Fix KvK #11** — Updated `prep_open_at` to `2026-02-28T10:00:00Z` and `battle_open_at` to `2026-02-28T18:00:00Z`.
+3. **Fix KvK #12** — Same +1 day correction (Mar 29 → Mar 28). Also fixed `is_complete` flag which was incorrectly `true`.
+4. **Fix KvK #13** — Same +1 day correction (Apr 26 → Apr 25).
+5. **Verified** — `KvKMatchupSubmission.tsx` and `KvKPhaseBanner.tsx` both read from `kvk_schedule` table. Fix is live immediately (no deploy needed).
+Result: Linked users can now submit KvK #11 prep results. Future KvK schedules also corrected.
+
+## 2026-02-27 17:30 | Platform Engineer | COMPLETED
+Task: Battle Leaders — Fix FK join, permission hardening, security audit
+Files: `useBattlePlannerSession.ts` (updated), `BattleLeadersPanel.tsx` (updated), `useBattlePlanner.ts` (updated), `RallyCoordinator.tsx` (updated), Supabase migration
+Changes:
+1. **PGRST200 fix** — Added FK `battle_planner_leaders.user_id → profiles.id` so PostgREST can resolve the join. Updated query to use `profiles!battle_planner_leaders_user_id_profiles_fkey` hint.
+2. **RLS hardening** — Created `is_bp_editor(session_id)` SQL function (SECURITY DEFINER). Only session creator + existing leaders can INSERT/UPDATE/DELETE on `battle_planner_leaders`, `battle_planner_players`, `battle_planner_queues`. SELECT remains open for kingdom visibility.
+3. **Duplicate leader handling** — `addLeader` now catches `23505` (duplicate) and `42501` (permission denied) error codes with user-friendly toasts.
+4. **Frontend permission gating** — Added `isSessionEditor` flag through hook chain. `BattleLeadersPanel` uses `canManageLeaders` (isSessionEditor && !isReadOnly) to gate all write UI: add/remove/assign/unassign buttons hidden for non-editors.
+5. **Security audit** — Verified 8 attack vectors (unauthorized addition, self-promotion, cross-session tampering, queue manipulation, etc.). All mitigated by RLS + frontend checks. `is_bp_editor()` is safe against SQL injection.
+6. **Build verified** — 5.26s, 0 TypeScript errors.
+Result: Local build passing. Ready for deployment.
+
+## 2026-02-27 17:00 | Product Engineer | COMPLETED
+Task: Battle Planner Presets — Session management, Leaders dashboard, Supabase-backed queues
+Files: `useBattlePlanner.ts` (new), `useBattlePlannerSession.ts` (new), `useBattlePlannerPlayers.ts` (new), `useBattlePlannerQueues.ts` (new), `SessionManager.tsx` (new), `BattleLeadersPanel.tsx` (new), `RallyCoordinator.tsx` (updated), `index.ts` (updated)
+Changes:
+1. **4 Supabase tables** — `battle_planner_sessions`, `battle_planner_players`, `battle_planner_queues`, `battle_planner_leaders` with full RLS policies.
+2. **3 React hooks** — `useBattlePlannerSession` (session CRUD, leader management, realtime), `useBattlePlannerPlayers` (shared player pool, realtime sync, migration), `useBattlePlannerQueues` (queue persistence, debounced saves, cross-building tracking).
+3. **Orchestrator hook** — `useBattlePlanner` composes all hooks, preserves localStorage fallback when no session active.
+4. **SessionManager UI** — Session bar (create/switch/archive/delete), 5-building tabs with queue count badges, localStorage migration prompt.
+5. **BattleLeadersPanel UI** — Collapsible leaders dashboard with building assignment overview, user search to add leaders, assign/unassign/remove per building.
+6. **Padding fix** — Added `marginBottom` wrapper between SessionManager and content grid for proper spacing.
+7. **Build verified** — 4.83s, 0 TypeScript errors. RallyCoordinator chunk: ~113KB (reasonable).
+Result: Local build passing. Ready for deployment.
+
 ## 2026-02-28 | Product Engineer | COMPLETED
 Task: KvK #11 matchup anomaly fix + Battle Registry manager edit permissions
 Files: `BattleRegistryDashboard.tsx`, `BattleRegistryMain.tsx`, Supabase RLS

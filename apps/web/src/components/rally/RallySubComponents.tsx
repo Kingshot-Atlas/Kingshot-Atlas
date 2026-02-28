@@ -90,6 +90,7 @@ export const PlayerPill: React.FC<{
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const teamColor = player.team === 'ally' ? ALLY_COLOR : ENEMY_COLOR;
+  const noMarchTime = marchTime <= 0;
 
   // Close menu on click outside
   useEffect(() => {
@@ -107,9 +108,9 @@ export const PlayerPill: React.FC<{
     <div ref={menuRef} style={{ position: 'relative' }}>
       <div
         role="button"
-        tabIndex={isInQueue ? -1 : 0}
-        aria-label={`${player.name} — ${marchTime}s march${isInQueue ? ' (in queue)' : '. Click to add to queue'}`}
-        aria-disabled={isInQueue}
+        tabIndex={isInQueue || noMarchTime ? -1 : 0}
+        aria-label={`${player.name}${noMarchTime ? ' — no march time set' : ` — ${marchTime}s march`}${isInQueue ? ' (in queue)' : noMarchTime ? '' : '. Click to add to queue'}`}
+        aria-disabled={isInQueue || noMarchTime}
         draggable={!isInQueue}
         onDragStart={(e) => {
           if (!isInQueue) {
@@ -118,6 +119,7 @@ export const PlayerPill: React.FC<{
           }
         }}
         onClick={() => !isInQueue && onAdd()}
+        title={noMarchTime ? t('battlePlanner.noMarchTimeHint', 'No march time — right-click to edit') : undefined}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!isInQueue) onAdd(); }
           if (e.key === 'Escape') setShowMenu(false);
@@ -128,11 +130,11 @@ export const PlayerPill: React.FC<{
           alignItems: 'center',
           gap: '0.35rem',
           padding: isMobile ? '0.3rem 0.55rem' : '0.35rem 0.65rem',
-          backgroundColor: isInQueue ? '#1a1a1a' : `${teamColor}12`,
-          border: `1px solid ${hasActiveBuffTimer ? '#f59e0b80' : isInQueue ? '#2a2a2a' : `${teamColor}40`}`,
+          backgroundColor: isInQueue || noMarchTime ? '#1a1a1a' : `${teamColor}12`,
+          border: `1px solid ${hasActiveBuffTimer ? '#f59e0b80' : (isInQueue || noMarchTime) ? '#2a2a2a' : `${teamColor}40`}`,
           borderRadius: '20px',
-          cursor: isInQueue ? 'not-allowed' : 'grab',
-          opacity: isInQueue ? 0.4 : 1,
+          cursor: isInQueue ? 'not-allowed' : noMarchTime ? 'pointer' : 'grab',
+          opacity: (isInQueue || noMarchTime) ? 0.4 : 1,
           transition: 'all 0.2s',
           fontSize: isMobile ? '0.68rem' : '0.8rem',
           color: isInQueue ? '#6b7280' : '#fff',
@@ -150,10 +152,12 @@ export const PlayerPill: React.FC<{
           backgroundColor: teamColor, flexShrink: 0,
         }} />
         <span style={{ fontWeight: '600' }}>{player.name}</span>
-        {marchTime > 0 && (
+        {marchTime > 0 ? (
           <span style={{ color: '#9ca3af', fontSize: '0.65rem' }}>
             {marchTime}s
           </span>
+        ) : (
+          <span style={{ color: '#ef4444', fontSize: '0.55rem', fontWeight: '600' }}>⚠</span>
         )}
       </div>
       {showMenu && (

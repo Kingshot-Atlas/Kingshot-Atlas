@@ -35,12 +35,16 @@ limiter = Limiter(key_func=get_remote_address)
 
 def _recalculate_kingdom_stats(kingdom: Kingdom, db: Session) -> None:
     """Recalculate aggregate stats for a kingdom based on all its KVK records."""
-    records = db.query(KVKRecord).filter(
+    all_records = db.query(KVKRecord).filter(
         KVKRecord.kingdom_number == kingdom.kingdom_number
     ).order_by(KVKRecord.kvk_number.desc()).all()
     
-    if not records:
+    if not all_records:
         return
+    
+    # Only count COMPLETE matchups (both prep AND battle results present)
+    # Partial matchups (prep-only or battle-only) should not affect any stats
+    records = [r for r in all_records if r.prep_result in ('W', 'L') and r.battle_result in ('W', 'L')]
     
     # Count wins/losses
     prep_wins = sum(1 for r in records if r.prep_result == 'W')
@@ -61,7 +65,7 @@ def _recalculate_kingdom_stats(kingdom: Kingdom, db: Session) -> None:
     
     kingdom.total_kvks = total_kvks
     
-    # Calculate current streaks (from most recent records)
+    # Calculate current streaks (from most recent complete records)
     prep_streak = 0
     for r in records:  # Already sorted desc by kvk_number
         if r.prep_result == 'W':

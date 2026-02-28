@@ -338,10 +338,17 @@ def _update_kingdom_stats_directly(client, kingdom_number: int) -> bool:
     try:
         # Fetch all KvK records for this kingdom
         result = client.table('kvk_history').select('*').eq('kingdom_number', kingdom_number).execute()
-        records = result.data or []
+        all_records = result.data or []
         
-        if not records:
+        if not all_records:
             return False
+        
+        # Only count COMPLETE matchups (both prep AND battle results present)
+        # Partial matchups (prep-only or battle-only) should not affect any stats
+        records = [
+            r for r in all_records
+            if r.get('prep_result') in ('W', 'L') and r.get('battle_result') in ('W', 'L')
+        ]
         
         total_kvks = len(records)
         prep_wins = sum(1 for r in records if r.get('prep_result') == 'W')
@@ -356,7 +363,7 @@ def _update_kingdom_stats_directly(client, kingdom_number: int) -> bool:
         prep_win_rate = prep_wins / total_kvks if total_kvks > 0 else 0
         battle_win_rate = battle_wins / total_kvks if total_kvks > 0 else 0
         
-        # Calculate streaks (sorted by kvk_number desc)
+        # Calculate streaks (sorted by kvk_number desc, only complete matchups)
         sorted_records = sorted(records, key=lambda x: x.get('kvk_number', 0), reverse=True)
         prep_streak = 0
         battle_streak = 0

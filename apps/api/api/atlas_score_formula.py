@@ -361,12 +361,19 @@ def extract_stats_from_kingdom(kingdom_data: dict, kvk_records: List[dict] = Non
     def is_bye(result: str) -> bool:
         return result and result.lower() == 'bye'
     
-    # Filter out Bye results for calculations - Byes don't affect Atlas Score
+    # Helper to check if a matchup is complete (both prep AND battle results present)
+    def is_complete(kvk: dict) -> bool:
+        prep = kvk.get('prep_result', '') or ''
+        battle = kvk.get('battle_result', '') or ''
+        return prep.upper() in ('W', 'L', 'WIN', 'LOSS') and battle.upper() in ('W', 'L', 'WIN', 'LOSS')
+    
+    # Filter out Bye results AND partial matchups - only complete matchups affect stats
     non_bye_kvks = [
         kvk for kvk in sorted_kvks
         if not is_bye(kvk.get('prep_result', '')) 
         and not is_bye(kvk.get('battle_result', ''))
         and not is_bye(kvk.get('overall_result', ''))
+        and is_complete(kvk)
     ]
     
     # Calculate current streaks from recent KvKs (skip Byes - they don't break streaks)

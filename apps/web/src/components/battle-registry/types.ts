@@ -10,7 +10,6 @@ export interface BattleRegistry {
   created_at: string;
   locked_at: string | null;
   locked_by: string | null;
-  discord_webhook_url: string | null;
 }
 
 export interface TimeSlotRange {

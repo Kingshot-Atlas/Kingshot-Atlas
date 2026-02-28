@@ -70,7 +70,6 @@ interface BattleRegistryDashboardProps {
   lockRegistry: () => Promise<void>;
   unlockRegistry: () => Promise<void>;
   archiveRegistry: () => Promise<void>;
-  updateWebhookUrl: (url: string) => Promise<void>;
   navigate: (path: string) => void;
   setView: (v: RegistryView) => void;
   // Manual entry
@@ -99,7 +98,7 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
   managerSearchResults, showManagerDropdown, setShowManagerDropdown: _setShowManagerDropdown,
   managerSearchRef, addManager, removeManager,
   closeRegistry, reopenRegistry, lockRegistry, unlockRegistry, archiveRegistry,
-  updateWebhookUrl, navigate: _navigate, setView,
+  navigate: _navigate, setView,
   submitManualEntry, updateManualEntry, deleteEntry, saving,
 }) => {
   const { t } = useTranslation();
@@ -117,8 +116,6 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
   const [manualCavTg, setManualCavTg] = useState<number | null>(null);
   const [manualArcTier, setManualArcTier] = useState<number | null>(null);
   const [manualArcTg, setManualArcTg] = useState<number | null>(null);
-  const [webhookInput, setWebhookInput] = useState(registry.discord_webhook_url || '');
-  const [showSettings, setShowSettings] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [copiedList, setCopiedList] = useState(false);
@@ -640,33 +637,6 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
           </div>
         )}
 
-        {/* ─── Settings (Webhook, etc.) ────────────────────────────────── */}
-        {isEditorOrCoEditor && (
-          <div style={cardStyle}>
-            <button onClick={() => setShowSettings(!showSettings)}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'none', border: 'none', color: colors.textSecondary, fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: 0, width: '100%' }}>
-              <span style={{ transition: 'transform 0.2s', transform: showSettings ? 'rotate(90deg)' : 'rotate(0deg)', display: 'inline-block' }}>▶</span>
-              ⚙️ {t('battleRegistry.settings', 'Settings')}
-            </button>
-            {showSettings && (
-              <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div>
-                  <label style={{ color: colors.textSecondary, fontSize: '0.7rem', fontWeight: 600, display: 'block', marginBottom: '0.2rem' }}>🔔 {t('battleRegistry.discordWebhook', 'Discord Webhook URL (optional)')}</label>
-                  <div style={{ display: 'flex', gap: '0.4rem' }}>
-                    <input type="url" value={webhookInput} onChange={e => setWebhookInput(e.target.value)}
-                      placeholder="https://discord.com/api/webhooks/..."
-                      style={{ flex: 1, padding: '0.4rem 0.6rem', backgroundColor: colors.bg, border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.text, fontSize: '0.8rem', outline: 'none', boxSizing: 'border-box' }} />
-                    <button onClick={() => updateWebhookUrl(webhookInput)} disabled={webhookInput === (registry.discord_webhook_url || '')}
-                      style={{ padding: '0.4rem 0.75rem', borderRadius: '6px', border: `1px solid ${webhookInput !== (registry.discord_webhook_url || '') ? '#22c55e40' : colors.border}`, backgroundColor: webhookInput !== (registry.discord_webhook_url || '') ? '#22c55e15' : 'transparent', color: webhookInput !== (registry.discord_webhook_url || '') ? '#22c55e' : colors.textMuted, fontSize: '0.75rem', fontWeight: 600, cursor: webhookInput !== (registry.discord_webhook_url || '') ? 'pointer' : 'default' }}>
-                      {t('battleRegistry.save', 'Save')}
-                    </button>
-                  </div>
-                  <p style={{ color: colors.textMuted, fontSize: '0.6rem', marginTop: '0.2rem' }}>{t('battleRegistry.discordWebhookDesc', 'Get notified in Discord when players register, registry is locked, etc.')}</p>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* ─── Time Availability Distribution (hourly frames, collapsible) ── */}
         <div style={cardStyle}>
