@@ -300,7 +300,6 @@ const KingdomProfile: React.FC = () => {
         isMobile={isMobile}
         recentScoreChange={recentScoreChange}
         recentRankChange={recentRankChange}
-        isLinked={!!profile?.linked_username}
         managedBy={managedBy}
         isKingdomEditor={isKingdomEditor}
         onStatusModalOpen={() => {

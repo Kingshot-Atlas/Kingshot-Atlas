@@ -27,7 +27,6 @@ interface KingdomHeaderProps {
   isMobile: boolean;
   recentScoreChange?: number | null;
   recentRankChange?: number | null;
-  isLinked?: boolean;
   managedBy?: { username: string; userId: string } | null;
   isKingdomEditor?: boolean;
   onStatusModalOpen: () => void;
@@ -47,7 +46,6 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
   isMobile,
   recentScoreChange,
   recentRankChange,
-  isLinked = false,
   managedBy,
   isKingdomEditor = false,
   onStatusModalOpen,
@@ -185,42 +183,21 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
             </SmartTooltip>
             {/* Score Change */}
             {recentScoreChange !== null && recentScoreChange !== undefined && recentScoreChange !== 0 && (
-              isLinked ? (
-                <span style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.2rem',
-                  padding: '0.15rem 0.5rem',
-                  borderRadius: '20px',
-                  fontSize: '0.7rem',
-                  fontWeight: '600',
-                  backgroundColor: recentScoreChange > 0 ? '#22c55e12' : '#ef444412',
-                  color: recentScoreChange > 0 ? '#22c55e' : '#ef4444',
-                  border: `1px solid ${recentScoreChange > 0 ? '#22c55e25' : '#ef444425'}`,
-                }}>
-                  <span>{recentScoreChange > 0 ? '▲' : '▼'}</span>
-                  <span>{recentScoreChange > 0 ? '+' : ''}{recentScoreChange.toFixed(2)} {t('kingdomProfile.lastKvk', 'last KvK')}</span>
-                </span>
-              ) : (
-                <Link to="/profile" style={{ textDecoration: 'none' }}>
-                  <span style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.2rem',
-                    padding: '0.15rem 0.5rem',
-                    borderRadius: '20px',
-                    fontSize: '0.7rem',
-                    fontWeight: '600',
-                    backgroundColor: '#9ca3af08',
-                    border: '1px solid #9ca3af15',
-                    cursor: 'pointer',
-                  }}>
-                    <span style={{ color: '#6b7280' }}>📊</span>
-                    <span style={{ filter: 'blur(4px)', userSelect: 'none', color: '#22c55e' }}>+0.00</span>
-                    <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>{t('kingdomProfile.linkToSee', 'Link to see')}</span>
-                  </span>
-                </Link>
-              )
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.2rem',
+                padding: '0.15rem 0.5rem',
+                borderRadius: '20px',
+                fontSize: '0.7rem',
+                fontWeight: '600',
+                backgroundColor: recentScoreChange > 0 ? '#22c55e12' : '#ef444412',
+                color: recentScoreChange > 0 ? '#22c55e' : '#ef4444',
+                border: `1px solid ${recentScoreChange > 0 ? '#22c55e25' : '#ef444425'}`,
+              }}>
+                <span>{recentScoreChange > 0 ? '▲' : '▼'}</span>
+                <span>{recentScoreChange > 0 ? '+' : ''}{recentScoreChange.toFixed(2)} {t('kingdomProfile.lastKvk', 'last KvK')}</span>
+              </span>
             )}
           </div>
 
@@ -229,46 +206,25 @@ const KingdomHeader: React.FC<KingdomHeaderProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
               <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>{t('kingdomProfile.atlasRank', 'Atlas Rank')}:</span>
               <span style={{ color: '#22d3ee', fontSize: '0.95rem', fontWeight: '600' }}>
-                #{rank}{totalKingdomsAtKvk > 0 ? ` of ${totalKingdomsAtKvk}` : ''}
+                #{rank}{totalKingdomsAtKvk > 0 ? ` ${t('kingdomProfile.ofTotal', 'of {{total}}', { total: totalKingdomsAtKvk })}` : ''}
               </span>
               {/* Rank Change */}
               {recentRankChange !== null && recentRankChange !== undefined && recentRankChange !== 0 && (
-                isLinked ? (
-                  <span style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.2rem',
-                    padding: '0.15rem 0.5rem',
-                    borderRadius: '20px',
-                    fontSize: '0.7rem',
-                    fontWeight: '600',
-                    backgroundColor: recentRankChange > 0 ? '#22c55e12' : '#ef444412',
-                    color: recentRankChange > 0 ? '#22c55e' : '#ef4444',
-                    border: `1px solid ${recentRankChange > 0 ? '#22c55e25' : '#ef444425'}`,
-                  }}>
-                    <span>{recentRankChange > 0 ? '▲' : '▼'}</span>
-                    <span>{recentRankChange > 0 ? '+' : ''}{recentRankChange} {t('kingdomProfile.lastKvk', 'last KvK')}</span>
-                  </span>
-                ) : (
-                  <Link to="/profile" style={{ textDecoration: 'none' }}>
-                    <span style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.2rem',
-                      padding: '0.15rem 0.5rem',
-                      borderRadius: '20px',
-                      fontSize: '0.7rem',
-                      fontWeight: '600',
-                      backgroundColor: '#9ca3af08',
-                      border: '1px solid #9ca3af15',
-                      cursor: 'pointer',
-                    }}>
-                      <span style={{ color: '#6b7280' }}>📊</span>
-                      <span style={{ filter: 'blur(4px)', userSelect: 'none', color: '#22c55e' }}>+0</span>
-                      <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>Link to see</span>
-                    </span>
-                  </Link>
-                )
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.2rem',
+                  padding: '0.15rem 0.5rem',
+                  borderRadius: '20px',
+                  fontSize: '0.7rem',
+                  fontWeight: '600',
+                  backgroundColor: recentRankChange > 0 ? '#22c55e12' : '#ef444412',
+                  color: recentRankChange > 0 ? '#22c55e' : '#ef4444',
+                  border: `1px solid ${recentRankChange > 0 ? '#22c55e25' : '#ef444425'}`,
+                }}>
+                  <span>{recentRankChange > 0 ? '▲' : '▼'}</span>
+                  <span>{recentRankChange > 0 ? '+' : ''}{recentRankChange}{totalKingdomsAtKvk > 0 ? ` ${t('kingdomProfile.ofTotal', 'of {{total}}', { total: totalKingdomsAtKvk })}` : ''} {t('kingdomProfile.lastKvk', 'last KvK')}</span>
+                </span>
               )}
             </div>
           )}
