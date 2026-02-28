@@ -167,6 +167,7 @@
     "atlasScoreDesc": "يكافئ الخبرة والثبات",
     "atlasRank": "ترتيب Atlas",
     "lastKvk": "آخر KvK",
+    "ofTotal": "من {{total}}",
     "linkToSee": "اربط للعرض",
     "transferStatus": "حالة الانتقال",
     "tapToUpdate": "انقر للتحديث",

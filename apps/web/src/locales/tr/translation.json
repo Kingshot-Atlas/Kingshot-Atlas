@@ -167,6 +167,7 @@
     "atlasScoreDesc": "Deneyim ve tutarlılığı ödüllendirir",
     "atlasRank": "Atlas Sıralaması",
     "lastKvk": "son KvK",
+    "ofTotal": "{{total}} içinden",
     "linkToSee": "Görmek için bağla",
     "transferStatus": "Transfer Durumu",
     "tapToUpdate": "Güncellemek için dokun",

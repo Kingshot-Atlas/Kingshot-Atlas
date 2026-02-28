@@ -167,6 +167,7 @@
     "atlasScoreDesc": "Belohnt Erfahrung und Konstanz",
     "atlasRank": "Atlas-Rang",
     "lastKvk": "letztes KvK",
+    "ofTotal": "von {{total}}",
     "linkToSee": "Verknüpfen zum Ansehen",
     "transferStatus": "Transfer-Status",
     "tapToUpdate": "Tippen zum Aktualisieren",

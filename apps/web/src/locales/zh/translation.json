@@ -167,6 +167,7 @@
     "atlasScoreDesc": "奖励经验和稳定性",
     "atlasRank": "Atlas 排名",
     "lastKvk": "上次 KvK",
+    "ofTotal": "共 {{total}}",
     "linkToSee": "关联查看",
     "transferStatus": "转服状态",
     "tapToUpdate": "点击更新",
