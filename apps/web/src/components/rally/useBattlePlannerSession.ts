@@ -323,6 +323,9 @@ export function useBattlePlannerSession(): UseBattlePlannerSessionReturn {
   const updateLeaderAssignment = useCallback(async (leaderId: string, building: BuildingKey | null) => {
     if (!supabase) return;
 
+    // Store original value before optimistic update for safe revert
+    const originalBuilding = leaders.find(l => l.id === leaderId)?.building_assignment ?? null;
+
     // Optimistic UI update
     setLeaders(prev => prev.map(l =>
       l.id === leaderId ? { ...l, building_assignment: building } : l
@@ -338,11 +341,11 @@ export function useBattlePlannerSession(): UseBattlePlannerSessionReturn {
       console.error('Failed to update leader assignment:', err);
       // Revert optimistic update on failure
       setLeaders(prev => prev.map(l =>
-        l.id === leaderId ? { ...l, building_assignment: building === null ? l.building_assignment : null } : l
+        l.id === leaderId ? { ...l, building_assignment: originalBuilding } : l
       ));
       showToast(t('battlePlanner.captainAssignFailed', 'Failed to update assignment'), 'error');
     }
-  }, [showToast, t]);
+  }, [leaders, showToast, t]);
 
   const addLeader = useCallback(async (userId: string, buildingAssignment?: BuildingKey | null) => {
     if (!supabase || !user?.id || !session?.id) return;
