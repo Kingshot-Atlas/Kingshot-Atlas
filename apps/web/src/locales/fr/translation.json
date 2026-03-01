@@ -1704,7 +1704,13 @@
     "declineInvite": "Refuser",
     "anotherEditorEndorsed": "Un autre éditeur a approuvé ce royaume.",
     "applyAsCoEditor": "Postuler comme co-éditeur",
-    "nominationCancelled": "Nomination annulée"
+    "nominationCancelled": "Nomination annulée",
+    "stepDown": "Se retirer",
+    "stepDownConfirm": "Se retirer en tant qu'éditeur ? S'il y a des co-éditeurs, le plus ancien sera promu automatiquement. Sinon, le royaume sera ouvert aux nouvelles candidatures.",
+    "confirmStepDown": "Confirmer le retrait",
+    "steppedDownPromoted": "Vous vous êtes retiré. {{name}} a été promu éditeur.",
+    "steppedDownUnmanaged": "Vous vous êtes retiré. Le royaume {{kingdom}} est maintenant ouvert aux nouvelles candidatures d'éditeur.",
+    "kingdomMismatch": "Vous êtes lié au Royaume {{linked}} mais toujours éditeur du Royaume {{editor}}. Envisagez de vous retirer."
   },
   "recruiter": {
     "loading": "Chargement du tableau de bord...",
@@ -1726,6 +1732,11 @@
     "browse": "Parcourir",
     "candidates": "Candidats",
     "profile": "Profil",
+    "transferEditorRole": "Transférer le rôle d'éditeur",
+    "confirmTransfer": "Transférer le rôle d'éditeur à {{name}} ? Vous deviendrez inactif et ils obtiendront un accès complet d'éditeur.",
+    "confirmTransferBtn": "Confirmer le transfert",
+    "editorRoleTransferred": "Rôle d'éditeur transféré à {{name}} !",
+    "removeCoEditor": "Retirer le co-éditeur",
     "coEditors": "Co-Éditeurs",
     "active": "Actif",
     "approved": "Approuvé",

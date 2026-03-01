@@ -1704,7 +1704,13 @@
     "declineInvite": "رفض",
     "anotherEditorEndorsed": "محرر آخر أيد هذه المملكة.",
     "applyAsCoEditor": "التقدم كمحرر مشارك",
-    "nominationCancelled": "تم إلغاء الترشيح"
+    "nominationCancelled": "تم إلغاء الترشيح",
+    "stepDown": "التنحي",
+    "stepDownConfirm": "التنحي عن منصب المحرر؟ إذا كان هناك محررون مشاركون، سيتم ترقية الأقدم تلقائياً. وإلا ستكون المملكة مفتوحة لطلبات جديدة.",
+    "confirmStepDown": "تأكيد التنحي",
+    "steppedDownPromoted": "لقد تنحيت. تم ترقية {{name}} إلى محرر.",
+    "steppedDownUnmanaged": "لقد تنحيت. المملكة {{kingdom}} مفتوحة الآن لطلبات محرر جديدة.",
+    "kingdomMismatch": "أنت مرتبط بالمملكة {{linked}} لكنك لا تزال محرر المملكة {{editor}}. فكر في التنحي."
   },
   "recruiter": {
     "loading": "جارٍ تحميل اللوحة...",
@@ -1726,6 +1732,11 @@
     "browse": "تصفح",
     "candidates": "المرشحون",
     "profile": "الملف",
+    "transferEditorRole": "نقل دور المحرر",
+    "confirmTransfer": "نقل دور المحرر إلى {{name}}؟ ستصبح غير نشط وسيحصلون على صلاحيات المحرر الكاملة.",
+    "confirmTransferBtn": "تأكيد النقل",
+    "editorRoleTransferred": "تم نقل دور المحرر إلى {{name}}!",
+    "removeCoEditor": "إزالة المحرر المشارك",
     "coEditors": "المحررون المشاركون",
     "active": "نشط",
     "approved": "مقبول",

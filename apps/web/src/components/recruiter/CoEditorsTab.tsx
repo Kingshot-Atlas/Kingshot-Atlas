@@ -7,6 +7,7 @@ import { useToast } from '../Toast';
 import { supabase } from '../../lib/supabase';
 import { colors } from '../../utils/styles';
 import { logger } from '../../utils/logger';
+import { transferEditorRole } from '../../services/editorSuccessionService';
 import type { EditorInfo, TeamMember } from './types';
 import { inputStyle } from './types';
 
@@ -25,6 +26,8 @@ const CoEditorsTab: React.FC<CoEditorsTabProps> = ({ editorInfo, team, onReloadD
   const [invitingCoEditor, setInvitingCoEditor] = useState(false);
   const [processingRequest, setProcessingRequest] = useState<string | null>(null);
   const [removingCoEditor, setRemovingCoEditor] = useState<{ id: string; name: string } | null>(null);
+  const [transferringTo, setTransferringTo] = useState<{ id: string; userId: string; name: string } | null>(null);
+  const [transferring, setTransferring] = useState(false);
 
   const handleInviteCoEditor = async () => {
     if (!supabase || !editorInfo || !coEditorUserId.trim()) return;
@@ -204,6 +207,33 @@ const CoEditorsTab: React.FC<CoEditorsTabProps> = ({ editorInfo, team, onReloadD
     }
   };
 
+  const handleTransferEditorRole = async () => {
+    if (!supabase || !user || !editorInfo || !transferringTo) return;
+    setTransferring(true);
+    try {
+      const result = await transferEditorRole(
+        editorInfo.id,
+        user.id,
+        transferringTo.id,
+        transferringTo.userId,
+        editorInfo.kingdom_number,
+      );
+      if (result.success) {
+        showToast(t('recruiter.editorRoleTransferred', 'Editor role transferred to {{name}}!', { name: result.promotedName }), 'success');
+        trackFeature('Editor Role Transferred', { kingdom: editorInfo.kingdom_number, to: transferringTo.userId });
+        setTransferringTo(null);
+        onReloadDashboard();
+      } else {
+        showToast(result.error || 'Transfer failed.', 'error');
+      }
+    } catch (err) {
+      logger.error('CoEditorsTab: transferEditorRole failed', err);
+      showToast('Failed to transfer editor role.', 'error');
+    } finally {
+      setTransferring(false);
+    }
+  };
+
   const handleRemoveCoEditor = async (memberId: string, memberUserId: string) => {
     if (!supabase || !user || !editorInfo) return;
     try {
@@ -343,18 +373,71 @@ const CoEditorsTab: React.FC<CoEditorsTabProps> = ({ editorInfo, team, onReloadD
                     </div>
                   </div>
                 ) : member.status === 'active' && editorInfo.role === 'editor' ? (
-                  <div style={{ marginTop: '0.4rem' }}>
-                    <button
-                      onClick={() => setRemovingCoEditor({ id: member.id, name: member.linked_username || member.username || 'User' })}
-                      style={{
-                        padding: '0.3rem 0.6rem', backgroundColor: 'transparent',
-                        border: '1px solid #ef444430', borderRadius: '5px',
-                        color: '#ef4444', fontSize: '0.65rem', fontWeight: '500',
-                        cursor: 'pointer', opacity: 0.7,
-                      }}
-                    >
-                      Remove Co-Editor
-                    </button>
+                  <div style={{ marginTop: '0.4rem', display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                    {/* Transfer Editor Role */}
+                    {transferringTo?.id === member.id ? (
+                      <div style={{
+                        flex: '1 1 100%', padding: '0.5rem',
+                        backgroundColor: '#a855f708', border: '1px solid #a855f720',
+                        borderRadius: '6px',
+                      }}>
+                        <p style={{ color: '#a855f7', fontSize: '0.7rem', margin: '0 0 0.4rem 0' }}>
+                          {t('recruiter.confirmTransfer', 'Transfer editor role to {{name}}? You will become inactive and they will gain full editor access.', { name: member.linked_username || member.username || 'this user' })}
+                        </p>
+                        <div style={{ display: 'flex', gap: '0.4rem' }}>
+                          <button
+                            onClick={handleTransferEditorRole}
+                            disabled={transferring}
+                            style={{
+                              flex: 1, padding: '0.4rem', backgroundColor: '#a855f7',
+                              border: 'none', borderRadius: '6px',
+                              color: '#fff', fontSize: '0.7rem', fontWeight: '600',
+                              cursor: transferring ? 'default' : 'pointer', minHeight: '36px',
+                              opacity: transferring ? 0.5 : 1,
+                            }}
+                          >
+                            {transferring ? '...' : t('recruiter.confirmTransferBtn', 'Confirm Transfer')}
+                          </button>
+                          <button
+                            onClick={() => setTransferringTo(null)}
+                            disabled={transferring}
+                            style={{
+                              flex: 1, padding: '0.4rem', backgroundColor: 'transparent',
+                              border: `1px solid ${colors.border}`, borderRadius: '6px',
+                              color: colors.textSecondary, fontSize: '0.7rem', fontWeight: '600',
+                              cursor: 'pointer', minHeight: '36px',
+                            }}
+                          >
+                            {t('common.cancel', 'Cancel')}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setTransferringTo({ id: member.id, userId: member.user_id, name: member.linked_username || member.username || 'User' })}
+                        style={{
+                          padding: '0.3rem 0.6rem', backgroundColor: '#a855f710',
+                          border: '1px solid #a855f730', borderRadius: '5px',
+                          color: '#a855f7', fontSize: '0.65rem', fontWeight: '500',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {t('recruiter.transferEditorRole', 'Transfer Editor Role')}
+                      </button>
+                    )}
+                    {transferringTo?.id !== member.id && (
+                      <button
+                        onClick={() => setRemovingCoEditor({ id: member.id, name: member.linked_username || member.username || 'User' })}
+                        style={{
+                          padding: '0.3rem 0.6rem', backgroundColor: 'transparent',
+                          border: '1px solid #ef444430', borderRadius: '5px',
+                          color: '#ef4444', fontSize: '0.65rem', fontWeight: '500',
+                          cursor: 'pointer', opacity: 0.7,
+                        }}
+                      >
+                        {t('recruiter.removeCoEditor', 'Remove Co-Editor')}
+                      </button>
+                    )}
                   </div>
                 ) : null}
                 {member.status === 'pending' && editorInfo.role === 'editor' && (

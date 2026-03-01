@@ -128,7 +128,7 @@ const Top100Leaderboard: React.FC = () => {
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: isMobile ? '1rem' : '1.5rem 2rem' }}>
+      <div style={{ maxWidth: isMobile ? '100%' : '720px', margin: '0 auto', padding: isMobile ? '0.75rem' : '1.5rem 2rem' }}>
         {loading ? (
           <LeaderboardSkeleton rows={20} />
         ) : dataLoadError ? (
@@ -145,12 +145,11 @@ const Top100Leaderboard: React.FC = () => {
             overflow: 'hidden'
           }}>
             {/* Table */}
-            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <div style={{ overflowX: isMobile ? 'hidden' : 'auto', WebkitOverflowScrolling: 'touch' }}>
               <table style={{
                 width: '100%',
                 borderCollapse: 'collapse',
-                fontSize: isMobile ? '0.75rem' : '0.85rem',
-                minWidth: isMobile ? '520px' : 'auto'
+                fontSize: isMobile ? '0.78rem' : '0.85rem',
               }}>
                 <thead>
                   <tr style={{
@@ -158,19 +157,21 @@ const Top100Leaderboard: React.FC = () => {
                     backgroundColor: '#0d0d12'
                   }}>
                     {[
-                      { label: t('top100.colRank', '#'), width: isMobile ? '36px' : '50px', align: 'center' as const },
+                      { label: t('top100.colRank', '#'), width: isMobile ? '32px' : '44px', align: 'center' as const },
                       { label: t('top100.colKingdom', 'Kingdom'), width: 'auto', align: 'left' as const },
-                      { label: t('top100.colAtlasScore', 'Atlas Score'), width: isMobile ? '70px' : '95px', align: 'center' as const },
-                      { label: t('top100.colKvks', 'KvKs'), width: isMobile ? '40px' : '55px', align: 'center' as const },
-                      { label: t('top100.colPrepWR', 'Prep WR'), width: isMobile ? '55px' : '75px', align: 'center' as const },
-                      { label: t('top100.colBattleWR', 'Battle WR'), width: isMobile ? '60px' : '80px', align: 'center' as const },
-                      { label: t('top100.colChange', 'Change'), width: isMobile ? '52px' : '70px', align: 'center' as const },
+                      { label: t('top100.colAtlasScore', 'Atlas Score'), width: isMobile ? '68px' : '85px', align: 'center' as const },
+                      { label: t('top100.colKvks', 'KvKs'), width: isMobile ? '38px' : '48px', align: 'center' as const },
+                      ...(!isMobile ? [
+                        { label: t('top100.colPrepWR', 'Prep WR'), width: '68px', align: 'center' as const },
+                        { label: t('top100.colBattleWR', 'Battle WR'), width: '72px', align: 'center' as const },
+                      ] : []),
+                      { label: t('top100.colChange', 'Change'), width: isMobile ? '52px' : '60px', align: 'center' as const },
                     ].map((col, ci) => (
                       <th key={ci} style={{
-                        padding: isMobile ? '0.65rem 0.3rem' : '0.75rem 0.6rem',
+                        padding: isMobile ? '0.6rem 0.4rem' : '0.65rem 0.5rem',
                         color: colors.textSecondary,
                         fontWeight: '600',
-                        fontSize: isMobile ? '0.6rem' : '0.7rem',
+                        fontSize: isMobile ? '0.6rem' : '0.68rem',
                         textTransform: 'uppercase',
                         letterSpacing: '0.04em',
                         textAlign: col.align,
@@ -204,13 +205,13 @@ const Top100Leaderboard: React.FC = () => {
                       >
                         {/* Rank */}
                         <td style={{
-                          padding: isMobile ? '0.55rem 0.3rem' : '0.6rem 0.6rem',
+                          padding: isMobile ? '0.5rem 0.4rem' : '0.55rem 0.5rem',
                           textAlign: 'center',
                           whiteSpace: 'nowrap',
                         }}>
                           <span style={{
                             ...getRankStyle(rank),
-                            fontSize: isMobile ? '0.72rem' : '0.82rem'
+                            fontSize: isMobile ? '0.72rem' : '0.8rem'
                           }}>
                             {getRankBadge(rank)}
                           </span>
@@ -218,7 +219,7 @@ const Top100Leaderboard: React.FC = () => {
 
                         {/* Kingdom */}
                         <td style={{
-                          padding: isMobile ? '0.55rem 0.3rem' : '0.6rem 0.6rem',
+                          padding: isMobile ? '0.5rem 0.4rem' : '0.55rem 0.5rem',
                           textAlign: 'left',
                           whiteSpace: 'nowrap',
                         }}>
@@ -228,24 +229,24 @@ const Top100Leaderboard: React.FC = () => {
                               color: '#fff',
                               fontWeight: isTopThree ? '600' : '500',
                               textDecoration: 'none',
-                              fontSize: isMobile ? '0.75rem' : '0.85rem'
+                              fontSize: isMobile ? '0.78rem' : '0.85rem'
                             }}
                             onClick={(e) => e.stopPropagation()}
                           >
-                            {t('common.kingdom')} {kingdom.kingdom_number}
+                            {isMobile ? `K${kingdom.kingdom_number}` : `${t('common.kingdom')} ${kingdom.kingdom_number}`}
                           </Link>
                         </td>
 
-                        {/* Atlas Score */}
+                        {/* Atlas Score — always cyan */}
                         <td style={{
-                          padding: isMobile ? '0.55rem 0.3rem' : '0.6rem 0.6rem',
+                          padding: isMobile ? '0.5rem 0.4rem' : '0.55rem 0.5rem',
                           textAlign: 'center',
                           whiteSpace: 'nowrap',
                         }}>
                           <span style={{
-                            ...neonGlow(tierColor),
+                            ...neonGlow('#22d3ee'),
                             fontWeight: 'bold',
-                            fontSize: isMobile ? '0.78rem' : '0.88rem'
+                            fontSize: isMobile ? '0.78rem' : '0.85rem'
                           }}>
                             {kingdom.overall_score.toFixed(2)}
                           </span>
@@ -253,7 +254,7 @@ const Top100Leaderboard: React.FC = () => {
 
                         {/* KvKs */}
                         <td style={{
-                          padding: isMobile ? '0.55rem 0.3rem' : '0.6rem 0.6rem',
+                          padding: isMobile ? '0.5rem 0.4rem' : '0.55rem 0.5rem',
                           textAlign: 'center',
                           color: colors.textSecondary,
                           whiteSpace: 'nowrap',
@@ -261,38 +262,42 @@ const Top100Leaderboard: React.FC = () => {
                           {kingdom.total_kvks}
                         </td>
 
-                        {/* Prep WR */}
-                        <td style={{
-                          padding: isMobile ? '0.55rem 0.3rem' : '0.6rem 0.6rem',
-                          textAlign: 'center',
-                          whiteSpace: 'nowrap',
-                          color: kingdom.prep_win_rate >= 0.6 ? '#22c55e' : kingdom.prep_win_rate >= 0.4 ? colors.textSecondary : '#ef4444',
-                          fontWeight: '500',
-                        }}>
-                          {(kingdom.prep_win_rate * 100).toFixed(0)}%
-                        </td>
+                        {/* Prep WR — yellow, desktop only */}
+                        {!isMobile && (
+                          <td style={{
+                            padding: '0.55rem 0.5rem',
+                            textAlign: 'center',
+                            whiteSpace: 'nowrap',
+                            color: '#eab308',
+                            fontWeight: '500',
+                          }}>
+                            {(kingdom.prep_win_rate * 100).toFixed(0)}%
+                          </td>
+                        )}
 
-                        {/* Battle WR */}
-                        <td style={{
-                          padding: isMobile ? '0.55rem 0.3rem' : '0.6rem 0.6rem',
-                          textAlign: 'center',
-                          whiteSpace: 'nowrap',
-                          color: kingdom.battle_win_rate >= 0.6 ? '#22c55e' : kingdom.battle_win_rate >= 0.4 ? colors.textSecondary : '#ef4444',
-                          fontWeight: '500',
-                        }}>
-                          {(kingdom.battle_win_rate * 100).toFixed(0)}%
-                        </td>
+                        {/* Battle WR — orange, desktop only */}
+                        {!isMobile && (
+                          <td style={{
+                            padding: '0.55rem 0.5rem',
+                            textAlign: 'center',
+                            whiteSpace: 'nowrap',
+                            color: '#f97316',
+                            fontWeight: '500',
+                          }}>
+                            {(kingdom.battle_win_rate * 100).toFixed(0)}%
+                          </td>
+                        )}
 
                         {/* Rank Change */}
                         <td style={{
-                          padding: isMobile ? '0.55rem 0.3rem' : '0.6rem 0.6rem',
+                          padding: isMobile ? '0.5rem 0.4rem' : '0.55rem 0.5rem',
                           textAlign: 'center',
                           whiteSpace: 'nowrap',
                         }}>
                           <span style={{
                             color: change.color,
                             fontWeight: change.icon ? 'bold' : '400',
-                            fontSize: isMobile ? '0.72rem' : '0.82rem',
+                            fontSize: isMobile ? '0.72rem' : '0.8rem',
                             ...(change.icon ? neonGlow(change.color) : {})
                           }}>
                             {change.icon}{change.text}

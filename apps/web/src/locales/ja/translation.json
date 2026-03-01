@@ -1704,7 +1704,13 @@
     "declineInvite": "辞退",
     "anotherEditorEndorsed": "他のエディターがこの王国を承認しました。",
     "applyAsCoEditor": "共同エディターとして申請",
-    "nominationCancelled": "推薦キャンセル"
+    "nominationCancelled": "推薦キャンセル",
+    "stepDown": "辞任",
+    "stepDownConfirm": "エディターを辞任しますか？共同エディターがいる場合、最も古参の人が自動的に昇格します。いない場合、王国は新しい申請に開放されます。",
+    "confirmStepDown": "辞任を確認",
+    "steppedDownPromoted": "辞任しました。{{name}}さんがエディターに昇格しました。",
+    "steppedDownUnmanaged": "辞任しました。王国 {{kingdom}} は新しいエディター申請に開放されました。",
+    "kingdomMismatch": "王国 {{linked}} にリンクされていますが、まだ王国 {{editor}} のエディターです。辞任を検討してください。"
   },
   "recruiter": {
     "loading": "ダッシュボードを読み込み中...",
@@ -1726,6 +1732,11 @@
     "browse": "閲覧",
     "candidates": "候補者",
     "profile": "プロフィール",
+    "transferEditorRole": "エディター役割を移譲",
+    "confirmTransfer": "{{name}}さんにエディター役割を移譲しますか？あなたは非アクティブになり、相手が完全なエディター権限を得ます。",
+    "confirmTransferBtn": "移譲を確認",
+    "editorRoleTransferred": "{{name}}さんにエディター役割が移譲されました！",
+    "removeCoEditor": "共同エディターを削除",
     "coEditors": "共同エディター",
     "active": "アクティブ",
     "approved": "承認済み",

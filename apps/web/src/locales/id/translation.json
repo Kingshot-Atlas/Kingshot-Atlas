@@ -1719,7 +1719,13 @@
     "declineInvite": "Tolak",
     "anotherEditorEndorsed": "Editor lain telah mendukung kingdom ini.",
     "applyAsCoEditor": "Lamar sebagai Co-Editor",
-    "nominationCancelled": "Nomination cancelled"
+    "nominationCancelled": "Nominasi dibatalkan",
+    "stepDown": "Mundur",
+    "stepDownConfirm": "Mundur sebagai editor? Jika ada co-editor, yang paling senior akan otomatis dipromosikan. Jika tidak, kerajaan akan terbuka untuk klaim baru.",
+    "confirmStepDown": "Konfirmasi Mundur",
+    "steppedDownPromoted": "Anda mundur. {{name}} telah dipromosikan menjadi editor.",
+    "steppedDownUnmanaged": "Anda mundur. Kerajaan {{kingdom}} sekarang terbuka untuk klaim editor baru.",
+    "kingdomMismatch": "Anda terhubung ke Kerajaan {{linked}} tetapi masih editor Kerajaan {{editor}}. Pertimbangkan untuk mundur."
   },
   "recruiter": {
     "loading": "Memuat dasbor...",
@@ -1741,6 +1747,11 @@
     "browse": "Jelajahi",
     "candidates": "Kandidat",
     "profile": "Profil",
+    "transferEditorRole": "Transfer Peran Editor",
+    "confirmTransfer": "Transfer peran editor ke {{name}}? Anda akan menjadi tidak aktif dan mereka akan mendapatkan akses editor penuh.",
+    "confirmTransferBtn": "Konfirmasi Transfer",
+    "editorRoleTransferred": "Peran editor ditransfer ke {{name}}!",
+    "removeCoEditor": "Hapus Co-Editor",
     "coEditors": "Co-Editor",
     "active": "Aktif",
     "approved": "Disetujui",
