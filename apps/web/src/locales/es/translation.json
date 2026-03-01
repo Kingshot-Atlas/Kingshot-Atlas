@@ -1709,7 +1709,9 @@
     "confirmStepDown": "Confirmar Renuncia",
     "steppedDownPromoted": "Renunciaste. {{name}} ha sido promovido a editor.",
     "steppedDownUnmanaged": "Renunciaste. El reino {{kingdom}} ahora está abierto para nuevas reclamaciones de editor.",
-    "kingdomMismatch": "Estás vinculado al Reino {{linked}} pero sigues siendo editor del Reino {{editor}}. Considera renunciar."
+    "kingdomMismatch": "Estás vinculado al Reino {{linked}} pero sigues siendo editor del Reino {{editor}}. Considera renunciar.",
+    "autoStepDownPromoted": "Se te ha retirado automáticamente como editor. {{name}} ha sido promovido.",
+    "autoStepDownUnmanaged": "Se te ha retirado automáticamente como editor. El reino ahora está abierto para nuevas reclamaciones."
   },
   "recruiter": {
     "loading": "Cargando panel...",

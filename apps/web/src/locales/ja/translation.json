@@ -1710,7 +1710,9 @@
     "confirmStepDown": "辞任を確認",
     "steppedDownPromoted": "辞任しました。{{name}}さんがエディターに昇格しました。",
     "steppedDownUnmanaged": "辞任しました。王国 {{kingdom}} は新しいエディター申請に開放されました。",
-    "kingdomMismatch": "王国 {{linked}} にリンクされていますが、まだ王国 {{editor}} のエディターです。辞任を検討してください。"
+    "kingdomMismatch": "王国 {{linked}} にリンクされていますが、まだ王国 {{editor}} のエディターです。辞任を検討してください。",
+    "autoStepDownPromoted": "エディターから自動的に辞任されました。{{name}}さんが昇格しました。",
+    "autoStepDownUnmanaged": "エディターから自動的に辞任されました。王国は新しい申請に開放されました。"
   },
   "recruiter": {
     "loading": "ダッシュボードを読み込み中...",

@@ -6,7 +6,65 @@ export interface SuccessionResult {
   promotedUserId?: string;
   promotedName?: string;
   error?: string;
-  action: 'transferred' | 'auto_promoted' | 'kingdom_unmanaged' | 'stepped_down' | 'error';
+  action: 'transferred' | 'auto_promoted' | 'kingdom_unmanaged' | 'stepped_down' | 'no_action' | 'error';
+}
+
+/**
+ * Check if a user is an active editor of a kingdom that differs from their new linked kingdom.
+ * If so, automatically trigger stepDownAsEditor to handle succession.
+ * Called after linked_kingdom changes (account switch, new link, refresh).
+ * Returns null if no action was needed.
+ */
+export async function checkAndAutoStepDown(
+  userId: string,
+  newLinkedKingdom: number | null | undefined,
+): Promise<SuccessionResult | null> {
+  if (!supabase || !userId) return null;
+
+  try {
+    // Find user's active editor claim
+    const { data: editorClaim } = await supabase
+      .from('kingdom_editors')
+      .select('id, kingdom_number, role, status')
+      .eq('user_id', userId)
+      .eq('role', 'editor')
+      .eq('status', 'active')
+      .maybeSingle();
+
+    if (!editorClaim) return null; // Not an active editor — nothing to do
+
+    // If new linked kingdom matches editor kingdom, no mismatch
+    if (newLinkedKingdom && editorClaim.kingdom_number === newLinkedKingdom) return null;
+
+    // Kingdom mismatch detected — auto step down
+    logger.info(`[AutoStepDown] User ${userId} transferred to K${newLinkedKingdom}, auto-stepping down from K${editorClaim.kingdom_number}`);
+
+    const result = await stepDownAsEditor(editorClaim.id, userId, editorClaim.kingdom_number);
+
+    // Override audit log source to indicate this was an automatic transfer-triggered step-down
+    if (result.success && supabase) {
+      await supabase
+        .from('editor_audit_log')
+        .update({
+          details: {
+            source: 'kingdom_transfer_auto_step_down',
+            new_kingdom: newLinkedKingdom,
+            auto_promoted: result.action === 'auto_promoted',
+            ...(result.promotedUserId ? { promoted_user_id: result.promotedUserId } : {}),
+          },
+        })
+        .eq('kingdom_number', editorClaim.kingdom_number)
+        .eq('performed_by', userId)
+        .eq('action', 'step_down')
+        .order('created_at', { ascending: false })
+        .limit(1);
+    }
+
+    return result;
+  } catch (err) {
+    logger.error('[AutoStepDown] Failed:', err);
+    return null; // Silently fail — don't block the kingdom transfer
+  }
 }
 
 /**

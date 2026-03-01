@@ -1710,7 +1710,9 @@
     "confirmStepDown": "Confirmer le retrait",
     "steppedDownPromoted": "Vous vous êtes retiré. {{name}} a été promu éditeur.",
     "steppedDownUnmanaged": "Vous vous êtes retiré. Le royaume {{kingdom}} est maintenant ouvert aux nouvelles candidatures d'éditeur.",
-    "kingdomMismatch": "Vous êtes lié au Royaume {{linked}} mais toujours éditeur du Royaume {{editor}}. Envisagez de vous retirer."
+    "kingdomMismatch": "Vous êtes lié au Royaume {{linked}} mais toujours éditeur du Royaume {{editor}}. Envisagez de vous retirer.",
+    "autoStepDownPromoted": "Vous avez été automatiquement retiré en tant qu'éditeur. {{name}} a été promu.",
+    "autoStepDownUnmanaged": "Vous avez été automatiquement retiré en tant qu'éditeur. Le royaume est maintenant ouvert aux nouvelles candidatures."
   },
   "recruiter": {
     "loading": "Chargement du tableau de bord...",

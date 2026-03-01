@@ -1707,7 +1707,9 @@
     "confirmStepDown": "사임 확인",
     "steppedDownPromoted": "사임했습니다. {{name}}님이 편집자로 승격되었습니다.",
     "steppedDownUnmanaged": "사임했습니다. 왕국 {{kingdom}}이(가) 새로운 편집자 신청에 개방되었습니다.",
-    "kingdomMismatch": "왕국 {{linked}}에 연결되어 있지만 여전히 왕국 {{editor}}의 편집자입니다. 사임을 고려해 주세요."
+    "kingdomMismatch": "왕국 {{linked}}에 연결되어 있지만 여전히 왕국 {{editor}}의 편집자입니다. 사임을 고려해 주세요.",
+    "autoStepDownPromoted": "편집자에서 자동으로 사임되었습니다. {{name}}님이 승격되었습니다.",
+    "autoStepDownUnmanaged": "편집자에서 자동으로 사임되었습니다. 왕국이 새로운 신청에 개방되었습니다."
   },
   "recruiter": {
     "loading": "대시보드 로딩 중...",

@@ -30,6 +30,7 @@ import { neonGlow } from '../utils/styles';
 import { isRandomUsername } from '../utils/randomUsername';
 import { useTranslation } from 'react-i18next';
 import { useGoldKingdoms } from '../hooks/useGoldKingdoms';
+import { checkAndAutoStepDown } from '../services/editorSuccessionService';
 
 
 // Extracted to components/profile/: AvatarWithFallback, ProfileLoadingFallback, getTierBorderColor, getAuthProvider
@@ -875,6 +876,18 @@ const Profile: React.FC = () => {
                     }
                     // Assign Settler role in Discord (fire and forget)
                     discordService.syncSettlerRole(user.id, true).catch(() => {});
+                    // Auto step-down if user was editor of a different kingdom
+                    if (playerData.kingdom) {
+                      checkAndAutoStepDown(user.id, playerData.kingdom).then(stepDownResult => {
+                        if (stepDownResult?.success) {
+                          if (stepDownResult.action === 'auto_promoted') {
+                            showToast(t('editor.autoStepDownPromoted', 'You were automatically stepped down as editor. {{name}} has been promoted.', { name: stepDownResult.promotedName }), 'info');
+                          } else if (stepDownResult.action === 'kingdom_unmanaged') {
+                            showToast(t('editor.autoStepDownUnmanaged', 'You were automatically stepped down as editor. The kingdom is now open for new claims.'), 'info');
+                          }
+                        }
+                      }).catch(() => {});
+                    }
                     // Show Welcome to Atlas screen if first time linking
                     const welcomeKey = `atlas_onboarding_welcomeScreenShown`;
                     if (!localStorage.getItem(welcomeKey) || localStorage.getItem(welcomeKey) === 'false') {

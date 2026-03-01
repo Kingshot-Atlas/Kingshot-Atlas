@@ -1710,7 +1710,9 @@
     "confirmStepDown": "Rücktritt bestätigen",
     "steppedDownPromoted": "Sie sind zurückgetreten. {{name}} wurde zum Editor befördert.",
     "steppedDownUnmanaged": "Sie sind zurückgetreten. Königreich {{kingdom}} ist jetzt für neue Editor-Bewerbungen offen.",
-    "kingdomMismatch": "Sie sind mit Königreich {{linked}} verknüpft, aber noch Editor von Königreich {{editor}}. Erwägen Sie zurückzutreten."
+    "kingdomMismatch": "Sie sind mit Königreich {{linked}} verknüpft, aber noch Editor von Königreich {{editor}}. Erwägen Sie zurückzutreten.",
+    "autoStepDownPromoted": "Sie wurden automatisch als Editor abgesetzt. {{name}} wurde befördert.",
+    "autoStepDownUnmanaged": "Sie wurden automatisch als Editor abgesetzt. Das Königreich ist jetzt für neue Bewerbungen offen."
   },
   "recruiter": {
     "loading": "Dashboard wird geladen...",

@@ -8,6 +8,7 @@ import { Card } from './shared';
 import { useTranslation } from 'react-i18next';
 import { logger } from '../utils/logger';
 import { getAuthHeaders } from '../services/authHeaders';
+import { checkAndAutoStepDown } from '../services/editorSuccessionService';
 
 interface PlayerAccount {
   id: string;
@@ -167,6 +168,19 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
       }
 
       showToast(t('accountSwitcher.switchedTo', 'Switched to {{name}} (K{{kingdom}})', { name: account.username || account.player_id, kingdom: account.kingdom || '?' }), 'success');
+
+      // Auto step-down if user was editor of a different kingdom
+      if (user.id && account.kingdom) {
+        const stepDownResult = await checkAndAutoStepDown(user.id, account.kingdom);
+        if (stepDownResult?.success) {
+          if (stepDownResult.action === 'auto_promoted') {
+            showToast(t('editor.autoStepDownPromoted', 'You were automatically stepped down as editor. {{name}} has been promoted.', { name: stepDownResult.promotedName }), 'info');
+          } else if (stepDownResult.action === 'kingdom_unmanaged') {
+            showToast(t('editor.autoStepDownUnmanaged', 'You were automatically stepped down as editor. The kingdom is now open for new claims.'), 'info');
+          }
+        }
+      }
+
       await fetchAccounts();
       onSwitch?.();
     } catch (err) {

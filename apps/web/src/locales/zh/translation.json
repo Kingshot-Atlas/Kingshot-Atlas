@@ -1710,7 +1710,9 @@
     "confirmStepDown": "确认卸任",
     "steppedDownPromoted": "您已卸任。{{name}} 已晋升为编辑。",
     "steppedDownUnmanaged": "您已卸任。王国 {{kingdom}} 现在开放给新的编辑申请。",
-    "kingdomMismatch": "您已绑定王国 {{linked}}，但仍是王国 {{editor}} 的编辑。请考虑卸任。"
+    "kingdomMismatch": "您已绑定王国 {{linked}}，但仍是王国 {{editor}} 的编辑。请考虑卸任。",
+    "autoStepDownPromoted": "您已被自动卸任编辑。{{name}} 已晋升。",
+    "autoStepDownUnmanaged": "您已被自动卸任编辑。该王国现在开放给新的申请。"
   },
   "recruiter": {
     "loading": "加载面板中...",

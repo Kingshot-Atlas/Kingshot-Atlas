@@ -6,13 +6,20 @@ import { DataLoadError } from '../components/DataLoadError';
 import { LeaderboardSkeleton } from '../components/Skeleton';
 import { logger } from '../utils/logger';
 import { useIsMobile } from '../hooks/useMediaQuery';
-import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
+import { neonGlow, neonGlowStrong, FONT_DISPLAY, colors } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { scoreHistoryService } from '../services/scoreHistoryService';
 import { useScrollDepth } from '../hooks/useScrollDepth';
 import { useTranslation } from 'react-i18next';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { getTierColorFromScore } from '../utils/atlasScoreFormula';
+import { supabase } from '../lib/supabase';
+
+const FUND_TIER_COLORS: Record<string, string> = {
+  gold: '#ffc30b',
+  silver: '#b0b8c4',
+  bronze: '#cd7f32',
+};
 
 const Top100Leaderboard: React.FC = () => {
   const { t } = useTranslation();
@@ -22,6 +29,7 @@ const Top100Leaderboard: React.FC = () => {
   const [kingdoms, setKingdoms] = useState<Kingdom[]>([]);
   const [loading, setLoading] = useState(true);
   const [rankMovers, setRankMovers] = useState<Map<number, number>>(new Map());
+  const [fundTiers, setFundTiers] = useState<Map<number, string>>(new Map());
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
@@ -34,8 +42,21 @@ const Top100Leaderboard: React.FC = () => {
     try {
       const [data, movers] = await Promise.all([
         apiService.getKingdoms(),
-        scoreHistoryService.getRankMovers()
+        scoreHistoryService.getRankMovers(),
       ]);
+
+      // Fetch kingdom fund tiers for gold/silver/bronze glow
+      if (supabase) {
+        const { data: funds } = await supabase
+          .from('kingdom_funds')
+          .select('kingdom_number, tier')
+          .in('tier', ['gold', 'silver', 'bronze']);
+        if (funds) {
+          const tierMap = new Map<number, string>();
+          for (const f of funds) tierMap.set(f.kingdom_number, f.tier);
+          setFundTiers(tierMap);
+        }
+      }
       setKingdoms(data);
 
       // Build rank change map from movers data
@@ -80,6 +101,20 @@ const Top100Leaderboard: React.FC = () => {
     if (rank === 2) return { ...neonGlow('#9ca3af'), fontWeight: 'bold' };
     if (rank === 3) return { ...neonGlow('#f97316'), fontWeight: 'bold' };
     return { color: colors.textMuted };
+  };
+
+  const getKingdomNameStyle = (kingdomNumber: number, isTopThree: boolean): React.CSSProperties => {
+    const tier = fundTiers.get(kingdomNumber);
+    if (tier && FUND_TIER_COLORS[tier]) {
+      return {
+        ...neonGlowStrong(FUND_TIER_COLORS[tier]),
+        fontWeight: '600',
+      };
+    }
+    return {
+      color: '#fff',
+      fontWeight: isTopThree ? '600' : '500',
+    };
   };
 
   const getRankChangeDisplay = (kingdomNumber: number) => {
@@ -226,8 +261,7 @@ const Top100Leaderboard: React.FC = () => {
                           <Link
                             to={`/kingdom/${kingdom.kingdom_number}`}
                             style={{
-                              color: '#fff',
-                              fontWeight: isTopThree ? '600' : '500',
+                              ...getKingdomNameStyle(kingdom.kingdom_number, isTopThree),
                               textDecoration: 'none',
                               fontSize: isMobile ? '0.78rem' : '0.85rem'
                             }}

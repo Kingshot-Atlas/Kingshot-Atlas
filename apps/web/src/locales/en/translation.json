@@ -1725,7 +1725,9 @@
     "confirmStepDown": "Confirm Step Down",
     "steppedDownPromoted": "You stepped down. {{name}} has been promoted to editor.",
     "steppedDownUnmanaged": "You stepped down. Kingdom {{kingdom}} is now open for new editor claims.",
-    "kingdomMismatch": "You're linked to Kingdom {{linked}} but still editor of Kingdom {{editor}}. Consider stepping down."
+    "kingdomMismatch": "You're linked to Kingdom {{linked}} but still editor of Kingdom {{editor}}. Consider stepping down.",
+    "autoStepDownPromoted": "You were automatically stepped down as editor. {{name}} has been promoted.",
+    "autoStepDownUnmanaged": "You were automatically stepped down as editor. The kingdom is now open for new claims."
   },
   "recruiter": {
     "loading": "Loading dashboard...",

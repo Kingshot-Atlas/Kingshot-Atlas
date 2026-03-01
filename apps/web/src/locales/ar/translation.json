@@ -1710,7 +1710,9 @@
     "confirmStepDown": "تأكيد التنحي",
     "steppedDownPromoted": "لقد تنحيت. تم ترقية {{name}} إلى محرر.",
     "steppedDownUnmanaged": "لقد تنحيت. المملكة {{kingdom}} مفتوحة الآن لطلبات محرر جديدة.",
-    "kingdomMismatch": "أنت مرتبط بالمملكة {{linked}} لكنك لا تزال محرر المملكة {{editor}}. فكر في التنحي."
+    "kingdomMismatch": "أنت مرتبط بالمملكة {{linked}} لكنك لا تزال محرر المملكة {{editor}}. فكر في التنحي.",
+    "autoStepDownPromoted": "تم تنحيك تلقائيًا كمحرر. تمت ترقية {{name}}.",
+    "autoStepDownUnmanaged": "تم تنحيك تلقائيًا كمحرر. المملكة مفتوحة الآن لطلبات جديدة."
   },
   "recruiter": {
     "loading": "جارٍ تحميل اللوحة...",
