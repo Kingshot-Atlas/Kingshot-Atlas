@@ -45,6 +45,8 @@ interface InboxTabProps {
   perAppLastMessages?: Record<string, { message: string; created_at: string }>;
   kingdomNumber?: number;
   editorInfo?: EditorInfo | null;
+  alliances?: string[];
+  onAssignAlliance?: (applicationId: string, alliance: string | null) => Promise<void>;
 }
 
 const InboxTab: React.FC<InboxTabProps> = ({
@@ -62,6 +64,8 @@ const InboxTab: React.FC<InboxTabProps> = ({
   perAppLastMessages,
   kingdomNumber,
   editorInfo,
+  alliances = [],
+  onAssignAlliance,
 }) => {
   const { t } = useTranslation();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -82,15 +86,16 @@ const InboxTab: React.FC<InboxTabProps> = ({
     contact_kingdom?: number;
     player_count?: number;
     note?: string;
+    assigned_alliance?: string;
     created_at: string;
   };
   const [externalRecruits, setExternalRecruits] = useState<ExternalRecruit[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [addMode, setAddMode] = useState<'individual' | 'group'>('individual');
-  const [addForm, setAddForm] = useState({ username: '', player_id: '', from_kingdom: '', power_million: '', tc_level: '', contact_username: '', contact_kingdom: '', player_count: '', note: '' });
+  const [addForm, setAddForm] = useState({ username: '', player_id: '', from_kingdom: '', power_million: '', tc_level: '', contact_username: '', contact_kingdom: '', player_count: '', note: '', assigned_alliance: '' });
   const [addingSaving, setAddingSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ username: '', player_id: '', from_kingdom: '', power_million: '', tc_level: '', contact_username: '', contact_kingdom: '', player_count: '', note: '' });
+  const [editForm, setEditForm] = useState({ username: '', player_id: '', from_kingdom: '', power_million: '', tc_level: '', contact_username: '', contact_kingdom: '', player_count: '', note: '', assigned_alliance: '' });
 
   // Fetch external recruits
   useEffect(() => {
@@ -109,15 +114,21 @@ const InboxTab: React.FC<InboxTabProps> = ({
     return externalRecruits.reduce((sum, r) => sum + (r.type === 'group' ? (r.player_count || 0) : 1), 0);
   }, [externalRecruits]);
 
-  // Alliance breakdown for approved apps
+  // Alliance breakdown for approved apps + external recruits (uses assigned_alliance)
   const allianceCounts = useMemo(() => {
     const counts: Record<string, number> = {};
+    const unassigned = t('recruiter.noAlliance', 'Unassigned');
     for (const app of approvedApps) {
-      const alliance = app.preferred_alliance || t('recruiter.noAlliance', 'Unassigned');
+      const alliance = app.assigned_alliance || unassigned;
       counts[alliance] = (counts[alliance] || 0) + 1;
     }
+    for (const r of externalRecruits) {
+      const n = r.type === 'group' ? (r.player_count || 1) : 1;
+      const alliance = r.assigned_alliance || unassigned;
+      counts[alliance] = (counts[alliance] || 0) + n;
+    }
     return Object.entries(counts).sort((a, b) => b[1] - a[1]);
-  }, [approvedApps, t]);
+  }, [approvedApps, externalRecruits, t]);
 
   const handleAddRecruit = useCallback(async () => {
     if (!supabase || !kingdomNumber || addingSaving) return;
@@ -141,6 +152,7 @@ const InboxTab: React.FC<InboxTabProps> = ({
         row.player_count = parseInt(addForm.player_count);
       }
       if (addForm.note.trim()) row.note = addForm.note.trim();
+      if (addForm.assigned_alliance.trim()) row.assigned_alliance = addForm.assigned_alliance.trim();
       const { data, error } = await supabase.from('external_recruits').insert(row).select().single();
       if (error) {
         console.error('Failed to save external recruit:', error);
@@ -148,7 +160,7 @@ const InboxTab: React.FC<InboxTabProps> = ({
       }
       if (data) {
         setExternalRecruits(prev => [data as ExternalRecruit, ...prev]);
-        setAddForm({ username: '', player_id: '', from_kingdom: '', power_million: '', tc_level: '', contact_username: '', contact_kingdom: '', player_count: '', note: '' });
+        setAddForm({ username: '', player_id: '', from_kingdom: '', power_million: '', tc_level: '', contact_username: '', contact_kingdom: '', player_count: '', note: '', assigned_alliance: '' });
         setShowAddForm(false);
       }
     } finally {
@@ -174,6 +186,7 @@ const InboxTab: React.FC<InboxTabProps> = ({
       contact_kingdom: r.contact_kingdom?.toString() || '',
       player_count: r.player_count?.toString() || '',
       note: r.note || '',
+      assigned_alliance: r.assigned_alliance || '',
     });
   }, []);
 
@@ -198,6 +211,7 @@ const InboxTab: React.FC<InboxTabProps> = ({
         updates.player_count = parseInt(editForm.player_count);
       }
       updates.note = editForm.note.trim() || null;
+      updates.assigned_alliance = editForm.assigned_alliance.trim() || null;
       const { data, error } = await supabase.from('external_recruits').update(updates).eq('id', editingId).select().single();
       if (error) {
         console.error('Failed to update external recruit:', error);
@@ -485,6 +499,14 @@ const InboxTab: React.FC<InboxTabProps> = ({
 
                 <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.35rem' }}>
                   <input value={addForm.note} onChange={e => setAddForm(p => ({ ...p, note: e.target.value }))} placeholder={t('recruiter.notePlaceholder', 'Note (optional)')} maxLength={200} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px', flex: 1 }} />
+                  {alliances.length > 0 ? (
+                    <select value={addForm.assigned_alliance} onChange={e => setAddForm(p => ({ ...p, assigned_alliance: e.target.value }))} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.4rem', minHeight: '34px', width: 'auto', minWidth: '70px', cursor: 'pointer' }}>
+                      <option value="">{t('recruiter.noAlliance', 'Unassigned')}</option>
+                      {alliances.map(a => <option key={a} value={a}>{a}</option>)}
+                    </select>
+                  ) : (
+                    <input value={addForm.assigned_alliance} onChange={e => setAddForm(p => ({ ...p, assigned_alliance: e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 6) }))} placeholder={t('recruiter.alliancePlaceholder', 'Alliance')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px', width: '70px' }} />
+                  )}
                   <button
                     onClick={handleAddRecruit}
                     disabled={addingSaving}
@@ -526,6 +548,14 @@ const InboxTab: React.FC<InboxTabProps> = ({
                       )}
                       <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.35rem' }}>
                         <input value={editForm.note} onChange={e => setEditForm(p => ({ ...p, note: e.target.value }))} placeholder={t('recruiter.notePlaceholder', 'Note (optional)')} maxLength={200} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px', flex: 1 }} />
+                        {alliances.length > 0 ? (
+                          <select value={editForm.assigned_alliance} onChange={e => setEditForm(p => ({ ...p, assigned_alliance: e.target.value }))} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.4rem', minHeight: '34px', width: 'auto', minWidth: '70px', cursor: 'pointer' }}>
+                            <option value="">{t('recruiter.noAlliance', 'Unassigned')}</option>
+                            {alliances.map(a => <option key={a} value={a}>{a}</option>)}
+                          </select>
+                        ) : (
+                          <input value={editForm.assigned_alliance} onChange={e => setEditForm(p => ({ ...p, assigned_alliance: e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 6) }))} placeholder={t('recruiter.alliancePlaceholder', 'Alliance')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px', width: '70px' }} />
+                        )}
                         <button
                           onClick={handleSaveEdit}
                           disabled={addingSaving}
@@ -566,6 +596,11 @@ const InboxTab: React.FC<InboxTabProps> = ({
                           {r.tc_level && <span>TC{r.tc_level}</span>}
                           {r.note && <span style={{ color: '#6b7280' }}>• {r.note}</span>}
                         </div>
+                        {r.assigned_alliance && (
+                          <span style={{ fontSize: '0.5rem', padding: '0.1rem 0.3rem', backgroundColor: '#22c55e10', border: '1px solid #22c55e25', borderRadius: '3px', color: '#22c55e', fontWeight: 700 }}>
+                            {r.assigned_alliance}
+                          </span>
+                        )}
                       </div>
                       <button
                         onClick={() => startEditRecruit(r)}
@@ -686,6 +721,35 @@ const InboxTab: React.FC<InboxTabProps> = ({
                   lastMessagePreview={perAppLastMessages?.[app.id]?.message}
                   lastMessageAt={perAppLastMessages?.[app.id]?.created_at}
                 />
+                {filterStatus === 'approved' && onAssignAlliance && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.25rem', paddingLeft: '0.5rem' }}>
+                    <span style={{ fontSize: '0.55rem', color: '#22c55e', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                      {t('recruiter.assignAlliance', 'Alliance')}:
+                    </span>
+                    {alliances.length > 0 ? (
+                      <select
+                        value={app.assigned_alliance || ''}
+                        onChange={e => onAssignAlliance(app.id, e.target.value || null)}
+                        style={{ ...inputStyle, fontSize: '0.65rem', padding: '0.2rem 0.3rem', minHeight: '26px', width: 'auto', minWidth: '70px', cursor: 'pointer', borderColor: app.assigned_alliance ? '#22c55e40' : colors.border }}
+                      >
+                        <option value="">{t('recruiter.noAlliance', 'Unassigned')}</option>
+                        {alliances.map(a => <option key={a} value={a}>{a}</option>)}
+                      </select>
+                    ) : (
+                      <input
+                        value={app.assigned_alliance || ''}
+                        onChange={e => onAssignAlliance(app.id, e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 6) || null)}
+                        placeholder={t('recruiter.alliancePlaceholder', 'Alliance')}
+                        style={{ ...inputStyle, fontSize: '0.65rem', padding: '0.2rem 0.3rem', minHeight: '26px', width: '70px' }}
+                      />
+                    )}
+                    {app.preferred_alliance && app.preferred_alliance !== app.assigned_alliance && (
+                      <span style={{ fontSize: '0.5rem', color: '#6b7280', fontStyle: 'italic' }}>
+                        {t('recruiter.preferredWas', 'Preferred')}: {app.preferred_alliance}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ))}

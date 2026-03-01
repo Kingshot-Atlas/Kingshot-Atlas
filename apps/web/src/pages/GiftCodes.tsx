@@ -7,6 +7,8 @@ import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData'
 import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../components/Toast';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 const CODES_CACHE_KEY = 'atlas_gift_codes_cache';
@@ -26,6 +28,15 @@ interface RawGiftCode {
   is_expired?: boolean;
 }
 
+interface SavedPlayerId {
+  id: string;
+  player_id: string;
+  label: string | null;
+  sort_order: number;
+}
+
+const MAX_ALT_IDS = 5;
+
 const GiftCodes: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle(t('giftCodes.pageTitle', 'Gift Codes'));
@@ -33,12 +44,95 @@ const GiftCodes: React.FC = () => {
   useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.tools });
   const isMobile = useIsMobile();
   const { showToast } = useToast();
+  const { user, profile } = useAuth();
 
   const [codes, setCodes] = useState<GiftCode[]>([]);
   const [loadingCodes, setLoadingCodes] = useState(true);
   const [codesSource, setCodesSource] = useState<string>('');
   const [copiedAll, setCopiedAll] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+
+  // Player ID list state
+  const [savedIds, setSavedIds] = useState<SavedPlayerId[]>([]);
+  const [newPlayerId, setNewPlayerId] = useState('');
+  const [newLabel, setNewLabel] = useState('');
+  const [addingId, setAddingId] = useState(false);
+  const [copiedPid, setCopiedPid] = useState<string | null>(null);
+  const [showPlayerIds, setShowPlayerIds] = useState(true);
+
+  // Fetch saved player IDs
+  useEffect(() => {
+    if (!supabase || !user) return;
+    supabase
+      .from('user_saved_player_ids')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('sort_order', { ascending: true })
+      .then(({ data }) => {
+        if (data) setSavedIds(data as SavedPlayerId[]);
+      });
+  }, [user]);
+
+  const handleAddPlayerId = useCallback(async () => {
+    if (!supabase || !user || !newPlayerId.trim() || addingId) return;
+    if (savedIds.length >= MAX_ALT_IDS) {
+      showToast(t('giftCodes.maxIdsReached', `Maximum ${MAX_ALT_IDS} alt IDs allowed`), 'error');
+      return;
+    }
+    setAddingId(true);
+    try {
+      const { data, error } = await supabase
+        .from('user_saved_player_ids')
+        .insert({
+          user_id: user.id,
+          player_id: newPlayerId.trim(),
+          label: newLabel.trim() || null,
+          sort_order: savedIds.length,
+        })
+        .select()
+        .single();
+      if (error) {
+        if (error.code === '23505') {
+          showToast(t('giftCodes.duplicateId', 'This Player ID is already saved'), 'error');
+        } else {
+          showToast(t('giftCodes.addIdError', 'Failed to save Player ID'), 'error');
+        }
+        return;
+      }
+      if (data) {
+        setSavedIds(prev => [...prev, data as SavedPlayerId]);
+        setNewPlayerId('');
+        setNewLabel('');
+        showToast(t('giftCodes.idAdded', 'Player ID saved'), 'success');
+      }
+    } finally {
+      setAddingId(false);
+    }
+  }, [supabase, user, newPlayerId, newLabel, addingId, savedIds.length, showToast, t]);
+
+  const handleRemovePlayerId = useCallback(async (id: string) => {
+    if (!supabase) return;
+    const { error } = await supabase.from('user_saved_player_ids').delete().eq('id', id);
+    if (!error) setSavedIds(prev => prev.filter(s => s.id !== id));
+  }, [supabase]);
+
+  const copyPlayerId = useCallback((pid: string) => {
+    navigator.clipboard.writeText(pid).then(() => {
+      setCopiedPid(pid);
+      showToast(t('giftCodes.idCopied', { id: pid, defaultValue: `Copied ${pid}` }), 'success');
+      setTimeout(() => setCopiedPid(null), 2000);
+    }).catch(() => showToast('Failed to copy', 'error'));
+  }, [showToast, t]);
+
+  const copyAllPlayerIds = useCallback(() => {
+    const ids: string[] = [];
+    if (profile?.linked_player_id) ids.push(profile.linked_player_id);
+    ids.push(...savedIds.map(s => s.player_id));
+    if (ids.length === 0) return;
+    navigator.clipboard.writeText(ids.join('\n')).then(() => {
+      showToast(t('giftCodes.allIdsCopied', { count: ids.length, defaultValue: `Copied ${ids.length} Player IDs` }), 'success');
+    }).catch(() => showToast('Failed to copy', 'error'));
+  }, [profile, savedIds, showToast, t]);
 
   // Fetch active codes (forceRefresh bypasses cache)
   const fetchCodes = useCallback(async (forceRefresh = false, silent = false) => {
@@ -360,6 +454,180 @@ const GiftCodes: React.FC = () => {
               </button>
             </div>
           </>
+        )}
+
+        {/* Player ID List — logged-in users only */}
+        {user && (
+          <div style={{
+            marginTop: '1.25rem', padding: isMobile ? '0.75rem' : '1rem',
+            backgroundColor: colors.surface, borderRadius: '12px', border: `1px solid #22d3ee20`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: showPlayerIds ? '0.6rem' : 0 }}>
+              <h3 style={{ color: '#22d3ee', fontSize: '0.8rem', fontWeight: '700', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                🎮 {t('giftCodes.playerIds', 'Your Player IDs')}
+              </h3>
+              <div style={{ display: 'flex', gap: '0.3rem' }}>
+                {(profile?.linked_player_id || savedIds.length > 0) && (
+                  <button
+                    onClick={copyAllPlayerIds}
+                    className="gift-action-btn"
+                    style={{
+                      padding: '0.25rem 0.5rem', borderRadius: '6px',
+                      border: '1px solid #22d3ee30', backgroundColor: '#22d3ee10',
+                      color: '#22d3ee', fontSize: '0.6rem', fontWeight: '600', cursor: 'pointer',
+                    }}
+                  >
+                    📋 {t('giftCodes.copyAllIds', 'Copy All')}
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowPlayerIds(!showPlayerIds)}
+                  style={{
+                    padding: '0.25rem 0.5rem', borderRadius: '6px',
+                    border: `1px solid ${colors.border}`, backgroundColor: 'transparent',
+                    color: colors.textMuted, fontSize: '0.6rem', cursor: 'pointer',
+                  }}
+                >
+                  {showPlayerIds ? '▲' : '▼'}
+                </button>
+              </div>
+            </div>
+
+            {showPlayerIds && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                <p style={{ margin: '0 0 0.3rem', fontSize: '0.65rem', color: colors.textMuted }}>
+                  {t('giftCodes.playerIdsDesc', 'Save your Player IDs here for quick access when redeeming codes on the official site. Synced across all your devices.')}
+                </p>
+
+                {/* Linked account (always first, non-removable) */}
+                {profile?.linked_player_id && (
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.6rem',
+                    backgroundColor: '#22d3ee08', border: '1px solid #22d3ee20', borderRadius: '8px',
+                  }}>
+                    <span style={{ fontSize: '0.55rem', color: '#22d3ee', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em', flexShrink: 0 }}>
+                      {t('giftCodes.linkedAccount', 'Linked')}
+                    </span>
+                    <span style={{
+                      flex: 1, fontFamily: 'monospace', fontSize: '0.85rem', fontWeight: 700,
+                      color: copiedPid === profile.linked_player_id ? '#22c55e' : '#e5e7eb',
+                      letterSpacing: '0.03em',
+                    }}>
+                      {profile.linked_player_id}
+                    </span>
+                    <button
+                      onClick={() => copyPlayerId(profile.linked_player_id!)}
+                      style={{
+                        padding: '0.25rem 0.5rem', borderRadius: '6px', border: 'none',
+                        backgroundColor: copiedPid === profile.linked_player_id ? '#22c55e' : '#22d3ee',
+                        color: '#000', fontSize: '0.6rem', fontWeight: 700, cursor: 'pointer',
+                        transition: 'all 0.2s', minWidth: '50px',
+                      }}
+                    >
+                      {copiedPid === profile.linked_player_id ? '✓' : t('giftCodes.copy', 'Copy')}
+                    </button>
+                  </div>
+                )}
+
+                {/* Saved alt IDs */}
+                {savedIds.map((s) => (
+                  <div key={s.id} style={{
+                    display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.6rem',
+                    backgroundColor: '#111', border: `1px solid ${colors.border}`, borderRadius: '8px',
+                  }}>
+                    <span style={{ fontSize: '0.55rem', color: '#a855f7', fontWeight: 600, flexShrink: 0 }}>
+                      {s.label || t('giftCodes.alt', 'Alt')}
+                    </span>
+                    <span style={{
+                      flex: 1, fontFamily: 'monospace', fontSize: '0.85rem', fontWeight: 700,
+                      color: copiedPid === s.player_id ? '#22c55e' : '#e5e7eb',
+                      letterSpacing: '0.03em',
+                    }}>
+                      {s.player_id}
+                    </span>
+                    <button
+                      onClick={() => copyPlayerId(s.player_id)}
+                      style={{
+                        padding: '0.25rem 0.5rem', borderRadius: '6px', border: 'none',
+                        backgroundColor: copiedPid === s.player_id ? '#22c55e' : colors.amber,
+                        color: '#000', fontSize: '0.6rem', fontWeight: 700, cursor: 'pointer',
+                        transition: 'all 0.2s', minWidth: '50px',
+                      }}
+                    >
+                      {copiedPid === s.player_id ? '✓' : t('giftCodes.copy', 'Copy')}
+                    </button>
+                    <button
+                      onClick={() => handleRemovePlayerId(s.id)}
+                      style={{
+                        padding: '0.2rem 0.35rem', borderRadius: '4px', border: 'none',
+                        backgroundColor: '#ef444415', color: '#ef4444', fontSize: '0.6rem',
+                        cursor: 'pointer', flexShrink: 0,
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+
+                {/* Add new alt ID */}
+                {savedIds.length < MAX_ALT_IDS && (
+                  <div style={{
+                    display: 'flex', gap: '0.35rem', alignItems: 'center',
+                    padding: '0.35rem 0.5rem', backgroundColor: '#0a0a0a',
+                    border: `1px dashed ${colors.border}`, borderRadius: '8px',
+                  }}>
+                    <input
+                      value={newPlayerId}
+                      onChange={e => setNewPlayerId(e.target.value)}
+                      placeholder={t('giftCodes.enterPlayerId', 'Player ID')}
+                      style={{
+                        flex: 1, backgroundColor: 'transparent', border: 'none', outline: 'none',
+                        color: '#e5e7eb', fontFamily: 'monospace', fontSize: '0.8rem', padding: '0.3rem 0',
+                        minWidth: 0,
+                      }}
+                      onKeyDown={e => e.key === 'Enter' && handleAddPlayerId()}
+                    />
+                    <input
+                      value={newLabel}
+                      onChange={e => setNewLabel(e.target.value)}
+                      placeholder={t('giftCodes.labelOptional', 'Label')}
+                      maxLength={20}
+                      style={{
+                        width: isMobile ? '55px' : '80px', backgroundColor: 'transparent',
+                        border: `1px solid ${colors.border}`, borderRadius: '4px', outline: 'none',
+                        color: '#9ca3af', fontSize: '0.65rem', padding: '0.25rem 0.35rem',
+                      }}
+                      onKeyDown={e => e.key === 'Enter' && handleAddPlayerId()}
+                    />
+                    <button
+                      onClick={handleAddPlayerId}
+                      disabled={addingId || !newPlayerId.trim()}
+                      style={{
+                        padding: '0.3rem 0.6rem', borderRadius: '6px', border: 'none',
+                        backgroundColor: !newPlayerId.trim() ? '#333' : '#22d3ee',
+                        color: !newPlayerId.trim() ? '#555' : '#000',
+                        fontSize: '0.65rem', fontWeight: 700,
+                        cursor: !newPlayerId.trim() || addingId ? 'not-allowed' : 'pointer',
+                        opacity: addingId ? 0.5 : 1, whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {addingId ? '...' : `+ ${t('giftCodes.addId', 'Add')}`}
+                    </button>
+                  </div>
+                )}
+
+                {!profile?.linked_player_id && savedIds.length === 0 && (
+                  <p style={{ fontSize: '0.65rem', color: '#6b7280', textAlign: 'center', margin: '0.25rem 0', fontStyle: 'italic' }}>
+                    {t('giftCodes.noIdsYet', 'No Player IDs saved yet. Add your first one above, or link your account in Settings.')}
+                  </p>
+                )}
+
+                <p style={{ fontSize: '0.55rem', color: '#4b5563', margin: '0.15rem 0 0', textAlign: 'center' }}>
+                  {t('giftCodes.idsLimit', { max: MAX_ALT_IDS, current: savedIds.length, defaultValue: `${savedIds.length}/${MAX_ALT_IDS} alt IDs saved` })}
+                </p>
+              </div>
+            )}
+          </div>
         )}
 
         {/* How to Redeem Section */}

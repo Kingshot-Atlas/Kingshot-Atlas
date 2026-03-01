@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { FONT_DISPLAY, colors } from '../utils/styles';
+import { supabase } from '../lib/supabase';
 import {
   BrowseTransfereesTab,
   CoEditorsTab,
@@ -42,6 +43,15 @@ const RecruiterDashboard: React.FC<{
     pendingCoEditorRequests, activeApps, approvedApps, closedApps,
     filteredApps, pendingCount, updating, listingViews, unreadMessageCount, perAppUnreadCounts, perAppLastMessages,
   } = dashboard;
+
+  const fundAlliances = useMemo(() => fund?.alliance_events?.alliances?.filter(Boolean) || [], [fund]);
+
+  const handleAssignAlliance = useCallback(async (applicationId: string, alliance: string | null) => {
+    if (!supabase) return;
+    await supabase.from('transfer_applications').update({ assigned_alliance: alliance }).eq('id', applicationId);
+    // Optimistic: update local state via refetch
+    loadDashboard();
+  }, [loadDashboard]);
 
 
   // Keyboard shortcuts: 1-7 switch tabs
@@ -299,6 +309,8 @@ const RecruiterDashboard: React.FC<{
                 perAppLastMessages={perAppLastMessages}
                 kingdomNumber={editorInfo?.kingdom_number}
                 editorInfo={editorInfo}
+                alliances={fundAlliances}
+                onAssignAlliance={handleAssignAlliance}
               />
             )}
 
