@@ -1874,7 +1874,16 @@
     "sortOldest": "En eski",
     "sortTcHigh": "TC (Yüksek)",
     "sortPowerHigh": "Güç (Yüksek)",
-    "noMatchingApps": "Aramanızla eşleşen başvuru yok"
+    "noMatchingApps": "Aramanızla eşleşen başvuru yok",
+    "messageSent": "Mesaj gönderildi!",
+    "messageBtn": "💬 Mesaj",
+    "messageSentShort": "✓ Gönderildi",
+    "preAppMsgLabel": "Bu adaya mesaj gönder",
+    "preAppMsgHint": "(krallık kimliğiniz görünür, aday anonim kalır)",
+    "preAppMsgPlaceholder": "Krallığınızı tanıtın veya bir soru sorun...",
+    "preAppNotifTitle": "Bir krallıktan yeni mesaj",
+    "preAppNotifBody": "Krallık {{kn}} size transfer hakkında bir mesaj gönderdi.",
+    "send": "Gönder"
   },
   "applications": {
     "applyTo": "Başvur:",
@@ -2692,7 +2701,12 @@
     "hideTranslation": "Gizle",
     "searchPlaceholder": "Sohbetlerde ara...",
     "noSearchResults": "Sohbet bulunamadı.",
-    "typing": "yazıyor"
+    "typing": "yazıyor",
+    "preApp": "Ön Başvuru",
+    "preAppStatus": "Ön başvuru mesajı",
+    "candidate": "Aday",
+    "anonymousCandidate": "Anonim Aday",
+    "recruiterTag": "İşe Alımcı"
   },
   "transfereeDash": {
     "loading": "Paneliniz yükleniyor...",

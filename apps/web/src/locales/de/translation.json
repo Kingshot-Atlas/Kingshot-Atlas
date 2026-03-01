@@ -1874,7 +1874,16 @@
     "sortOldest": "Älteste",
     "sortTcHigh": "TC (Hoch)",
     "sortPowerHigh": "Stärke (Hoch)",
-    "noMatchingApps": "Keine Bewerbungen entsprechen Ihrer Suche"
+    "noMatchingApps": "Keine Bewerbungen entsprechen Ihrer Suche",
+    "messageSent": "Nachricht gesendet!",
+    "messageBtn": "💬 Nachricht",
+    "messageSentShort": "✓ Gesendet",
+    "preAppMsgLabel": "Nachricht an diesen Kandidaten senden",
+    "preAppMsgHint": "(Ihre Königsreich-Identität ist sichtbar, der Kandidat bleibt anonym)",
+    "preAppMsgPlaceholder": "Stellen Sie Ihr Königreich vor oder stellen Sie eine Frage...",
+    "preAppNotifTitle": "Neue Nachricht von einem Königreich",
+    "preAppNotifBody": "Königreich {{kn}} hat Ihnen eine Nachricht über einen Transfer gesendet.",
+    "send": "Senden"
   },
   "applications": {
     "applyTo": "Bewerben bei",
@@ -2692,7 +2701,12 @@
     "hideTranslation": "Ausblenden",
     "searchPlaceholder": "Unterhaltungen suchen...",
     "noSearchResults": "Keine Unterhaltungen gefunden.",
-    "typing": "tippt"
+    "typing": "tippt",
+    "preApp": "Vor-Bewerbung",
+    "preAppStatus": "Vor-Bewerbungsnachricht",
+    "candidate": "Kandidat",
+    "anonymousCandidate": "Anonymer Kandidat",
+    "recruiterTag": "Rekrutierer"
   },
   "transfereeDash": {
     "loading": "Dashboard wird geladen...",

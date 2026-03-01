@@ -1874,7 +1874,16 @@
     "sortOldest": "Plus ancien",
     "sortTcHigh": "TC (Élevé)",
     "sortPowerHigh": "Puissance (Élevée)",
-    "noMatchingApps": "Aucune candidature ne correspond à votre recherche"
+    "noMatchingApps": "Aucune candidature ne correspond à votre recherche",
+    "messageSent": "Message envoyé !",
+    "messageBtn": "💬 Message",
+    "messageSentShort": "✓ Envoyé",
+    "preAppMsgLabel": "Envoyer un message à ce candidat",
+    "preAppMsgHint": "(votre identité de royaume est visible, le candidat reste anonyme)",
+    "preAppMsgPlaceholder": "Présentez votre royaume ou posez une question...",
+    "preAppNotifTitle": "Nouveau message d'un royaume",
+    "preAppNotifBody": "Le royaume {{kn}} vous a envoyé un message concernant un transfert.",
+    "send": "Envoyer"
   },
   "applications": {
     "applyTo": "Postuler à",
@@ -2692,7 +2701,12 @@
     "hideTranslation": "Masquer",
     "searchPlaceholder": "Rechercher des conversations...",
     "noSearchResults": "Aucune conversation trouvée.",
-    "typing": "en train d'écrire"
+    "typing": "en train d'écrire",
+    "preApp": "Pré-App",
+    "preAppStatus": "Message pré-candidature",
+    "candidate": "Candidat",
+    "anonymousCandidate": "Candidat Anonyme",
+    "recruiterTag": "Recruteur"
   },
   "transfereeDash": {
     "loading": "Chargement de votre tableau de bord...",

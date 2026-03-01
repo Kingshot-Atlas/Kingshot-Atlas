@@ -1871,7 +1871,16 @@
     "sortOldest": "오래된순",
     "sortTcHigh": "TC (높은순)",
     "sortPowerHigh": "전투력 (높은순)",
-    "noMatchingApps": "검색과 일치하는 지원이 없습니다"
+    "noMatchingApps": "검색과 일치하는 지원이 없습니다",
+    "messageSent": "메시지가 전송되었습니다!",
+    "messageBtn": "💬 메시지",
+    "messageSentShort": "✓ 전송됨",
+    "preAppMsgLabel": "이 후보에게 메시지 보내기",
+    "preAppMsgHint": "(왕국 신원이 표시되며 후보는 익명으로 유지됩니다)",
+    "preAppMsgPlaceholder": "왕국을 소개하거나 질문하세요...",
+    "preAppNotifTitle": "왕국으로부터 새 메시지",
+    "preAppNotifBody": "왕국 {{kn}}이(가) 이적에 관한 메시지를 보냈습니다.",
+    "send": "보내기"
   },
   "applications": {
     "applyTo": "지원 대상",
@@ -2689,7 +2698,12 @@
     "hideTranslation": "숨기기",
     "searchPlaceholder": "대화 검색...",
     "noSearchResults": "대화를 찾을 수 없습니다.",
-    "typing": "입력 중"
+    "typing": "입력 중",
+    "preApp": "사전 지원",
+    "preAppStatus": "사전 지원 메시지",
+    "candidate": "후보",
+    "anonymousCandidate": "익명 후보",
+    "recruiterTag": "모집자"
   },
   "transfereeDash": {
     "loading": "대시보드 로딩 중...",

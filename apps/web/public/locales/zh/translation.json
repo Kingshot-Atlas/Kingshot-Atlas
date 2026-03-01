@@ -1874,7 +1874,16 @@
     "sortOldest": "最早",
     "sortTcHigh": "TC（高）",
     "sortPowerHigh": "战力（高）",
-    "noMatchingApps": "没有匹配的申请"
+    "noMatchingApps": "没有匹配的申请",
+    "messageSent": "消息已发送！",
+    "messageBtn": "💬 消息",
+    "messageSentShort": "✓ 已发送",
+    "preAppMsgLabel": "向此候选人发送消息",
+    "preAppMsgHint": "（你的王国身份可见，候选人保持匿名）",
+    "preAppMsgPlaceholder": "介绍你的王国或提出问题...",
+    "preAppNotifTitle": "来自王国的新消息",
+    "preAppNotifBody": "王国 {{kn}} 向你发送了关于转移的消息。",
+    "send": "发送"
   },
   "applications": {
     "applyTo": "申请",
@@ -2692,7 +2701,12 @@
     "hideTranslation": "隐藏",
     "searchPlaceholder": "搜索对话...",
     "noSearchResults": "未找到对话。",
-    "typing": "正在输入"
+    "typing": "正在输入",
+    "preApp": "预申请",
+    "preAppStatus": "预申请消息",
+    "candidate": "候选人",
+    "anonymousCandidate": "匿名候选人",
+    "recruiterTag": "招募者"
   },
   "transfereeDash": {
     "loading": "正在加载您的面板...",

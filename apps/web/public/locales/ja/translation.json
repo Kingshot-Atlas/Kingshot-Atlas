@@ -1874,7 +1874,16 @@
     "sortOldest": "古い順",
     "sortTcHigh": "TC（高い順）",
     "sortPowerHigh": "戦力（高い順）",
-    "noMatchingApps": "検索に一致する応募はありません"
+    "noMatchingApps": "検索に一致する応募はありません",
+    "messageSent": "メッセージを送信しました！",
+    "messageBtn": "💬 メッセージ",
+    "messageSentShort": "✓ 送信済み",
+    "preAppMsgLabel": "この候補者にメッセージを送る",
+    "preAppMsgHint": "（あなたの王国の身元は表示され、候補者は匿名のままです）",
+    "preAppMsgPlaceholder": "王国を紹介するか質問してください...",
+    "preAppNotifTitle": "王国からの新しいメッセージ",
+    "preAppNotifBody": "王国 {{kn}} が移籍に関するメッセージを送りました。",
+    "send": "送信"
   },
   "applications": {
     "applyTo": "応募先",
@@ -2692,7 +2701,12 @@
     "hideTranslation": "非表示",
     "searchPlaceholder": "会話を検索...",
     "noSearchResults": "会話が見つかりません。",
-    "typing": "入力中"
+    "typing": "入力中",
+    "preApp": "事前応募",
+    "preAppStatus": "事前応募メッセージ",
+    "candidate": "候補者",
+    "anonymousCandidate": "匿名候補者",
+    "recruiterTag": "リクルーター"
   },
   "transfereeDash": {
     "loading": "ダッシュボードを読み込み中...",

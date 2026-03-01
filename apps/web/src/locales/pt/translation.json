@@ -1887,7 +1887,16 @@
     "sortOldest": "Mais antiguo",
     "sortTcHigh": "TC (Alto)",
     "sortPowerHigh": "Poder (Alto)",
-    "noMatchingApps": "Ninguna candidatura coincide con seu búsqueda"
+    "noMatchingApps": "Ninguna candidatura coincide con seu búsqueda",
+    "messageSent": "Mensagem enviada!",
+    "messageBtn": "💬 Mensagem",
+    "messageSentShort": "✓ Enviado",
+    "preAppMsgLabel": "Enviar mensagem a este candidato",
+    "preAppMsgHint": "(a identidade do seu reino é visível, o candidato permanece anónimo)",
+    "preAppMsgPlaceholder": "Apresente seu reino ou faça uma pergunta...",
+    "preAppNotifTitle": "Nova mensagem de um reino",
+    "preAppNotifBody": "O reino {{kn}} enviou uma mensagem sobre transferência.",
+    "send": "Enviar"
   },
   "applications": {
     "applyTo": "Aplicar a",
@@ -2705,7 +2714,12 @@
     "hideTranslation": "Ocultar",
     "searchPlaceholder": "Buscar conversações...",
     "noSearchResults": "No se encontraron conversações.",
-    "typing": "escribiendo"
+    "typing": "escribiendo",
+    "preApp": "Pré-App",
+    "preAppStatus": "Mensagem pré-candidatura",
+    "candidate": "Candidato",
+    "anonymousCandidate": "Candidato Anónimo",
+    "recruiterTag": "Recrutador"
   },
   "transfereeDash": {
     "loading": "Cargando seu panel...",

@@ -1889,7 +1889,16 @@
     "sortOldest": "Oldest",
     "sortTcHigh": "TC (High)",
     "sortPowerHigh": "Power (High)",
-    "noMatchingApps": "No applications match your search"
+    "noMatchingApps": "No applications match your search",
+    "messageSent": "Message sent!",
+    "messageBtn": "💬 Message",
+    "messageSentShort": "✓ Messaged",
+    "preAppMsgLabel": "Message this candidate",
+    "preAppMsgHint": "(your kingdom identity is visible, candidate stays anonymous)",
+    "preAppMsgPlaceholder": "Introduce your kingdom or ask a question...",
+    "preAppNotifTitle": "New Message from a Kingdom",
+    "preAppNotifBody": "Kingdom {{kn}} sent you a message about transferring.",
+    "send": "Send"
   },
   "applications": {
     "applyTo": "Apply to",
@@ -2707,7 +2716,12 @@
     "hideTranslation": "Hide",
     "searchPlaceholder": "Search conversations...",
     "noSearchResults": "No conversations found.",
-    "typing": "typing"
+    "typing": "typing",
+    "preApp": "Pre-App",
+    "preAppStatus": "Pre-application message",
+    "candidate": "Candidate",
+    "anonymousCandidate": "Anonymous Candidate",
+    "recruiterTag": "Recruiter"
   },
   "transfereeDash": {
     "loading": "Loading your dashboard...",

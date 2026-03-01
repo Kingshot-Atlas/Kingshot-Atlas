@@ -1889,7 +1889,16 @@
     "sortOldest": "Terlama",
     "sortTcHigh": "TC (Tinggi)",
     "sortPowerHigh": "Kekuatan (Tinggi)",
-    "noMatchingApps": "Tidak ada lamaran yang sesuai pencarian"
+    "noMatchingApps": "Tidak ada lamaran yang sesuai pencarian",
+    "messageSent": "Pesan terkirim!",
+    "messageBtn": "💬 Pesan",
+    "messageSentShort": "✓ Terkirim",
+    "preAppMsgLabel": "Kirim pesan ke kandidat ini",
+    "preAppMsgHint": "(identitas kerajaan Anda terlihat, kandidat tetap anonim)",
+    "preAppMsgPlaceholder": "Perkenalkan kerajaan Anda atau ajukan pertanyaan...",
+    "preAppNotifTitle": "Pesan baru dari kerajaan",
+    "preAppNotifBody": "Kerajaan {{kn}} mengirim pesan tentang transfer.",
+    "send": "Kirim"
   },
   "applications": {
     "applyTo": "Lamar ke",
@@ -2707,7 +2716,12 @@
     "hideTranslation": "Sembunyikan",
     "searchPlaceholder": "Cari percakapan...",
     "noSearchResults": "Percakapan tidak ditemukan.",
-    "typing": "mengetik"
+    "typing": "mengetik",
+    "preApp": "Pra-Lamaran",
+    "preAppStatus": "Pesan pra-lamaran",
+    "candidate": "Kandidat",
+    "anonymousCandidate": "Kandidat Anonim",
+    "recruiterTag": "Perekrut"
   },
   "transfereeDash": {
     "loading": "Memuat dasbor Anda...",
