@@ -75,12 +75,34 @@ if (!BOT_API_KEY) console.warn('⚠️ BOT_API_KEY not set — bot admin API cal
 /**
  * Fetch from the Atlas API with bot admin authentication.
  * Always sends X-API-Key header so require_bot_admin passes.
+ * Includes timeout (60s) and retry (1x) for Render cold-start resilience.
  */
-function atlasFetch(path, options = {}) {
+const ATLAS_API_TIMEOUT = 60_000;
+const ATLAS_API_RETRIES = 1;
+
+async function atlasFetch(path, options = {}) {
   const url = path.startsWith('http') ? path : `${config.apiUrl}${path}`;
   const headers = { ...options.headers };
   if (BOT_API_KEY) headers['X-API-Key'] = BOT_API_KEY;
-  return fetch(url, { ...options, headers });
+
+  for (let attempt = 0; attempt <= ATLAS_API_RETRIES; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), ATLAS_API_TIMEOUT);
+    try {
+      const res = await fetch(url, { ...options, headers, signal: controller.signal });
+      return res;
+    } catch (err) {
+      if (attempt < ATLAS_API_RETRIES && (err.name === 'AbortError' || err.message.includes('fetch'))) {
+        const delay = 2000 * (attempt + 1);
+        console.log(`⏳ atlasFetch retry ${attempt + 1} for ${path} (waiting ${delay}ms)...`);
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      throw err;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
 }
 
 // Settler role — assigned to Discord members who linked both Discord + Kingshot on ks-atlas.com
@@ -95,6 +117,7 @@ let lastSettlerSync = null;
 // Map: "min-max" -> Discord role ID (e.g. "7-115" -> "1234567890")
 const transferGroupRoleCache = new Map(); // populated at runtime
 let lastTransferGroupSync = null;
+let lastTransferGroupSyncResult = null; // { assigned, removed, alreadyHas, errors, eligible, notInGuild, groups }
 // Channel to DM unlinked users who join — set DISCORD_LINK_PROMPT_CHANNEL_ID on Render
 const LINK_PROMPT_CHANNEL_ID = process.env.DISCORD_LINK_PROMPT_CHANNEL_ID || '';
 
@@ -278,6 +301,7 @@ const healthServer = http.createServer(async (req, res) => {
         lastSupporterSync: lastSupporterSync,
         lastGildedSync: lastGildedSync,
         lastTransferGroupSync: lastTransferGroupSync,
+        lastTransferGroupSyncResult: lastTransferGroupSyncResult,
         spotlightWebhookSet: !!SPOTLIGHT_WEBHOOK_URL,
         welcomeChannelIdSet: !!WELCOME_CHANNEL_ID,
         explorerRoleIdSet: !!EXPLORER_ROLE_ID,
@@ -558,11 +582,26 @@ client.on('ready', async () => {
   // First run after 60s, then every 30 min.
   async function runAllRoleSyncs() {
     console.log('🔄 Starting unified role sync...');
-    await syncSettlerRoles();
-    await syncReferralRoles();
+    // Pre-fetch linked-users ONCE and share across settler/referral/transfer syncs
+    // (previously each sync called /linked-users independently — 3 redundant API calls)
+    let cachedLinkedUsers = null;
+    try {
+      const res = await atlasFetch('/api/v1/bot/linked-users');
+      if (res.ok) {
+        const data = await res.json();
+        cachedLinkedUsers = data.users || [];
+        console.log(`🔄 Pre-fetched ${cachedLinkedUsers.length} linked users for unified sync`);
+      } else {
+        console.error(`🔄 Pre-fetch linked-users failed (${res.status}) — each sync will fetch independently`);
+      }
+    } catch (err) {
+      console.error(`🔄 Pre-fetch linked-users error: ${err.message} — each sync will fetch independently`);
+    }
+    await syncSettlerRoles(cachedLinkedUsers);
+    await syncReferralRoles(cachedLinkedUsers);
     if (SUPPORTER_ROLE_ID) await syncSupporterRoles();
     if (GILDED_ROLE_ID) await syncGildedRoles();
-    await syncTransferGroupRoles();
+    await syncTransferGroupRoles(cachedLinkedUsers);
     await syncBoosterStatus();
     console.log('🔄 Unified role sync complete');
   }
@@ -1243,7 +1282,7 @@ async function checkAndAssignSettlerRole(member) {
  * Periodic sync: fetch all eligible users from API, assign Settler role
  * to guild members who don't have it yet, remove from those who lost eligibility.
  */
-async function syncSettlerRoles() {
+async function syncSettlerRoles(prefetchedUsers = null) {
   if (!botReady || !client.guilds.cache.size) {
     console.log('🎖️ Settler sync skipped (bot not ready)');
     return;
@@ -1253,14 +1292,19 @@ async function syncSettlerRoles() {
   const startTime = Date.now();
 
   try {
-    // Fetch eligible users from API
-    const res = await atlasFetch('/api/v1/bot/linked-users');
-    if (!res.ok) {
-      console.error(`🎖️ Settler sync: API returned ${res.status}`);
-      return;
+    // Use pre-fetched data from unified sync, or fetch independently as fallback
+    let eligibleUsers;
+    if (prefetchedUsers) {
+      eligibleUsers = prefetchedUsers;
+    } else {
+      const res = await atlasFetch('/api/v1/bot/linked-users');
+      if (!res.ok) {
+        console.error(`🎖️ Settler sync: API returned ${res.status}`);
+        return;
+      }
+      const data = await res.json();
+      eligibleUsers = data.users || [];
     }
-    const data = await res.json();
-    const eligibleUsers = data.users || [];
     const eligibleDiscordIds = new Set(eligibleUsers.map(u => u.discord_id).filter(Boolean));
 
     console.log(`🎖️ ${eligibleDiscordIds.size} eligible users from API`);
@@ -1325,7 +1369,7 @@ async function syncSettlerRoles() {
  * Ambassador Discord roles based on their referral_tier.
  * Runs on the same interval as Settler sync.
  */
-async function syncReferralRoles() {
+async function syncReferralRoles(prefetchedUsers = null) {
   if (!botReady || !client.guilds.cache.size) {
     console.log('🏛️ Referral sync skipped (bot not ready)');
     return;
@@ -1335,14 +1379,19 @@ async function syncReferralRoles() {
   const startTime = Date.now();
 
   try {
-    // Reuse the same linked-users endpoint (now includes referral_tier)
-    const res = await atlasFetch('/api/v1/bot/linked-users');
-    if (!res.ok) {
-      console.error(`🏛️ Referral sync: API returned ${res.status}`);
-      return;
+    // Use pre-fetched data from unified sync, or fetch independently as fallback
+    let users;
+    if (prefetchedUsers) {
+      users = prefetchedUsers;
+    } else {
+      const res = await atlasFetch('/api/v1/bot/linked-users');
+      if (!res.ok) {
+        console.error(`🏛️ Referral sync: API returned ${res.status}`);
+        return;
+      }
+      const data = await res.json();
+      users = data.users || [];
     }
-    const data = await res.json();
-    const users = data.users || [];
 
     // Build maps of who should have which referral roles
     const consulEligible = new Set();
@@ -1669,7 +1718,7 @@ function findTransferGroup(kingdom, groups) {
  * Periodic sync: fetch transfer groups + linked users from API, create Discord
  * roles if needed, assign/remove roles based on each user's linked kingdom(s).
  */
-async function syncTransferGroupRoles() {
+async function syncTransferGroupRoles(prefetchedUsers = null) {
   if (!botReady || !client.guilds.cache.size) {
     console.log('🔀 Transfer Group sync skipped (bot not ready)');
     return;
@@ -1683,6 +1732,7 @@ async function syncTransferGroupRoles() {
     const groupsRes = await atlasFetch('/api/v1/bot/transfer-groups');
     if (!groupsRes.ok) {
       console.error(`🔀 Transfer Group sync: groups API returned ${groupsRes.status}`);
+      lastTransferGroupSyncResult = { error: `groups API ${groupsRes.status}` };
       return;
     }
     const groupsData = await groupsRes.json();
@@ -1690,23 +1740,31 @@ async function syncTransferGroupRoles() {
 
     if (groups.length === 0) {
       console.log('🔀 Transfer Group sync: no active groups found, skipping');
+      lastTransferGroupSyncResult = { error: 'no active groups' };
       return;
     }
 
     console.log(`🔀 ${groups.length} active transfer groups from API`);
 
-    // Fetch linked users (now includes all_kingdoms per user)
-    const usersRes = await atlasFetch('/api/v1/bot/linked-users');
-    if (!usersRes.ok) {
-      console.error(`🔀 Transfer Group sync: users API returned ${usersRes.status}`);
-      return;
+    // Use pre-fetched data from unified sync, or fetch independently as fallback
+    let users;
+    if (prefetchedUsers) {
+      users = prefetchedUsers;
+    } else {
+      const usersRes = await atlasFetch('/api/v1/bot/linked-users');
+      if (!usersRes.ok) {
+        console.error(`🔀 Transfer Group sync: users API returned ${usersRes.status}`);
+        lastTransferGroupSyncResult = { error: `users API ${usersRes.status}` };
+        return;
+      }
+      const usersData = await usersRes.json();
+      users = usersData.users || [];
     }
-    const usersData = await usersRes.json();
-    const users = usersData.users || [];
 
     const guild = client.guilds.cache.get(config.guildId);
     if (!guild) {
       console.error('🔀 Transfer Group sync: guild not found in cache');
+      lastTransferGroupSyncResult = { error: 'guild not in cache' };
       return;
     }
 
@@ -1715,11 +1773,13 @@ async function syncTransferGroupRoles() {
 
     // Build map: discordId -> Set of role IDs they should have
     const expectedRoles = new Map(); // discordId -> Set<roleId>
+    let usersWithKingdoms = 0;
 
     for (const user of users) {
       if (!user.discord_id) continue;
       const kingdoms = user.all_kingdoms || (user.linked_kingdom ? [user.linked_kingdom] : []);
       if (kingdoms.length === 0) continue;
+      usersWithKingdoms++;
 
       const roleIds = new Set();
       for (const kingdom of kingdoms) {
@@ -1739,7 +1799,8 @@ async function syncTransferGroupRoles() {
     for (const [discordId] of expectedRoles) {
       if (!guild.members.cache.get(discordId)) notInGuild++;
     }
-    console.log(`🔀 ${expectedRoles.size} users should have transfer group roles (${expectedRoles.size - notInGuild} in guild, ${notInGuild} not in server)`);
+    const inGuild = expectedRoles.size - notInGuild;
+    console.log(`🔀 ${users.length} linked users, ${usersWithKingdoms} with kingdoms, ${expectedRoles.size} matched to groups (${inGuild} in guild, ${notInGuild} not in server)`);
 
     // Collect all transfer group role IDs we manage
     const allManagedRoleIds = new Set(transferGroupRoleCache.values());
@@ -1785,18 +1846,24 @@ async function syncTransferGroupRoles() {
       }
     }
 
-    // Remove managed roles from members who are no longer eligible (unlinked)
-    for (const roleId of allManagedRoleIds) {
-      const roleMembers = guild.members.cache.filter(m => m.roles.cache.has(roleId));
-      for (const [memberId, member] of roleMembers) {
-        if (!expectedRoles.has(memberId) && !member.user.bot) {
-          try {
-            await member.roles.remove(roleId, 'Auto-remove: Kingshot account unlinked on ks-atlas.com');
-            removed++;
-            const roleName = guild.roles.cache.get(roleId)?.name || roleId;
-            console.log(`   🔀 -${roleName} (unlinked): ${member.user.username}`);
-          } catch (err) {
-            console.error(`   ❌ Failed to remove transfer group role from ${member.user.username}: ${err.message}`);
+    // Safety guard: skip unlinked-user removal if we got 0 eligible but roles exist
+    // (protects against mass role removal from a bad API response)
+    if (expectedRoles.size === 0 && allManagedRoleIds.size > 0) {
+      console.warn('🔀 ⚠️ Safety guard: 0 eligible users but managed roles exist — skipping unlinked removal to prevent mass role strip');
+    } else {
+      // Remove managed roles from members who are no longer eligible (unlinked)
+      for (const roleId of allManagedRoleIds) {
+        const roleMembers = guild.members.cache.filter(m => m.roles.cache.has(roleId));
+        for (const [memberId, member] of roleMembers) {
+          if (!expectedRoles.has(memberId) && !member.user.bot) {
+            try {
+              await member.roles.remove(roleId, 'Auto-remove: Kingshot account unlinked on ks-atlas.com');
+              removed++;
+              const roleName = guild.roles.cache.get(roleId)?.name || roleId;
+              console.log(`   🔀 -${roleName} (unlinked): ${member.user.username}`);
+            } catch (err) {
+              console.error(`   ❌ Failed to remove transfer group role from ${member.user.username}: ${err.message}`);
+            }
           }
         }
       }
@@ -1804,9 +1871,11 @@ async function syncTransferGroupRoles() {
 
     const elapsed = Date.now() - startTime;
     lastTransferGroupSync = new Date().toISOString();
+    lastTransferGroupSyncResult = { assigned, removed, alreadyHas, errors, eligible: expectedRoles.size, inGuild, notInGuild, groups: groups.length, users: users.length };
     console.log(`🔀 Transfer Group sync done in ${elapsed}ms: +${assigned} -${removed} =${alreadyHas} already, ${errors} errors, ${notInGuild} not in server`);
   } catch (err) {
     console.error('🔀 Transfer Group sync error:', err.message);
+    lastTransferGroupSyncResult = { error: err.message };
   }
 }
 

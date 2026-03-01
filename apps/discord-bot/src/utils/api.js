@@ -9,6 +9,10 @@
 
 const config = require('../config');
 
+// Bot → Atlas API authentication key (must match DISCORD_API_KEY on the API side)
+// Mirrors bot.js: supports both BOT_API_KEY (preferred) and DISCORD_API_KEY (legacy)
+const BOT_API_KEY = process.env.BOT_API_KEY || process.env.DISCORD_API_KEY || '';
+
 // Timeout for API requests - 60 seconds to handle Render cold starts
 const API_TIMEOUT = 60000;
 
@@ -189,7 +193,7 @@ async function checkMultirallyCredits(discordUserId, isSupporter) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': process.env.DISCORD_API_KEY || '',
+        'X-API-Key': BOT_API_KEY,
       },
       body: JSON.stringify({ discord_user_id: discordUserId, is_supporter: isSupporter }),
     }, 5000); // 5s timeout — don't block command on slow API
@@ -211,7 +215,7 @@ async function incrementMultirallyCredits(discordUserId, isSupporter) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': process.env.DISCORD_API_KEY || '',
+        'X-API-Key': BOT_API_KEY,
       },
       body: JSON.stringify({ discord_user_id: discordUserId, is_supporter: isSupporter }),
     }, 5000);
@@ -244,7 +248,7 @@ async function fetchGiftCodes() {
 async function lookupUserByDiscordId(discordId) {
   try {
     const res = await fetchWithTimeout(`${config.apiUrl}/api/v1/bot/user-by-discord/${discordId}`, {
-      headers: { 'X-API-Key': process.env.DISCORD_API_KEY || '' },
+      headers: { 'X-API-Key': BOT_API_KEY },
     }, 15000);
     if (!res.ok) return null;
     return await res.json();
