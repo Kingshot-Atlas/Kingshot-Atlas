@@ -32,13 +32,40 @@ const NominateForm: React.FC<{
       // Check for existing claim
       const { data: existingClaim } = await supabase
         .from('kingdom_editors')
-        .select('id, status')
+        .select('id, status, role')
         .eq('kingdom_number', linkedKingdom)
         .eq('user_id', user.id)
         .maybeSingle();
 
       if (existingClaim) {
-        setError('You already have an editor claim for this kingdom.');
+        // Allow re-nomination for inactive/cancelled claims via atomic RPC
+        if (existingClaim.status === 'inactive' || existingClaim.status === 'cancelled') {
+          const { data: resetResult, error: rpcError } = await supabase
+            .rpc('reset_editor_claim', { p_claim_id: existingClaim.id });
+
+          if (rpcError) {
+            setError(rpcError.message);
+            return;
+          }
+
+          const result = resetResult as { success: boolean; error?: string } | null;
+          if (!result?.success) {
+            setError(result?.error || 'Failed to reset claim');
+            return;
+          }
+
+          onNominated();
+          return;
+        }
+
+        // Block re-nomination for active/pending/suspended claims
+        if (existingClaim.status === 'pending') {
+          setError('You already have a pending editor claim for this kingdom.');
+        } else if (existingClaim.status === 'active') {
+          setError('You are already an active editor for this kingdom.');
+        } else {
+          setError('You already have an editor claim for this kingdom.');
+        }
         return;
       }
 

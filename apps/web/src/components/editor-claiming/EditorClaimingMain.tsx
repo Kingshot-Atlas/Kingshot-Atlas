@@ -621,6 +621,69 @@ const EditorClaiming: React.FC<{
     );
   }
 
+  // Editor claim was deactivated — allow re-nomination
+  if (myClaim?.status === 'inactive' && myClaim?.role === 'editor' && myClaim.kingdom_number === linkedKingdom) {
+    return (
+      <div style={{
+        backgroundColor: '#f59e0b08',
+        border: '1px solid #f59e0b25',
+        borderRadius: '10px',
+        padding: '0.75rem 1rem',
+        textAlign: 'center',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginBottom: '0.3rem' }}>
+          <span style={{ fontSize: '1rem' }}>⚠️</span>
+          <span style={{ color: '#f59e0b', fontWeight: '600', fontSize: '0.85rem' }}>
+            {t('editor.editorDeactivated', 'Editor Access Deactivated')}
+          </span>
+        </div>
+        <p style={{ color: '#9ca3af', fontSize: '0.75rem', margin: '0.2rem 0 0.5rem 0', lineHeight: 1.4 }}>
+          {t('editor.editorDeactivatedDesc', 'Your editor role for Kingdom {{kingdom}} was deactivated. You can re-nominate yourself to start a new endorsement round.', { kingdom: myClaim.kingdom_number })}
+        </p>
+        {!hasActiveEditor && (
+          <button
+            onClick={() => setShowNominate(true)}
+            style={{
+              padding: '0.5rem 1.25rem',
+              backgroundColor: '#a855f7',
+              border: 'none',
+              borderRadius: '8px',
+              color: '#fff',
+              fontSize: '0.8rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              minHeight: '44px',
+            }}
+          >
+            {t('editor.reNominate', 'Re-Nominate Myself')}
+          </button>
+        )}
+        {hasActiveEditor && canBeCoEditor && (
+          <button
+            onClick={handleBecomeCoEditor}
+            disabled={submittingCoEditor}
+            style={{
+              padding: '0.5rem 1.25rem',
+              backgroundColor: submittingCoEditor ? '#a855f730' : '#a855f7',
+              border: 'none',
+              borderRadius: '8px',
+              color: submittingCoEditor ? '#6b7280' : '#fff',
+              fontSize: '0.8rem',
+              fontWeight: '600',
+              cursor: submittingCoEditor ? 'not-allowed' : 'pointer',
+              minHeight: '44px',
+            }}
+          >
+            {submittingCoEditor ? t('editor.requesting', 'Requesting...') : t('editor.applyAsCoEditor', 'Apply as Co-Editor')}
+          </button>
+        )}
+        {coEditorError && (
+          <div style={{ marginTop: '0.4rem', color: '#ef4444', fontSize: '0.7rem' }}>{coEditorError}</div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
       {/* Primary CTA: Become Editor */}
