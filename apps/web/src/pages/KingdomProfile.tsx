@@ -40,6 +40,7 @@ import { analyticsService } from '../services/analyticsService';
 import { useScrollDepth } from '../hooks/useScrollDepth';
 const KingdomFundContribute = lazy(() => import('../components/KingdomFundContribute'));
 import { useTranslation } from 'react-i18next';
+import { useTrustedSubmitter } from '../hooks/useTrustedSubmitter';
 
 const KingdomProfile: React.FC = () => {
   const { kingdomNumber } = useParams<{ kingdomNumber: string }>();
@@ -49,6 +50,7 @@ const KingdomProfile: React.FC = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { showToast } = useToast();
+  const { isTrusted } = useTrustedSubmitter();
   const queryClient = useQueryClient();
   const [kingdom, setKingdom] = useState<KingdomProfileType | null>(null);
   const [allKingdoms, setAllKingdoms] = useState<KingdomProfileType[]>([]);
@@ -127,7 +129,7 @@ const KingdomProfile: React.FC = () => {
     if (!user || !kingdom) return;
     
     const adminUser = isAdminUsername(profile?.linked_username) || isAdminUsername(profile?.username);
-    const canAutoApprove = adminUser || isKingdomEditor;
+    const canAutoApprove = adminUser || isKingdomEditor || isTrusted;
     await statusService.submitStatusUpdate(
       kingdom.kingdom_number,
       kingdom.most_recent_status || 'Unannounced',

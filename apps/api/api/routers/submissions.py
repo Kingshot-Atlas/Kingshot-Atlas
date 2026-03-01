@@ -373,8 +373,24 @@ def create_kvk10_submission(
     user_email = request.headers.get("X-User-Email")
     is_admin = verify_moderator_role(verified_user_id, db, user_email)
     
-    # Validate screenshot is provided for non-admin users
-    if not submission.screenshot_base64 and not is_admin:
+    # Check if submitter is a trusted submitter (same privileges as admin for submissions)
+    is_trusted = False
+    if not is_admin:
+        try:
+            from api.supabase_client import get_supabase_admin
+            supa_client = get_supabase_admin()
+            if supa_client:
+                ts_result = supa_client.table('trusted_submitters').select('id').eq('user_id', verified_user_id).execute()
+                is_trusted = bool(ts_result.data and len(ts_result.data) > 0)
+                if is_trusted:
+                    logger.info(f"Trusted submitter detected: {verified_user_id}")
+        except Exception as e:
+            logger.warning(f"Failed to check trusted submitter status: {e}")
+    
+    can_skip_screenshot = is_admin or is_trusted
+    
+    # Validate screenshot is provided for non-privileged users
+    if not submission.screenshot_base64 and not can_skip_screenshot:
         raise HTTPException(status_code=400, detail="Screenshot proof is required")
     
     # Process screenshot (skip if admin with no screenshot)
@@ -451,9 +467,9 @@ def create_kvk10_submission(
         except Exception as e:
             logger.error(f"Screenshot processing error: {e}")
             raise HTTPException(status_code=400, detail="Invalid screenshot format. Please upload a valid image.")
-    elif is_admin:
-        screenshot_url = "admin_submission:no_screenshot"
-        logger.info(f"Admin submission without screenshot by {verified_user_id}")
+    elif can_skip_screenshot:
+        screenshot_url = "trusted_submission:no_screenshot" if is_trusted else "admin_submission:no_screenshot"
+        logger.info(f"{'Trusted' if is_trusted else 'Admin'} submission without screenshot by {verified_user_id}")
     
     # Process second screenshot (optional)
     screenshot2_url = None
@@ -504,7 +520,7 @@ def create_kvk10_submission(
         except Exception as e:
             logger.warning(f"Screenshot 2 processing error (non-fatal): {e}")
     
-    # Create submission - auto-approve if admin
+    # Create submission - auto-approve if admin or trusted submitter
     db_submission = KVKSubmission(
         submitter_id=verified_user_id,
         submitter_name=submitter_name,
@@ -517,22 +533,22 @@ def create_kvk10_submission(
         screenshot_url=screenshot_url,
         screenshot2_url=screenshot2_url,
         notes=submission.notes,
-        status="approved" if is_admin else "pending"
+        status="approved" if can_skip_screenshot else "pending"
     )
     
-    if is_admin:
+    if can_skip_screenshot:
         db_submission.reviewed_by = verified_user_id
         db_submission.reviewed_at = datetime.now(timezone.utc)
-        db_submission.review_notes = "Auto-approved (admin submission)"
+        db_submission.review_notes = "Auto-approved (trusted submitter)" if is_trusted else "Auto-approved (admin submission)"
     
     db.add(db_submission)
     db.commit()
     db.refresh(db_submission)
     
-    logger.info(f"KvK #{submission.kvk_number} submission created: K{submission.kingdom_number} vs K{submission.opponent_kingdom} by {verified_user_id} (auto_approved={is_admin})")
+    logger.info(f"KvK #{submission.kvk_number} submission created: K{submission.kingdom_number} vs K{submission.opponent_kingdom} by {verified_user_id} (auto_approved={can_skip_screenshot}, trusted={is_trusted})")
     
-    # If admin, auto-approve: insert KvK records into Supabase immediately
-    if is_admin:
+    # If privileged user, auto-approve: insert KvK records into Supabase immediately
+    if can_skip_screenshot:
         try:
             overall_result = "W" if submission.battle_result == "W" else "L"
             opponent_prep_result = "L" if submission.prep_result == "W" else "W"

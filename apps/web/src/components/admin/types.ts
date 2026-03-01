@@ -140,6 +140,7 @@ export type AdminTab =
   | 'email'
   | 'bot-telemetry'
   | 'tool-access'
+  | 'trusted-submitters'
   | 'spotlight'
   | 'finance'
   | 'kvk-bulk'

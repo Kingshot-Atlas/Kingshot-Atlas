@@ -41,6 +41,10 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
   const [usedInvites, setUsedInvites] = useState(initialUsedInvites);
   const [selectedForInvite, setSelectedForInvite] = useState<Set<string>>(new Set());
   const [bulkInviting, setBulkInviting] = useState(false);
+  const [messageOpenId, setMessageOpenId] = useState<string | null>(null);
+  const [messageText, setMessageText] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [sentMessageIds, setSentMessageIds] = useState<Set<string>>(new Set());
 
   // Sync when parent provides updated count from DB
   useEffect(() => {
@@ -209,6 +213,49 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
     } finally {
       setSelectedForInvite(new Set());
       setBulkInviting(false);
+    }
+  };
+
+  const sendPreAppMessage = async (profileId: string) => {
+    if (!supabase || !user || !editorInfo || !messageText.trim()) return;
+    setSendingMessage(true);
+    try {
+      const { error } = await supabase.from('pre_application_messages').insert({
+        kingdom_number: editorInfo.kingdom_number,
+        sender_user_id: user.id,
+        recipient_profile_id: profileId,
+        message: messageText.trim(),
+      });
+      if (error) {
+        showToast('Failed to send message: ' + error.message, 'error');
+      } else {
+        setSentMessageIds(prev => new Set(prev).add(profileId));
+        setMessageText('');
+        setMessageOpenId(null);
+        trackFeature('Pre-App Message Sent', { kingdom: editorInfo.kingdom_number });
+        showToast(t('recruiter.messageSent', 'Message sent!'), 'success');
+        // Notify the recipient
+        const { data: profileRow } = await supabase
+          .from('transfer_profiles')
+          .select('user_id')
+          .eq('id', profileId)
+          .single();
+        if (profileRow) {
+          await supabase.from('notifications').insert({
+            user_id: profileRow.user_id,
+            type: 'pre_app_message',
+            title: t('recruiter.preAppNotifTitle', 'New Message from a Kingdom'),
+            message: t('recruiter.preAppNotifBody', 'Kingdom {{kn}} sent you a message about transferring.', { kn: editorInfo.kingdom_number }),
+            link: '/messages',
+            metadata: { kingdom_number: editorInfo.kingdom_number },
+          });
+        }
+      }
+    } catch (err) {
+      logger.error('BrowseTransfereesTab: sendPreAppMessage failed', err);
+      showToast('Failed to send message.', 'error');
+    } finally {
+      setSendingMessage(false);
     }
   };
 
@@ -468,6 +515,24 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
                       {savedToWatchlist.has(tp.id) ? '✓ Saved' : '📋 Save for Later'}
                     </button>
                   </div>
+                {canSendInvite && (
+                  <button
+                    onClick={() => { setMessageOpenId(messageOpenId === tp.id ? null : tp.id); setMessageText(''); }}
+                    style={{
+                      padding: '0.2rem 0.45rem',
+                      backgroundColor: sentMessageIds.has(tp.id) ? '#22c55e08' : '#3b82f608',
+                      border: `1px solid ${sentMessageIds.has(tp.id) ? '#22c55e25' : '#3b82f620'}`,
+                      borderRadius: '4px',
+                      color: sentMessageIds.has(tp.id) ? '#22c55e' : '#3b82f6',
+                      fontSize: '0.6rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      minHeight: '28px',
+                    }}
+                  >
+                    {sentMessageIds.has(tp.id) ? t('recruiter.messageSentShort', '✓ Messaged') : t('recruiter.messageBtn', '💬 Message')}
+                  </button>
+                )}
                 {canSendInvite ? (
                   <button
                     disabled={budgetLeft <= 0 || sentInviteIds.has(tp.id)}
@@ -546,6 +611,53 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
                   </p>
                 )}
                 </div>
+
+                {/* Inline Pre-App Message Composer */}
+                {messageOpenId === tp.id && canSendInvite && (
+                  <div style={{
+                    marginTop: '0.5rem', padding: '0.5rem',
+                    backgroundColor: '#3b82f606', border: '1px solid #3b82f618',
+                    borderRadius: '8px',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.35rem' }}>
+                      <span style={{ fontSize: '0.65rem', color: '#3b82f6', fontWeight: 600 }}>
+                        💬 {t('recruiter.preAppMsgLabel', 'Message this candidate')}
+                      </span>
+                      <span style={{ fontSize: '0.55rem', color: colors.textMuted }}>
+                        {t('recruiter.preAppMsgHint', '(your kingdom identity is visible, candidate stays anonymous)')}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.3rem' }}>
+                      <input
+                        type="text"
+                        maxLength={500}
+                        value={messageText}
+                        onChange={e => setMessageText(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter' && messageText.trim()) sendPreAppMessage(tp.id); }}
+                        placeholder={t('recruiter.preAppMsgPlaceholder', 'Introduce your kingdom or ask a question...')}
+                        style={{
+                          flex: 1, padding: '0.4rem 0.6rem', backgroundColor: colors.bg,
+                          border: `1px solid ${colors.border}`, borderRadius: '6px',
+                          color: colors.text, fontSize: '0.75rem', outline: 'none',
+                        }}
+                      />
+                      <button
+                        disabled={!messageText.trim() || sendingMessage}
+                        onClick={() => sendPreAppMessage(tp.id)}
+                        style={{
+                          padding: '0.4rem 0.75rem', backgroundColor: '#3b82f6',
+                          border: 'none', borderRadius: '6px',
+                          color: '#fff', fontSize: '0.7rem', fontWeight: 700,
+                          cursor: !messageText.trim() || sendingMessage ? 'not-allowed' : 'pointer',
+                          opacity: !messageText.trim() || sendingMessage ? 0.5 : 1,
+                          minHeight: '32px',
+                        }}
+                      >
+                        {sendingMessage ? '...' : t('recruiter.send', 'Send')}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}

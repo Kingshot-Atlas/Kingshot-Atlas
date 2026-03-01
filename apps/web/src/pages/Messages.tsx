@@ -51,7 +51,7 @@ const Messages: React.FC = () => {
       // Get all applications where user is applicant
       const { data: myApps } = await supabase
         .from('transfer_applications')
-        .select('id, kingdom_number, status, applied_at, applicant_user_id')
+        .select('id, kingdom_number, status, applied_at, applicant_user_id, transfer_profile_id')
         .eq('applicant_user_id', user.id)
         .in('status', ['pending', 'viewed', 'interested', 'accepted']);
 
@@ -66,7 +66,7 @@ const Messages: React.FC = () => {
       if (editorKingdoms.length > 0) {
         const { data } = await supabase
           .from('transfer_applications')
-          .select('id, kingdom_number, status, applied_at, applicant_user_id')
+          .select('id, kingdom_number, status, applied_at, applicant_user_id, transfer_profile_id')
           .in('kingdom_number', editorKingdoms)
           .in('status', ['pending', 'viewed', 'interested', 'accepted']);
         recruiterApps = data || [];
@@ -122,28 +122,49 @@ const Messages: React.FC = () => {
         unreadCounts[appId] = count || 0;
       }
 
-      // Get other party names
+      // Get transfer profile info (anonymous status + home kingdom) for recruiter conversations
+      const transferProfileIds = [...new Set(allApps.filter(a => a.role === 'recruiter' && a.transfer_profile_id).map(a => a.transfer_profile_id))];
+      const transferProfileMap = new Map<string, { is_anonymous: boolean; current_kingdom: number }>();
+      if (transferProfileIds.length > 0) {
+        const { data: tpRows } = await supabase
+          .from('transfer_profiles')
+          .select('id, is_anonymous, current_kingdom')
+          .in('id', transferProfileIds);
+        (tpRows || []).forEach(tp => { transferProfileMap.set(tp.id, { is_anonymous: tp.is_anonymous, current_kingdom: tp.current_kingdom }); });
+      }
+
+      // Get other party names (only for non-anonymous candidates)
       const otherIds = new Set<string>();
       allApps.forEach(a => {
-        if (a.role === 'recruiter') otherIds.add(a.applicant_user_id);
+        if (a.role === 'recruiter') {
+          const tp = transferProfileMap.get(a.transfer_profile_id);
+          // Only fetch real name if not anonymous (or accepted — identity revealed)
+          if (!tp?.is_anonymous || a.status === 'accepted') {
+            otherIds.add(a.applicant_user_id);
+          }
+        }
       });
-      // For transferee apps, we need kingdom editor names
-      const { data: profileRows } = await supabase
-        .from('profiles')
-        .select('id, username, linked_username')
-        .in('id', [...otherIds]);
       const nameMap: Record<string, string> = {};
-      (profileRows || []).forEach(p => { nameMap[p.id] = p.linked_username || p.username || 'Unknown'; });
+      if (otherIds.size > 0) {
+        const { data: profileRows } = await supabase
+          .from('profiles')
+          .select('id, username, linked_username')
+          .in('id', [...otherIds]);
+        (profileRows || []).forEach(p => { nameMap[p.id] = p.linked_username || p.username || 'Unknown'; });
+      }
 
       // Build conversations
       const convos: Conversation[] = allApps.map(app => {
         const lastMsg = lastMsgMap.get(app.id);
+        const tp = app.role === 'recruiter' ? transferProfileMap.get(app.transfer_profile_id) : undefined;
+        const isAnon = tp?.is_anonymous && app.status !== 'accepted';
         return {
           application_id: app.id,
           kingdom_number: app.kingdom_number,
+          candidate_kingdom: tp?.current_kingdom,
           status: app.status,
           other_party_name: app.role === 'recruiter'
-            ? (nameMap[app.applicant_user_id] || t('messages.applicant', 'Applicant'))
+            ? (isAnon ? t('messages.anonymousCandidate', 'Anonymous Candidate') : (nameMap[app.applicant_user_id] || t('messages.applicant', 'Applicant')))
             : `K${app.kingdom_number}`,
           other_party_id: app.applicant_user_id,
           role: app.role,
@@ -154,6 +175,112 @@ const Messages: React.FC = () => {
           applied_at: app.applied_at,
         };
       });
+
+      // ─── Pre-application messages (Silver/Gold kingdoms → candidates) ──
+      try {
+        // Messages sent TO this user's transfer profile
+        const { data: myTransferProfile } = await supabase
+          .from('transfer_profiles')
+          .select('id, is_anonymous, current_kingdom')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (myTransferProfile) {
+          const { data: incomingPreApp } = await supabase
+            .from('pre_application_messages')
+            .select('id, kingdom_number, sender_user_id, message, created_at, read_at')
+            .eq('recipient_profile_id', myTransferProfile.id)
+            .order('created_at', { ascending: false });
+
+          if (incomingPreApp && incomingPreApp.length > 0) {
+            // Group by kingdom_number
+            const byKingdom = new Map<number, typeof incomingPreApp>();
+            incomingPreApp.forEach(m => {
+              const arr = byKingdom.get(m.kingdom_number) || [];
+              arr.push(m);
+              byKingdom.set(m.kingdom_number, arr);
+            });
+
+            for (const [kn, msgs] of byKingdom) {
+              const latest = msgs[0];
+              if (!latest) continue;
+              const unread = msgs.filter(m => !m.read_at).length;
+              const convoId = `pre-app-${kn}-${myTransferProfile.id}`;
+              convos.push({
+                application_id: convoId,
+                kingdom_number: kn,
+                candidate_kingdom: myTransferProfile.current_kingdom,
+                status: 'pre-application',
+                other_party_name: `K${kn}`,
+                other_party_id: latest.sender_user_id,
+                role: 'transferee',
+                last_message: latest.message,
+                last_message_at: latest.created_at,
+                last_sender_id: latest.sender_user_id,
+                unread_count: unread,
+                applied_at: latest.created_at,
+                is_pre_app: true,
+                pre_app_profile_id: myTransferProfile.id,
+              });
+            }
+          }
+        }
+
+        // Messages sent BY this user (as recruiter)
+        const { data: sentPreApp } = await supabase
+          .from('pre_application_messages')
+          .select('id, kingdom_number, recipient_profile_id, message, created_at')
+          .eq('sender_user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (sentPreApp && sentPreApp.length > 0) {
+          // Group by (kingdom_number, recipient_profile_id)
+          const byTarget = new Map<string, typeof sentPreApp>();
+          sentPreApp.forEach(m => {
+            const key = `${m.kingdom_number}-${m.recipient_profile_id}`;
+            const arr = byTarget.get(key) || [];
+            arr.push(m);
+            byTarget.set(key, arr);
+          });
+
+          // Fetch recipient profile info for anonymity
+          const recipientIds = [...new Set(sentPreApp.map(m => m.recipient_profile_id))];
+          const { data: recipientProfiles } = await supabase
+            .from('transfer_profiles')
+            .select('id, is_anonymous, current_kingdom, user_id')
+            .in('id', recipientIds);
+          const rpMap = new Map((recipientProfiles || []).map(rp => [rp.id, rp]));
+
+          for (const [, msgs] of byTarget) {
+            const latest = msgs[0];
+            if (!latest) continue;
+            const kn = latest.kingdom_number;
+            const profileId = latest.recipient_profile_id;
+            const rp = rpMap.get(profileId);
+            const convoId = `pre-app-${kn}-${profileId}`;
+            // Skip if already added from incoming side
+            if (convos.some(c => c.application_id === convoId)) continue;
+            convos.push({
+              application_id: convoId,
+              kingdom_number: kn,
+              candidate_kingdom: rp?.current_kingdom,
+              status: 'pre-application',
+              other_party_name: rp?.is_anonymous ? t('messages.anonymousCandidate', 'Anonymous Candidate') : t('messages.candidate', 'Candidate'),
+              other_party_id: rp?.user_id || '',
+              role: 'recruiter',
+              last_message: latest.message,
+              last_message_at: latest.created_at,
+              last_sender_id: user.id,
+              unread_count: 0,
+              applied_at: latest.created_at,
+              is_pre_app: true,
+              pre_app_profile_id: profileId,
+            });
+          }
+        }
+      } catch (preAppErr) {
+        logger.error('Messages: failed to load pre-app conversations', preAppErr);
+      }
 
       // Sort by last message time (newest first), with unread on top
       convos.sort((a, b) => {
@@ -175,11 +302,12 @@ const Messages: React.FC = () => {
   // ─── Fetch other party's read status for active conversation ─
   useEffect(() => {
     if (!activeConvo || !supabase || !user) { setOtherReadAt(null); return; }
+    const convo = conversations.find(c => c.application_id === activeConvo);
+    // Skip read-status tracking for pre-app conversations
+    if (!convo || convo.is_pre_app) { setOtherReadAt(null); return; }
     const sb = supabase;
     let cancelled = false;
     const fetchReadStatus = async () => {
-      const convo = conversations.find(c => c.application_id === activeConvo);
-      if (!convo) return;
       const { data } = await sb
         .from('message_read_status')
         .select('last_read_at')
@@ -243,31 +371,67 @@ const Messages: React.FC = () => {
     const sb = supabase;
     let cancelled = false;
     setLoadingMessages(true);
+    const convo = conversations.find(c => c.application_id === activeConvo);
+    const isPreApp = convo?.is_pre_app;
+
     const load = async () => {
-      const { data } = await sb
-        .from('application_messages')
-        .select('id, sender_user_id, message, created_at')
-        .eq('application_id', activeConvo)
-        .order('created_at', { ascending: true });
+      let data: ChatMessage[] | null = null;
+
+      if (isPreApp && convo?.pre_app_profile_id) {
+        // Pre-app: fetch from pre_application_messages
+        const { data: preAppMsgs } = await sb
+          .from('pre_application_messages')
+          .select('id, sender_user_id, message, created_at')
+          .eq('kingdom_number', convo.kingdom_number)
+          .eq('recipient_profile_id', convo.pre_app_profile_id)
+          .order('created_at', { ascending: true });
+        data = preAppMsgs;
+        // Mark as read if recipient
+        if (convo.role === 'transferee' && preAppMsgs && preAppMsgs.length > 0) {
+          const unreadIds = preAppMsgs.filter(m => m.sender_user_id !== user.id).map(m => m.id);
+          if (unreadIds.length > 0) {
+            await sb.from('pre_application_messages')
+              .update({ read_at: new Date().toISOString() })
+              .in('id', unreadIds)
+              .is('read_at', null);
+          }
+        }
+      } else {
+        // Standard app messages
+        const { data: appMsgs } = await sb
+          .from('application_messages')
+          .select('id, sender_user_id, message, created_at')
+          .eq('application_id', activeConvo)
+          .order('created_at', { ascending: true });
+        data = appMsgs;
+        // Mark as read
+        await sb.from('message_read_status')
+          .upsert({ application_id: activeConvo, user_id: user.id, last_read_at: new Date().toISOString() }, { onConflict: 'application_id,user_id' });
+      }
+
       if (cancelled) return;
       if (data) {
         setMessages(data);
-        // Fetch sender names
-        const otherIds = [...new Set(data.filter(m => m.sender_user_id !== user.id).map(m => m.sender_user_id))];
-        if (otherIds.length > 0) {
-          const { data: profiles } = await sb.from('profiles').select('id, username, linked_username').in('id', otherIds);
-          if (profiles && !cancelled) {
+        // Fetch sender names (respect anonymity)
+        const msgOtherIds = [...new Set(data.filter(m => m.sender_user_id !== user.id).map(m => m.sender_user_id))];
+        if (msgOtherIds.length > 0) {
+          // If current user is recruiter and the other party should be anonymous, don't reveal names
+          if (convo?.role === 'recruiter' && convo.other_party_name === t('messages.anonymousCandidate', 'Anonymous Candidate')) {
             const map: Record<string, string> = {};
-            profiles.forEach((p: { id: string; username: string; linked_username?: string }) => {
-              map[p.id] = p.linked_username || p.username || 'Unknown';
-            });
+            msgOtherIds.forEach(id => { map[id] = t('messages.anonymousCandidate', 'Anonymous Candidate'); });
             setSenderNames(prev => ({ ...prev, ...map }));
+          } else {
+            const { data: profiles } = await sb.from('profiles').select('id, username, linked_username').in('id', msgOtherIds);
+            if (profiles && !cancelled) {
+              const map: Record<string, string> = {};
+              profiles.forEach((p: { id: string; username: string; linked_username?: string }) => {
+                map[p.id] = p.linked_username || p.username || 'Unknown';
+              });
+              setSenderNames(prev => ({ ...prev, ...map }));
+            }
           }
         }
       }
-      // Mark as read
-      await sb.from('message_read_status')
-        .upsert({ application_id: activeConvo, user_id: user.id, last_read_at: new Date().toISOString() }, { onConflict: 'application_id,user_id' });
       // Update local unread count
       setConversations(prev => prev.map(c =>
         c.application_id === activeConvo ? { ...c, unread_count: 0 } : c
@@ -278,7 +442,10 @@ const Messages: React.FC = () => {
     };
     load();
 
-    // Real-time subscription
+    // Real-time subscription (skip for pre-app — no filter support)
+    if (isPreApp) {
+      return () => { cancelled = true; };
+    }
     const msgChName = `msg-page-${activeConvo}`;
     if (!registerChannel(msgChName)) { if (!cancelled) setLoadingMessages(false); return; }
     const channel = sb
@@ -327,25 +494,50 @@ const Messages: React.FC = () => {
     if (now - lastSentAt < MSG_COOLDOWN_MS) return;
     lastSentAt = now;
     setSendingMsg(true);
+    const convo = conversations.find(c => c.application_id === activeConvo);
+    const isPreApp = convo?.is_pre_app;
     try {
-      const { data, error } = await supabase
-        .from('application_messages')
-        .insert({ application_id: activeConvo, sender_user_id: user.id, message: msgText.trim() })
-        .select('id, sender_user_id, message, created_at')
-        .single();
-      if (!error && data) {
-        setMessages(prev => [...prev, data]);
-        setMsgText('');
-        // Update conversation last message
-        setConversations(prev => prev.map(c =>
-          c.application_id === activeConvo
-            ? { ...c, last_message: data.message, last_message_at: data.created_at, last_sender_id: data.sender_user_id }
-            : c
-        ));
-        // Mark as read when sending (we're clearly viewing the conversation)
-        supabase.from('message_read_status')
-          .upsert({ application_id: activeConvo, user_id: user.id, last_read_at: new Date().toISOString() }, { onConflict: 'application_id,user_id' })
-          .then(() => { window.dispatchEvent(new Event('messages-read')); });
+      if (isPreApp && convo?.pre_app_profile_id) {
+        // Pre-app message: insert into pre_application_messages
+        const { data, error } = await supabase
+          .from('pre_application_messages')
+          .insert({
+            kingdom_number: convo.kingdom_number,
+            sender_user_id: user.id,
+            recipient_profile_id: convo.pre_app_profile_id,
+            message: msgText.trim(),
+          })
+          .select('id, sender_user_id, message, created_at')
+          .single();
+        if (!error && data) {
+          setMessages(prev => [...prev, data]);
+          setMsgText('');
+          setConversations(prev => prev.map(c =>
+            c.application_id === activeConvo
+              ? { ...c, last_message: data.message, last_message_at: data.created_at, last_sender_id: data.sender_user_id }
+              : c
+          ));
+        }
+      } else {
+        // Standard application message
+        const { data, error } = await supabase
+          .from('application_messages')
+          .insert({ application_id: activeConvo, sender_user_id: user.id, message: msgText.trim() })
+          .select('id, sender_user_id, message, created_at')
+          .single();
+        if (!error && data) {
+          setMessages(prev => [...prev, data]);
+          setMsgText('');
+          setConversations(prev => prev.map(c =>
+            c.application_id === activeConvo
+              ? { ...c, last_message: data.message, last_message_at: data.created_at, last_sender_id: data.sender_user_id }
+              : c
+          ));
+          // Mark as read when sending
+          supabase.from('message_read_status')
+            .upsert({ application_id: activeConvo, user_id: user.id, last_read_at: new Date().toISOString() }, { onConflict: 'application_id,user_id' })
+            .then(() => { window.dispatchEvent(new Event('messages-read')); });
+        }
       }
     } catch (err) {
       logger.error('Messages: send failed', err);
@@ -361,8 +553,17 @@ const Messages: React.FC = () => {
     const unreadConvos = conversations.filter(c => c.unread_count > 0);
     if (unreadConvos.length === 0) return;
     for (const c of unreadConvos) {
-      await sb.from('message_read_status')
-        .upsert({ application_id: c.application_id, user_id: user.id, last_read_at: new Date().toISOString() }, { onConflict: 'application_id,user_id' });
+      if (c.is_pre_app && c.pre_app_profile_id) {
+        // Mark all pre-app messages as read
+        await sb.from('pre_application_messages')
+          .update({ read_at: new Date().toISOString() })
+          .eq('kingdom_number', c.kingdom_number)
+          .eq('recipient_profile_id', c.pre_app_profile_id)
+          .is('read_at', null);
+      } else {
+        await sb.from('message_read_status')
+          .upsert({ application_id: c.application_id, user_id: user.id, last_read_at: new Date().toISOString() }, { onConflict: 'application_id,user_id' });
+      }
     }
     setConversations(prev => prev.map(c => ({ ...c, unread_count: 0 })));
     window.dispatchEvent(new Event('messages-read'));
@@ -372,7 +573,8 @@ const Messages: React.FC = () => {
   useEffect(() => {
     if (!supabase || !user || conversations.length === 0) return;
     const sb = supabase;
-    const appIds = conversations.map(c => c.application_id);
+    const standardConvos = conversations.filter(c => !c.is_pre_app);
+    const appIds = standardConvos.map(c => c.application_id);
     const channels = appIds.map(appId => {
       const listChName = `msg-list-${appId}`;
       if (!registerChannel(listChName)) return null;
@@ -622,23 +824,33 @@ const Messages: React.FC = () => {
                         <span style={{ fontWeight: '600', color: '#fff', fontSize: '0.85rem' }}>
                           {activeConversation.other_party_name}
                         </span>
-                        <Link to={`/kingdom/${activeConversation.kingdom_number}`} style={{
+                        <Link to={`/kingdom/${activeConversation.role === 'recruiter' && activeConversation.candidate_kingdom ? activeConversation.candidate_kingdom : activeConversation.kingdom_number}`} style={{
                           fontSize: '0.65rem', color: '#22d3ee', textDecoration: 'none',
                         }}>
-                          K{activeConversation.kingdom_number}
+                          K{activeConversation.role === 'recruiter' && activeConversation.candidate_kingdom ? activeConversation.candidate_kingdom : activeConversation.kingdom_number}
                         </Link>
                       </div>
                       <span style={{ fontSize: '0.6rem', color: colors.textMuted }}>
-                        {activeConversation.status.charAt(0).toUpperCase() + activeConversation.status.slice(1)} · {activeConversation.role === 'recruiter' ? t('messages.youAreRecruiter', 'You are recruiting') : t('messages.youAreTransferee', 'You applied')}
+                        {activeConversation.is_pre_app
+                          ? t('messages.preAppStatus', 'Pre-application message')
+                          : `${activeConversation.status.charAt(0).toUpperCase() + activeConversation.status.slice(1)} · ${activeConversation.role === 'recruiter' ? t('messages.youAreRecruiter', 'You are recruiting') : t('messages.youAreTransferee', 'You applied')}`
+                        }
                       </span>
                     </div>
-                    <Link to="/transfer-hub" style={{
-                      padding: '0.25rem 0.5rem', backgroundColor: '#ffffff08',
-                      border: '1px solid #ffffff15', borderRadius: '4px',
-                      color: colors.textMuted, fontSize: '0.6rem', textDecoration: 'none',
-                    }}>
-                      {t('messages.viewApp', 'View App')}
-                    </Link>
+                    {!activeConversation.is_pre_app && (
+                      <Link
+                        to={activeConversation.role === 'recruiter'
+                          ? `/transfer-hub?view=recruiter&app=${activeConversation.application_id}`
+                          : `/transfer-hub?view=my-apps`}
+                        style={{
+                          padding: '0.25rem 0.5rem', backgroundColor: '#ffffff08',
+                          border: '1px solid #ffffff15', borderRadius: '4px',
+                          color: colors.textMuted, fontSize: '0.6rem', textDecoration: 'none',
+                        }}
+                      >
+                        {t('messages.viewApp', 'View App')}
+                      </Link>
+                    )}
                   </div>
 
                   {/* Messages Area */}

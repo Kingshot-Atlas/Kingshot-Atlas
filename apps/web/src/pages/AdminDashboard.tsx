@@ -53,6 +53,7 @@ const ReviewReportsTab = lazy(() => import('../components/admin/ReviewReportsTab
 const TransferStatusTab = lazy(() => import('../components/admin/TransferStatusTab').then(m => ({ default: m.TransferStatusTab })));
 const BotTelemetryTab = lazy(() => import('../components/admin/BotTelemetryTab').then(m => ({ default: m.BotTelemetryTab })));
 const ToolAccessTab = lazy(() => import('../components/admin/ToolAccessTab').then(m => ({ default: m.ToolAccessTab })));
+const TrustedSubmittersTab = lazy(() => import('../components/admin/TrustedSubmittersTab').then(m => ({ default: m.TrustedSubmittersTab })));
 const SpotlightTab = lazy(() => import('../components/admin/SpotlightTab').then(m => ({ default: m.SpotlightTab })));
 const ImportTab = lazy(() => import('../components/admin/ImportTab'));
 const RejectModal = lazy(() => import('../components/admin/RejectModal'));
@@ -942,6 +943,8 @@ const AdminDashboard: React.FC = () => {
         <BotTelemetryTab />
       ) : activeTab === 'tool-access' ? (
         <ToolAccessTab />
+      ) : activeTab === 'trusted-submitters' ? (
+        <TrustedSubmittersTab />
       ) : activeTab === 'feedback' ? (
         <FeedbackTab
           items={feedbackItems}

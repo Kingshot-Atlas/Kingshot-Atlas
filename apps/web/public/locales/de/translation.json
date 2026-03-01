@@ -1704,7 +1704,15 @@
     "declineInvite": "Ablehnen",
     "anotherEditorEndorsed": "Ein anderer Editor hat dieses Königreich bestätigt.",
     "applyAsCoEditor": "Als Co-Editor bewerben",
-    "nominationCancelled": "Nominierung abgebrochen"
+    "nominationCancelled": "Nominierung abgebrochen",
+    "stepDown": "Zurücktreten",
+    "stepDownConfirm": "Als Editor zurücktreten? Wenn es Co-Editoren gibt, wird der dienstälteste automatisch befördert. Andernfalls wird das Königreich für neue Bewerbungen geöffnet.",
+    "confirmStepDown": "Rücktritt bestätigen",
+    "steppedDownPromoted": "Sie sind zurückgetreten. {{name}} wurde zum Editor befördert.",
+    "steppedDownUnmanaged": "Sie sind zurückgetreten. Königreich {{kingdom}} ist jetzt für neue Editor-Bewerbungen offen.",
+    "kingdomMismatch": "Sie sind mit Königreich {{linked}} verknüpft, aber noch Editor von Königreich {{editor}}. Erwägen Sie zurückzutreten.",
+    "autoStepDownPromoted": "Sie wurden automatisch als Editor abgesetzt. {{name}} wurde befördert.",
+    "autoStepDownUnmanaged": "Sie wurden automatisch als Editor abgesetzt. Das Königreich ist jetzt für neue Bewerbungen offen."
   },
   "recruiter": {
     "loading": "Dashboard wird geladen...",
@@ -1726,6 +1734,11 @@
     "browse": "Durchsuchen",
     "candidates": "Kandidaten",
     "profile": "Profil",
+    "transferEditorRole": "Editor-Rolle übertragen",
+    "confirmTransfer": "Editor-Rolle an {{name}} übertragen? Sie werden inaktiv und erhalten vollen Editor-Zugang.",
+    "confirmTransferBtn": "Übertragung bestätigen",
+    "editorRoleTransferred": "Editor-Rolle an {{name}} übertragen!",
+    "removeCoEditor": "Co-Redakteur entfernen",
     "coEditors": "Co-Redakteure",
     "active": "Aktiv",
     "approved": "Genehmigt",

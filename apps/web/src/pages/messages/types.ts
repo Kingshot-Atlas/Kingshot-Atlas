@@ -2,6 +2,7 @@
 export interface Conversation {
   application_id: string;
   kingdom_number: number;
+  candidate_kingdom?: number;
   status: string;
   other_party_name: string;
   other_party_id: string;
@@ -11,6 +12,8 @@ export interface Conversation {
   last_sender_id: string;
   unread_count: number;
   applied_at: string;
+  is_pre_app?: boolean;
+  pre_app_profile_id?: string;
 }
 
 export interface ChatMessage {

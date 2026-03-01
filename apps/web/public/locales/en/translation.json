@@ -1719,7 +1719,15 @@
     "declineInvite": "Decline",
     "anotherEditorEndorsed": "Another editor has endorsed this kingdom.",
     "applyAsCoEditor": "Apply as Co-Editor",
-    "nominationCancelled": "Nomination cancelled"
+    "nominationCancelled": "Nomination cancelled",
+    "stepDown": "Step Down",
+    "stepDownConfirm": "Step down as editor? If there are co-editors, the most senior one will be promoted automatically. Otherwise the kingdom becomes open for new claims.",
+    "confirmStepDown": "Confirm Step Down",
+    "steppedDownPromoted": "You stepped down. {{name}} has been promoted to editor.",
+    "steppedDownUnmanaged": "You stepped down. Kingdom {{kingdom}} is now open for new editor claims.",
+    "kingdomMismatch": "You're linked to Kingdom {{linked}} but still editor of Kingdom {{editor}}. Consider stepping down.",
+    "autoStepDownPromoted": "You were automatically stepped down as editor. {{name}} has been promoted.",
+    "autoStepDownUnmanaged": "You were automatically stepped down as editor. The kingdom is now open for new claims."
   },
   "recruiter": {
     "loading": "Loading dashboard...",
@@ -1741,6 +1749,11 @@
     "browse": "Browse",
     "candidates": "Candidates",
     "profile": "Profile",
+    "transferEditorRole": "Transfer Editor Role",
+    "confirmTransfer": "Transfer editor role to {{name}}? You will become inactive and they will gain full editor access.",
+    "confirmTransferBtn": "Confirm Transfer",
+    "editorRoleTransferred": "Editor role transferred to {{name}}!",
+    "removeCoEditor": "Remove Co-Editor",
     "coEditors": "Co-Editors",
     "active": "Active",
     "approved": "Approved",

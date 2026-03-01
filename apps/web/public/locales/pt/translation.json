@@ -1717,7 +1717,15 @@
     "declineInvite": "Recusar",
     "anotherEditorEndorsed": "Otro editor ha respaldado este reino.",
     "applyAsCoEditor": "Solicitar como co-editor",
-    "nominationCancelled": "Nominação cancelada"
+    "nominationCancelled": "Nominação cancelada",
+    "stepDown": "Renunciar",
+    "stepDownConfirm": "Renunciar como editor? Se houver co-editores, o mais antigo será promovido automaticamente. Caso contrário, o reino ficará aberto para novas candidaturas.",
+    "confirmStepDown": "Confirmar Renúncia",
+    "steppedDownPromoted": "Você renunciou. {{name}} foi promovido a editor.",
+    "steppedDownUnmanaged": "Você renunciou. O reino {{kingdom}} agora está aberto para novas candidaturas de editor.",
+    "kingdomMismatch": "Você está vinculado ao Reino {{linked}} mas ainda é editor do Reino {{editor}}. Considere renunciar.",
+    "autoStepDownPromoted": "Você foi automaticamente removido como editor. {{name}} foi promovido.",
+    "autoStepDownUnmanaged": "Você foi automaticamente removido como editor. O reino agora está aberto para novas candidaturas."
   },
   "recruiter": {
     "loading": "Cargando panel...",
@@ -1739,6 +1747,11 @@
     "browse": "Explorar",
     "candidates": "Candidados",
     "profile": "Perfil",
+    "transferEditorRole": "Transferir Papel de Editor",
+    "confirmTransfer": "Transferir o papel de editor para {{name}}? Você ficará inativo e eles terão acesso completo de editor.",
+    "confirmTransferBtn": "Confirmar Transferência",
+    "editorRoleTransferred": "Papel de editor transferido para {{name}}!",
+    "removeCoEditor": "Remover Co-Editor",
     "coEditors": "Co-Editores",
     "active": "Ativo",
     "approved": "Aprovado",

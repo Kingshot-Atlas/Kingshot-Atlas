@@ -1704,7 +1704,15 @@
     "declineInvite": "Reddet",
     "anotherEditorEndorsed": "Başka bir editör bu krallığı onayladı.",
     "applyAsCoEditor": "Yardımcı Editör Olarak Başvur",
-    "nominationCancelled": "Adaylık iptal edildi"
+    "nominationCancelled": "Adaylık iptal edildi",
+    "stepDown": "Görevden Ayrıl",
+    "stepDownConfirm": "Editörlükten ayrılmak mı istiyorsunuz? Yardımcı editörler varsa en kıdemli olan otomatik olarak terfi ettirilir. Yoksa krallık yeni başvurulara açılır.",
+    "confirmStepDown": "Ayrılmayı Onayla",
+    "steppedDownPromoted": "Görevden ayrıldınız. {{name}} editöre terfi ettirildi.",
+    "steppedDownUnmanaged": "Görevden ayrıldınız. Krallık {{kingdom}} artık yeni editör başvurularına açıktır.",
+    "kingdomMismatch": "Krallık {{linked}}'e bağlısınız ama hala Krallık {{editor}}'in editörüsünüz. Görevden ayrılmayı düşünün.",
+    "autoStepDownPromoted": "Editör olarak otomatik olarak görevden alındınız. {{name}} terfi ettirildi.",
+    "autoStepDownUnmanaged": "Editör olarak otomatik olarak görevden alındınız. Krallık artık yeni başvurulara açıktır."
   },
   "recruiter": {
     "loading": "Panel yükleniyor...",
@@ -1726,6 +1734,11 @@
     "browse": "Göz At",
     "candidates": "Adaylar",
     "profile": "Profil",
+    "transferEditorRole": "Editör Rolünü Devret",
+    "confirmTransfer": "Editör rolünü {{name}}'e devretmek mi istiyorsunuz? İnaktif olacaksınız ve tam editör erişimi alacaklar.",
+    "confirmTransferBtn": "Devri Onayla",
+    "editorRoleTransferred": "Editör rolü {{name}}'e devredildi!",
+    "removeCoEditor": "Yardımcı Editörü Kaldır",
     "coEditors": "Yardımcı Editörler",
     "active": "Aktif",
     "approved": "Onaylandı",

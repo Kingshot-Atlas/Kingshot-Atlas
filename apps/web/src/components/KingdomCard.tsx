@@ -17,6 +17,7 @@ import {
 } from './kingdom-card';
 import StatusSubmission from './StatusSubmission';
 import { statusService } from '../services/statusService';
+import { useTrustedSubmitter } from '../hooks/useTrustedSubmitter';
 import { useToast } from './Toast';
 import { isAdminUsername } from '../utils/constants';
 import { CURRENT_KVK, HIGHEST_KINGDOM_IN_KVK, getKvKButtonStates } from '../constants';
@@ -58,6 +59,7 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
   const [showMatchupModal, setShowMatchupModal] = useState(false);
   const [matchupModalMode, setMatchupModalMode] = useState<'matchup' | 'prep' | 'battle'>('matchup');
   const { showToast } = useToast();
+  const { isTrusted } = useTrustedSubmitter();
   const [animatedScore, setAnimatedScore] = useState<number | null>(null);
   const hasAnimatedRef = useRef(false);
   const [cardRef, isInView] = useInViewOnce();
@@ -467,8 +469,9 @@ const KingdomCard: React.FC<KingdomCardProps> = ({
           onSubmit={async (newStatus, notes) => {
             if (!user) return;
             const adminUser = isAdminUsername(profile?.linked_username) || isAdminUsername(profile?.username);
-            await statusService.submitStatusUpdate(kingdom.kingdom_number, status, newStatus, notes, user.id, adminUser);
-            showToast(adminUser ? t('kingdomCard.statusAutoApproved', 'Status update auto-approved!') : t('kingdomCard.statusSubmitted', 'Status update submitted for review!'), 'success');
+            const canAutoApprove = adminUser || isTrusted;
+            await statusService.submitStatusUpdate(kingdom.kingdom_number, status, newStatus, notes, user.id, canAutoApprove);
+            showToast(canAutoApprove ? t('kingdomCard.statusAutoApproved', 'Status update auto-approved!') : t('kingdomCard.statusSubmitted', 'Status update submitted for review!'), 'success');
           }}
           onClose={() => setShowStatusModal(false)}
         />

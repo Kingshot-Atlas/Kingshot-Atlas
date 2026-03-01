@@ -210,10 +210,25 @@ const TransferBoard: React.FC = () => {
       }
     }
 
+    // Handle ?view=recruiter (from Messages "View App" button)
+    const viewParam = params.get('view');
+    if (viewParam === 'recruiter') {
+      setMode('recruiting');
+      setShowRecruiterDash(true);
+      setShowEntryModal(false);
+      localStorage.setItem('atlas_transfer_hub_mode', 'recruiting');
+    } else if (viewParam === 'my-apps') {
+      setMode('browsing');
+      setShowEntryModal(false);
+      localStorage.setItem('atlas_transfer_hub_mode', 'browsing');
+    }
+
     // Clean non-endorse URL params (keep endorse for auth redirect flow)
-    if (fundParam || contributed) {
+    if (fundParam || contributed || viewParam) {
       params.delete('fund');
       params.delete('contributed');
+      params.delete('view');
+      params.delete('app');
       const newUrl = params.toString()
         ? `${window.location.pathname}?${params.toString()}`
         : window.location.pathname;

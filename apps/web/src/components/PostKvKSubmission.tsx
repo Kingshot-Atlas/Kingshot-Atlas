@@ -8,6 +8,7 @@ import { getAuthHeaders } from '../services/authHeaders';
 import { isAdminUsername } from '../utils/constants';
 import { incrementStat } from './UserAchievements';
 import { useTranslation } from 'react-i18next';
+import { useTrustedSubmitter } from '../hooks/useTrustedSubmitter';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -120,17 +121,19 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
     }
   };
 
+  const { isTrusted } = useTrustedSubmitter();
   const userIsAdmin = isAdminUsername(profile?.linked_username) || isAdminUsername(profile?.username);
+  const canSkipScreenshot = userIsAdmin || isTrusted;
 
   const isFormValid = () => {
     const hasScreenshot = screenshot || screenshot2;
     const disclaimerOk = !hasScreenshot || screenshotDisclaimer;
-    return kingdomNumber && opponentKingdom && prepResult && battleResult && (screenshot || userIsAdmin) && disclaimerOk;
+    return kingdomNumber && opponentKingdom && prepResult && battleResult && (screenshot || canSkipScreenshot) && disclaimerOk;
   };
 
   const handleSubmit = async () => {
     if (!isFormValid()) {
-      showToast(userIsAdmin ? 'Please fill in all required fields' : 'Please fill in all fields and upload a screenshot', 'error');
+      showToast(canSkipScreenshot ? 'Please fill in all required fields' : 'Please fill in all fields and upload a screenshot', 'error');
       return;
     }
 
@@ -298,7 +301,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
               </h2>
             </div>
             <p style={{ color: '#6b7280', fontSize: '0.8rem', margin: 0 }}>
-              One submission per match{userIsAdmin ? ' • Admin auto-approval' : ' • Screenshot required'}
+              One submission per match{canSkipScreenshot ? (isTrusted && !userIsAdmin ? ' • Trusted auto-approval' : ' • Admin auto-approval') : ' • Screenshot required'}
             </p>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '1.5rem', lineHeight: 1 }}>×</button>
@@ -457,7 +460,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
           {/* Screenshot Upload */}
           <div>
             <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>
-              Screenshot Proof {userIsAdmin ? '' : '*'} <span style={{ color: '#6b7280' }}>{userIsAdmin ? '(Optional for admins)' : '(Required for verification)'}</span>
+              Screenshot Proof {canSkipScreenshot ? '' : '*'} <span style={{ color: '#6b7280' }}>{canSkipScreenshot ? '(Optional — trusted submitter)' : '(Required for verification)'}</span>
             </label>
             
             {!screenshotPreview ? (

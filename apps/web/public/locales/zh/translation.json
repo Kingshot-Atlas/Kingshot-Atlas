@@ -1704,7 +1704,15 @@
     "declineInvite": "拒绝",
     "anotherEditorEndorsed": "另一位编辑已为此王国背书。",
     "applyAsCoEditor": "申请成为副编辑",
-    "nominationCancelled": "提名已取消"
+    "nominationCancelled": "提名已取消",
+    "stepDown": "卸任",
+    "stepDownConfirm": "卸任编辑？如果有副编辑，资历最深的将自动晋升。否则王国将开放给新的编辑申请。",
+    "confirmStepDown": "确认卸任",
+    "steppedDownPromoted": "您已卸任。{{name}} 已晋升为编辑。",
+    "steppedDownUnmanaged": "您已卸任。王国 {{kingdom}} 现在开放给新的编辑申请。",
+    "kingdomMismatch": "您已绑定王国 {{linked}}，但仍是王国 {{editor}} 的编辑。请考虑卸任。",
+    "autoStepDownPromoted": "您已被自动卸任编辑。{{name}} 已晋升。",
+    "autoStepDownUnmanaged": "您已被自动卸任编辑。该王国现在开放给新的申请。"
   },
   "recruiter": {
     "loading": "加载面板中...",
@@ -1726,6 +1734,11 @@
     "browse": "浏览",
     "candidates": "候选人",
     "profile": "资料",
+    "transferEditorRole": "转让编辑角色",
+    "confirmTransfer": "将编辑角色转让给 {{name}}？您将变为非活跃状态，他们将获得完整的编辑权限。",
+    "confirmTransferBtn": "确认转让",
+    "editorRoleTransferred": "编辑角色已转让给 {{name}}！",
+    "removeCoEditor": "移除副编辑",
     "coEditors": "共同编辑者",
     "active": "活跃",
     "approved": "已批准",

@@ -41,6 +41,20 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
             }}>
               {convo.other_party_name}
             </span>
+            {convo.is_pre_app && (
+              <span style={{
+                padding: '0.05rem 0.3rem',
+                backgroundColor: '#3b82f610',
+                border: '1px solid #3b82f620',
+                borderRadius: '3px',
+                fontSize: '0.5rem',
+                color: '#3b82f6',
+                fontWeight: '600',
+                textTransform: 'uppercase',
+              }}>
+                {t('messages.preApp', 'Pre-App')}
+              </span>
+            )}
             <span style={{
               padding: '0.05rem 0.3rem',
               backgroundColor: convo.role === 'recruiter' ? '#a855f710' : '#22d3ee10',
@@ -51,7 +65,7 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
               fontWeight: '600',
               textTransform: 'uppercase',
             }}>
-              {convo.role === 'recruiter' ? t('messages.recruiter', 'Recruiter') : t('messages.transferee', 'Recruit Candidate')}
+              {convo.role === 'recruiter' ? t('messages.candidate', 'Candidate') : t('messages.recruiterTag', 'Recruiter')}
             </span>
           </div>
           {convo.last_message && (

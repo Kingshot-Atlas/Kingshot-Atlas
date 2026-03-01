@@ -91,16 +91,23 @@ const ApplicationCard: React.FC<{
         .order('created_at', { ascending: true });
       if (data) {
         setMessages(data);
-        // Fetch sender usernames for messages not from me
+        // Fetch sender usernames for messages not from me (respect anonymity)
         const otherIds = [...new Set(data.filter((m: AppMessage) => m.sender_user_id !== user?.id).map((m: AppMessage) => m.sender_user_id))];
         if (otherIds.length > 0) {
-          const { data: profiles } = await sb.from('profiles').select('id, username, linked_username').in('id', otherIds);
-          if (profiles) {
+          if (isAnon) {
+            // Anonymous applicant — don't reveal real name in messages
             const map: Record<string, string> = {};
-            profiles.forEach((p: { id: string; username: string; linked_username?: string }) => {
-              map[p.id] = p.linked_username || p.username || 'Unknown';
-            });
+            otherIds.forEach(id => { map[id] = t('appCard.anonymousApplicant', 'Anonymous Applicant'); });
             setSenderNames(prev => ({ ...prev, ...map }));
+          } else {
+            const { data: profiles } = await sb.from('profiles').select('id, username, linked_username').in('id', otherIds);
+            if (profiles) {
+              const map: Record<string, string> = {};
+              profiles.forEach((p: { id: string; username: string; linked_username?: string }) => {
+                map[p.id] = p.linked_username || p.username || 'Unknown';
+              });
+              setSenderNames(prev => ({ ...prev, ...map }));
+            }
           }
         }
       }
