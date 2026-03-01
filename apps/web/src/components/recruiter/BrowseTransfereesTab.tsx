@@ -46,6 +46,7 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
   const [messageText, setMessageText] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
   const [sentMessageIds, setSentMessageIds] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Sync when parent provides updated count from DB
   useEffect(() => {
@@ -88,11 +89,18 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
     retry: 2,
   });
 
-  // Flatten pages and filter out invited profiles
+  // Flatten pages, filter out invited profiles, and apply client-side search
   const transferees = useMemo(() => {
     const all = infiniteData?.pages.flat() ?? [];
-    return all.filter(tp => !invitedProfileIds.has(tp.id));
-  }, [infiniteData, invitedProfileIds]);
+    const filtered = all.filter(tp => !invitedProfileIds.has(tp.id));
+    if (!searchQuery.trim()) return filtered;
+    const q = searchQuery.trim().toLowerCase();
+    return filtered.filter(tp => {
+      const alias = tp.is_anonymous ? getAnonAlias(tp.id).toLowerCase() : '';
+      const name = (tp.username || '').toLowerCase();
+      return name.includes(q) || alias.includes(q);
+    });
+  }, [infiniteData, invitedProfileIds, searchQuery]);
 
   // Record profile views when new pages load (fire-and-forget)
   useEffect(() => {
@@ -332,6 +340,22 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
       {/* Browse Filters */}
       <BrowseTransfereesFilters filters={browseFilters} onChange={setBrowseFilters} />
 
+      {/* Search by name or alias */}
+      <div style={{ marginBottom: '0.75rem' }}>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          placeholder={t('recruiter.searchPlaceholder', 'Search by name or alias (e.g. Anon-falcon38)...')}
+          style={{
+            width: '100%', padding: '0.4rem 0.6rem',
+            backgroundColor: colors.bg, border: `1px solid ${colors.border}`,
+            borderRadius: '6px', color: colors.text, fontSize: '0.72rem',
+            outline: 'none', minHeight: '36px', boxSizing: 'border-box',
+          }}
+        />
+      </div>
+
       {/* Recommended for You */}
       {!loadingTransferees && (
         <RecommendedSection
@@ -413,7 +437,7 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
                       />
                     )}
                     <span style={{ color: colors.text, fontWeight: '600', fontSize: '0.85rem' }}>
-                      {isAnon ? `🔒 ${getAnonAlias(tp.id)}` : (tp.username || 'Unknown')}
+                      {isAnon ? <><span title={t('recruiter.anonTooltip', 'This candidate is anonymous. Their real identity will be revealed if accepted.')}>🔒</span> {getAnonAlias(tp.id)}</> : (tp.username || 'Unknown')}
                     </span>
                     <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>K{tp.current_kingdom}</span>
                     {tp.last_active_at && (() => {

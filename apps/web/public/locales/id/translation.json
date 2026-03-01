@@ -1898,7 +1898,9 @@
     "preAppMsgPlaceholder": "Perkenalkan kerajaan Anda atau ajukan pertanyaan...",
     "preAppNotifTitle": "Pesan baru dari kerajaan",
     "preAppNotifBody": "Kerajaan {{kn}} mengirim pesan tentang transfer.",
-    "send": "Kirim"
+    "send": "Kirim",
+    "anonTooltip": "Kandidat ini anonim. Identitas asli akan terungkap jika diterima.",
+    "searchPlaceholder": "Cari berdasarkan nama atau alias (misal: Anon-falcon38)..."
   },
   "applications": {
     "applyTo": "Lamar ke",
@@ -2671,7 +2673,8 @@
     "retry": "Coba Lagi",
     "connectionLost": "Koneksi terputus — pesan mungkin tertunda",
     "pendingMessages": "{{count}} pesan menunggu untuk dikirim",
-    "queueFlushed": "{{count}} pesan antrean terkirim"
+    "queueFlushed": "{{count}} pesan antrean terkirim",
+    "anonTooltip": "Kandidat ini anonim. Identitas asli akan terungkap jika diterima."
   },
   "rateKingdom": {
     "title": "Nilai Kingdom {{num}}",
@@ -2755,7 +2758,9 @@
     "messages": "Pesan",
     "noMessages": "Belum ada pesan. Mulai percakapan!",
     "send": "Kirim",
-    "typeMessage": "Ketik pesan..."
+    "typeMessage": "Ketik pesan...",
+    "youAppearAs": "Anda tampil sebagai:",
+    "anonAliasHint": "Perekrut melihat alias ini sampai mereka menerima lamaran Anda."
   },
   "prepScheduler": {
     "loading": "Memuat...",

@@ -331,7 +331,7 @@ const ApplicationCard: React.FC<{
       >
         <div style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? '0.25rem' : '0.5rem', flex: 1, minWidth: 0, flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
           <span style={{ color: colors.text, fontWeight: '600', fontSize: '0.85rem' }}>
-            {isAnon ? `🔒 ${getAnonAlias(application.transfer_profile_id)}` : (profile?.username || t('appCard.unknownPlayer', 'Unknown Player'))}
+            {isAnon ? <><span title={t('appCard.anonTooltip', 'This candidate is anonymous. Their real identity will be revealed if accepted.')}>🔒</span> {getAnonAlias(application.transfer_profile_id)}</> : (profile?.username || t('appCard.unknownPlayer', 'Unknown Player'))}
           </span>
           <span style={{
             padding: '0.1rem 0.4rem',

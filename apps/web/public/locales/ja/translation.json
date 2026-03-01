@@ -1883,7 +1883,9 @@
     "preAppMsgPlaceholder": "王国を紹介するか質問してください...",
     "preAppNotifTitle": "王国からの新しいメッセージ",
     "preAppNotifBody": "王国 {{kn}} が移籍に関するメッセージを送りました。",
-    "send": "送信"
+    "send": "送信",
+    "anonTooltip": "この候補者は匿名です。承認されると実際の身元が公開されます。",
+    "searchPlaceholder": "名前またはエイリアスで検索（例: Anon-falcon38）..."
   },
   "applications": {
     "applyTo": "応募先",
@@ -2656,7 +2658,8 @@
     "retry": "再試行",
     "connectionLost": "接続が切れました — メッセージが遅延する場合があります",
     "pendingMessages": "{{count}}件のメッセージが送信待ち",
-    "queueFlushed": "{{count}}件のキューメッセージが送信されました"
+    "queueFlushed": "{{count}}件のキューメッセージが送信されました",
+    "anonTooltip": "この候補者は匿名です。承認されると実際の身元が公開されます。"
   },
   "rateKingdom": {
     "title": "王国 {{num}} を評価",
@@ -2740,7 +2743,9 @@
     "messages": "メッセージ",
     "noMessages": "メッセージはまだありません。会話を始めましょう！",
     "send": "送信",
-    "typeMessage": "メッセージを入力..."
+    "typeMessage": "メッセージを入力...",
+    "youAppearAs": "あなたの表示名:",
+    "anonAliasHint": "リクルーターは応募を承認するまでこのエイリアスを見ます。"
   },
   "prepScheduler": {
     "loading": "読み込み中...",

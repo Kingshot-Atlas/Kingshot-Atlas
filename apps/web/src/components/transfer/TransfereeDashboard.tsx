@@ -8,6 +8,7 @@ import { registerChannel, unregisterChannel } from '../../lib/realtimeGuard';
 import { colors } from '../../utils/styles';
 import RateKingdomModal from './RateKingdomModal';
 import TransfereeAppCard from './TransfereeAppCard';
+import { getAnonAlias } from '../../utils/anonAlias';
 
 // ─── Types ────────────────────────────────────────────────────
 interface TransferApplication {
@@ -32,6 +33,8 @@ interface ProfileStats {
   profileCompleteness: number;
   missingFields: string[];
   isVisible: boolean;
+  isAnonymous: boolean;
+  profileId: string;
 }
 
 type DashTab = 'overview' | 'applications' | 'invites';
@@ -53,6 +56,8 @@ const TransfereeDashboard: React.FC<{
     profileCompleteness: 0,
     missingFields: [],
     isVisible: false,
+    isAnonymous: false,
+    profileId: '',
   });
   const [loading, setLoading] = useState(true);
   const [respondingInviteId, setRespondingInviteId] = useState<string | null>(null);
@@ -110,7 +115,7 @@ const TransfereeDashboard: React.FC<{
           .order('applied_at', { ascending: false }),
         supabase
           .from('transfer_profiles')
-          .select('id, power_million, tc_level, main_language, kvk_availability, saving_for_kvk, looking_for, group_size, player_bio, play_schedule, contact_method, visible_to_recruiters')
+          .select('id, power_million, tc_level, main_language, kvk_availability, saving_for_kvk, looking_for, group_size, player_bio, play_schedule, contact_method, visible_to_recruiters, is_anonymous')
           .eq('user_id', user.id)
           .eq('is_active', true)
           .maybeSingle(),
@@ -199,6 +204,8 @@ const TransfereeDashboard: React.FC<{
           profileCompleteness: pct,
           missingFields: missing,
           isVisible: !!tp.visible_to_recruiters,
+          isAnonymous: !!tp.is_anonymous,
+          profileId: tp.id,
         });
       }
       // Fetch expiring-soon items
@@ -490,6 +497,27 @@ const TransfereeDashboard: React.FC<{
               </button>
             )}
           </div>
+
+          {/* Anonymous Alias Preview */}
+          {profileStats.isAnonymous && profileStats.profileId && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.4rem 0.75rem',
+              backgroundColor: '#a855f708',
+              border: '1px solid #a855f720',
+              borderRadius: '8px',
+            }}>
+              <span style={{ fontSize: '0.7rem' }}>🔒</span>
+              <span style={{ color: '#a855f7', fontSize: '0.72rem', fontWeight: '500' }}>
+                {t('transfereeDash.youAppearAs', 'You appear as:')} <strong>{getAnonAlias(profileStats.profileId)}</strong>
+              </span>
+              <span style={{ color: colors.textMuted, fontSize: '0.6rem' }}>
+                {t('transfereeDash.anonAliasHint', 'Recruiters see this alias until they accept your application.')}
+              </span>
+            </div>
+          )}
 
           {/* Visibility Status */}
           <div style={{

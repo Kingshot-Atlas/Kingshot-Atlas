@@ -432,21 +432,55 @@ export const FundsTab: React.FC<FundsTabProps> = ({ funds, timeAgo, onGrantTier,
 export const ProfilesTab: React.FC<{ profiles: TransferProfile[]; timeAgo: (d: string | null) => string }> = ({ profiles, timeAgo }) => {
   const [search, setSearch] = useState('');
 
+  // Alias collision detection — group active anonymous profiles by alias
+  const aliasCollisions = React.useMemo(() => {
+    const activeAnon = profiles.filter(p => p.is_active && p.is_anonymous);
+    const aliasMap = new Map<string, string[]>();
+    activeAnon.forEach(p => {
+      const alias = getAnonAlias(p.id);
+      const ids = aliasMap.get(alias) || [];
+      ids.push(p.id);
+      aliasMap.set(alias, ids);
+    });
+    return [...aliasMap.entries()].filter(([, ids]) => ids.length > 1);
+  }, [profiles]);
+
   const filtered = search
-    ? profiles.filter(p =>
-        p.username.toLowerCase().includes(search.toLowerCase()) ||
-        (p.profile_username || '').toLowerCase().includes(search.toLowerCase()) ||
-        String(p.current_kingdom).includes(search)
-      )
+    ? profiles.filter(p => {
+        const q = search.toLowerCase();
+        return p.username.toLowerCase().includes(q) ||
+          (p.profile_username || '').toLowerCase().includes(q) ||
+          String(p.current_kingdom).includes(q) ||
+          (p.is_anonymous && getAnonAlias(p.id).toLowerCase().includes(q));
+      })
     : profiles;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      {/* Alias Collision Warning */}
+      {aliasCollisions.length > 0 && (
+        <div style={{
+          padding: '0.5rem 0.75rem',
+          backgroundColor: '#f59e0b12',
+          border: '1px solid #f59e0b30',
+          borderRadius: '8px',
+        }}>
+          <div style={{ color: '#f59e0b', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+            ⚠️ {aliasCollisions.length} alias collision{aliasCollisions.length !== 1 ? 's' : ''} detected
+          </div>
+          <div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
+            {aliasCollisions.map(([alias, ids]) => (
+              <div key={alias}><strong>{alias}</strong>: {ids.length} profiles share this alias</div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Search + Summary */}
       <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
         <input
           type="text"
-          placeholder="Search by username or kingdom..."
+          placeholder="Search by username, kingdom, or alias..."
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{
@@ -461,7 +495,7 @@ export const ProfilesTab: React.FC<{ profiles: TransferProfile[]; timeAgo: (d: s
           }}
         />
         <span style={{ color: colors.textMuted, fontSize: '0.75rem' }}>
-          {filtered.length} profile{filtered.length !== 1 ? 's' : ''} · {profiles.filter(p => p.is_active).length} active
+          {filtered.length} profile{filtered.length !== 1 ? 's' : ''} · {profiles.filter(p => p.is_active).length} active · {profiles.filter(p => p.is_anonymous).length} anonymous
         </span>
       </div>
 
@@ -481,7 +515,7 @@ export const ProfilesTab: React.FC<{ profiles: TransferProfile[]; timeAgo: (d: s
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
                   <span style={{ color: colors.text, fontWeight: 600, fontSize: '0.9rem' }}>
-                    {profile.is_anonymous ? `🔒 ${getAnonAlias(profile.id)}` : (profile.profile_username || profile.username)}
+                    {profile.is_anonymous ? <><span title="Anonymous — real identity hidden until accepted">🔒</span> {getAnonAlias(profile.id)}</> : (profile.profile_username || profile.username)}
                   </span>
                   <span style={{
                     padding: '0.1rem 0.4rem',

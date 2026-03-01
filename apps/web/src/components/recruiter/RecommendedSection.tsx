@@ -92,7 +92,7 @@ const RecommendedSection: React.FC<RecommendedSectionProps> = ({
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
               <span style={{ color: colors.text, fontWeight: '600', fontSize: '0.7rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '110px' }}>
-                {tp.is_anonymous ? `🔒 ${getAnonAlias(tp.id)}` : (tp.username || 'Unknown')}
+                {tp.is_anonymous ? <><span title={t('recruiter.anonTooltip', 'This candidate is anonymous. Their real identity will be revealed if accepted.')}>🔒</span> {getAnonAlias(tp.id)}</> : (tp.username || 'Unknown')}
               </span>
               <span style={{
                 padding: '0.05rem 0.3rem',

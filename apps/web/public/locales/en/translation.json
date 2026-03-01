@@ -1898,7 +1898,9 @@
     "preAppMsgPlaceholder": "Introduce your kingdom or ask a question...",
     "preAppNotifTitle": "New Message from a Kingdom",
     "preAppNotifBody": "Kingdom {{kn}} sent you a message about transferring.",
-    "send": "Send"
+    "send": "Send",
+    "anonTooltip": "This candidate is anonymous. Their real identity will be revealed if accepted.",
+    "searchPlaceholder": "Search by name or alias (e.g. Anon-falcon38)..."
   },
   "applications": {
     "applyTo": "Apply to",
@@ -2671,7 +2673,8 @@
     "retry": "Retry",
     "connectionLost": "Connection lost — messages may be delayed",
     "pendingMessages": "{{count}} message(s) waiting to send",
-    "queueFlushed": "{{count}} queued message(s) sent"
+    "queueFlushed": "{{count}} queued message(s) sent",
+    "anonTooltip": "This candidate is anonymous. Their real identity will be revealed if accepted."
   },
   "rateKingdom": {
     "title": "Rate Kingdom {{num}}",
@@ -2755,7 +2758,9 @@
     "messages": "Messages",
     "noMessages": "No messages yet. Start the conversation!",
     "send": "Send",
-    "typeMessage": "Type a message..."
+    "typeMessage": "Type a message...",
+    "youAppearAs": "You appear as:",
+    "anonAliasHint": "Recruiters see this alias until they accept your application."
   },
   "prepScheduler": {
     "loading": "Loading...",

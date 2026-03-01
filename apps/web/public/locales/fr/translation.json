@@ -1883,7 +1883,9 @@
     "preAppMsgPlaceholder": "Présentez votre royaume ou posez une question...",
     "preAppNotifTitle": "Nouveau message d'un royaume",
     "preAppNotifBody": "Le royaume {{kn}} vous a envoyé un message concernant un transfert.",
-    "send": "Envoyer"
+    "send": "Envoyer",
+    "anonTooltip": "Ce candidat est anonyme. Son identité réelle sera révélée s'il est accepté.",
+    "searchPlaceholder": "Rechercher par nom ou alias (ex. Anon-falcon38)..."
   },
   "applications": {
     "applyTo": "Postuler à",
@@ -2656,7 +2658,8 @@
     "retry": "Réessayer",
     "connectionLost": "Connexion perdue — les messages peuvent être retardés",
     "pendingMessages": "{{count}} message(s) en attente d'envoi",
-    "queueFlushed": "{{count}} message(s) en file d'attente envoyé(s)"
+    "queueFlushed": "{{count}} message(s) en file d'attente envoyé(s)",
+    "anonTooltip": "Ce candidat est anonyme. Son identité réelle sera révélée s'il est accepté."
   },
   "rateKingdom": {
     "title": "Évaluer le Royaume {{num}}",
@@ -2740,7 +2743,9 @@
     "messages": "Messages",
     "noMessages": "Pas encore de messages. Lancez la conversation !",
     "send": "Envoyer",
-    "typeMessage": "Tapez un message..."
+    "typeMessage": "Tapez un message...",
+    "youAppearAs": "Vous apparaissez comme :",
+    "anonAliasHint": "Les recruteurs voient cet alias jusqu'à ce qu'ils acceptent votre candidature."
   },
   "prepScheduler": {
     "loading": "Chargement...",

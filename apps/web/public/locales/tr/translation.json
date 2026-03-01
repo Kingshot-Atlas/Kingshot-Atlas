@@ -1883,7 +1883,9 @@
     "preAppMsgPlaceholder": "Krallığınızı tanıtın veya bir soru sorun...",
     "preAppNotifTitle": "Bir krallıktan yeni mesaj",
     "preAppNotifBody": "Krallık {{kn}} size transfer hakkında bir mesaj gönderdi.",
-    "send": "Gönder"
+    "send": "Gönder",
+    "anonTooltip": "Bu aday anonimdir. Kabul edilirse gerçek kimliği açıklanacaktır.",
+    "searchPlaceholder": "İsim veya takma adla ara (örn. Anon-falcon38)..."
   },
   "applications": {
     "applyTo": "Başvur:",
@@ -2656,7 +2658,8 @@
     "retry": "Tekrar dene",
     "connectionLost": "Bağlantı kesildi — mesajlar gecikebilir",
     "pendingMessages": "{{count}} mesaj gönderim bekliyor",
-    "queueFlushed": "{{count}} sıradaki mesaj gönderildi"
+    "queueFlushed": "{{count}} sıradaki mesaj gönderildi",
+    "anonTooltip": "Bu aday anonimdir. Kabul edilirse gerçek kimliği açıklanacaktır."
   },
   "rateKingdom": {
     "title": "Krallık {{num}} Değerlendir",
@@ -2740,7 +2743,9 @@
     "messages": "Mesajlar",
     "noMessages": "Henüz mesaj yok. Sohbeti başlatın!",
     "send": "Gönder",
-    "typeMessage": "Mesaj yazın..."
+    "typeMessage": "Mesaj yazın...",
+    "youAppearAs": "Şu şekilde görünüyorsunuz:",
+    "anonAliasHint": "İşe alımcılar başvurunuzu kabul edene kadar bu takma adı görür."
   },
   "prepScheduler": {
     "loading": "Yükleniyor...",
