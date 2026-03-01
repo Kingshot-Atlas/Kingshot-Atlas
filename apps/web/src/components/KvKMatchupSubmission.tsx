@@ -81,6 +81,7 @@ const KvKMatchupSubmission: React.FC<KvKMatchupSubmissionProps> = ({
   const [existing, setExisting] = useState<ExistingMatchup | null>(null);
   const [checkingExisting, setCheckingExisting] = useState(false);
   const [schedule, setSchedule] = useState<KvKSchedule | null>(null);
+  const [isBye, setIsBye] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [reportType, setReportType] = useState<string>('wrong_matchup');
   const [reportDesc, setReportDesc] = useState('');
@@ -109,6 +110,7 @@ const KvKMatchupSubmission: React.FC<KvKMatchupSubmissionProps> = ({
       setPrepWinner(null);
       setBattleWinner(null);
       setExisting(null);
+      setIsBye(false);
       setMode(initialModeProp || 'matchup');
       setShowReport(false);
       setReportDesc('');
@@ -192,7 +194,9 @@ const KvKMatchupSubmission: React.FC<KvKMatchupSubmissionProps> = ({
   const canSubmitBattle = isAdmin || phase === 'battle_open';
 
   const isFormValid = () => {
-    if (!kingdomNumber || !opponentKingdom || kingdomNumber === opponentKingdom) return false;
+    if (!kingdomNumber) return false;
+    if (isBye) return canSubmitMatchup;
+    if (!opponentKingdom || kingdomNumber === opponentKingdom) return false;
     if (mode === 'matchup') return canSubmitMatchup;
     if (mode === 'prep') return prepWinner !== null && canSubmitPrep;
     if (mode === 'battle') return battleWinner !== null && canSubmitBattle;
@@ -210,10 +214,10 @@ const KvKMatchupSubmission: React.FC<KvKMatchupSubmissionProps> = ({
     try {
       const { data, error } = await supabase.rpc('submit_kvk_partial', {
         p_kingdom_number: kingdomNumber as number,
-        p_opponent_kingdom: opponentKingdom as number,
+        p_opponent_kingdom: isBye ? 0 : (opponentKingdom as number),
         p_kvk_number: kvkNumber,
-        p_prep_winner: prepWinner,
-        p_battle_winner: battleWinner,
+        p_prep_winner: isBye ? null : prepWinner,
+        p_battle_winner: isBye ? null : battleWinner,
         p_is_admin: isAdmin,
       });
 
@@ -236,7 +240,8 @@ const KvKMatchupSubmission: React.FC<KvKMatchupSubmissionProps> = ({
       };
 
       let msgKey = 'matchup';
-      if (battleWinner) msgKey = 'battle';
+      if (isBye) msgKey = 'matchup';
+      else if (battleWinner) msgKey = 'battle';
       else if (prepWinner) msgKey = 'prep';
 
       showToast(labels[msgKey] || 'Submitted!', 'success');

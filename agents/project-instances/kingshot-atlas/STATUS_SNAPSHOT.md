@@ -51,10 +51,11 @@
 
 ---
 
-## Recently Completed (Feb 8–19)
+## Recently Completed (Feb 8–26)
 
 | When | Agent | Task |
 |------|-------|------|
+| 2026-02-26 | Product Engineer | Anonymous Alias Recommendations v2 — 5 improvements: (1) 🔒 tooltip on anonymous alias in 4 components, (2) "You appear as" banner on TransfereeDashboard, (3) client-side search by name/alias in BrowseTransfereesTab, (4) alias collision monitoring + alias search in admin ProfilesTab, (5) pre-app message sender audit (clean). i18n: 5 new keys × 12 locales. |
 | 2026-02-17 | Product Engineer | Transfer Hub Phase 5 — 6 features: tier badge removal, persistent read tracking (message_read_status table), application expiry auto-cleanup (pg_cron hourly), transferee-side messaging UI with real-time, smart invite recommendations (reverse match scoring), transfer outcome tracking (transfer_outcomes table). 3 DB migrations. |
 | 2026-02-20 | Business Lead | Monetization & Growth — Ad-Free perk removed, 4-stage onboarding funnel (SignupNudgeBar, WelcomeToAtlas, BattlePlannerTrialTooltip, ConversionBanner), cancel survey with churn recovery (/cancel-survey), Kingdom Fund alliance pitch |
 | 2026-02-19 | Product Engineer | Component refactoring Phase 3 — RecruiterDashboard (814→275 lines, 6 extractions: useRecruiterDashboard hook, RecruiterOnboarding, RecruiterSkeleton, NoEditorState, InboxTab, TeamTab) and RallyCoordinator (997→392 lines, 3 extractions: useRallyCoordinator hook, RallyPlayersColumn, BuffConfirmPopup) |

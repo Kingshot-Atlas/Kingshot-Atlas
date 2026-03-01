@@ -45,6 +45,10 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
   const [submitting, setSubmitting] = useState(false);
   const [screenshotDisclaimer, setScreenshotDisclaimer] = useState(false);
 
+  const { isTrusted } = useTrustedSubmitter();
+  const userIsAdmin = isAdminUsername(profile?.linked_username) || isAdminUsername(profile?.username);
+  const canSkipScreenshot = userIsAdmin || isTrusted;
+
   // Sync kingdom when modal opens with new default and auto-focus opponent
   useEffect(() => {
     if (isOpen && defaultKingdom) {
@@ -120,10 +124,6 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
       fileInputRef2.current.value = '';
     }
   };
-
-  const { isTrusted } = useTrustedSubmitter();
-  const userIsAdmin = isAdminUsername(profile?.linked_username) || isAdminUsername(profile?.username);
-  const canSkipScreenshot = userIsAdmin || isTrusted;
 
   const isFormValid = () => {
     const hasScreenshot = screenshot || screenshot2;
