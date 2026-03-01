@@ -7,6 +7,7 @@ import {
   TIER_COLORS,
 } from './transferHubTypes';
 import { actionBtn } from './TransferHubSubTabs';
+import { getAnonAlias } from '../../utils/anonAlias';
 
 // =============================================
 // FUNDS TAB
@@ -480,7 +481,7 @@ export const ProfilesTab: React.FC<{ profiles: TransferProfile[]; timeAgo: (d: s
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
                   <span style={{ color: colors.text, fontWeight: 600, fontSize: '0.9rem' }}>
-                    {profile.is_anonymous ? '(Anonymous)' : (profile.profile_username || profile.username)}
+                    {profile.is_anonymous ? `🔒 ${getAnonAlias(profile.id)}` : (profile.profile_username || profile.username)}
                   </span>
                   <span style={{
                     padding: '0.1rem 0.4rem',

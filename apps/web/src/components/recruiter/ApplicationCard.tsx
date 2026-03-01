@@ -10,6 +10,7 @@ import { useToast } from '../Toast';
 import { translateMessage, getBrowserLanguage } from '../../utils/translateMessage';
 import type { IncomingApplication } from './types';
 import { formatTCLevel, STATUS_ACTIONS, STATUS_LABELS, inputStyle } from './types';
+import { getAnonAlias } from '../../utils/anonAlias';
 
 interface AppMessage {
   id: string;
@@ -97,7 +98,7 @@ const ApplicationCard: React.FC<{
           if (isAnon) {
             // Anonymous applicant — don't reveal real name in messages
             const map: Record<string, string> = {};
-            otherIds.forEach(id => { map[id] = t('appCard.anonymousApplicant', 'Anonymous Applicant'); });
+            otherIds.forEach(id => { map[id] = getAnonAlias(application.transfer_profile_id); });
             setSenderNames(prev => ({ ...prev, ...map }));
           } else {
             const { data: profiles } = await sb.from('profiles').select('id, username, linked_username').in('id', otherIds);
@@ -330,7 +331,7 @@ const ApplicationCard: React.FC<{
       >
         <div style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? '0.25rem' : '0.5rem', flex: 1, minWidth: 0, flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
           <span style={{ color: colors.text, fontWeight: '600', fontSize: '0.85rem' }}>
-            {isAnon ? `🔒 ${t('appCard.anonymousApplicant', 'Anonymous Applicant')}` : (profile?.username || t('appCard.unknownPlayer', 'Unknown Player'))}
+            {isAnon ? `🔒 ${getAnonAlias(application.transfer_profile_id)}` : (profile?.username || t('appCard.unknownPlayer', 'Unknown Player'))}
           </span>
           <span style={{
             padding: '0.1rem 0.4rem',

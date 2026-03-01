@@ -14,6 +14,8 @@ export interface Conversation {
   applied_at: string;
   is_pre_app?: boolean;
   pre_app_profile_id?: string;
+  transfer_profile_id?: string;
+  is_anonymous?: boolean;
 }
 
 export interface ChatMessage {

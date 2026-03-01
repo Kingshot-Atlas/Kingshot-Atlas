@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
 import { moderateText } from '../utils/contentModeration';
 import { copyToClipboard } from '../utils/sharing';
+import { getAnonAlias } from '../utils/anonAlias';
 
 // =============================================
 // HELPERS
@@ -153,7 +154,7 @@ const TransferProfileForm: React.FC<{
   const handleShareProfile = async () => {
     const tags = formData.looking_for.length > 0 ? formData.looking_for.join(', ') : 'Not set';
     const text = [
-      `🚀 **${formData.is_anonymous ? 'Anonymous Player' : formData.username}** is looking for a new kingdom!`,
+      `🚀 **${formData.is_anonymous ? getAnonAlias(existingProfile?.id || '') : formData.username}** is looking for a new kingdom!`,
       `⚡ ${formData.tc_level ? formatTCLevel(formData.tc_level) : '—'} · ${formData.power_million ? `${formData.power_million}M power` : '—'}`,
       `🌐 ${formData.main_language || '—'} · 👥 ${formData.group_size || 'Solo'}`,
       `🎯 Looking for: ${tags}`,

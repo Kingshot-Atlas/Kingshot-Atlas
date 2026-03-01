@@ -6,12 +6,13 @@ import WatchlistTab from './WatchlistTab';
 import type { IncomingApplication, EditorInfo } from './types';
 import { formatTCLevel, inputStyle } from './types';
 import { supabase } from '../../lib/supabase';
+import { getAnonAlias } from '../../utils/anonAlias';
 
 const downloadApprovedCSV = (apps: IncomingApplication[]) => {
   const headers = ['Player ID', 'Username', 'Kingdom', 'TC Level', 'Power', 'Language', 'KvK Availability', 'Applied At', 'Note'];
   const rows = apps.map(app => [
     app.profile?.linked_player_id || '',
-    app.profile?.username || 'Anonymous',
+    (app.profile?.is_anonymous ? getAnonAlias(app.transfer_profile_id) : app.profile?.username) || 'Unknown',
     app.profile?.current_kingdom?.toString() || '',
     app.profile?.tc_level ? formatTCLevel(app.profile.tc_level) : '',
     app.profile?.power_million ? `${app.profile.power_million}M` : app.profile?.power_range || '',

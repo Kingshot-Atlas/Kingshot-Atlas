@@ -12,6 +12,7 @@ import { getBrowserLanguage } from '../utils/translateMessage';
 import type { Conversation, ChatMessage } from './messages/types';
 import ConversationListItem from './messages/ConversationListItem';
 import ChatBubble from './messages/ChatBubble';
+import { getAnonAlias } from '../utils/anonAlias';
 
 // ─── Rate Limiter ─────────────────────────────────────────────
 const MSG_COOLDOWN_MS = 2000;
@@ -164,7 +165,7 @@ const Messages: React.FC = () => {
           candidate_kingdom: tp?.current_kingdom,
           status: app.status,
           other_party_name: app.role === 'recruiter'
-            ? (isAnon ? t('messages.anonymousCandidate', 'Anonymous Candidate') : (nameMap[app.applicant_user_id] || t('messages.applicant', 'Applicant')))
+            ? (isAnon ? `🔒 ${getAnonAlias(app.transfer_profile_id)}` : (nameMap[app.applicant_user_id] || t('messages.applicant', 'Applicant')))
             : `K${app.kingdom_number}`,
           other_party_id: app.applicant_user_id,
           role: app.role,
@@ -173,6 +174,8 @@ const Messages: React.FC = () => {
           last_sender_id: lastMsg?.sender_user_id || '',
           unread_count: unreadCounts[app.id] || 0,
           applied_at: app.applied_at,
+          transfer_profile_id: app.transfer_profile_id,
+          is_anonymous: isAnon || false,
         };
       });
 
@@ -279,7 +282,7 @@ const Messages: React.FC = () => {
               kingdom_number: kn,
               candidate_kingdom: rp?.current_kingdom,
               status: 'pre-application',
-              other_party_name: rp?.is_anonymous ? t('messages.anonymousCandidate', 'Anonymous Candidate') : t('messages.candidate', 'Candidate'),
+              other_party_name: rp?.is_anonymous ? `🔒 ${getAnonAlias(profileId)}` : t('messages.candidate', 'Candidate'),
               other_party_id: rp?.user_id || '',
               role: 'recruiter',
               last_message: latest.message,
@@ -289,6 +292,8 @@ const Messages: React.FC = () => {
               applied_at: latest.created_at,
               is_pre_app: true,
               pre_app_profile_id: profileId,
+              transfer_profile_id: profileId,
+              is_anonymous: rp?.is_anonymous || false,
             });
           }
         }
@@ -430,9 +435,9 @@ const Messages: React.FC = () => {
         const msgOtherIds = [...new Set(data.filter(m => m.sender_user_id !== user.id).map(m => m.sender_user_id))];
         if (msgOtherIds.length > 0) {
           // If current user is recruiter and the other party should be anonymous, don't reveal names
-          if (convo?.role === 'recruiter' && convo.other_party_name === t('messages.anonymousCandidate', 'Anonymous Candidate')) {
+          if (convo?.role === 'recruiter' && convo.is_anonymous && convo.transfer_profile_id) {
             const map: Record<string, string> = {};
-            msgOtherIds.forEach(id => { map[id] = t('messages.anonymousCandidate', 'Anonymous Candidate'); });
+            msgOtherIds.forEach(id => { map[id] = getAnonAlias(convo.transfer_profile_id!); });
             setSenderNames(prev => ({ ...prev, ...map }));
           } else {
             const { data: profiles } = await sb.from('profiles').select('id, username, linked_username').in('id', msgOtherIds);

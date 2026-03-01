@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { colors } from '../../utils/styles';
 import type { FundInfo, TransfereeProfile } from './types';
 import { formatTCLevel } from './types';
+import { getAnonAlias } from '../../utils/anonAlias';
 
 type ScoredTransferee = TransfereeProfile & { _matchScore: number };
 
@@ -90,8 +91,8 @@ const RecommendedSection: React.FC<RecommendedSectionProps> = ({
             borderRadius: '8px',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-              <span style={{ color: colors.text, fontWeight: '600', fontSize: '0.7rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80px' }}>
-                {tp.is_anonymous ? '🔒' : (tp.username || 'Unknown')}
+              <span style={{ color: colors.text, fontWeight: '600', fontSize: '0.7rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '110px' }}>
+                {tp.is_anonymous ? `🔒 ${getAnonAlias(tp.id)}` : (tp.username || 'Unknown')}
               </span>
               <span style={{
                 padding: '0.05rem 0.3rem',

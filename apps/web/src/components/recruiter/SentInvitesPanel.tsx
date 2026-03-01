@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase';
 import { colors } from '../../utils/styles';
 import { logger } from '../../utils/logger';
 import type { EditorInfo } from './types';
+import { getAnonAlias } from '../../utils/anonAlias';
 
 interface SentInvite {
   id: string;
@@ -50,7 +51,7 @@ async function fetchSentInvites(kingdomNumber: number): Promise<SentInvite[]> {
   const profileMap = new Map(
     (profiles || []).map((p: { id: string; username: string; current_kingdom: number; is_anonymous: boolean }) => [
       p.id,
-      { username: p.is_anonymous ? `Anon-${p.id.slice(0, 6)}` : (p.username || 'Unknown'), kingdom: p.current_kingdom },
+      { username: p.is_anonymous ? getAnonAlias(p.id) : (p.username || 'Unknown'), kingdom: p.current_kingdom },
     ])
   );
 

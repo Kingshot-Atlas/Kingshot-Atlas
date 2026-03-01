@@ -13,6 +13,7 @@ import { formatTCLevel } from './types';
 import BrowseTransfereesFilters from './BrowseTransfereesFilters';
 import { getTransferGroup, getTransferGroupLabel } from '../../config/transferGroups';
 import RecommendedSection from './RecommendedSection';
+import { getAnonAlias } from '../../utils/anonAlias';
 import {
   type BrowseFilters, EMPTY_FILTERS, BROWSE_PAGE_SIZE,
   browseKeys, fetchTransfereePage, fetchWatchlistIds, fetchInvitedProfileIds,
@@ -134,7 +135,7 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
       const { error } = await supabase.from('recruiter_watchlist').insert({
         recruiter_user_id: user.id,
         kingdom_number: editorInfo.kingdom_number,
-        player_name: tp.is_anonymous ? `Anon-${tp.id.slice(0, 6)}` : (tp.username || 'Unknown'),
+        player_name: tp.is_anonymous ? getAnonAlias(tp.id) : (tp.username || 'Unknown'),
         tc_level: tp.tc_level,
         power_range: tp.power_million ? `${tp.power_million}M` : (tp.power_range || null),
         language: tp.main_language || null,
@@ -412,7 +413,7 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
                       />
                     )}
                     <span style={{ color: colors.text, fontWeight: '600', fontSize: '0.85rem' }}>
-                      {isAnon ? '🔒 Anonymous' : (tp.username || 'Unknown')}
+                      {isAnon ? `🔒 ${getAnonAlias(tp.id)}` : (tp.username || 'Unknown')}
                     </span>
                     <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>K{tp.current_kingdom}</span>
                     {tp.last_active_at && (() => {
