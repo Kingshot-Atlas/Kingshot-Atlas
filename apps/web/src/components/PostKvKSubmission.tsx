@@ -9,6 +9,7 @@ import { isAdminUsername } from '../utils/constants';
 import { incrementStat } from './UserAchievements';
 import { useTranslation } from 'react-i18next';
 import { useTrustedSubmitter } from '../hooks/useTrustedSubmitter';
+import { supabase } from '../lib/supabase';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -141,13 +142,42 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
       return;
     }
 
-    if (kingdomNumber === opponentKingdom) {
+    if (!isBye && kingdomNumber === opponentKingdom) {
       showToast('Your kingdom cannot be the same as opponent', 'error');
       return;
     }
 
     setSubmitting(true);
     try {
+      // Bye submissions go through Supabase RPC (the REST API requires W/L for prep/battle)
+      if (isBye) {
+        if (!supabase) throw new Error('Database connection unavailable');
+        logger.log('[KvK Submit] Bye submission via RPC:', { kingdom: kingdomNumber, kvk: kvkNumber });
+        const userIsAdminFlag = isAdminUsername(profile?.linked_username) || isAdminUsername(profile?.username);
+        const { data, error } = await supabase.rpc('submit_kvk_partial', {
+          p_kingdom_number: kingdomNumber as number,
+          p_opponent_kingdom: 0,
+          p_kvk_number: kvkNumber,
+          p_prep_winner: null,
+          p_battle_winner: null,
+          p_is_admin: userIsAdminFlag || isTrusted,
+        });
+        if (error) throw new Error(error.message);
+        logger.log('[KvK Submit] Bye RPC success:', data);
+        showToast(`K${kingdomNumber} recorded as BYE for KvK #${kvkNumber}!`, 'success');
+        incrementStat('dataSubmissions');
+        setKingdomNumber('');
+        setOpponentKingdom('');
+        setPrepResult(null);
+        setBattleResult(null);
+        setNotes('');
+        setIsBye(false);
+        clearScreenshot();
+        clearScreenshot2();
+        onClose();
+        return;
+      }
+
       // Convert screenshots to base64 (optional for admins)
       let screenshotBase64: string | null = null;
       if (screenshot) {
@@ -180,11 +210,11 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
       // Debug: Log submission attempt
       const payload = {
         kingdom_number: kingdomNumber,
-        opponent_kingdom: isBye ? 0 : opponentKingdom,
+        opponent_kingdom: opponentKingdom,
         kvk_number: kvkNumber,
-        prep_result: isBye ? null : prepResult,
-        battle_result: isBye ? null : battleResult,
-        notes: isBye ? (notes || 'BYE - No opponent') : (notes || null),
+        prep_result: prepResult,
+        battle_result: battleResult,
+        notes: notes || null,
         screenshot_base64: screenshotBase64 ? screenshotBase64.substring(0, 100) + '...' : '(none - admin)'
       };
       logger.log('[KvK Submit] Attempting submission:', {
@@ -203,11 +233,11 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
         },
         body: JSON.stringify({
           kingdom_number: kingdomNumber,
-          opponent_kingdom: isBye ? 0 : opponentKingdom,
+          opponent_kingdom: opponentKingdom,
           kvk_number: kvkNumber,
-          prep_result: isBye ? null : prepResult,
-          battle_result: isBye ? null : battleResult,
-          notes: isBye ? (notes || 'BYE - No opponent') : (notes || null),
+          prep_result: prepResult,
+          battle_result: battleResult,
+          notes: notes || null,
           screenshot_base64: screenshotBase64 || undefined,
           screenshot2_base64: screenshot2Base64 || undefined
         })
@@ -221,7 +251,12 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
         let errorDetail = 'Failed to submit';
         try {
           const errorJson = JSON.parse(errorText);
-          errorDetail = errorJson.detail || errorText;
+          // Handle Pydantic validation error arrays
+          if (Array.isArray(errorJson.detail)) {
+            errorDetail = errorJson.detail.map((d: { msg?: string }) => d.msg || JSON.stringify(d)).join('; ');
+          } else {
+            errorDetail = errorJson.detail || errorText;
+          }
         } catch {
           errorDetail = errorText || `HTTP ${response.status}`;
         }
