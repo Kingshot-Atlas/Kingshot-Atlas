@@ -290,8 +290,8 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
       let autoDesc = '';
       if (isAutoFlip && preview && rec) {
         const changes: string[] = [];
-        if (errorType.includes('prep')) changes.push(`Prep: ${normR(rec.prep_result)}→${preview.prep}`);
-        if (errorType.includes('battle')) changes.push(`Battle: ${normR(rec.battle_result)}→${preview.battle}`);
+        if (errorType === 'wrong_prep_result' || errorType === 'wrong_both_results') changes.push(`Prep: ${normR(rec.prep_result)}→${preview.prep}`);
+        if (errorType === 'wrong_battle_result' || errorType === 'wrong_both_results') changes.push(`Battle: ${normR(rec.battle_result)}→${preview.battle}`);
         autoDesc = changes.join(', ');
       } else if (errorType === 'wrong_opponent' && corrOpponent !== null) {
         autoDesc = `Opponent: K${rec?.opponent_kingdom || '?'}→${corrOpponent === 0 ? 'Bye' : `K${corrOpponent}`}`;

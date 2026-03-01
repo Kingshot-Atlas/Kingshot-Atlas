@@ -109,6 +109,16 @@ const InboxTab: React.FC<InboxTabProps> = ({
     return externalRecruits.reduce((sum, r) => sum + (r.type === 'group' ? (r.player_count || 0) : 1), 0);
   }, [externalRecruits]);
 
+  // Alliance breakdown for approved apps
+  const allianceCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const app of approvedApps) {
+      const alliance = app.preferred_alliance || t('recruiter.noAlliance', 'Unassigned');
+      counts[alliance] = (counts[alliance] || 0) + 1;
+    }
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  }, [approvedApps, t]);
+
   const handleAddRecruit = useCallback(async () => {
     if (!supabase || !kingdomNumber || addingSaving) return;
     setAddingSaving(true);
@@ -393,6 +403,29 @@ const InboxTab: React.FC<InboxTabProps> = ({
               <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#22c55e' }}>{approvedApps.length + externalPlayerCount}</div>
             </div>
           </div>
+
+          {/* Alliance Breakdown */}
+          {allianceCounts.length > 0 && (
+            <div style={{
+              display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginBottom: '0.5rem',
+              padding: '0.45rem 0.5rem', backgroundColor: '#22c55e06', border: '1px solid #22c55e15',
+              borderRadius: '8px',
+            }}>
+              <span style={{ fontSize: '0.55rem', color: '#22c55e', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em', lineHeight: '20px', marginRight: '0.2rem' }}>
+                {t('recruiter.perAlliance', 'Per Alliance')}:
+              </span>
+              {allianceCounts.map(([alliance, count]) => (
+                <span key={alliance} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.2rem',
+                  padding: '0.15rem 0.4rem', backgroundColor: '#22c55e10', border: '1px solid #22c55e25',
+                  borderRadius: '4px', fontSize: '0.6rem', color: '#d1d5db', fontWeight: 500,
+                }}>
+                  <span style={{ fontWeight: 700, color: '#22c55e' }}>{alliance}</span>
+                  <span style={{ color: '#9ca3af' }}>×{count}</span>
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* External Recruits Section */}
           <div style={{ backgroundColor: colors.surface, border: `1px solid ${colors.border}`, borderRadius: '8px', padding: '0.6rem' }}>

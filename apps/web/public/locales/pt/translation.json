@@ -1809,6 +1809,8 @@
     "atlasRecruits": "Atlas",
     "externalRecruits": "Externos",
     "totalRecruits": "Total",
+    "perAlliance": "Por Aliança",
+    "noAlliance": "Não atribuído",
     "externalRecruitsLabel": "Reclutas Externos",
     "addExternal": "Adicionar",
     "individual": "Individual",

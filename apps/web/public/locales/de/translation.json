@@ -1796,6 +1796,8 @@
     "atlasRecruits": "Atlas",
     "externalRecruits": "Extern",
     "totalRecruits": "Gesamt",
+    "perAlliance": "Pro Allianz",
+    "noAlliance": "Nicht zugewiesen",
     "externalRecruitsLabel": "Externe Rekruten",
     "addExternal": "Hinzufügen",
     "individual": "Einzeln",

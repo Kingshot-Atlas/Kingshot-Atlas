@@ -1811,6 +1811,8 @@
     "atlasRecruits": "Atlas",
     "externalRecruits": "External",
     "totalRecruits": "Total",
+    "perAlliance": "Per Alliance",
+    "noAlliance": "Unassigned",
     "externalRecruitsLabel": "External Recruits",
     "addExternal": "Add",
     "individual": "Individual",

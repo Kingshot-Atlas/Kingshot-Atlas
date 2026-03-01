@@ -1811,6 +1811,8 @@
     "atlasRecruits": "Atlas",
     "externalRecruits": "Eksternal",
     "totalRecruits": "Total",
+    "perAlliance": "Per Aliansi",
+    "noAlliance": "Belum ditentukan",
     "externalRecruitsLabel": "Rekrut Eksternal",
     "addExternal": "Tambah",
     "individual": "Individu",

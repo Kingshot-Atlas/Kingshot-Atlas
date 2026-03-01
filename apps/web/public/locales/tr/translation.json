@@ -1796,6 +1796,8 @@
     "atlasRecruits": "Atlas",
     "externalRecruits": "Harici",
     "totalRecruits": "Toplam",
+    "perAlliance": "İttifak Başına",
+    "noAlliance": "Atanmamış",
     "externalRecruitsLabel": "Harici Adaylar",
     "addExternal": "Ekle",
     "individual": "Bireysel",

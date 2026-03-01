@@ -1796,6 +1796,8 @@
     "atlasRecruits": "Atlas",
     "externalRecruits": "外部",
     "totalRecruits": "合計",
+    "perAlliance": "同盟別",
+    "noAlliance": "未割り当て",
     "externalRecruitsLabel": "外部リクルート",
     "addExternal": "追加",
     "individual": "個人",

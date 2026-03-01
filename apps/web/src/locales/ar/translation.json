@@ -1796,6 +1796,8 @@
     "atlasRecruits": "Atlas",
     "externalRecruits": "خارجي",
     "totalRecruits": "المجموع",
+    "perAlliance": "لكل تحالف",
+    "noAlliance": "غير معيّن",
     "externalRecruitsLabel": "المجندون الخارجيون",
     "addExternal": "إضافة",
     "individual": "فردي",

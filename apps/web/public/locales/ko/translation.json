@@ -1793,6 +1793,8 @@
     "atlasRecruits": "Atlas",
     "externalRecruits": "외부",
     "totalRecruits": "합계",
+    "perAlliance": "연맹별",
+    "noAlliance": "미지정",
     "externalRecruitsLabel": "외부 모집",
     "addExternal": "추가",
     "individual": "개인",

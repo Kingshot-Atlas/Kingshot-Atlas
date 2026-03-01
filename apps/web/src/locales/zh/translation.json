@@ -1796,6 +1796,8 @@
     "atlasRecruits": "Atlas",
     "externalRecruits": "外部",
     "totalRecruits": "总计",
+    "perAlliance": "按联盟",
+    "noAlliance": "未分配",
     "externalRecruitsLabel": "外部招募",
     "addExternal": "添加",
     "individual": "个人",

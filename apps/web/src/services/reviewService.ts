@@ -73,6 +73,10 @@ export interface ReviewReport {
   details: string | null;
   status: 'pending' | 'reviewed' | 'dismissed';
   created_at: string;
+  // Joined fields
+  reporter_username?: string;
+  reported_username?: string;
+  kingdom_number?: number;
 }
 
 export const reviewService = {
@@ -681,7 +685,14 @@ export const reviewService = {
   async getReviewReports(status?: 'pending' | 'reviewed' | 'dismissed'): Promise<ReviewReport[]> {
     let query = getSupabase()
       .from('review_reports')
-      .select('*')
+      .select(`
+        *,
+        kingdom_reviews!review_reports_review_id_fkey (
+          kingdom_number,
+          author_linked_username,
+          user_id
+        )
+      `)
       .order('created_at', { ascending: false });
 
     if (status) {
@@ -695,7 +706,28 @@ export const reviewService = {
       return [];
     }
 
-    return data || [];
+    if (!data || data.length === 0) return [];
+
+    // Collect unique reporter IDs to fetch usernames from profiles
+    const reporterIds = [...new Set(data.map((r: Record<string, unknown>) => r.reporter_id as string))];
+    const { data: profiles } = await getSupabase()
+      .from('profiles')
+      .select('id, username')
+      .in('id', reporterIds);
+    const profileMap = new Map((profiles || []).map((p: { id: string; username: string }) => [p.id, p.username]));
+
+    // Flatten joined data into the report objects
+    return data.map((r: Record<string, unknown>) => {
+      const review = r.kingdom_reviews as { kingdom_number?: number; author_linked_username?: string } | null;
+      const { kingdom_reviews: _kr, ...rest } = r;
+      void _kr;
+      return {
+        ...(rest as unknown as ReviewReport),
+        kingdom_number: review?.kingdom_number,
+        reported_username: review?.author_linked_username,
+        reporter_username: profileMap.get(r.reporter_id as string),
+      };
+    });
   },
 
   /**

@@ -167,16 +167,27 @@ export const ReviewReportsTab: React.FC<ReviewReportsTabProps> = ({ filter }) =>
               )}
 
               {/* Meta */}
-              <div style={{ display: 'flex', gap: '1rem', fontSize: '0.65rem', color: '#4b5563', marginBottom: '0.6rem' }}>
-                <span>Review: <code style={{ color: '#6b7280' }}>{report.review_id.slice(0, 8)}…</code></span>
-                <span>Reporter: <code style={{ color: '#6b7280' }}>{report.reporter_id.slice(0, 8)}…</code></span>
+              <div style={{ display: 'flex', gap: '1rem', fontSize: '0.65rem', color: '#4b5563', marginBottom: '0.6rem', flexWrap: 'wrap' }}>
+                {report.kingdom_number && (
+                  <span>Kingdom: <Link to={`/kingdom/${report.kingdom_number}`} style={{ color: '#22d3ee', textDecoration: 'none' }}>K{report.kingdom_number}</Link></span>
+                )}
+                <span>Reported: {report.reported_username ? (
+                  <span style={{ color: '#f97316', fontWeight: 600 }}>{report.reported_username}</span>
+                ) : (
+                  <code style={{ color: '#6b7280' }}>{report.review_id.slice(0, 8)}…</code>
+                )}</span>
+                <span>Reporter: {report.reporter_username ? (
+                  <span style={{ color: '#22d3ee', fontWeight: 600 }}>{report.reporter_username}</span>
+                ) : (
+                  <code style={{ color: '#6b7280' }}>{report.reporter_id.slice(0, 8)}…</code>
+                )}</span>
               </div>
 
               {/* Actions */}
               {report.status === 'pending' && (
                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                   <Link
-                    to={`/kingdom/${report.review_id}`}
+                    to={report.kingdom_number ? `/kingdom/${report.kingdom_number}#reviews` : '#'}
                     target="_blank"
                     style={{ ...btnStyle, backgroundColor: '#22d3ee15', color: '#22d3ee', border: '1px solid #22d3ee40', textDecoration: 'none' }}
                   >
