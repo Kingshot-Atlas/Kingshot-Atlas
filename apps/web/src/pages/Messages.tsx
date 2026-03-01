@@ -234,17 +234,29 @@ const Messages: React.FC = () => {
           .order('created_at', { ascending: false });
 
         if (sentPreApp && sentPreApp.length > 0) {
+          // Identify unique conversations the recruiter started
+          const convoKeys = new Set<string>();
+          sentPreApp.forEach(m => convoKeys.add(`${m.kingdom_number}-${m.recipient_profile_id}`));
+
+          // Fetch ALL messages in those conversations (including transferee replies)
+          const recipientIds = [...new Set(sentPreApp.map(m => m.recipient_profile_id))];
+          const { data: allConvoMsgs } = await supabase
+            .from('pre_application_messages')
+            .select('id, kingdom_number, sender_user_id, recipient_profile_id, message, created_at, read_at')
+            .in('recipient_profile_id', recipientIds)
+            .order('created_at', { ascending: false });
+
           // Group by (kingdom_number, recipient_profile_id)
-          const byTarget = new Map<string, typeof sentPreApp>();
-          sentPreApp.forEach(m => {
+          const byTarget = new Map<string, NonNullable<typeof allConvoMsgs>>();
+          (allConvoMsgs || []).forEach(m => {
             const key = `${m.kingdom_number}-${m.recipient_profile_id}`;
+            if (!convoKeys.has(key)) return; // Only include conversations recruiter participated in
             const arr = byTarget.get(key) || [];
             arr.push(m);
             byTarget.set(key, arr);
           });
 
           // Fetch recipient profile info for anonymity
-          const recipientIds = [...new Set(sentPreApp.map(m => m.recipient_profile_id))];
           const { data: recipientProfiles } = await supabase
             .from('transfer_profiles')
             .select('id, is_anonymous, current_kingdom, user_id')
@@ -260,6 +272,8 @@ const Messages: React.FC = () => {
             const convoId = `pre-app-${kn}-${profileId}`;
             // Skip if already added from incoming side
             if (convos.some(c => c.application_id === convoId)) continue;
+            // Unread = replies from transferee that recruiter hasn't read
+            const unread = msgs.filter(m => m.sender_user_id !== user.id && !m.read_at).length;
             convos.push({
               application_id: convoId,
               kingdom_number: kn,
@@ -270,8 +284,8 @@ const Messages: React.FC = () => {
               role: 'recruiter',
               last_message: latest.message,
               last_message_at: latest.created_at,
-              last_sender_id: user.id,
-              unread_count: 0,
+              last_sender_id: latest.sender_user_id,
+              unread_count: unread,
               applied_at: latest.created_at,
               is_pre_app: true,
               pre_app_profile_id: profileId,
@@ -554,11 +568,12 @@ const Messages: React.FC = () => {
     if (unreadConvos.length === 0) return;
     for (const c of unreadConvos) {
       if (c.is_pre_app && c.pre_app_profile_id) {
-        // Mark all pre-app messages as read
+        // Mark only messages from the OTHER party as read
         await sb.from('pre_application_messages')
           .update({ read_at: new Date().toISOString() })
           .eq('kingdom_number', c.kingdom_number)
           .eq('recipient_profile_id', c.pre_app_profile_id)
+          .neq('sender_user_id', user.id)
           .is('read_at', null);
       } else {
         await sb.from('message_read_status')
