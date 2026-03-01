@@ -234,7 +234,7 @@ const KvKMatchupSubmission: React.FC<KvKMatchupSubmissionProps> = ({
 
       const action = data?.action || 'submitted';
       const labels: Record<string, string> = {
-        matchup: `K${kingdomNumber} vs K${opponentKingdom} matchup recorded!`,
+        matchup: isBye ? `K${kingdomNumber} recorded as BYE for KvK #${kvkNumber}!` : `K${kingdomNumber} vs K${opponentKingdom} matchup recorded!`,
         prep: `Prep result ${action} for K${kingdomNumber} vs K${opponentKingdom}!`,
         battle: `Battle result ${action}! KvK complete for K${kingdomNumber} vs K${opponentKingdom}!`,
       };
@@ -466,7 +466,7 @@ const KvKMatchupSubmission: React.FC<KvKMatchupSubmissionProps> = ({
         {/* Form */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {/* Kingdom Numbers */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isBye ? '1fr' : '1fr 1fr', gap: '0.75rem' }}>
             <div>
               <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>
                 {defaultKingdom ? 'Kingdom' : 'Your Kingdom'} {!isAdmin && '(locked)'}
@@ -486,23 +486,68 @@ const KvKMatchupSubmission: React.FC<KvKMatchupSubmissionProps> = ({
                 </div>
               )}
             </div>
-            <div>
-              <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>
-                Opponent Kingdom *
-              </label>
-              <input
-                type="number"
-                value={opponentKingdom}
-                onChange={e => setOpponentKingdom(e.target.value ? parseInt(e.target.value) : '')}
-                placeholder="e.g., 189"
-                min={1} max={9999}
-                style={inputStyle}
-              />
-            </div>
+            {!isBye && (
+              <div>
+                <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>
+                  Opponent Kingdom *
+                </label>
+                <input
+                  type="number"
+                  value={opponentKingdom}
+                  onChange={e => setOpponentKingdom(e.target.value ? parseInt(e.target.value) : '')}
+                  placeholder="e.g., 189"
+                  min={1} max={9999}
+                  style={inputStyle}
+                />
+              </div>
+            )}
           </div>
 
+          {/* Bye Toggle */}
+          <label
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.5rem 0.75rem',
+              backgroundColor: isBye ? '#f5970b15' : '#0a0a0a',
+              border: `1px solid ${isBye ? '#f5970b' : '#2a2a2a'}`,
+              borderRadius: '8px',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={isBye}
+              onChange={(e) => {
+                setIsBye(e.target.checked);
+                if (e.target.checked) {
+                  setOpponentKingdom('');
+                  setPrepWinner(null);
+                  setBattleWinner(null);
+                  setMode('matchup');
+                }
+              }}
+              style={{ accentColor: '#f5970b', cursor: 'pointer' }}
+            />
+            <div>
+              <span style={{ color: isBye ? '#f5970b' : '#9ca3af', fontSize: '0.85rem', fontWeight: 600 }}>BYE — No opponent</span>
+              <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.1rem' }}>
+                This kingdom was not matched with any opponent this KvK
+              </div>
+            </div>
+          </label>
+
+          {/* Bye info */}
+          {isBye && kingdomNumber && (
+            <div style={{ padding: '0.6rem 0.8rem', backgroundColor: '#f5970b10', border: '1px solid #f5970b30', borderRadius: '8px', fontSize: '0.8rem', color: '#f5970b', textAlign: 'center' }}>
+              ⏳ K{kingdomNumber} had no opponent this KvK — recording as BYE
+            </div>
+          )}
+
           {/* Existing status */}
-          {checkingExisting && (
+          {!isBye && checkingExisting && (
             <div style={{ textAlign: 'center', color: '#6b7280', fontSize: '0.8rem', padding: '0.5rem' }}>
               Checking existing data...
             </div>
@@ -630,6 +675,8 @@ const KvKMatchupSubmission: React.FC<KvKMatchupSubmissionProps> = ({
                 'Submit with Prep Result'
               ) : !prepWinner && !battleWinner ? (
                 'Submit Matchup Only'
+              ) : isBye ? (
+                'Submit Bye'
               ) : (
                 'Submit'
               )}

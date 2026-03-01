@@ -57,6 +57,7 @@ interface KingdomTableProps {
   favorites: number[];
   toggleFavorite: (kingdomNumber: number) => void;
   onAddToCompare?: (kingdomNumber: number) => void;
+  onStatusClick?: (kingdomNumber: number) => void;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   onSort?: (sortBy: string) => void;
@@ -75,6 +76,7 @@ const KingdomTable: React.FC<KingdomTableProps> = ({
   kingdoms, 
   favorites, 
   toggleFavorite,
+  onStatusClick,
   sortBy,
   sortOrder,
   onSort
@@ -256,7 +258,21 @@ const KingdomTable: React.FC<KingdomTableProps> = ({
                             {isFav ? '★' : '☆'}
                           </button>
                         ) : isStatus ? (
-                          <span style={{ ...neonGlow(getStatusColor(value.toString())), fontSize: '0.75rem', fontWeight: 'bold' }}>{value.toString().toUpperCase()}</span>
+                          <span
+                            onClick={onStatusClick ? (e) => { e.stopPropagation(); onStatusClick(kingdom.kingdom_number); } : undefined}
+                            style={{
+                              ...neonGlow(getStatusColor(value.toString())),
+                              fontSize: '0.75rem',
+                              fontWeight: 'bold',
+                              cursor: onStatusClick ? 'pointer' : 'default',
+                              padding: onStatusClick ? '0.2rem 0.5rem' : undefined,
+                              borderRadius: onStatusClick ? '4px' : undefined,
+                              transition: 'background-color 0.2s',
+                            }}
+                            onMouseEnter={onStatusClick ? (e) => { e.currentTarget.style.backgroundColor = '#ffffff10'; } : undefined}
+                            onMouseLeave={onStatusClick ? (e) => { e.currentTarget.style.backgroundColor = 'transparent'; } : undefined}
+                            title={onStatusClick ? 'Click to update transfer status' : undefined}
+                          >{value.toString().toUpperCase()}</span>
                         ) : isTier ? (
                           <span style={{ 
                             padding: '0.2rem 0.5rem', 

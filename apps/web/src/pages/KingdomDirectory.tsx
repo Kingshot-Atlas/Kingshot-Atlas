@@ -12,6 +12,10 @@ import KingdomTable from '../components/KingdomTable';
 import SearchAutocomplete from '../components/SearchAutocomplete';
 import EventCalendar from '../components/EventCalendar';
 import PostKvKSubmission from '../components/PostKvKSubmission';
+import StatusSubmission from '../components/StatusSubmission';
+import { statusService } from '../services/statusService';
+import { isAdminUsername } from '../utils/constants';
+import { useTrustedSubmitter } from '../hooks/useTrustedSubmitter';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { usePreferences } from '../hooks/useUrlState';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -73,6 +77,8 @@ const KingdomDirectory: React.FC = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [showPostKvKModal, setShowPostKvKModal] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false); // Closed by default
+  const [statusModalKingdom, setStatusModalKingdom] = useState<number | null>(null);
+  const { isTrusted } = useTrustedSubmitter();
 
   // Handler for KvK submission - requires login + linked Kingshot account + TC20+
   const handleSubmitKvKClick = () => {
@@ -856,6 +862,14 @@ const KingdomDirectory: React.FC = () => {
             kingdoms={displayedKingdoms}
             favorites={favorites}
             toggleFavorite={toggleFavorite}
+            onStatusClick={(kn) => {
+              if (!user) {
+                showToast('Please log in to update transfer status', 'error');
+                navigate('/login?redirect=/');
+                return;
+              }
+              setStatusModalKingdom(kn);
+            }}
             sortBy={sort.sortBy}
             sortOrder={sort.order}
             onSort={(newSortBy) => {
@@ -1001,6 +1015,23 @@ const KingdomDirectory: React.FC = () => {
         isOpen={showPostKvKModal}
         onClose={() => setShowPostKvKModal(false)}
       />
+
+      {/* Transfer Status Submission Modal (from table view) */}
+      {statusModalKingdom && (
+        <StatusSubmission
+          kingdomNumber={statusModalKingdom}
+          currentStatus={allKingdoms.find(k => k.kingdom_number === statusModalKingdom)?.most_recent_status || 'Unannounced'}
+          onSubmit={async (newStatus, notes) => {
+            if (!user) return;
+            const currentStatus = allKingdoms.find(k => k.kingdom_number === statusModalKingdom)?.most_recent_status || 'Unannounced';
+            const adminUser = isAdminUsername(profile?.linked_username) || isAdminUsername(profile?.username);
+            const canAutoApprove = adminUser || isTrusted;
+            await statusService.submitStatusUpdate(statusModalKingdom, currentStatus, newStatus, notes, user.id, canAutoApprove);
+            showToast(canAutoApprove ? t('kingdomCard.statusAutoApproved', 'Status update auto-approved!') : t('kingdomCard.statusSubmitted', 'Status update submitted for review!'), 'success');
+          }}
+          onClose={() => setStatusModalKingdom(null)}
+        />
+      )}
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

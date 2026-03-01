@@ -44,6 +44,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
   const [screenshotPreview2, setScreenshotPreview2] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [screenshotDisclaimer, setScreenshotDisclaimer] = useState(false);
+  const [isBye, setIsBye] = useState(false);
 
   const { isTrusted } = useTrustedSubmitter();
   const userIsAdmin = isAdminUsername(profile?.linked_username) || isAdminUsername(profile?.username);
@@ -126,6 +127,9 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
   };
 
   const isFormValid = () => {
+    if (isBye) {
+      return !!kingdomNumber;
+    }
     const hasScreenshot = screenshot || screenshot2;
     const disclaimerOk = !hasScreenshot || screenshotDisclaimer;
     return kingdomNumber && opponentKingdom && prepResult && battleResult && (screenshot || canSkipScreenshot) && disclaimerOk;
@@ -176,11 +180,11 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
       // Debug: Log submission attempt
       const payload = {
         kingdom_number: kingdomNumber,
-        opponent_kingdom: opponentKingdom,
+        opponent_kingdom: isBye ? 0 : opponentKingdom,
         kvk_number: kvkNumber,
-        prep_result: prepResult,
-        battle_result: battleResult,
-        notes: notes || null,
+        prep_result: isBye ? null : prepResult,
+        battle_result: isBye ? null : battleResult,
+        notes: isBye ? (notes || 'BYE - No opponent') : (notes || null),
         screenshot_base64: screenshotBase64 ? screenshotBase64.substring(0, 100) + '...' : '(none - admin)'
       };
       logger.log('[KvK Submit] Attempting submission:', {
@@ -199,11 +203,11 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
         },
         body: JSON.stringify({
           kingdom_number: kingdomNumber,
-          opponent_kingdom: opponentKingdom,
+          opponent_kingdom: isBye ? 0 : opponentKingdom,
           kvk_number: kvkNumber,
-          prep_result: prepResult,
-          battle_result: battleResult,
-          notes: notes || null,
+          prep_result: isBye ? null : prepResult,
+          battle_result: isBye ? null : battleResult,
+          notes: isBye ? (notes || 'BYE - No opponent') : (notes || null),
           screenshot_base64: screenshotBase64 || undefined,
           screenshot2_base64: screenshot2Base64 || undefined
         })
@@ -242,6 +246,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
       setPrepResult(null);
       setBattleResult(null);
       setNotes('');
+      setIsBye(false);
       clearScreenshot();
       clearScreenshot2();
       onClose();
@@ -326,7 +331,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
         {/* Form */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {/* Kingdom Numbers */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isBye ? '1fr' : '1fr 1fr', gap: '0.75rem' }}>
             <div>
               <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>
                 Your Kingdom * {isKingdomPreFilled && <span style={{ color: '#22d3ee' }}>✓</span>}
@@ -351,30 +356,75 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
                 }}
               />
             </div>
-            <div>
-              <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>Opponent Kingdom *</label>
-              <input
-                ref={opponentInputRef}
-                type="number"
-                value={opponentKingdom}
-                onChange={(e) => setOpponentKingdom(e.target.value ? parseInt(e.target.value) : '')}
-                placeholder="e.g., 189"
-                min={1}
-                max={9999}
-                style={{
-                  width: '100%',
-                  padding: '0.65rem',
-                  backgroundColor: '#0a0a0a',
-                  border: '1px solid #2a2a2a',
-                  borderRadius: '6px',
-                  color: '#fff',
-                  fontSize: '0.9rem'
-                }}
-              />
-            </div>
+            {!isBye && (
+              <div>
+                <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>Opponent Kingdom *</label>
+                <input
+                  ref={opponentInputRef}
+                  type="number"
+                  value={opponentKingdom}
+                  onChange={(e) => setOpponentKingdom(e.target.value ? parseInt(e.target.value) : '')}
+                  placeholder="e.g., 189"
+                  min={1}
+                  max={9999}
+                  style={{
+                    width: '100%',
+                    padding: '0.65rem',
+                    backgroundColor: '#0a0a0a',
+                    border: '1px solid #2a2a2a',
+                    borderRadius: '6px',
+                    color: '#fff',
+                    fontSize: '0.9rem'
+                  }}
+                />
+              </div>
+            )}
           </div>
 
+          {/* Bye Toggle */}
+          <label
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.5rem 0.75rem',
+              backgroundColor: isBye ? '#f5970b15' : '#0a0a0a',
+              border: `1px solid ${isBye ? '#f5970b' : '#2a2a2a'}`,
+              borderRadius: '8px',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={isBye}
+              onChange={(e) => {
+                setIsBye(e.target.checked);
+                if (e.target.checked) {
+                  setOpponentKingdom('');
+                  setPrepResult(null);
+                  setBattleResult(null);
+                }
+              }}
+              style={{ accentColor: '#f5970b', cursor: 'pointer' }}
+            />
+            <div>
+              <span style={{ color: isBye ? '#f5970b' : '#9ca3af', fontSize: '0.85rem', fontWeight: 600 }}>BYE — No opponent</span>
+              <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.1rem' }}>
+                This kingdom was not matched with any opponent this KvK
+              </div>
+            </div>
+          </label>
+
+          {/* Bye info */}
+          {isBye && kingdomNumber && (
+            <div style={{ padding: '0.6rem 0.8rem', backgroundColor: '#f5970b10', border: '1px solid #f5970b30', borderRadius: '8px', fontSize: '0.8rem', color: '#f5970b', textAlign: 'center' }}>
+              ⏳ K{kingdomNumber} had no opponent this KvK — recording as BYE
+            </div>
+          )}
+
           {/* Results */}
+          {!isBye && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
             <div>
               <label style={{ display: 'block', color: '#eab308', fontSize: '0.75rem', marginBottom: '0.35rem' }}>Prep Phase *</label>
@@ -440,8 +490,10 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
             </div>
           </div>
 
+          )}
+
           {/* Outcome Preview */}
-          {outcome && (
+          {!isBye && outcome && (
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -458,6 +510,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
           )}
 
           {/* Screenshot Upload */}
+          {!isBye && (
           <div>
             <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>
               Screenshot Proof {canSkipScreenshot ? '' : '*'} <span style={{ color: '#6b7280' }}>{canSkipScreenshot ? '(Optional — trusted submitter)' : '(Required for verification)'}</span>
@@ -531,7 +584,10 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
             />
           </div>
 
+          )}
+
           {/* Second Screenshot Upload (Optional) */}
+          {!isBye && (
           <div>
             <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>
               Second Screenshot <span style={{ color: '#6b7280' }}>(Optional - e.g., battle results)</span>
@@ -601,6 +657,7 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
               style={{ display: 'none' }}
             />
           </div>
+          )}
 
           {/* Notes */}
           <div>
@@ -700,6 +757,8 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
                 }} />
                 Submitting...
               </>
+            ) : isBye ? (
+              'Submit Bye'
             ) : (
               'Submit for Review'
             )}
