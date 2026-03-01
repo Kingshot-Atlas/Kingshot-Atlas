@@ -65,6 +65,7 @@ const KingdomSettlers = lazy(() => import('./pages/KingdomSettlers'));
 const AdminCampaignDraw = lazy(() => import('./pages/AdminCampaignDraw'));
 const BattleRegistry = lazy(() => import('./pages/BattleRegistry'));
 const BattleRegistryLanding = lazy(() => import('./pages/BattleRegistryLanding'));
+const Top100Leaderboard = lazy(() => import('./pages/Top100Leaderboard'));
 
 // 404 Not Found component
 const NotFound = () => {
@@ -137,6 +138,7 @@ function AppContent() {
               <Route path="/compare" element={<ErrorBoundary><CompareKingdoms /></ErrorBoundary>} />
               <Route path="/tools" element={<ErrorBoundary><Tools /></ErrorBoundary>} />
               <Route path="/rankings" element={<ErrorBoundary><Leaderboards /></ErrorBoundary>} />
+              <Route path="/rankings/top-100" element={<ErrorBoundary><Top100Leaderboard /></ErrorBoundary>} />
               <Route path="/leaderboards" element={<ErrorBoundary><Leaderboards /></ErrorBoundary>} /> {/* Legacy redirect */}
               <Route path="/profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
               <Route path="/profile/:userId" element={<RouteErrorBoundary><Profile /></RouteErrorBoundary>} />

@@ -193,12 +193,12 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
       <button
         onClick={() => setShowMobileRankingsMenu(!showMobileRankingsMenu)}
         style={{
-          color: (isActive('/rankings') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '#22d3ee' : '#9ca3af',
+          color: (isActive('/rankings') || isActive('/rankings/top-100') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '#22d3ee' : '#9ca3af',
           textDecoration: 'none',
           fontSize: '1rem',
           padding: '0.75rem 1rem',
           borderRadius: '8px',
-          backgroundColor: (isActive('/rankings') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '#111' : 'transparent',
+          backgroundColor: (isActive('/rankings') || isActive('/rankings/top-100') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '#111' : 'transparent',
           border: 'none',
           width: '100%',
           textAlign: 'left',
@@ -217,6 +217,9 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
         <>
           <Link to="/rankings" style={{ color: isActive('/rankings') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ color: '#333' }}>└</span> {t('nav.kingdomRankings')}
+          </Link>
+          <Link to="/rankings/top-100" style={{ color: isActive('/rankings/top-100') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ color: '#333' }}>└</span> {t('nav.top100Leaderboard', 'Top 100 Leaderboard')}
           </Link>
           <Link to="/seasons" style={{ color: (isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.9rem', padding: '0.5rem 1rem 0.5rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ color: '#333' }}>└</span> {t('nav.kvkSeasons')}

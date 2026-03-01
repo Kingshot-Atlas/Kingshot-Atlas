@@ -50,6 +50,7 @@
     "home": "ホーム",
     "rankings": "ランキング",
     "kingdomRankings": "王国ランキング",
+    "top100Leaderboard": "Top 100 リーダーボード",
     "kvkSeasons": "KvKシーズン",
     "tools": "ツール",
     "atlasBot": "Discord Bot Atlas",
@@ -215,6 +216,21 @@
     "allTimeRecords": "歴代記録",
     "matchOutcomes": "試合結果",
     "noData": "王国データがありません。"
+  },
+  "top100": {
+    "pageTitle": "Top 100 リーダーボード",
+    "title": "Top 100",
+    "subtitle": "Atlasスコアによるトップ100王国の決定版ランキング。各KvK後の順位変動を追跡。",
+    "colRank": "#",
+    "colKingdom": "王国",
+    "colAtlasScore": "Atlasスコア",
+    "colKvks": "KvK",
+    "colPrepWR": "準備勝率",
+    "colBattleWR": "戦闘勝率",
+    "colChange": "変動",
+    "footerTotal": "{{count}}王国を追跡中",
+    "footerRankChange": "順位変動は最新のKvK結果を反映",
+    "backToRankings": "← ランキングに戻る"
   },
   "seasons": {
     "selectSeason": "シーズンを選択",

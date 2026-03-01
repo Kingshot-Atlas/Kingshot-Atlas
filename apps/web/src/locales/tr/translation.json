@@ -50,6 +50,7 @@
     "home": "Ana Sayfa",
     "rankings": "Sıralama",
     "kingdomRankings": "Krallık Sıralaması",
+    "top100Leaderboard": "Top 100 Sıralama",
     "kvkSeasons": "KvK Sezonları",
     "tools": "Araçlar",
     "atlasBot": "Discord Bot Atlas",
@@ -215,6 +216,21 @@
     "allTimeRecords": "Tüm Zamanların Rekorları",
     "matchOutcomes": "Maç Sonuçları",
     "noData": "Krallık verisi mevcut değil."
+  },
+  "top100": {
+    "pageTitle": "Top 100 Sıralama",
+    "title": "Top 100",
+    "subtitle": "Atlas Puanına göre en iyi 100 krallığın kesin sıralaması. Her KvK sonrası kimin yükseldiğini ve düştüğünü takip edin.",
+    "colRank": "#",
+    "colKingdom": "Krallık",
+    "colAtlasScore": "Atlas Puanı",
+    "colKvks": "KvK",
+    "colPrepWR": "Hazırlık KO",
+    "colBattleWR": "Savaş KO",
+    "colChange": "Değişim",
+    "footerTotal": "{{count}} krallık takip ediliyor",
+    "footerRankChange": "Sıra değişiklikleri en son KvK sonuçlarını yansıtır",
+    "backToRankings": "← Sıralamaya Dön"
   },
   "seasons": {
     "selectSeason": "Sezon seç",

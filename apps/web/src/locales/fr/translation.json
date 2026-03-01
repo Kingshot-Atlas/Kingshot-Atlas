@@ -50,6 +50,7 @@
     "home": "Accueil",
     "rankings": "Classements",
     "kingdomRankings": "Classement des Royaumes",
+    "top100Leaderboard": "Top 100 Classement",
     "kvkSeasons": "Saisons KvK",
     "tools": "Outils",
     "atlasBot": "Discord Bot Atlas",
@@ -215,6 +216,21 @@
     "allTimeRecords": "Records Historiques",
     "matchOutcomes": "Résultats des Combats",
     "noData": "Aucune donnée de royaume disponible."
+  },
+  "top100": {
+    "pageTitle": "Top 100 Classement",
+    "title": "Top 100",
+    "subtitle": "Le classement définitif des 100 meilleurs royaumes par Score Atlas. Suivez qui monte et qui descend après chaque KvK.",
+    "colRank": "#",
+    "colKingdom": "Royaume",
+    "colAtlasScore": "Score Atlas",
+    "colKvks": "KvKs",
+    "colPrepWR": "% Prép",
+    "colBattleWR": "% Bataille",
+    "colChange": "Changement",
+    "footerTotal": "{{count}} royaumes suivis",
+    "footerRankChange": "Les changements de rang reflètent les derniers résultats KvK",
+    "backToRankings": "← Retour aux Classements"
   },
   "seasons": {
     "selectSeason": "Sélectionner une saison",

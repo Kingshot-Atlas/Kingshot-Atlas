@@ -50,6 +50,7 @@
     "home": "Home",
     "rankings": "Rankings",
     "kingdomRankings": "Kingdom Rankings",
+    "top100Leaderboard": "Top 100 Leaderboard",
     "kvkSeasons": "KvK Seasons",
     "tools": "Tools",
     "atlasBot": "Discord Bot Atlas",
@@ -230,6 +231,21 @@
     "allTimeRecords": "All-Time Records",
     "matchOutcomes": "Match Outcomes",
     "noData": "No kingdom data available."
+  },
+  "top100": {
+    "pageTitle": "Top 100 Leaderboard",
+    "title": "Top 100",
+    "subtitle": "The definitive ranking of the top 100 kingdoms by Atlas Score. Track who climbs and who falls after each KvK.",
+    "colRank": "#",
+    "colKingdom": "Kingdom",
+    "colAtlasScore": "Atlas Score",
+    "colKvks": "KvKs",
+    "colPrepWR": "Prep WR",
+    "colBattleWR": "Battle WR",
+    "colChange": "Change",
+    "footerTotal": "{{count}} kingdoms tracked",
+    "footerRankChange": "Rank changes reflect the latest KvK results",
+    "backToRankings": "← Back to Rankings"
   },
   "seasons": {
     "selectSeason": "Select a season",

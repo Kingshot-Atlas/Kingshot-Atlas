@@ -50,6 +50,7 @@
     "home": "Startseite",
     "rankings": "Ranglisten",
     "kingdomRankings": "Königreich-Ranglisten",
+    "top100Leaderboard": "Top 100 Rangliste",
     "kvkSeasons": "KvK-Saisons",
     "tools": "Werkzeuge",
     "atlasBot": "Discord Bot Atlas",
@@ -215,6 +216,21 @@
     "allTimeRecords": "Allzeit-Rekorde",
     "matchOutcomes": "Kampfergebnisse",
     "noData": "Keine Königreich-Daten verfügbar."
+  },
+  "top100": {
+    "pageTitle": "Top 100 Rangliste",
+    "title": "Top 100",
+    "subtitle": "Die definitive Rangliste der 100 besten Königreiche nach Atlas-Wertung. Verfolge, wer nach jedem KvK aufsteigt und absteigt.",
+    "colRank": "#",
+    "colKingdom": "Königreich",
+    "colAtlasScore": "Atlas-Wertung",
+    "colKvks": "KvKs",
+    "colPrepWR": "Prep GR",
+    "colBattleWR": "Schlacht GR",
+    "colChange": "Änderung",
+    "footerTotal": "{{count}} Königreiche erfasst",
+    "footerRankChange": "Rangänderungen spiegeln die neuesten KvK-Ergebnisse wider",
+    "backToRankings": "← Zurück zu Ranglisten"
   },
   "seasons": {
     "selectSeason": "Saison wählen",

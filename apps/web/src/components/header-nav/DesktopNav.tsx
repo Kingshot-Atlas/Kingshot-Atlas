@@ -72,15 +72,15 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage,
         <Link
           to="/rankings"
           style={{
-            color: (isActive('/rankings') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '#22d3ee' : '#9ca3af',
+            color: (isActive('/rankings') || isActive('/rankings/top-100') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '#22d3ee' : '#9ca3af',
             textDecoration: 'none',
             fontSize: '0.9rem',
-            fontWeight: (isActive('/rankings') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '600' : '400',
+            fontWeight: (isActive('/rankings') || isActive('/rankings/top-100') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? '600' : '400',
             transition: 'color 0.2s',
             display: 'flex',
             alignItems: 'center',
             gap: '0.25rem',
-            ...((isActive('/rankings') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? neonGlow('#22d3ee') : {})
+            ...((isActive('/rankings') || isActive('/rankings/top-100') || isActive('/seasons') || location.pathname.startsWith('/seasons/')) ? neonGlow('#22d3ee') : {})
           }}
         >
           {t('nav.rankings')}
@@ -124,6 +124,28 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage,
                 <path d="M12 20V10M18 20V4M6 20v-4"/>
               </svg>
               {t('nav.kingdomRankings')}
+            </Link>
+            <Link
+              to="/rankings/top-100"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.75rem 1rem',
+                borderRadius: '8px',
+                color: isActive('/rankings/top-100') ? '#22d3ee' : '#fff',
+                textDecoration: 'none',
+                fontSize: '0.85rem',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#fbbf24' }}>
+                <path d="M6 9l6-6 6 6"/>
+                <path d="M12 3v18"/>
+              </svg>
+              {t('nav.top100Leaderboard', 'Top 100 Leaderboard')}
             </Link>
             <Link
               to="/seasons"

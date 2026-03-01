@@ -50,6 +50,7 @@
     "home": "首页",
     "rankings": "排行榜",
     "kingdomRankings": "王国排名",
+    "top100Leaderboard": "Top 100 排行榜",
     "kvkSeasons": "KvK 赛季",
     "tools": "工具",
     "atlasBot": "Discord Bot Atlas",
@@ -215,6 +216,21 @@
     "allTimeRecords": "历史记录",
     "matchOutcomes": "比赛结果",
     "noData": "暂无王国数据。"
+  },
+  "top100": {
+    "pageTitle": "Top 100 排行榜",
+    "title": "Top 100",
+    "subtitle": "按Atlas评分排列的前100强王国权威排名。追踪每次KvK后谁升谁降。",
+    "colRank": "#",
+    "colKingdom": "王国",
+    "colAtlasScore": "Atlas 评分",
+    "colKvks": "KvK次数",
+    "colPrepWR": "备战胜率",
+    "colBattleWR": "战斗胜率",
+    "colChange": "变动",
+    "footerTotal": "共追踪 {{count}} 个王国",
+    "footerRankChange": "排名变动反映最新KvK结果",
+    "backToRankings": "← 返回排行榜"
   },
   "seasons": {
     "selectSeason": "选择赛季",

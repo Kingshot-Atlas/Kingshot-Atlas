@@ -50,6 +50,7 @@
     "home": "الرئيسية",
     "rankings": "التصنيفات",
     "kingdomRankings": "تصنيفات الممالك",
+    "top100Leaderboard": "أفضل 100 تصنيف",
     "kvkSeasons": "مواسم KvK",
     "tools": "الأدوات",
     "atlasBot": "Discord Bot Atlas",
@@ -215,6 +216,21 @@
     "allTimeRecords": "الأرقام القياسية",
     "matchOutcomes": "نتائج المباريات",
     "noData": "لا تتوفر بيانات عن الممالك."
+  },
+  "top100": {
+    "pageTitle": "أفضل 100 تصنيف",
+    "title": "Top 100",
+    "subtitle": "التصنيف النهائي لأفضل 100 مملكة حسب نقاط Atlas. تابع من يصعد ومن يهبط بعد كل KvK.",
+    "colRank": "#",
+    "colKingdom": "المملكة",
+    "colAtlasScore": "نقاط Atlas",
+    "colKvks": "KvK",
+    "colPrepWR": "نسبة فوز التحضير",
+    "colBattleWR": "نسبة فوز المعركة",
+    "colChange": "التغيير",
+    "footerTotal": "{{count}} مملكة متابعة",
+    "footerRankChange": "تغييرات الترتيب تعكس أحدث نتائج KvK",
+    "backToRankings": "← العودة إلى التصنيفات"
   },
   "seasons": {
     "selectSeason": "اختر موسمًا",

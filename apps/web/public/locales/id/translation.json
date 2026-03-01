@@ -50,6 +50,7 @@
     "home": "Beranda",
     "rankings": "Peringkat",
     "kingdomRankings": "Peringkat Kingdom",
+    "top100Leaderboard": "Top 100 Peringkat",
     "kvkSeasons": "Musim KvK",
     "tools": "Alat",
     "atlasBot": "Discord Bot Atlas",
@@ -230,6 +231,21 @@
     "allTimeRecords": "Rekor Sepanjang Masa",
     "matchOutcomes": "Hasil Pertandingan",
     "noData": "Tidak ada data kingdom tersedia."
+  },
+  "top100": {
+    "pageTitle": "Top 100 Peringkat",
+    "title": "Top 100",
+    "subtitle": "Peringkat definitif 100 kingdom teratas berdasarkan Skor Atlas. Lacak siapa yang naik dan turun setelah setiap KvK.",
+    "colRank": "#",
+    "colKingdom": "Kingdom",
+    "colAtlasScore": "Skor Atlas",
+    "colKvks": "KvK",
+    "colPrepWR": "WR Persiapan",
+    "colBattleWR": "WR Pertempuran",
+    "colChange": "Perubahan",
+    "footerTotal": "{{count}} kingdom dilacak",
+    "footerRankChange": "Perubahan peringkat mencerminkan hasil KvK terbaru",
+    "backToRankings": "← Kembali ke Peringkat"
   },
   "seasons": {
     "selectSeason": "Pilih musim",

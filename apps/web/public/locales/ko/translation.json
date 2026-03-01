@@ -50,6 +50,7 @@
     "home": "홈",
     "rankings": "랭킹",
     "kingdomRankings": "왕국 랭킹",
+    "top100Leaderboard": "Top 100 리더보드",
     "kvkSeasons": "KvK 시즌",
     "tools": "도구",
     "atlasBot": "Discord Bot Atlas",
@@ -215,6 +216,21 @@
     "allTimeRecords": "역대 기록",
     "matchOutcomes": "경기 결과",
     "noData": "왕국 데이터가 없습니다."
+  },
+  "top100": {
+    "pageTitle": "Top 100 리더보드",
+    "title": "Top 100",
+    "subtitle": "Atlas 점수 기준 상위 100개 왕국의 공식 순위. 각 KvK 후 순위 변동을 추적하세요.",
+    "colRank": "#",
+    "colKingdom": "왕국",
+    "colAtlasScore": "Atlas 점수",
+    "colKvks": "KvK",
+    "colPrepWR": "준비 승률",
+    "colBattleWR": "전투 승률",
+    "colChange": "변동",
+    "footerTotal": "{{count}}개 왕국 추적 중",
+    "footerRankChange": "순위 변동은 최신 KvK 결과를 반영합니다",
+    "backToRankings": "← 랭킹으로 돌아가기"
   },
   "seasons": {
     "selectSeason": "시즌 선택",
