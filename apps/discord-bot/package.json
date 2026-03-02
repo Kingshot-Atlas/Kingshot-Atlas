@@ -11,14 +11,14 @@
     "test": "node tests/isEventDay.test.js && node tests/logger.test.js && node tests/telemetry.test.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.3",
+    "@supabase/supabase-js": "^2.98.0",
     "discord.js": "^14.14.1",
     "dotenv": "^16.3.1",
     "node-cron": "^3.0.3",
     "node-fetch": "^3.3.2"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "nodemon": "^3.1.14"
   },
   "engines": {
     "node": ">=18.0.0"
