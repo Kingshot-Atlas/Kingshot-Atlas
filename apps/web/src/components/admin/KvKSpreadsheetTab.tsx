@@ -250,19 +250,8 @@ const KvKSpreadsheetTab: React.FC = () => {
         }
       }
 
-      // Track changed kingdoms for broadcast
+      // Track changed kingdoms for broadcast (populated after all modifications)
       const changedKingdoms: Array<{ kingdomNumber: number; opponentKingdom: number | ''; prepResult: ResultLetter; battleResult: ResultLetter; overallResult: OverallResult; isBye: boolean }> = [];
-
-      if (typeof row.kingdomNumber === 'number') {
-        changedKingdoms.push({
-          kingdomNumber: row.kingdomNumber,
-          opponentKingdom: row.opponentKingdom,
-          prepResult: row.prepResult,
-          battleResult: row.battleResult,
-          overallResult: row.overallResult,
-          isBye: row.isBye,
-        });
-      }
 
       // ── Bidirectional sync: update counterpart row instantly ──
       if ((field === 'prepResult' || field === 'battleResult') && row.kingdomNumber && row.opponentKingdom && !row.isBye) {
@@ -302,9 +291,23 @@ const KvKSpreadsheetTab: React.FC = () => {
         if (cpIdx >= 0) {
           const cp = updated[cpIdx]!;
           cp.opponentKingdom = row.kingdomNumber;
-          cp.prepResult = flipResult(row.prepResult);
-          cp.battleResult = flipResult(row.battleResult);
-          cp.overallResult = computeOverall(cp.prepResult, cp.battleResult);
+
+          const cpHasResults = cp.prepResult || cp.battleResult;
+          const rowHasResults = row.prepResult || row.battleResult;
+
+          if (cpHasResults && !rowHasResults) {
+            // Counterpart has results, current row doesn't → auto-fill current row
+            row.prepResult = flipResult(cp.prepResult);
+            row.battleResult = flipResult(cp.battleResult);
+            row.overallResult = computeOverall(row.prepResult, row.battleResult);
+          } else if (rowHasResults && !cpHasResults) {
+            // Current row has results, counterpart doesn't → auto-fill counterpart
+            cp.prepResult = flipResult(row.prepResult);
+            cp.battleResult = flipResult(row.battleResult);
+            cp.overallResult = computeOverall(cp.prepResult, cp.battleResult);
+          }
+          // If both have results or neither has results, just link without overwriting
+
           cp.dirty = true;
           cp.saved = false;
           flashRow(cp.id);
@@ -319,6 +322,18 @@ const KvKSpreadsheetTab: React.FC = () => {
             });
           }
         }
+      }
+
+      // Add current row to broadcast payload (after all modifications are applied)
+      if (typeof row.kingdomNumber === 'number') {
+        changedKingdoms.unshift({
+          kingdomNumber: row.kingdomNumber,
+          opponentKingdom: row.opponentKingdom,
+          prepResult: row.prepResult,
+          battleResult: row.battleResult,
+          overallResult: row.overallResult,
+          isBye: row.isBye,
+        });
       }
 
       // ── Broadcast edits to other connected users (skip for remote edits) ──
@@ -1090,6 +1105,7 @@ const KvKSpreadsheetTab: React.FC = () => {
                       <span style={{ color: '#6b7280' }}>—</span>
                     ) : (
                       <input
+                        className="kvk-result-input"
                         type="text"
                         value={row.prepResult}
                         readOnly
@@ -1109,6 +1125,7 @@ const KvKSpreadsheetTab: React.FC = () => {
                       <span style={{ color: '#6b7280' }}>—</span>
                     ) : (
                       <input
+                        className="kvk-result-input"
                         type="text"
                         value={row.battleResult}
                         readOnly
