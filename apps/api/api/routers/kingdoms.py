@@ -99,12 +99,16 @@ def get_kingdoms(
             result = query.execute()
             kingdoms = result.data or []
             
-            # Map atlas_score to overall_score and add ranks
+            # Map atlas_score to overall_score and use current_rank from Supabase
             for i, k in enumerate(kingdoms):
                 if 'atlas_score' in k:
                     k['overall_score'] = k['atlas_score']
-                # Calculate rank based on position (approximate for paginated results)
-                k['rank'] = offset + i + 1 if sort_field == 'atlas_score' and order == 'desc' else 0
+                # Use current_rank from Supabase (already calculated in DB)
+                # Only calculate approximate rank for paginated results if current_rank is missing
+                if 'current_rank' not in k or k['current_rank'] is None:
+                    k['rank'] = offset + i + 1 if sort_field == 'atlas_score' and order == 'desc' else 0
+                else:
+                    k['rank'] = k['current_rank']
                 k['recent_kvks'] = []  # KvK history fetched separately if needed
             
             total_pages = math.ceil(total / page_size) if total > 0 else 1
@@ -183,18 +187,22 @@ def get_kingdom_profile(kingdom_number: int, db: Session = Depends(get_db)):
             if 'atlas_score' in supabase_kingdom:
                 supabase_kingdom['overall_score'] = supabase_kingdom['atlas_score']
             
-            # Calculate actual rank based on atlas_score
-            try:
-                supabase = get_supabase_admin()
-                if supabase and supabase_kingdom.get('atlas_score'):
-                    # Count kingdoms with higher score
-                    count_result = supabase.table('kingdoms').select('kingdom_number', count='exact').gt('atlas_score', supabase_kingdom['atlas_score']).execute()
-                    supabase_kingdom['rank'] = (count_result.count or 0) + 1
-                else:
+            # Use current_rank from Supabase (already calculated in DB)
+            # Only calculate rank if current_rank is missing
+            if 'current_rank' not in supabase_kingdom or supabase_kingdom['current_rank'] is None:
+                try:
+                    supabase = get_supabase_admin()
+                    if supabase and supabase_kingdom.get('atlas_score'):
+                        # Count kingdoms with higher score
+                        count_result = supabase.table('kingdoms').select('kingdom_number', count='exact').gt('atlas_score', supabase_kingdom['atlas_score']).execute()
+                        supabase_kingdom['rank'] = (count_result.count or 0) + 1
+                    else:
+                        supabase_kingdom['rank'] = 0
+                except Exception as rank_err:
+                    logger.error("Rank calculation error for %d: %s", kingdom_number, rank_err)
                     supabase_kingdom['rank'] = 0
-            except Exception as rank_err:
-                logger.error("Rank calculation error for %d: %s", kingdom_number, rank_err)
-                supabase_kingdom['rank'] = 0
+            else:
+                supabase_kingdom['rank'] = supabase_kingdom['current_rank']
             supabase_kingdom['recent_kvks'] = recent_kvks
             supabase_kingdom['last_updated'] = supabase_kingdom.get('last_updated') or supabase_kingdom.get('updated_at')
             supabase_kingdom['most_recent_status'] = supabase_kingdom.get('most_recent_status', 'Unknown')

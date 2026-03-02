@@ -35,7 +35,7 @@ export interface KVKRecord {
   id: number;
   kingdom_number: number;
   kvk_number: number;
-  opponent_kingdom: number;
+  opponent_kingdom: number | null;
   prep_result: string | null;
   battle_result: string | null;
   overall_result: string;

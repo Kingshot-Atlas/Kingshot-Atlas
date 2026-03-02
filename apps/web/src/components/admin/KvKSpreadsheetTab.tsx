@@ -109,7 +109,7 @@ const KvKSpreadsheetTab: React.FC = () => {
         return {
           id: nextId(),
           kingdomNumber: r.kingdom_number,
-          opponentKingdom: isBye ? '' : (r.opponent_kingdom || ''),
+          opponentKingdom: isBye ? '' : (r.opponent_kingdom ?? ''),
           prepResult: prep,
           battleResult: battle,
           overallResult: isBye ? 'Bye' : (computeOverall(prep, battle) || (r.overall_result as OverallResult) || ''),
@@ -389,7 +389,7 @@ const KvKSpreadsheetTab: React.FC = () => {
           const isBye = rec.opponent_kingdom === 0 || rec.prep_result === 'B';
           const prep = (isBye ? '' : (rec.prep_result as ResultLetter)) || '';
           const battle = (isBye ? '' : (rec.battle_result as ResultLetter)) || '';
-          const opp: number | '' = isBye ? '' : (rec.opponent_kingdom || '');
+          const opp: number | '' = isBye ? '' : (rec.opponent_kingdom ?? '');
 
           logger.info(`Realtime KvK: K${kn} ${payload.eventType}`);
 
@@ -535,16 +535,19 @@ const KvKSpreadsheetTab: React.FC = () => {
         });
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
-      } else if (row.opponentKingdom) {
+      } else {
+        // Save with or without opponent — use direct result params
         const kn = row.kingdomNumber as number;
-        const opp = row.opponentKingdom as number;
+        const opp = row.opponentKingdom ? (row.opponentKingdom as number) : null;
         const { data, error } = await supabase.rpc('submit_kvk_partial', {
           p_kingdom_number: kn,
           p_opponent_kingdom: opp,
           p_kvk_number: kvkNumber,
-          p_prep_winner: row.prepResult === 'W' ? kn : row.prepResult === 'L' ? opp : null,
-          p_battle_winner: row.battleResult === 'W' ? kn : row.battleResult === 'L' ? opp : null,
+          p_prep_winner: null,
+          p_battle_winner: null,
           p_is_admin: true,
+          p_prep_result_direct: row.prepResult || null,
+          p_battle_result_direct: row.battleResult || null,
         });
         if (error) throw error;
         if (data?.error) throw new Error(data.error);

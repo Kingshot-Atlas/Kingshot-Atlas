@@ -241,8 +241,8 @@ class ScoreHistoryService {
       const matchups: MatchupWithScores[] = [];
 
       for (const record of kvkRecords) {
-        // Skip bye records (but allow partial records with null prep/battle)
-        if (record.opponent_kingdom === 0 || record.prep_result === 'B') continue;
+        // Skip bye records and records with missing opponent (but allow partial records with null prep/battle)
+        if (!record.opponent_kingdom || record.opponent_kingdom === 0 || record.prep_result === 'B') continue;
 
         const k1 = Math.min(record.kingdom_number, record.opponent_kingdom);
         const k2 = Math.max(record.kingdom_number, record.opponent_kingdom);
@@ -463,8 +463,8 @@ class ScoreHistoryService {
       const matchups: MatchupWithScores[] = [];
 
       for (const record of allKvkRecords) {
-        // Skip bye records
-        if (record.opponent_kingdom === 0) continue;
+        // Skip bye records and records with missing opponent
+        if (!record.opponent_kingdom || record.opponent_kingdom === 0) continue;
 
         const k1 = Math.min(record.kingdom_number, record.opponent_kingdom);
         const k2 = Math.max(record.kingdom_number, record.opponent_kingdom);

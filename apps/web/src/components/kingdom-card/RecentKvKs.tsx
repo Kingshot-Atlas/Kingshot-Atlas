@@ -28,13 +28,15 @@ const RecentKvKs: React.FC<RecentKvKsProps> = ({ recentKvks }) => {
   return (
     <div style={{ display: 'flex', gap: '4px' }}>
       {recentResults.map((kvk, index) => {
+        // Missing opponent: opponent not yet identified
+        const isMissingOpponent = kvk.opponent_kingdom === null;
         // Pending: has opponent but missing results (incomplete matchup)
-        const isPending = kvk.overall_result?.toLowerCase() === 'pending' ||
-          (kvk.opponent_kingdom > 0 && (kvk.prep_result === null || kvk.battle_result === null) && kvk.prep_result !== 'B' && kvk.battle_result !== 'B');
-        const isByeResult = !isPending && (
+        const isPending = !isMissingOpponent && (kvk.overall_result?.toLowerCase() === 'pending' ||
+          ((kvk.opponent_kingdom ?? 0) > 0 && (kvk.prep_result === null || kvk.battle_result === null) && kvk.prep_result !== 'B' && kvk.battle_result !== 'B'));
+        const isByeResult = !isMissingOpponent && !isPending && (
           kvk.overall_result?.toLowerCase() === 'bye' || kvk.opponent_kingdom === 0 || kvk.prep_result === 'B' || kvk.battle_result === 'B'
         );
-        const noResults = isPending || isByeResult;
+        const noResults = isPending || isByeResult || (isMissingOpponent && (!kvk.prep_result || !kvk.battle_result));
         
         // Override outcome info for Bye/Pending results
         const pendingInfo = { name: 'Pending', abbrev: '⏳', color: '#eab308', bgColor: '#eab30820', description: t('outcomes.pendingDesc', 'Results not yet reported') };
@@ -48,7 +50,7 @@ const RecentKvKs: React.FC<RecentKvKsProps> = ({ recentKvks }) => {
         const tooltipContent = (
           <div style={{ minWidth: '120px' }}>
             <div style={{ fontSize: '0.75rem', color: '#fff', fontWeight: 'bold', marginBottom: '0.35rem', textAlign: 'center' }}>
-              KvK #{kvk.kvk_number} {isByeResult ? '' : `vs K${kvk.opponent_kingdom}`}
+              KvK #{kvk.kvk_number} {isByeResult ? '' : isMissingOpponent ? `(${t('outcomes.Missing', 'Missing')})` : `vs K${kvk.opponent_kingdom}`}
             </div>
             {isByeResult ? (
               <div style={{ textAlign: 'center', color: '#6b7280', fontSize: '0.7rem' }}>{t('outcomes.noMatch', 'No match')}</div>

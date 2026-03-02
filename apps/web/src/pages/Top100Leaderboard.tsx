@@ -77,9 +77,13 @@ const Top100Leaderboard: React.FC = () => {
     }
   };
 
-  // Sort by Atlas Score descending, take top 100
+  // Sort by rank from API (comes from Supabase current_rank), take top 100
+  // Filter out kingdoms with rank 0 or missing, then sort by rank ascending
   const top100 = useMemo(() =>
-    [...kingdoms].sort((a, b) => b.overall_score - a.overall_score).slice(0, 100),
+    [...kingdoms]
+      .filter(k => k.rank && k.rank > 0)
+      .sort((a, b) => (a.rank || 0) - (b.rank || 0))
+      .slice(0, 100),
     [kingdoms]
   );
 

@@ -467,7 +467,7 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
               <option value="">Select KvK...</option>
               {sortedKvKs.map(k => (
                 <option key={k.kvk_number} value={k.kvk_number}>
-                  KvK #{k.kvk_number} vs {k.opponent_kingdom === 0 ? 'Bye' : `K${k.opponent_kingdom}`} ({normR(k.prep_result)}/{normR(k.battle_result)})
+                  KvK #{k.kvk_number} vs {k.opponent_kingdom === null ? 'Missing' : k.opponent_kingdom === 0 ? 'Bye' : `K${k.opponent_kingdom}`} ({normR(k.prep_result)}/{normR(k.battle_result)})
                 </option>
               ))}
             </select>
@@ -492,7 +492,7 @@ const ReportKvKErrorModal: React.FC<ReportKvKErrorModalProps> = ({
           <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#0a0a0a', borderRadius: '8px', border: '1px solid #1f1f1f' }}>
             <div style={{ color: '#6b7280', fontSize: '0.7rem', marginBottom: '0.5rem' }}>Current record</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', fontSize: '0.8rem' }}>
-              <div><div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Opponent</div><div style={{ color: '#22d3ee' }}>{rec.opponent_kingdom === 0 ? 'Bye' : `K${rec.opponent_kingdom}`}</div></div>
+              <div><div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Opponent</div><div style={{ color: rec.opponent_kingdom === null ? '#a855f7' : '#22d3ee' }}>{rec.opponent_kingdom === null ? 'Missing' : rec.opponent_kingdom === 0 ? 'Bye' : `K${rec.opponent_kingdom}`}</div></div>
               <div><div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Prep</div><div style={{ color: colorR(rec.prep_result) }}>{normR(rec.prep_result)}</div></div>
               <div><div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Battle</div><div style={{ color: colorR(rec.battle_result) }}>{normR(rec.battle_result)}</div></div>
             </div>

@@ -388,7 +388,8 @@ export function extractStatsFromProfile(kingdom: KingdomProfile): KingdomStats {
     kvk.prep_result !== 'B' &&
     kvk.battle_result !== 'B' &&
     kvk.overall_result?.toLowerCase() !== 'bye' &&
-    kvk.opponent_kingdom !== 0
+    kvk.opponent_kingdom !== 0 &&
+    kvk.opponent_kingdom !== null
   );
   
   // Calculate current streaks (skip Byes - they don't break streaks)

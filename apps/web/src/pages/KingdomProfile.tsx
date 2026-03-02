@@ -36,7 +36,6 @@ import { useMetaTags, getKingdomMetaTags } from '../hooks/useMetaTags';
 import { useStructuredData, getKingdomBreadcrumbs } from '../hooks/useStructuredData';
 import { useKingdomFund, useFundTransactions, useKingdomPendingSubmissions, useKingdomEditor, useKingdomAggregateRating, kingdomProfileKeys } from '../hooks/useKingdomProfileQueries';
 import { scoreHistoryService } from '../services/scoreHistoryService';
-import { calculateKingdomRank } from '../utils/rankCalculation';
 import { analyticsService } from '../services/analyticsService';
 import { useScrollDepth } from '../hooks/useScrollDepth';
 const KingdomFundContribute = lazy(() => import('../components/KingdomFundContribute'));
@@ -227,8 +226,9 @@ const KingdomProfile: React.FC = () => {
   const atlasScore = kingdom?.overall_score ?? 0;
   const powerTier = kingdom ? getPowerTier(atlasScore) : 'D';
   
-  // Rank computed client-side from all kingdoms (consistent with home page / directory)
-  const rank = kingdom ? calculateKingdomRank(kingdom.kingdom_number, allKingdoms) : 0;
+  // Use rank from API (comes from Supabase current_rank)
+  // Fallback to client-side calculation only if rank is 0 or missing
+  const rank = kingdom?.rank || 0;
   const totalRankedKingdoms = allKingdoms.filter(k => k.total_kvks > 0).length;
   const rankingList = allKingdoms;
   

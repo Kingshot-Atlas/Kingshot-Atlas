@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 
 interface KvKRecord {
   kvk_number: number;
-  opponent_kingdom: number;
+  opponent_kingdom: number | null;
   prep_result: string | null;
   battle_result: string | null;
   overall_result?: string;
@@ -192,10 +192,11 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
           <tbody>
             {allKvks.map((kvk, index) => {
               // Pending: has opponent but missing prep/battle results (incomplete matchup)
-              const isPending = kvk.overall_result?.toLowerCase() === 'pending' || 
-                (kvk.opponent_kingdom > 0 && (kvk.prep_result === null || kvk.battle_result === null) && kvk.prep_result !== 'B' && kvk.battle_result !== 'B');
+              const isMissingOpponent = kvk.opponent_kingdom === null;
+              const isPending = !isMissingOpponent && (kvk.overall_result?.toLowerCase() === 'pending' || 
+                ((kvk.opponent_kingdom ?? 0) > 0 && (kvk.prep_result === null || kvk.battle_result === null) && kvk.prep_result !== 'B' && kvk.battle_result !== 'B'));
               // Bye: no opponent at all
-              const isByeResult = !isPending && (
+              const isByeResult = !isMissingOpponent && !isPending && (
                 kvk.overall_result?.toLowerCase() === 'bye' || 
                 kvk.opponent_kingdom === 0 || 
                 kvk.prep_result === 'B' || kvk.battle_result === 'B'
@@ -203,8 +204,14 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
               // Style for each state
               const pendingStyle = { bg: '#eab30815', text: '#eab308', label: t('outcomes.Pending', 'Pending'), description: t('outcomes.pendingDesc', 'Results not yet reported') };
               const byeStyle = { bg: '#6b728020', text: '#6b7280', label: t('outcomes.Bye', 'Bye'), description: t('outcomes.byeDesc', 'No opponent this round') };
-              const outcomeStyle = isPending ? pendingStyle : isByeResult ? byeStyle : getOutcomeStyle(kvk.prep_result!, kvk.battle_result!);
-              const outcomeLetter = isPending ? '⏳' : isByeResult ? '⏸️' : getOutcomeLetter(kvk.prep_result!, kvk.battle_result!);
+              const missingStyle = { bg: '#a855f715', text: '#a855f7', label: t('outcomes.Missing', 'Missing'), description: t('outcomes.missingDesc', 'Opponent not yet identified') };
+              const hasBothResults = kvk.prep_result && kvk.battle_result && kvk.prep_result !== 'B' && kvk.battle_result !== 'B';
+              const outcomeStyle = isMissingOpponent
+                ? (hasBothResults ? { ...getOutcomeStyle(kvk.prep_result!, kvk.battle_result!), description: t('outcomes.missingOpponentDesc', 'Opponent not yet identified — result based on prep/battle') } : missingStyle)
+                : isPending ? pendingStyle : isByeResult ? byeStyle : getOutcomeStyle(kvk.prep_result!, kvk.battle_result!);
+              const outcomeLetter = isMissingOpponent
+                ? (hasBothResults ? getOutcomeLetter(kvk.prep_result!, kvk.battle_result!) : '❓')
+                : isPending ? '⏳' : isByeResult ? '⏸️' : getOutcomeLetter(kvk.prep_result!, kvk.battle_result!);
               
               return (
                 <tr 
@@ -220,7 +227,23 @@ const KvKHistoryTable: React.FC<KvKHistoryTableProps> = ({
                     {kvk.kvk_number}
                   </td>
                   <td style={{ padding: isMobile ? '0.5rem 0.35rem' : '0.65rem 0.5rem', textAlign: 'center' }}>
-                    {isByeResult ? (
+                    {isMissingOpponent ? (
+                      <span
+                        onClick={() => isLoggedIn && onSubmitClick?.('matchup')}
+                        style={{ 
+                          color: '#a855f7', 
+                          fontSize: isMobile ? '0.7rem' : '0.8rem',
+                          fontStyle: 'italic',
+                          cursor: isLoggedIn ? 'pointer' : 'default',
+                          textDecoration: isLoggedIn ? 'underline' : 'none',
+                          opacity: 0.9
+                        }}
+                        title={isLoggedIn ? t('kingdomProfile.clickToSubmitOpponent', 'Click to submit the opponent') : ''}
+                      >
+                        {t('kingdomProfile.missingOpponent', 'Missing')}
+                        {isLoggedIn && <span style={{ marginLeft: '0.25rem', fontSize: '0.65rem' }}>✏️</span>}
+                      </span>
+                    ) : isByeResult ? (
                       <span style={{ 
                         color: '#6b7280', 
                         fontSize: isMobile ? '0.75rem' : '0.85rem',

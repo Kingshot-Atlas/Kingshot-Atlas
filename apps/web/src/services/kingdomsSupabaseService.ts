@@ -138,7 +138,7 @@ class KingdomsSupabaseService {
           id: k.kingdom_number * 100 + r.kvk_number,
           kingdom_number: k.kingdom_number,
           kvk_number: r.kvk_number,
-          opponent_kingdom: r.opponent_kingdom || 0,
+          opponent_kingdom: r.opponent_kingdom ?? null,
           prep_result: r.prep_result === null ? null : (r.prep_result === 'W' ? 'Win' : 'Loss'),
           battle_result: r.battle_result === null ? null : (r.battle_result === 'W' ? 'Win' : 'Loss'),
           overall_result: r.overall_result,
