@@ -1354,6 +1354,7 @@
     "playerIdFormat": "معرّف اللاعب يجب أن يكون 6-20 رقمًا",
     "alreadyLinked": "معرّف اللاعب هذا مرتبط بحساب Atlas آخر.",
     "verificationFailed": "فشل التحقق",
+    "requestInterrupted": "تم مقاطعة الطلب. يرجى النقر على \"تحقق\" مرة أخرى.",
     "accountLinked": "تم ربط الحساب: {{name}}",
     "dataRefreshed": "تم تحديث بيانات اللاعب!",
     "refreshFailed": "فشل التحديث",

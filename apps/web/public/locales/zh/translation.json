@@ -1354,6 +1354,7 @@
     "playerIdFormat": "玩家 ID 必须是 6-20 位数字",
     "alreadyLinked": "此玩家 ID 已关联到另一个 Atlas 账户。",
     "verificationFailed": "验证失败",
+    "requestInterrupted": "请求中断，请再次点击验证。",
     "accountLinked": "账户已关联：{{name}}",
     "dataRefreshed": "玩家数据已刷新！",
     "refreshFailed": "刷新失败",

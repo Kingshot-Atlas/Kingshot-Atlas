@@ -1354,6 +1354,7 @@
     "playerIdFormat": "Oyuncu ID 6-20 haneli olmalıdır",
     "alreadyLinked": "Bu Oyuncu ID başka bir Atlas hesabına zaten bağlı.",
     "verificationFailed": "Doğrulama başarısız",
+    "requestInterrupted": "İstek kesildi. Lütfen tekrar Doğrula'ya dokunun.",
     "accountLinked": "Hesap bağlandı: {{name}}",
     "dataRefreshed": "Oyuncu verisi yenilendi!",
     "refreshFailed": "Yenileme başarısız",

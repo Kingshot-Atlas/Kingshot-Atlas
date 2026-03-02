@@ -1,7 +1,12 @@
 /**
  * Fetch with exponential backoff retry logic.
  * Used for admin API calls that may transiently fail.
+ *
+ * Also handles mobile AbortError ("signal is aborted without reason")
+ * from Supabase Web Locks API by retrying transparently.
  */
+import { isAbortOrNetworkError, friendlyAbortMessage } from './resilientFetch';
+
 export async function fetchWithRetry(
   url: string,
   options?: RequestInit,
@@ -33,6 +38,11 @@ export async function fetchWithRetry(
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
+  }
+
+  // Return a user-friendly message for abort/network errors instead of raw browser text
+  if (lastError && isAbortOrNetworkError(lastError)) {
+    throw new Error(friendlyAbortMessage());
   }
 
   throw lastError || new Error(`Fetch failed after ${maxRetries + 1} attempts`);

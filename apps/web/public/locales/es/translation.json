@@ -1353,6 +1353,7 @@
     "playerIdFormat": "El ID de Jugador debe tener 6-20 dígitos",
     "alreadyLinked": "Este ID de Jugador ya está vinculado a otra cuenta de Atlas.",
     "verificationFailed": "Verificación fallida",
+    "requestInterrupted": "Solicitud interrumpida. Toca Verificar de nuevo.",
     "accountLinked": "Cuenta vinculada: {{name}}",
     "dataRefreshed": "¡Datos del jugador actualizados!",
     "refreshFailed": "Actualización fallida",

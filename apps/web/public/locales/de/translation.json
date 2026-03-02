@@ -1354,6 +1354,7 @@
     "playerIdFormat": "Die Spieler-ID muss 6-20 Ziffern haben",
     "alreadyLinked": "Diese Spieler-ID ist bereits mit einem anderen Atlas-Konto verknüpft.",
     "verificationFailed": "Überprüfung fehlgeschlagen",
+    "requestInterrupted": "Anfrage unterbrochen. Bitte erneut auf Überprüfen tippen.",
     "accountLinked": "Konto verknüpft: {{name}}",
     "dataRefreshed": "Spielerdaten aktualisiert!",
     "refreshFailed": "Aktualisierung fehlgeschlagen",

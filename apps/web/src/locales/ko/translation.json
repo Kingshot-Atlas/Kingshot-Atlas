@@ -1351,6 +1351,7 @@
     "playerIdFormat": "플레이어 ID는 6-20자리 숫자여야 합니다",
     "alreadyLinked": "이 플레이어 ID는 이미 다른 Atlas 계정에 연동되어 있습니다.",
     "verificationFailed": "확인 실패",
+    "requestInterrupted": "요청이 중단되었습니다. 다시 확인을 탭하세요.",
     "accountLinked": "계정 연동: {{name}}",
     "dataRefreshed": "플레이어 데이터 새로고침됨!",
     "refreshFailed": "새로고침 실패",

@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 import { useTranslation } from 'react-i18next';
 import { logger } from '../utils/logger';
 import { getAuthHeaders } from '../services/authHeaders';
+import { resilientFetch, isAbortOrNetworkError } from '../utils/resilientFetch';
 
 // Get username color based on subscription tier (includes admin and gilded)
 const getUsernameColor = (tier: string): string => {
@@ -215,14 +216,14 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
 
   const verifyPlayer = async (id: string): Promise<LinkedPlayerData> => {
     const authHeaders = await getAuthHeaders({ requireAuth: false });
-    const response = await fetch(`${API_BASE}/api/v1/player-link/verify`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...authHeaders,
-      },
-      body: JSON.stringify({ player_id: id }),
-    });
+    const response = await resilientFetch(
+      () => fetch(`${API_BASE}/api/v1/player-link/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify({ player_id: id }),
+      }),
+      { action: 'Verification' }
+    );
 
     if (!response.ok) {
       let errorMessage = 'Failed to verify player';
@@ -242,14 +243,14 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
 
   const refreshPlayer = async (id: string): Promise<LinkedPlayerData> => {
     const authHeaders = await getAuthHeaders({ requireAuth: false });
-    const response = await fetch(`${API_BASE}/api/v1/player-link/refresh`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...authHeaders,
-      },
-      body: JSON.stringify({ player_id: id }),
-    });
+    const response = await resilientFetch(
+      () => fetch(`${API_BASE}/api/v1/player-link/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify({ player_id: id }),
+      }),
+      { action: 'Refresh' }
+    );
 
     if (!response.ok) {
       let errorMessage = 'Failed to refresh player data';
@@ -310,7 +311,12 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
 
       setPreviewData(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('linkAccount.verificationFailed', 'Verification failed'));
+      const msg = err instanceof Error ? err.message : '';
+      if (isAbortOrNetworkError(err)) {
+        setError(t('linkAccount.requestInterrupted', 'Request interrupted. Please tap Verify again.'));
+      } else {
+        setError(msg || t('linkAccount.verificationFailed', 'Verification failed'));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -343,7 +349,12 @@ export const LinkKingshotAccount: React.FC<LinkKingshotAccountProps> = ({
         showToast(t('linkAccount.dataRefreshed', 'Player data refreshed!'), 'success');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('linkAccount.refreshFailed', 'Refresh failed'));
+      const msg = err instanceof Error ? err.message : '';
+      if (isAbortOrNetworkError(err)) {
+        setError(t('linkAccount.requestInterrupted', 'Request interrupted. Please tap Refresh again.'));
+      } else {
+        setError(msg || t('linkAccount.refreshFailed', 'Refresh failed'));
+      }
       showToast(t('linkAccount.refreshError', 'Failed to refresh data'), 'error');
     } finally {
       setIsRefreshing(false);

@@ -21,8 +21,17 @@ export async function getAuthHeaders(
     return {};
   }
 
-  const { data: sessionData } = await supabase.auth.getSession();
-  const session = sessionData?.session;
+  let session;
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    session = sessionData?.session;
+  } catch {
+    // Supabase v2.39+ uses Web Locks API with AbortController internally.
+    // On mobile browsers the lock acquisition can be aborted, throwing
+    // "signal is aborted without reason". Treat this as a missing session.
+    if (requireAuth) throw new Error('Please sign in again to continue.');
+    return {};
+  }
 
   if (!session?.access_token) {
     if (requireAuth) throw new Error('Please sign in again to continue.');

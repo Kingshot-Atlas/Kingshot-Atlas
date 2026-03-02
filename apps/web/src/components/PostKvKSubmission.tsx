@@ -5,6 +5,7 @@ import { useToast } from './Toast';
 import { logger } from '../utils/logger';
 import { CURRENT_KVK } from '../constants';
 import { getAuthHeaders } from '../services/authHeaders';
+import { resilientFetch, isAbortOrNetworkError } from '../utils/resilientFetch';
 import { isAdminUsername } from '../utils/constants';
 import { incrementStat } from './UserAchievements';
 import { useTranslation } from 'react-i18next';
@@ -224,24 +225,27 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
         payload: { ...payload, screenshot_base64: screenshotBase64 ? `[${screenshotBase64.length} chars]` : '(none - admin)' }
       });
 
-      const response = await fetch(`${API_BASE}/api/v1/submissions/kvk10`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders
-          // X-User-Name removed - backend fetches from Supabase profile (handles special chars)
-        },
-        body: JSON.stringify({
-          kingdom_number: kingdomNumber,
-          opponent_kingdom: opponentKingdom,
-          kvk_number: kvkNumber,
-          prep_result: prepResult,
-          battle_result: battleResult,
-          notes: notes || null,
-          screenshot_base64: screenshotBase64 || undefined,
-          screenshot2_base64: screenshot2Base64 || undefined
-        })
-      });
+      const response = await resilientFetch(
+        () => fetch(`${API_BASE}/api/v1/submissions/kvk10`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders
+            // X-User-Name removed - backend fetches from Supabase profile (handles special chars)
+          },
+          body: JSON.stringify({
+            kingdom_number: kingdomNumber,
+            opponent_kingdom: opponentKingdom,
+            kvk_number: kvkNumber,
+            prep_result: prepResult,
+            battle_result: battleResult,
+            notes: notes || null,
+            screenshot_base64: screenshotBase64 || undefined,
+            screenshot2_base64: screenshot2Base64 || undefined
+          })
+        }),
+        { action: 'Submission' }
+      );
 
       // Debug: Log response status
       logger.log('[KvK Submit] Response:', { status: response.status, ok: response.ok });
@@ -287,7 +291,9 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
       onClose();
     } catch (err) {
       logger.error('[KvK Submit] Caught error:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to submit. Please try again.';
+      const errorMessage = isAbortOrNetworkError(err)
+        ? 'Request interrupted. Please try again.'
+        : (err instanceof Error ? err.message : 'Failed to submit. Please try again.');
       showToast(errorMessage, 'error');
     } finally {
       setSubmitting(false);

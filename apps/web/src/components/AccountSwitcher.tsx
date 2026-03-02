@@ -8,6 +8,7 @@ import { Card } from './shared';
 import { useTranslation } from 'react-i18next';
 import { logger } from '../utils/logger';
 import { getAuthHeaders } from '../services/authHeaders';
+import { resilientFetch, isAbortOrNetworkError } from '../utils/resilientFetch';
 import { checkAndAutoStepDown } from '../services/editorSuccessionService';
 
 interface PlayerAccount {
@@ -232,11 +233,14 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
     setVerifying(true);
     try {
       const authHeaders = await getAuthHeaders({ requireAuth: false });
-      const response = await fetch(`${API_BASE}/api/v1/player-link/verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders },
-        body: JSON.stringify({ player_id: id }),
-      });
+      const response = await resilientFetch(
+        () => fetch(`${API_BASE}/api/v1/player-link/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeaders },
+          body: JSON.stringify({ player_id: id }),
+        }),
+        { action: 'Verification' }
+      );
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
@@ -276,7 +280,12 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
       setVerifyStep('challenge');
     } catch (err) {
       logger.error('Failed to verify player:', err);
-      showToast(err instanceof Error ? err.message : t('accountSwitcher.addFailed', 'Failed to add account'), 'error');
+      const msg = err instanceof Error ? err.message : '';
+      if (isAbortOrNetworkError(err)) {
+        showToast(t('linkAccount.requestInterrupted', 'Request interrupted. Please tap Verify again.'), 'error');
+      } else {
+        showToast(msg || t('accountSwitcher.addFailed', 'Failed to add account'), 'error');
+      }
     } finally {
       setVerifying(false);
     }

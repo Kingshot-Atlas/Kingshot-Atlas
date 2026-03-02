@@ -1354,6 +1354,7 @@
     "playerIdFormat": "プレイヤーIDは6〜20桁の数字です",
     "alreadyLinked": "このプレイヤーIDはすでに別のAtlasアカウントにリンクされています。",
     "verificationFailed": "認証に失敗しました",
+    "requestInterrupted": "リクエストが中断されました。もう一度「確認」をタップしてください。",
     "accountLinked": "アカウントをリンクしました: {{name}}",
     "dataRefreshed": "プレイヤーデータを更新しました！",
     "refreshFailed": "更新に失敗しました",

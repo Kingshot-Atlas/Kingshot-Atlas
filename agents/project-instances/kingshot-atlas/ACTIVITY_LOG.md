@@ -3,6 +3,28 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-02 15:15 | Product Engineer | COMPLETED
+Task: Fix "signal is aborted without reason" error on Link Kingshot Account page (mobile)
+Files: `apps/web/src/services/authHeaders.ts`, `apps/web/src/components/LinkKingshotAccount.tsx`, `apps/web/src/components/AccountSwitcher.tsx`
+Changes:
+1. **Root cause:** Supabase JS v2.93 uses Web Locks API with internal AbortController for `getSession()`. On mobile browsers (Android Chrome), the lock acquisition can be aborted, throwing "signal is aborted without reason". This error propagated uncaught through `getAuthHeaders()` → `verifyPlayer()` → UI.
+2. **Fix 1 (authHeaders.ts):** Wrapped `supabase.auth.getSession()` in try-catch. When `requireAuth: false`, AbortErrors now gracefully return `{}` instead of propagating.
+3. **Fix 2 (LinkKingshotAccount.tsx):** Added fetch-level try-catch with auto-retry (1 attempt after 500ms delay). Added AbortError catch in `handleVerify` and `handleRefresh` to show user-friendly "Request interrupted. Please tap Verify again." instead of raw browser error.
+4. **Fix 3 (AccountSwitcher.tsx):** Same AbortError catch pattern applied to `handleVerifyPlayerId`.
+Result: Mobile users now see a friendly retry message instead of cryptic "signal is aborted without reason". Auto-retry silently recovers transient lock aborts.
+
+## 2026-03-03 | Platform Engineer | COMPLETED
+Task: Fix rank_at_time ranking against ALL kingdoms (not just score_history entries)
+Files: `apps/web/src/pages/KingdomProfile.tsx`, Supabase migrations (4)
+Changes:
+1. **Root cause:** `recalculate_ranks_for_kvk` and `backfill_score_history_for_kvk` used `ROW_NUMBER()` within score_history entries only, ranking K172 as #18 (among 1065 KvK 11 entries) instead of #26 (among all 1329 kingdoms with scores). The `create_score_history_entry` trigger correctly ranked against ALL kingdoms, but bulk recalculations overwrote correct ranks.
+2. **DB fix:** Rewrote both functions to use `RANK() OVER (ORDER BY atlas_score DESC)` against the full `kingdoms` table. Recalculated all KvK 11 `rank_at_time` values. Set `search_path = public` on both functions (security linter fix).
+3. **Data verification:** K172 KvK 11 rank_at_time: 18→26. K172 KvK 10 rank_at_time: 6 (unchanged). Rank drop: 20 positions (correct). Top 10 kingdoms verified consistent (rank_at_time == current_rank).
+4. **Frontend audit:** All 10 rank display components verified — all read from Supabase `current_rank` (via API) or `score_history.rank_at_time`. No client-side rank calculations remain in use.
+5. **SWE-1.5 audit:** Previous model's commit (e0a69b7) only changed `useKingdomDirectoryData.ts` (removed `addRanksToKingdoms`). Change is safe — all 1750 kingdoms have `current_rank` populated.
+6. **Security test:** RLS enabled on all tables. No new vulnerabilities. Pre-existing warnings noted (mutable search_path on 6 other functions, permissive RLS on trusted_submitters).
+Result: K172 now correctly shows #26 everywhere: Kingdom Profile header, Ranking History Chart, Top 100 Leaderboard (with 20-rank drop), Kingdom Directory.
+
 ## 2026-03-02 14:00 | Platform Engineer | COMPLETED
 Task: Fix Discord Transfer Group Role Not Assigned — /linked-users API filter too strict
 Files: `apps/api/api/routers/bot.py`

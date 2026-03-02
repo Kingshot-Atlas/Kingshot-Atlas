@@ -5,6 +5,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { userDataService } from '../services/userDataService';
 import { generateRandomUsername } from '../utils/randomUsername';
+import { resilientFetch } from '../utils/resilientFetch';
 
 export interface UserProfile {
   id: string;
@@ -636,11 +637,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
     
     try {
-      const response = await fetch(`${API_BASE}/api/v1/player-link/verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ player_id: profile.linked_player_id }),
-      });
+      const response = await resilientFetch(
+        () => fetch(`${API_BASE}/api/v1/player-link/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ player_id: profile.linked_player_id }),
+        }),
+        { action: 'Player refresh' }
+      );
 
       if (response.ok) {
         const data = await response.json();

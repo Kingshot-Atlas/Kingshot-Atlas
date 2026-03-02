@@ -1,6 +1,7 @@
 // Discord OAuth2 Integration Service
 import { supabase } from '../lib/supabase';
 import { logger } from '../utils/logger';
+import { resilientFetch } from '../utils/resilientFetch';
 
 const DISCORD_CLIENT_ID = import.meta.env.VITE_DISCORD_CLIENT_ID || '';
 
@@ -174,17 +175,20 @@ class DiscordService {
       const { getAuthHeaders } = await import('./authHeaders');
       const authHeaders = await getAuthHeaders({ requireAuth: false });
       
-      const response = await fetch(`${API_URL}/api/v1/bot/sync-settler-role`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders,
-        },
-        body: JSON.stringify({ 
-          user_id: userId, 
-          is_linking: isLinking 
+      const response = await resilientFetch(
+        () => fetch(`${API_URL}/api/v1/bot/sync-settler-role`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders,
+          },
+          body: JSON.stringify({ 
+            user_id: userId, 
+            is_linking: isLinking 
+          }),
         }),
-      });
+        { action: 'Settler role sync' }
+      );
 
       if (!response.ok) {
         const error = await response.json();
