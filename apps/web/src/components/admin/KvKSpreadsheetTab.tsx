@@ -640,15 +640,28 @@ const KvKSpreadsheetTab: React.FC = () => {
     outline: 'none',
   };
 
-  const selectStyle: React.CSSProperties = {
+  const resultInputStyle: React.CSSProperties = {
     ...inputStyle,
-    cursor: 'pointer',
-    appearance: 'none',
-    WebkitAppearance: 'none',
-    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E")`,
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'right 6px center',
-    paddingRight: '22px',
+    textAlign: 'center',
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    cursor: 'text',
+  };
+
+  const handleResultKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, rowId: string, field: 'prepResult' | 'battleResult') => {
+    const key = e.key.toUpperCase();
+    if (key === 'W' || key === 'L') {
+      e.preventDefault();
+      updateRow(rowId, field, key as ResultLetter);
+    } else if (key === 'BACKSPACE' || key === 'DELETE') {
+      e.preventDefault();
+      updateRow(rowId, field, '' as ResultLetter);
+    } else if (key === 'TAB' || key === 'ENTER' || key === 'ESCAPE') {
+      // Allow default Tab/Enter/Escape behavior
+    } else {
+      e.preventDefault();
+    }
   };
 
   const headerStyle: React.CSSProperties = {
@@ -994,16 +1007,17 @@ const KvKSpreadsheetTab: React.FC = () => {
                     {row.isBye ? (
                       <span style={{ color: '#6b7280' }}>—</span>
                     ) : (
-                      <select
+                      <input
+                        type="text"
                         value={row.prepResult}
-                        onChange={e => updateRow(row.id, 'prepResult', e.target.value as ResultLetter)}
-                        style={{ ...selectStyle, color: resultColor(row.prepResult), fontWeight: 700, textAlign: 'center' }}
+                        readOnly
+                        onKeyDown={e => handleResultKeyDown(e, row.id, 'prepResult')}
+                        onFocus={e => e.target.select()}
+                        placeholder="—"
+                        maxLength={1}
+                        style={{ ...resultInputStyle, color: resultColor(row.prepResult) }}
                         disabled={row.isBye}
-                      >
-                        <option value="">—</option>
-                        <option value="W">W</option>
-                        <option value="L">L</option>
-                      </select>
+                      />
                     )}
                   </td>
 
@@ -1012,16 +1026,17 @@ const KvKSpreadsheetTab: React.FC = () => {
                     {row.isBye ? (
                       <span style={{ color: '#6b7280' }}>—</span>
                     ) : (
-                      <select
+                      <input
+                        type="text"
                         value={row.battleResult}
-                        onChange={e => updateRow(row.id, 'battleResult', e.target.value as ResultLetter)}
-                        style={{ ...selectStyle, color: resultColor(row.battleResult), fontWeight: 700, textAlign: 'center' }}
+                        readOnly
+                        onKeyDown={e => handleResultKeyDown(e, row.id, 'battleResult')}
+                        onFocus={e => e.target.select()}
+                        placeholder="—"
+                        maxLength={1}
+                        style={{ ...resultInputStyle, color: resultColor(row.battleResult) }}
                         disabled={row.isBye}
-                      >
-                        <option value="">—</option>
-                        <option value="W">W</option>
-                        <option value="L">L</option>
-                      </select>
+                      />
                     )}
                   </td>
 
@@ -1111,7 +1126,7 @@ const KvKSpreadsheetTab: React.FC = () => {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
           <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-            Tip: Edit prep/battle on any row — the opponent&apos;s row updates instantly with flipped results.
+            Tip: Type <kbd style={{ backgroundColor: '#1a1a1a', padding: '0.1rem 0.3rem', borderRadius: '3px', fontSize: '0.7rem', border: '1px solid #333' }}>W</kbd> or <kbd style={{ backgroundColor: '#1a1a1a', padding: '0.1rem 0.3rem', borderRadius: '3px', fontSize: '0.7rem', border: '1px solid #333' }}>L</kbd> in result fields. <kbd style={{ backgroundColor: '#1a1a1a', padding: '0.1rem 0.3rem', borderRadius: '3px', fontSize: '0.7rem', border: '1px solid #333' }}>Tab</kbd> to navigate. Opponent rows update with flipped results.
             Press <kbd style={{ backgroundColor: '#1a1a1a', padding: '0.1rem 0.3rem', borderRadius: '3px', fontSize: '0.7rem', border: '1px solid #333' }}>Cmd+Enter</kbd> to save all.
           </span>
           <button

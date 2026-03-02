@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { getCacheBustedAvatarUrl, UserProfile } from '../../contexts/AuthContext';
 import { useReferralLink } from '../../hooks/useReferralLink';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { useTrustedSubmitter } from '../../hooks/useTrustedSubmitter';
 
 interface UserMenuProps {
   user: boolean;
@@ -20,6 +21,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, profile, isAdmin, onSignIn, o
   const [refCopied, setRefCopied] = useState(false);
   const { eligible: referralEligible, copyCurrentPageLink } = useReferralLink();
   const { trackFeature } = useAnalytics();
+  const { isTrusted } = useTrustedSubmitter();
 
   return (
     <div style={{ position: 'relative' }}>
@@ -211,6 +213,35 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, profile, isAdmin, onSignIn, o
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
               {t('common.admin')}
+            </Link>
+          )}
+          {isTrusted && !isAdmin && (
+            <Link
+              to="/tools/kvk-spreadsheet"
+              onClick={() => setShowLoginMenu(false)}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.75rem 1rem',
+                backgroundColor: 'transparent',
+                border: 'none',
+                borderRadius: '8px',
+                color: '#10b981',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                textAlign: 'left',
+                textDecoration: 'none',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              <svg style={{ width: '18px', height: '18px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" />
+              </svg>
+              {t('kvkSpreadsheet.menuTitle', 'KvK Spreadsheet')}
             </Link>
           )}
           {referralEligible && (
