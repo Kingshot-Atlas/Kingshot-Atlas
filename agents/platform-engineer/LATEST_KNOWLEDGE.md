@@ -308,6 +308,27 @@ The backend API (`bot.py`) now has full proxy support + resilience:
 
 ---
 
+## /linked-users API Filter Gotcha (2026-03-02)
+
+**Problem:** The `/api/v1/bot/linked-users` endpoint previously filtered on `linked_player_id IS NOT NULL AND discord_id IS NOT NULL`. Some users (9 found) had `linked_kingdom` + `linked_username` + `discord_id` set but `linked_player_id` was NULL — causing them to be invisible to the bot's role sync.
+
+**Fix:** Changed filter to `discord_id IS NOT NULL AND (linked_player_id IS NOT NULL OR linked_kingdom IS NOT NULL)` using PostgREST `.or_()` syntax.
+
+**Key insight:** Transfer group roles only need `linked_kingdom`, not `linked_player_id`. The Settler role sync also works fine with these users since it only checks `discord_id` presence in the eligible list.
+
+**PostgREST `.or_()` syntax:**
+```python
+# Before (too strict)
+.not_.is_("linked_player_id", "null").not_.is_("discord_id", "null")
+
+# After (includes kingdom-only links)
+.not_.is_("discord_id", "null").or_("linked_player_id.not.is.null,linked_kingdom.not.is.null")
+```
+
+**Root cause of null `linked_player_id`:** Unknown — the normal linking flow (`LinkKingshotAccount.tsx` → `updateProfile`) sets both fields. Possibly a race condition or edge case in the linking flow. The 9 affected users all have valid `linked_kingdom`, `linked_username`, and `discord_id`.
+
+---
+
 ## Settler Role Auto-Assignment (2026-02-07)
 
 ### Architecture

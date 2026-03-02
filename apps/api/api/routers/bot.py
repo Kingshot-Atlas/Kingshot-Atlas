@@ -1911,10 +1911,12 @@ async def get_linked_users(_: bool = Depends(require_bot_admin)):
         return {"users": [], "total": 0, "error": "Supabase not configured"}
 
     try:
-        # Fetch all profiles with both discord_id and linked_player_id
+        # Fetch all profiles with discord_id AND (linked_player_id OR linked_kingdom).
+        # Some users have linked_kingdom set without linked_player_id (e.g. manual
+        # kingdom link), and they still need transfer group roles assigned.
         result = sb.table("profiles").select(
             "id, discord_id, linked_player_id, linked_username, username, referral_tier, linked_kingdom"
-        ).not_.is_("linked_player_id", "null").not_.is_("discord_id", "null").limit(10000).execute()
+        ).not_.is_("discord_id", "null").or_("linked_player_id.not.is.null,linked_kingdom.not.is.null").limit(10000).execute()
 
         profiles = result.data or []
 

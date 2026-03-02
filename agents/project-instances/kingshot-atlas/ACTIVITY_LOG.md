@@ -3,6 +3,16 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-02 14:00 | Platform Engineer | COMPLETED
+Task: Fix Discord Transfer Group Role Not Assigned — /linked-users API filter too strict
+Files: `apps/api/api/routers/bot.py`
+Changes:
+1. **Root cause:** User "Stinkfist" (K199) had `linked_kingdom`, `linked_username`, `discord_id` all set, but `linked_player_id` was NULL. The `/api/v1/bot/linked-users` endpoint filtered on `linked_player_id IS NOT NULL`, excluding this user from the bot's sync cycle.
+2. **Impact:** 9 users total had `linked_kingdom + discord_id` set but `linked_player_id` NULL — all were invisible to the bot.
+3. **Fix:** Changed the API filter from `linked_player_id IS NOT NULL` to `(linked_player_id IS NOT NULL OR linked_kingdom IS NOT NULL)` using PostgREST `.or_()` syntax. Transfer group roles only need `linked_kingdom`, not `linked_player_id`.
+4. **Transfer groups confirmed:** K199 falls in active group K176-K417 (id=10, event #4). Bot logic in `syncTransferGroupRoles()` is correct — the issue was purely the API query filter.
+Result: After deploying the API to Render, the next bot sync cycle (every 30 min) will pick up all 9 previously-invisible users and assign their correct transfer group Discord roles.
+
 ## 2026-03-02 12:40 | Platform Engineer | COMPLETED
 Task: KvK Spreadsheet v3 — Hide complete, Jump-to, localStorage persistence, Realtime, cyan hue
 Files: `apps/web/src/components/admin/KvKSpreadsheetTab.tsx`, `FEATURES_IMPLEMENTED.md`
