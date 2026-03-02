@@ -6,11 +6,25 @@ import { useToast } from '../Toast';
 import { logger } from '../../utils/logger';
 import { CURRENT_KVK, HIGHEST_KINGDOM_IN_KVK } from '../../constants';
 import { colors } from '../../utils/styles';
+import { useAuth } from '../../contexts/AuthContext';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 type ResultLetter = 'W' | 'L' | '';
 type OverallResult = 'Domination' | 'Comeback' | 'Reversal' | 'Invasion' | 'Bye' | 'Pending' | '';
+
+interface LiveEditPayload {
+  edits: Array<{
+    kingdomNumber: number;
+    opponentKingdom: number | '';
+    prepResult: ResultLetter;
+    battleResult: ResultLetter;
+    overallResult: OverallResult;
+    isBye: boolean;
+  }>;
+  senderId: string;
+  kvkNumber: number;
+}
 
 interface SpreadsheetRow {
   id: string;
@@ -70,6 +84,7 @@ const nextId = () => `row_${++rowIdCounter}_${Date.now()}`;
 
 const KvKSpreadsheetTab: React.FC = () => {
   const { showToast } = useToast();
+  const { user } = useAuth();
   const [kvkNumber, setKvkNumber] = useState<number>(CURRENT_KVK);
   const [rows, setRows] = useState<SpreadsheetRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -80,6 +95,7 @@ const KvKSpreadsheetTab: React.FC = () => {
   const [maxKingdom, setMaxKingdom] = useState<string>(String(HIGHEST_KINGDOM_IN_KVK));
   const [populateLoading, setPopulateLoading] = useState(false);
   const [flashIds, setFlashIds] = useState<Set<string>>(new Set());
+  const [remoteEditIds, setRemoteEditIds] = useState<Set<string>>(new Set());
   const [realtimeConnected, setRealtimeConnected] = useState(false);
   const [stats, setStats] = useState({ total: 0, withResults: 0, pending: 0, byes: 0 });
   const tableRef = useRef<HTMLDivElement>(null);
@@ -87,6 +103,8 @@ const KvKSpreadsheetTab: React.FC = () => {
   const realtimeRef = useRef<RealtimeChannel | null>(null);
   const kvkNumberRef = useRef(kvkNumber);
   kvkNumberRef.current = kvkNumber;
+  // Stable session ID for broadcast dedup (persists across re-renders, unique per tab)
+  const sessionIdRef = useRef(`${user?.id || 'anon'}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
 
   // ── Load existing data from kvk_history ────────────────────────────────────
 
@@ -195,26 +213,16 @@ const KvKSpreadsheetTab: React.FC = () => {
 
   // ── Row manipulation ────────────────────────────────────────────────────────
 
-  const addEmptyRow = () => {
-    const newRow: SpreadsheetRow = {
-      id: nextId(),
-      kingdomNumber: '',
-      opponentKingdom: '',
-      prepResult: '',
-      battleResult: '',
-      overallResult: '',
-      isBye: false,
-      autoCreated: true,
-      dirty: true,
-      saved: false,
-      saving: false,
-      error: null,
-      dbExists: false,
-    };
-    setRows(prev => [...prev, newRow]);
-  };
+  const markRemoteEdit = useCallback((id: string) => {
+    setRemoteEditIds(prev => new Set(prev).add(id));
+    setTimeout(() => setRemoteEditIds(prev => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    }), 3000);
+  }, []);
 
-  const updateRow = (id: string, field: keyof SpreadsheetRow, value: any) => {
+  const updateRow = (id: string, field: keyof SpreadsheetRow, value: any, _isRemote = false) => {
     setRows(prev => {
       const updated = prev.map(r => ({ ...r }));
       const idx = updated.findIndex(r => r.id === id);
@@ -242,6 +250,20 @@ const KvKSpreadsheetTab: React.FC = () => {
         }
       }
 
+      // Track changed kingdoms for broadcast
+      const changedKingdoms: Array<{ kingdomNumber: number; opponentKingdom: number | ''; prepResult: ResultLetter; battleResult: ResultLetter; overallResult: OverallResult; isBye: boolean }> = [];
+
+      if (typeof row.kingdomNumber === 'number') {
+        changedKingdoms.push({
+          kingdomNumber: row.kingdomNumber,
+          opponentKingdom: row.opponentKingdom,
+          prepResult: row.prepResult,
+          battleResult: row.battleResult,
+          overallResult: row.overallResult,
+          isBye: row.isBye,
+        });
+      }
+
       // ── Bidirectional sync: update counterpart row instantly ──
       if ((field === 'prepResult' || field === 'battleResult') && row.kingdomNumber && row.opponentKingdom && !row.isBye) {
         const cpIdx = updated.findIndex(r =>
@@ -257,6 +279,16 @@ const KvKSpreadsheetTab: React.FC = () => {
           cp.dirty = true;
           cp.saved = false;
           flashRow(cp.id);
+          if (typeof cp.kingdomNumber === 'number') {
+            changedKingdoms.push({
+              kingdomNumber: cp.kingdomNumber,
+              opponentKingdom: cp.opponentKingdom,
+              prepResult: cp.prepResult,
+              battleResult: cp.battleResult,
+              overallResult: cp.overallResult,
+              isBye: cp.isBye,
+            });
+          }
         }
       }
 
@@ -276,7 +308,30 @@ const KvKSpreadsheetTab: React.FC = () => {
           cp.dirty = true;
           cp.saved = false;
           flashRow(cp.id);
+          if (typeof cp.kingdomNumber === 'number') {
+            changedKingdoms.push({
+              kingdomNumber: cp.kingdomNumber,
+              opponentKingdom: cp.opponentKingdom,
+              prepResult: cp.prepResult,
+              battleResult: cp.battleResult,
+              overallResult: cp.overallResult,
+              isBye: cp.isBye,
+            });
+          }
         }
+      }
+
+      // ── Broadcast edits to other connected users (skip for remote edits) ──
+      if (!_isRemote && realtimeRef.current && changedKingdoms.length > 0) {
+        realtimeRef.current.send({
+          type: 'broadcast',
+          event: 'live-edit',
+          payload: {
+            edits: changedKingdoms,
+            senderId: sessionIdRef.current,
+            kvkNumber: kvkNumberRef.current,
+          } satisfies LiveEditPayload,
+        });
       }
 
       updateStats(updated);
@@ -451,6 +506,39 @@ const KvKSpreadsheetTab: React.FC = () => {
           });
         }
       )
+      .on('broadcast', { event: 'live-edit' }, ({ payload }) => {
+        const data = payload as LiveEditPayload;
+        if (!data || data.senderId === sessionIdRef.current) return;
+        if (data.kvkNumber !== kvkNumberRef.current) return;
+
+        logger.info(`Live edit from remote user: ${data.edits.length} kingdom(s)`);
+
+        setRows(prev => {
+          const updated = prev.map(r => ({ ...r }));
+          let changed = false;
+
+          for (const edit of data.edits) {
+            const idx = updated.findIndex(r => r.kingdomNumber === edit.kingdomNumber);
+            if (idx >= 0) {
+              const row = updated[idx]!;
+              // Update row with remote data (don't overwrite if user is actively editing)
+              if (!row.dirty) {
+                row.opponentKingdom = edit.opponentKingdom;
+                row.prepResult = edit.prepResult;
+                row.battleResult = edit.battleResult;
+                row.overallResult = edit.overallResult;
+                row.isBye = edit.isBye;
+                flashRow(row.id);
+                markRemoteEdit(row.id);
+                changed = true;
+              }
+            }
+          }
+
+          if (changed) updateStats(updated);
+          return changed ? updated : prev;
+        });
+      })
       .subscribe((status) => {
         setRealtimeConnected(status === 'SUBSCRIBED');
         logger.info(`KvK spreadsheet realtime: ${status}`);
@@ -742,13 +830,6 @@ const KvKSpreadsheetTab: React.FC = () => {
             </button>
 
             <button
-              onClick={addEmptyRow}
-              style={{ ...btnSmall, backgroundColor: '#3b82f620', color: '#3b82f6', border: '1px solid #3b82f640' }}
-            >
-              + Add Row
-            </button>
-
-            <button
               onClick={saveAllDirty}
               disabled={saving || uniqueDirtyCount === 0}
               style={{
@@ -853,7 +934,7 @@ const KvKSpreadsheetTab: React.FC = () => {
         {/* Stats bar + progress + realtime indicator */}
         <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
           {/* Realtime indicator */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }} title={realtimeConnected ? 'Live — updates appear automatically' : 'Not connected to realtime'}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }} title={realtimeConnected ? 'Live collaborative editing — edits from other users appear instantly' : 'Not connected to realtime'}>
             <span style={{
               width: '7px',
               height: '7px',
@@ -948,22 +1029,23 @@ const KvKSpreadsheetTab: React.FC = () => {
             {filteredRows.length === 0 && !loading && (
               <tr>
                 <td colSpan={9} style={{ ...cellStyle, textAlign: 'center', color: '#6b7280', padding: '2rem' }}>
-                  {(search || hideComplete) ? 'No rows match current filters.' : 'No records yet. Click "+ Add Row" or use "Populate" to fill kingdoms.'}
+                  {(search || hideComplete) ? 'No rows match current filters.' : 'No records yet. Use "Populate" to fill kingdoms.'}
                 </td>
               </tr>
             )}
             {filteredRows.map((row, idx) => {
               const isFlashing = flashIds.has(row.id);
+              const isRemoteEditing = remoteEditIds.has(row.id);
               const incomplete = typeof row.kingdomNumber === 'number' && !row.isBye && (!row.prepResult || !row.battleResult || !row.opponentKingdom);
-              const bgColor = isFlashing ? '#22d3ee15' : incomplete ? '#22d3ee08' : 'transparent';
+              const bgColor = isRemoteEditing ? '#3b82f612' : isFlashing ? '#22d3ee15' : incomplete ? '#22d3ee08' : 'transparent';
               return (
                 <tr
                   key={row.id}
                   ref={el => { if (el) rowRefs.current.set(row.id, el); }}
                   style={{
                     backgroundColor: bgColor,
-                    borderLeft: row.dirty ? '3px solid #fbbf2440' : incomplete ? '3px solid #22d3ee25' : '3px solid transparent',
-                    transition: 'background-color 0.4s ease',
+                    borderLeft: isRemoteEditing ? '3px solid #3b82f6' : row.dirty ? '3px solid #fbbf2440' : incomplete ? '3px solid #22d3ee25' : '3px solid transparent',
+                    transition: 'background-color 0.4s ease, border-left 0.3s ease',
                   }}
                 >
                   {/* Row number */}
@@ -1063,7 +1145,12 @@ const KvKSpreadsheetTab: React.FC = () => {
 
                   {/* Status */}
                   <td style={{ ...cellStyle, textAlign: 'center' }}>
-                    {row.saving ? (
+                    {isRemoteEditing ? (
+                      <span style={{ color: '#3b82f6', fontSize: '0.7rem', fontWeight: 600 }} title="Another user is editing this row">
+                        <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#3b82f6', marginRight: '4px', verticalAlign: 'middle', animation: 'pulse 1.5s infinite' }} />
+                        Editing...
+                      </span>
+                    ) : row.saving ? (
                       <span style={{ color: '#fbbf24', fontSize: '0.7rem' }}>Saving...</span>
                     ) : row.error ? (
                       <span style={{ color: '#ef4444', fontSize: '0.68rem' }} title={row.error}>Error</span>
@@ -1129,19 +1216,9 @@ const KvKSpreadsheetTab: React.FC = () => {
             Tip: Type <kbd style={{ backgroundColor: '#1a1a1a', padding: '0.1rem 0.3rem', borderRadius: '3px', fontSize: '0.7rem', border: '1px solid #333' }}>W</kbd> or <kbd style={{ backgroundColor: '#1a1a1a', padding: '0.1rem 0.3rem', borderRadius: '3px', fontSize: '0.7rem', border: '1px solid #333' }}>L</kbd> in result fields. <kbd style={{ backgroundColor: '#1a1a1a', padding: '0.1rem 0.3rem', borderRadius: '3px', fontSize: '0.7rem', border: '1px solid #333' }}>Tab</kbd> to navigate. Opponent rows update with flipped results.
             Press <kbd style={{ backgroundColor: '#1a1a1a', padding: '0.1rem 0.3rem', borderRadius: '3px', fontSize: '0.7rem', border: '1px solid #333' }}>Cmd+Enter</kbd> to save all.
           </span>
-          <button
-            onClick={addEmptyRow}
-            style={{
-              ...btnSmall,
-              backgroundColor: '#3b82f620',
-              color: '#3b82f6',
-              border: '1px solid #3b82f640',
-              fontSize: '0.75rem',
-              padding: '0.35rem 0.75rem',
-            }}
-          >
-            + Add Row
-          </button>
+          <span style={{ color: '#4b5563', fontSize: '0.7rem' }}>
+            Use &ldquo;Populate&rdquo; to add kingdom rows.
+          </span>
         </div>
       </div>
     </div>
