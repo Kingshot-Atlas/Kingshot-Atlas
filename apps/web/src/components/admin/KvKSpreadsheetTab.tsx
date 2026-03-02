@@ -640,8 +640,16 @@ const KvKSpreadsheetTab: React.FC = () => {
         if (data?.error) throw new Error(data.error);
       } else {
         // Save with or without opponent — use direct result params
+        // When opp is null, the SQL function preserves any existing opponent from DB
         const kn = row.kingdomNumber as number;
         const opp = row.opponentKingdom ? (row.opponentKingdom as number) : null;
+
+        // Skip saving rows with no opponent AND no results (nothing meaningful to persist)
+        if (!opp && !row.prepResult && !row.battleResult) {
+          setRows(prev => prev.map(r => r.id === row.id ? { ...r, saving: false, dirty: false } : r));
+          return;
+        }
+
         const { data, error } = await supabase.rpc('submit_kvk_partial', {
           p_kingdom_number: kn,
           p_opponent_kingdom: opp,
