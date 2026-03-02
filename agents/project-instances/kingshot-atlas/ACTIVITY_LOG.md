@@ -3,6 +3,16 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-01 22:15 | Platform Engineer | COMPLETED
+Task: Fix BYE submission duplicate key error (kvk_history_kingdom_kvk_unique constraint)
+Files: Supabase `submit_kvk_partial` RPC function (migration: fix_bye_submission_duplicate_key)
+Changes:
+1. **Root cause** — RPC created mirror rows for "kingdom 0" on BYE submissions. The 2-column unique constraint (kingdom_number, kvk_number) only allows one row per kingdom per KvK, so the second BYE in any KvK caused a conflict on the mirror row for kingdom 0.
+2. **Fix** — BYE submissions now skip mirror row creation entirely (kingdom 0 is not real). UPSERT uses 2-column constraint for proper BYE↔matchup transitions. BYE values set to B/B/Bye consistently.
+3. **Hardening** — Added opponent cross-check to prevent non-admin from overwriting opponent's existing different matchup. Added NULLIF handling for B→W/L transitions.
+4. **Data cleanup** — Deleted garbage kingdom-0 mirror rows. Fixed KvK #11 BYE rows that had NULL results instead of B/B/Bye.
+Result: BYE submissions work for any number of kingdoms per KvK. Normal matchup submissions unaffected.
+
 ## 2026-03-01 15:10 | Product Engineer | COMPLETED
 Task: Fix PostKvKSubmission Bye crash (422 error + [object Object] toast)
 Files: `apps/web/src/components/PostKvKSubmission.tsx`
