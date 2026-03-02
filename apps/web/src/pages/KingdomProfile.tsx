@@ -58,7 +58,7 @@ const KingdomProfile: React.FC = () => {
   const isMobile = useIsMobile();
   const [refreshKey, setRefreshKey] = useState(0);
   // scoreHistoryRank / totalKingdomsAtKvk / percentileRank removed —
-  // rank is now computed client-side from allKingdoms (consistent with home page)
+  // rank comes from API (Supabase current_rank), not computed client-side
   const [recentScoreChange, setRecentScoreChange] = useState<number | null>(null);
   const [recentRankChange, setRecentRankChange] = useState<number | null>(null);
   const [visitDelta, setVisitDelta] = useState<number | null>(null);
