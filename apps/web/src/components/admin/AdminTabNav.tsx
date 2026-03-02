@@ -157,6 +157,7 @@ export const AdminTabNav: React.FC<AdminTabNavProps> = ({
       </>}
       {activeCategory === 'review' && [
         { id: 'submissions', label: 'KvK Results', count: pendingCounts.submissions },
+        { id: 'kvk-spreadsheet', label: 'KvK Spreadsheet', count: 0 },
         { id: 'corrections', label: 'Corrections', count: pendingCounts.corrections },
         { id: 'kvk-errors', label: 'KvK Errors', count: pendingCounts.kvkErrors },
         { id: 'matchup-conflicts', label: 'Matchup Conflicts', count: 0 },

@@ -22,6 +22,7 @@ export { SpotlightTab } from './SpotlightTab';
 export { default as ImportTab } from './ImportTab';
 export { default as RejectModal } from './RejectModal';
 export { default as KvKBulkMatchupTab } from './KvKBulkMatchupTab';
+export { default as KvKSpreadsheetTab } from './KvKSpreadsheetTab';
 export { default as TransferOutcomesTab } from './TransferOutcomesTab';
 export { ReviewReportsTab } from './ReviewReportsTab';
 export { NotificationSenderTab } from './NotificationSenderTab';

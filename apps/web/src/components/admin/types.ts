@@ -144,6 +144,7 @@ export type AdminTab =
   | 'spotlight'
   | 'finance'
   | 'kvk-bulk'
+  | 'kvk-spreadsheet'
   | 'review-reports'
   | 'transfer-groups'
   | 'gift-codes'

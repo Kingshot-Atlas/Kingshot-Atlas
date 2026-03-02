@@ -3,6 +3,31 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-02 12:40 | Platform Engineer | COMPLETED
+Task: KvK Spreadsheet v3 — Hide complete, Jump-to, localStorage persistence, Realtime, cyan hue
+Files: `apps/web/src/components/admin/KvKSpreadsheetTab.tsx`, `FEATURES_IMPLEMENTED.md`
+Changes:
+1. **Hide complete toggle** — Checkbox to hide rows with full info (prep+battle+opponent filled or bye). Count shown in label.
+2. **Jump-to button** — Separate from filter. Scrolls to a kingdom row without filtering out others. If row is hidden by filters, temporarily disables them.
+3. **localStorage persistence** — Auto-populated rows saved to `localStorage` keyed by KvK number. Restored on reload so they survive refresh.
+4. **Supabase Realtime** — Subscribes to `kvk_history` postgres_changes via realtimeGuard. Live updates from user submissions appear instantly (rows update or insert with flash). Dirty rows are not overwritten. LIVE/OFFLINE indicator in stats bar.
+5. **Cyan hue on incomplete rows** — Subtle cyan background (#22d3ee08) + cyan left border (#22d3ee25) for rows missing opponent/prep/battle.
+6. **Code review fixes** — Operator precedence on opp type, realtime cleanup guard, empty state text for filters, scrollToKingdom filter-bypass.
+Result: Spreadsheet is now fully real-time, persists across refreshes, and makes incomplete rows visually prominent. Build passes. Security review clean.
+
+## 2026-03-02 10:50 | Platform Engineer | COMPLETED
+Task: KvK Spreadsheet v2 — Bidirectional sync, search, auto-populate, progress bar
+Files: `apps/web/src/components/admin/KvKSpreadsheetTab.tsx`, `apps/web/src/constants/index.ts`, `FEATURES_IMPLEMENTED.md`
+Changes:
+1. **Bidirectional sync** — Replaced mirror-row architecture with live counterpart lookup. Editing prep/battle on any row instantly updates the opponent's row with flipped results. Flash highlight on synced row.
+2. **Kingdom search** — Filter bar at top filters rows by kingdom or opponent number. "Go" button scrolls to exact kingdom match.
+3. **Auto-populate** — Input max kingdom # (default: HIGHEST_KINGDOM_IN_KVK), click "Populate" to create empty rows for all kingdoms in DB up to that number. Rows sorted by kingdom number.
+4. **Progress bar** — Completion % bar (red→yellow→green) next to stats.
+5. **Deduped save** — Save All deduplicates paired matchups so only one RPC call per matchup pair.
+6. **`HIGHEST_KINGDOM_IN_KVK`** updated from 1304 → 1403 for KvK #11 (battle day Feb 28, 2026).
+7. **All rows editable** — Removed read-only mirror concept; every row is fully editable from either side.
+Result: Spreadsheet now works bidirectionally with instant sync, search, bulk kingdom population, and progress tracking. Build passes.
+
 ## 2026-03-01 22:15 | Platform Engineer | COMPLETED
 Task: Fix BYE submission duplicate key error (kvk_history_kingdom_kvk_unique constraint)
 Files: Supabase `submit_kvk_partial` RPC function (migration: fix_bye_submission_duplicate_key)

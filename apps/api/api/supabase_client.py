@@ -315,6 +315,10 @@ def recalculate_kingdom_in_supabase(kingdom_number: int) -> bool:
     Returns:
         True if successful, False otherwise
     """
+    if kingdom_number <= 0:
+        logger.warning("Skipping recalculation for invalid kingdom_number=%s (0 = bye placeholder)", kingdom_number)
+        return False
+
     client = get_supabase_admin()
     if not client:
         logger.warning("Supabase not configured, cannot recalculate kingdom %s", kingdom_number)
@@ -335,6 +339,8 @@ def _update_kingdom_stats_directly(client, kingdom_number: int) -> bool:
     """
     Fallback: Manually calculate and update kingdom stats if RPC is unavailable.
     """
+    if kingdom_number <= 0:
+        return False
     try:
         # Fetch all KvK records for this kingdom
         result = client.table('kvk_history').select('*').eq('kingdom_number', kingdom_number).execute()

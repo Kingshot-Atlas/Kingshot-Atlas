@@ -58,6 +58,7 @@ const SpotlightTab = lazy(() => import('../components/admin/SpotlightTab').then(
 const ImportTab = lazy(() => import('../components/admin/ImportTab'));
 const RejectModal = lazy(() => import('../components/admin/RejectModal'));
 const KvKBulkMatchupTab = lazy(() => import('../components/admin/KvKBulkMatchupTab'));
+const KvKSpreadsheetTab = lazy(() => import('../components/admin/KvKSpreadsheetTab'));
 const TransferOutcomesTab = lazy(() => import('../components/admin/TransferOutcomesTab'));
 const BotDashboardTransferGroups = lazy(() => import('./BotDashboardTransferGroups'));
 const GiftCodeAnalyticsTab = lazy(() => import('../components/admin/GiftCodeAnalyticsTab'));
@@ -783,7 +784,7 @@ const AdminDashboard: React.FC = () => {
   // Determine active category based on current tab
   const getActiveCategory = () => {
     if (['analytics', 'engagement', 'user-heatmap'].includes(activeTab)) return 'overview';
-    if (['submissions', 'corrections', 'kvk-errors', 'matchup-conflicts', 'kvk-bulk', 'review-reports'].includes(activeTab)) return 'review';
+    if (['submissions', 'corrections', 'kvk-errors', 'matchup-conflicts', 'kvk-bulk', 'kvk-spreadsheet', 'review-reports'].includes(activeTab)) return 'review';
     if (['transfer-hub', 'transfer-status', 'transfer-apps', 'transfer-outcomes'].includes(activeTab)) return 'transfer';
     if (['finance'].includes(activeTab)) return 'finance';
     return 'operations';
@@ -923,6 +924,8 @@ const AdminDashboard: React.FC = () => {
         <ReviewReportsTab filter={dashboardSearch} />
       ) : activeTab === 'matchup-conflicts' ? (
         <KvKMatchupConflictsTab />
+      ) : activeTab === 'kvk-spreadsheet' ? (
+        <KvKSpreadsheetTab />
       ) : activeTab === 'kvk-bulk' ? (
         <KvKBulkMatchupTab />
       ) : activeTab === 'transfer-hub' ? (

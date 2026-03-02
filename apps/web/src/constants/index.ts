@@ -96,7 +96,7 @@ export const KVK_CONFIG = {
    * and excluded from missing-data checks.
    * UPDATE THIS AFTER EACH KVK alongside CURRENT_KVK.
    */
-  HIGHEST_KINGDOM_IN_KVK: 1304,
+  HIGHEST_KINGDOM_IN_KVK: 1403,
 } as const;
 
 // Convenience exports for direct import
