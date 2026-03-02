@@ -36,6 +36,7 @@ import { useMetaTags, getKingdomMetaTags } from '../hooks/useMetaTags';
 import { useStructuredData, getKingdomBreadcrumbs } from '../hooks/useStructuredData';
 import { useKingdomFund, useFundTransactions, useKingdomPendingSubmissions, useKingdomEditor, useKingdomAggregateRating, kingdomProfileKeys } from '../hooks/useKingdomProfileQueries';
 import { scoreHistoryService } from '../services/scoreHistoryService';
+import { calculateKingdomRank } from '../utils/rankCalculation';
 import { analyticsService } from '../services/analyticsService';
 import { useScrollDepth } from '../hooks/useScrollDepth';
 const KingdomFundContribute = lazy(() => import('../components/KingdomFundContribute'));
@@ -57,9 +58,8 @@ const KingdomProfile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const isMobile = useIsMobile();
   const [refreshKey, setRefreshKey] = useState(0);
-  const [scoreHistoryRank, setScoreHistoryRank] = useState<number>(0);
-  const [totalKingdomsAtKvk, setTotalKingdomsAtKvk] = useState<number>(0);
-  const [percentileRank, setPercentileRank] = useState<number>(0);
+  // scoreHistoryRank / totalKingdomsAtKvk / percentileRank removed —
+  // rank is now computed client-side from allKingdoms (consistent with home page)
   const [recentScoreChange, setRecentScoreChange] = useState<number | null>(null);
   const [recentRankChange, setRecentRankChange] = useState<number | null>(null);
   const [visitDelta, setVisitDelta] = useState<number | null>(null);
@@ -159,16 +159,8 @@ const KingdomProfile: React.FC = () => {
       const all = await apiService.getKingdoms();
       setAllKingdoms(all as unknown as KingdomProfileType[]);
       
-      // Fetch rank from score_history (single source of truth)
-      const [rankData, scoreHistory] = await Promise.all([
-        scoreHistoryService.getLatestRank(id),
-        scoreHistoryService.getKingdomScoreHistory(id),
-      ]);
-      if (rankData) {
-        setScoreHistoryRank(rankData.rank);
-        setTotalKingdomsAtKvk(rankData.totalAtKvk);
-        setPercentileRank(rankData.percentileRank);
-      }
+      // Fetch score history for rank change deltas
+      const scoreHistory = await scoreHistoryService.getKingdomScoreHistory(id);
       // Get last KvK score change for the Score Change Hook nudge
       if (scoreHistory && scoreHistory.history.length >= 2) {
         const h = scoreHistory.history;
@@ -235,9 +227,9 @@ const KingdomProfile: React.FC = () => {
   const atlasScore = kingdom?.overall_score ?? 0;
   const powerTier = kingdom ? getPowerTier(atlasScore) : 'D';
   
-  // Rank comes from score_history table (single source of truth)
-  // This matches the rank shown in the Kingdom Ranking History chart
-  const rank = scoreHistoryRank;
+  // Rank computed client-side from all kingdoms (consistent with home page / directory)
+  const rank = kingdom ? calculateKingdomRank(kingdom.kingdom_number, allKingdoms) : 0;
+  const totalRankedKingdoms = allKingdoms.filter(k => k.total_kvks > 0).length;
   const rankingList = allKingdoms;
   
   // Update meta tags - must be called before any early returns
@@ -292,8 +284,8 @@ const KingdomProfile: React.FC = () => {
       <KingdomHeader
         kingdom={kingdom}
         rank={rank}
-        totalKingdomsAtKvk={totalKingdomsAtKvk}
-        percentileRank={percentileRank}
+        totalKingdomsAtKvk={totalRankedKingdoms}
+        percentileRank={totalRankedKingdoms > 0 && rank > 0 ? Math.round(((totalRankedKingdoms - rank) / totalRankedKingdoms) * 100) : 0}
         atlasScore={atlasScore}
         powerTier={powerTier}
         achievements={achievements}
@@ -467,7 +459,7 @@ const KingdomProfile: React.FC = () => {
           <AtlasScoreBreakdown 
             kingdom={kingdom} 
             rank={rank > 0 ? rank : undefined}
-            totalKingdoms={totalKingdomsAtKvk > 0 ? totalKingdomsAtKvk : (rankingList.length || undefined)}
+            totalKingdoms={totalRankedKingdoms > 0 ? totalRankedKingdoms : (rankingList.length || undefined)}
             isExpanded={breakdownExpanded}
             onToggle={setBreakdownExpanded}
           />

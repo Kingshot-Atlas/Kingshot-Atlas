@@ -476,7 +476,8 @@ const KvKSpreadsheetTab: React.FC = () => {
   const filteredRows = useMemo(() => {
     let result = rows;
     if (hideComplete) {
-      result = result.filter(r => !isRowComplete(r));
+      // Keep dirty (unsaved) rows visible even if complete
+      result = result.filter(r => r.dirty || !isRowComplete(r));
     }
     if (search.trim()) {
       const q = search.trim();
