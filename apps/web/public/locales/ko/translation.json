@@ -1880,9 +1880,7 @@
     "preAppMsgPlaceholder": "왕국을 소개하거나 질문하세요...",
     "preAppNotifTitle": "왕국으로부터 새 메시지",
     "preAppNotifBody": "왕국 {{kn}}이(가) 이적에 관한 메시지를 보냈습니다.",
-    "send": "보내기",
-    "anonTooltip": "이 후보는 익명입니다. 수락되면 실제 신원이 공개됩니다.",
-    "searchPlaceholder": "이름 또는 별칭으로 검색 (예: Anon-falcon38)..."
+    "send": "보내기"
   },
   "applications": {
     "applyTo": "지원 대상",
@@ -2655,8 +2653,7 @@
     "retry": "재시도",
     "connectionLost": "연결 끊김 — 메시지가 지연될 수 있습니다",
     "pendingMessages": "{{count}}개 메시지 전송 대기 중",
-    "queueFlushed": "{{count}}개 대기 메시지 전송됨",
-    "anonTooltip": "이 후보는 익명입니다. 수락되면 실제 신원이 공개됩니다."
+    "queueFlushed": "{{count}}개 대기 메시지 전송됨"
   },
   "rateKingdom": {
     "title": "왕국 {{num}} 평가",
@@ -2740,9 +2737,7 @@
     "messages": "메시지",
     "noMessages": "아직 메시지가 없습니다. 대화를 시작하세요!",
     "send": "보내기",
-    "typeMessage": "메시지 입력...",
-    "youAppearAs": "당신은 다음으로 표시됩니다:",
-    "anonAliasHint": "모집자는 지원을 수락할 때까지 이 별칭을 봅니다."
+    "typeMessage": "메시지 입력..."
   },
   "prepScheduler": {
     "loading": "로딩 중...",

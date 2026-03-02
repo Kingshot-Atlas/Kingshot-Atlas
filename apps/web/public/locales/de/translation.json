@@ -1883,9 +1883,7 @@
     "preAppMsgPlaceholder": "Stellen Sie Ihr Königreich vor oder stellen Sie eine Frage...",
     "preAppNotifTitle": "Neue Nachricht von einem Königreich",
     "preAppNotifBody": "Königreich {{kn}} hat Ihnen eine Nachricht über einen Transfer gesendet.",
-    "send": "Senden",
-    "anonTooltip": "Dieser Kandidat ist anonym. Seine wahre Identität wird bei Annahme enthüllt.",
-    "searchPlaceholder": "Nach Name oder Alias suchen (z.B. Anon-falcon38)..."
+    "send": "Senden"
   },
   "applications": {
     "applyTo": "Bewerben bei",
@@ -2658,8 +2656,7 @@
     "retry": "Erneut versuchen",
     "connectionLost": "Verbindung verloren — Nachrichten können verzögert sein",
     "pendingMessages": "{{count}} Nachricht(en) warten auf Versand",
-    "queueFlushed": "{{count}} wartende Nachricht(en) gesendet",
-    "anonTooltip": "Dieser Kandidat ist anonym. Seine wahre Identität wird bei Annahme enthüllt."
+    "queueFlushed": "{{count}} wartende Nachricht(en) gesendet"
   },
   "rateKingdom": {
     "title": "Königreich {{num}} bewerten",
@@ -2743,9 +2740,7 @@
     "messages": "Nachrichten",
     "noMessages": "Noch keine Nachrichten. Starten Sie die Unterhaltung!",
     "send": "Senden",
-    "typeMessage": "Nachricht schreiben...",
-    "youAppearAs": "Sie erscheinen als:",
-    "anonAliasHint": "Rekrutierer sehen diesen Alias, bis sie Ihre Bewerbung annehmen."
+    "typeMessage": "Nachricht schreiben..."
   },
   "prepScheduler": {
     "loading": "Laden...",

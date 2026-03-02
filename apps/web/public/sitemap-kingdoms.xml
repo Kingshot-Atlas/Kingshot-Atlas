@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>https://ks-atlas.com/kingdom/0</loc>
+    <lastmod>2026-03-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://ks-atlas.com/kingdom/1</loc>
     <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
@@ -152,7 +158,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/26</loc>
-    <lastmod>2026-02-16</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -452,7 +458,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/76</loc>
-    <lastmod>2026-02-25</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -464,7 +470,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/78</loc>
-    <lastmod>2026-02-16</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -572,7 +578,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/96</loc>
-    <lastmod>2026-02-16</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -920,7 +926,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/154</loc>
-    <lastmod>2026-02-24</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1052,13 +1058,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/176</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/177</loc>
-    <lastmod>2026-02-25</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1070,7 +1076,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/179</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1082,7 +1088,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/181</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1100,13 +1106,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/184</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/185</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1118,7 +1124,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/187</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1166,7 +1172,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/195</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1202,7 +1208,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/201</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1274,7 +1280,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/213</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1322,7 +1328,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/221</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1334,7 +1340,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/223</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1370,25 +1376,25 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/229</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/230</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/231</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/232</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1400,7 +1406,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/234</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1436,13 +1442,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/240</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/241</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1472,7 +1478,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/246</loc>
-    <lastmod>2026-02-23</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1502,13 +1508,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/251</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/252</loc>
-    <lastmod>2026-02-23</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1520,7 +1526,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/254</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1538,7 +1544,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/257</loc>
-    <lastmod>2026-02-23</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1562,7 +1568,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/261</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1574,7 +1580,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/263</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1592,13 +1598,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/266</loc>
-    <lastmod>2026-02-23</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/267</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1652,7 +1658,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/276</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1670,7 +1676,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/279</loc>
-    <lastmod>2026-02-23</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1694,13 +1700,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/283</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/284</loc>
-    <lastmod>2026-02-22</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1766,7 +1772,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/295</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1796,7 +1802,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/300</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1826,7 +1832,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/305</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1850,7 +1856,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/309</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1862,7 +1868,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/311</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1880,19 +1886,19 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/314</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/315</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/316</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1904,19 +1910,19 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/318</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/319</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/320</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1934,7 +1940,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/323</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1946,25 +1952,25 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/325</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/326</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/327</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/328</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1988,7 +1994,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/332</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2006,25 +2012,25 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/335</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/336</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/337</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/338</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2036,19 +2042,19 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/340</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/341</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/342</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2060,7 +2066,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/344</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2078,19 +2084,19 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/347</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/348</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/349</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2102,13 +2108,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/351</loc>
-    <lastmod>2026-02-24</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/352</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2126,25 +2132,25 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/355</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/356</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/357</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/358</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2156,19 +2162,19 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/360</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/361</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/362</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2180,7 +2186,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/364</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2192,25 +2198,25 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/366</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/367</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/368</loc>
-    <lastmod>2026-02-15</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/369</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2222,73 +2228,73 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/371</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/372</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/373</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/374</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/375</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/376</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/377</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/378</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/379</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/380</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/381</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/382</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2300,19 +2306,19 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/384</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/385</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/386</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2324,13 +2330,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/388</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/389</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2342,13 +2348,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/391</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/392</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2360,13 +2366,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/394</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/395</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2396,7 +2402,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/400</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2408,7 +2414,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/402</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2420,31 +2426,31 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/404</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/405</loc>
-    <lastmod>2026-02-16</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/406</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/407</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/408</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2462,7 +2468,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/411</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2474,7 +2480,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/413</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2486,13 +2492,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/415</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/416</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2504,31 +2510,31 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/418</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/419</loc>
-    <lastmod>2026-02-22</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/420</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/421</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/422</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2540,49 +2546,49 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/424</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/425</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/426</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/427</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/428</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/429</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/430</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/431</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2600,7 +2606,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/434</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2618,7 +2624,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/437</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2630,85 +2636,85 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/439</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/440</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/441</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/442</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/443</loc>
-    <lastmod>2026-02-11</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/444</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/445</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/446</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/447</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/448</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/449</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/450</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/451</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/452</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2720,13 +2726,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/454</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/455</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2738,19 +2744,19 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/457</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/458</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/459</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2780,13 +2786,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/464</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/465</loc>
-    <lastmod>2026-02-24</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2798,19 +2804,19 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/467</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/468</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/469</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2834,7 +2840,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/473</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2846,13 +2852,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/475</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/476</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2918,7 +2924,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/487</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2936,7 +2942,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/490</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2954,19 +2960,19 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/493</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/494</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/495</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2990,7 +2996,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/499</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3002,7 +3008,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/501</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3026,37 +3032,37 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/505</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/506</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/507</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/508</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/509</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/510</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3068,37 +3074,37 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/512</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/513</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/514</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/515</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/516</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/517</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3110,43 +3116,43 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/519</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/520</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/521</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/522</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/523</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/524</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/525</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3158,19 +3164,19 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/527</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/528</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/529</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3182,19 +3188,19 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/531</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/532</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/533</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3218,25 +3224,25 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/537</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/538</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/539</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/540</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3248,37 +3254,37 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/542</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/543</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/544</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/545</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/546</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/547</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3290,7 +3296,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/549</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3302,7 +3308,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/551</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3320,25 +3326,25 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/554</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/555</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/556</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/557</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3356,133 +3362,133 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/560</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/561</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/562</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/563</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/564</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/565</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/566</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/567</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/568</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/569</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/570</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/571</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/572</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/573</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/574</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/575</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/576</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/577</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/578</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/579</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/580</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/581</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3494,19 +3500,19 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/583</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/584</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/585</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3518,13 +3524,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/587</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/588</loc>
-    <lastmod>2026-02-23</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3536,13 +3542,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/590</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/591</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3554,7 +3560,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/593</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3566,13 +3572,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/595</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/596</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3584,13 +3590,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/598</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/599</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3602,31 +3608,31 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/601</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/602</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/603</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/604</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/605</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3638,7 +3644,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/607</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3650,25 +3656,25 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/609</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/610</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/611</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/612</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3692,7 +3698,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/616</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3704,13 +3710,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/618</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/619</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3722,13 +3728,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/621</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/622</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3740,25 +3746,25 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/624</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/625</loc>
-    <lastmod>2026-02-24</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/626</loc>
-    <lastmod>2026-02-23</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/627</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3776,31 +3782,31 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/630</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/631</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/632</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/633</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/634</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3812,13 +3818,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/636</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/637</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3830,7 +3836,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/639</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3842,19 +3848,19 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/641</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/642</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/643</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3872,19 +3878,19 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/646</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/647</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/648</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3896,13 +3902,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/650</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/651</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3914,7 +3920,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/653</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3926,13 +3932,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/655</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/656</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3950,13 +3956,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/659</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/660</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3968,7 +3974,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/662</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3980,7 +3986,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/664</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3992,25 +3998,25 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/666</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/667</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/668</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/669</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4022,25 +4028,25 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/671</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/672</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/673</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/674</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4220,7 +4226,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/704</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4304,7 +4310,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/718</loc>
-    <lastmod>2026-02-23</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4322,13 +4328,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/721</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/722</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4370,7 +4376,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/729</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4820,7 +4826,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/804</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4910,7 +4916,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/819</loc>
-    <lastmod>2026-02-22</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4982,7 +4988,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/831</loc>
-    <lastmod>2026-02-23</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4994,7 +5000,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/833</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -5030,13 +5036,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/839</loc>
-    <lastmod>2026-02-22</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/840</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -5072,13 +5078,13 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/846</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/847</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -5522,7 +5528,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/921</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -5660,7 +5666,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/944</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -5858,7 +5864,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/977</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -5984,7 +5990,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/998</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -6038,7 +6044,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/1007</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -6062,7 +6068,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/1011</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -6104,7 +6110,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/1018</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -6422,7 +6428,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/1071</loc>
-    <lastmod>2026-02-28</lastmod>
+    <lastmod>2026-03-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -6548,7 +6554,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/1092</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -6596,7 +6602,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/1100</loc>
-    <lastmod>2026-02-26</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -6692,7 +6698,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/1116</loc>
-    <lastmod>2026-02-26</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -6728,7 +6734,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/1122</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -7196,7 +7202,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/1200</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -7226,7 +7232,7 @@
   </url>
   <url>
     <loc>https://ks-atlas.com/kingdom/1205</loc>
-    <lastmod>2026-02-10</lastmod>
+    <lastmod>2026-03-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

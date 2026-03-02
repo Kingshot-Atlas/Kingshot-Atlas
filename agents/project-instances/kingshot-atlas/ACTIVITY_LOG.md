@@ -3,6 +3,16 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-01 15:10 | Product Engineer | COMPLETED
+Task: Fix PostKvKSubmission Bye crash (422 error + [object Object] toast)
+Files: `apps/web/src/components/PostKvKSubmission.tsx`
+Changes:
+1. **Root cause** — Bye submissions sent `prep_result: null` and `battle_result: null` to `/api/v1/submissions/kvk10`, but the backend schema (`KvK10SubmissionCreate`) requires `Literal['W', 'L']` for both fields. Also `opponent_kingdom` has `ge=1` so `0` was rejected too.
+2. **Fix** — Bye submissions now route through Supabase RPC `submit_kvk_partial` (same as `KvKMatchupSubmission`) instead of the REST API. The REST path only handles normal W/L submissions.
+3. **Error display fix** — Pydantic validation errors return `detail` as an array of objects. The error handler now checks `Array.isArray(errorJson.detail)` and extracts `.msg` from each, instead of showing `[object Object]`.
+4. **Cleanup** — Removed `isBye` ternaries from REST payload (dead code after early return), added `!isBye` guard on opponent comparison, added supabase null guard.
+Result: Bye submissions from PostKvKSubmission modal work correctly. Error toasts show human-readable messages.
+
 ## 2026-02-28 06:15 | Platform Engineer | COMPLETED
 Task: Fix KvK #11 Prep Result submission — "Prep Not Open Yet" bug
 Files: Supabase `kvk_schedule` table (data fix, no code changes)
