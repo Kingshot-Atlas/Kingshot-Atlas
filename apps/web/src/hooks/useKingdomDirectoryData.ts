@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Kingdom, FilterOptions, SortOptions, getPowerTier } from '../types';
-import { addRanksToKingdoms } from '../utils/rankCalculation';
 import { apiService } from '../services/api';
 import { useToast } from '../components/Toast';
 import { logger } from '../utils/logger';
@@ -168,10 +167,11 @@ export function useKingdomDirectoryData() {
     return result;
   }, [allKingdoms, debouncedSearch, filters, showFavoritesOnly, favorites, transferGroupFilter]);
 
-  // Add rank based on overall_score order (all kingdoms, not just filtered)
+  // Use rank from API (comes from Supabase current_rank)
   // Also apply frontend sorting for calculated fields
   const rankedKingdoms = useMemo(() => {
-    const ranked = addRanksToKingdoms(filteredKingdoms, allKingdoms);
+    // The API already provides rank from Supabase, no need to calculate
+    const ranked = filteredKingdoms;
     
     // For calculated fields (comebacks, reversals), sort in frontend
     if (['comebacks', 'reversals', 'dominations', 'invasions'].includes(sort.sortBy)) {
