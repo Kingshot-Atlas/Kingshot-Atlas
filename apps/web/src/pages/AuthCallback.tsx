@@ -11,7 +11,13 @@ import { logger } from '../utils/logger';
  * After Google/Discord sign-in, Supabase redirects here with ?code=...
  * The Supabase client (detectSessionInUrl + flowType: 'pkce') exchanges the
  * code automatically during initialization. This page waits for the session
- * to be established, then redirects to /profile.
+ * to be established via onAuthStateChange, then redirects to /profile.
+ *
+ * IMPORTANT: We do NOT call exchangeCodeForSession immediately. In
+ * supabase-js v2.39+, concurrent exchange calls cause navigator lock
+ * contention that blocks getSession() polls and triggers timeouts.
+ * Instead, we trust detectSessionInUrl as the primary mechanism and only
+ * attempt explicit exchange after 4s as a fallback.
  *
  * Failure modes handled:
  *  1. ?error= params from Supabase (provider rejected / server error)
@@ -169,13 +175,25 @@ const AuthCallback: React.FC = () => {
       if (session) redirect();
     });
 
-    // ─── 3a. PKCE code present — try explicit exchange first ──────────
-    // This is faster and more reliable than detectSessionInUrl, especially
-    // on mobile where the code_verifier in localStorage can be lost.
-    let exchangeAttempted = false;
+    // ─── 3a. PKCE code present — let detectSessionInUrl handle it ─────
+    // The Supabase client's _initialize() (via detectSessionInUrl: true)
+    // already exchanges the PKCE code automatically. Calling
+    // exchangeCodeForSession concurrently causes lock contention in
+    // supabase-js v2.39+ — both operations fight for the navigator lock,
+    // blocking getSession() polls and causing the 15s timeout.
+    //
+    // Strategy: trust detectSessionInUrl + onAuthStateChange as primary.
+    // Only attempt explicit exchange after 4s as a fallback if the
+    // automatic processing hasn't established a session.
+    let lateExchangeTimerId: ReturnType<typeof setTimeout> | null = null;
     if (hasPKCECode) {
-      exchangeAttempted = true;
-      (async () => {
+      lateExchangeTimerId = setTimeout(async () => {
+        if (cancelled) return;
+        // Check if session was already established by detectSessionInUrl
+        const existing = await getSessionSafe(2000);
+        if (existing) { redirect(); return; }
+        // detectSessionInUrl didn't work — try explicit exchange as fallback
+        logger.warn('[AuthCallback] No session after 4s, attempting explicit PKCE exchange');
         try {
           const { data, error: exchErr } = await supabase!.auth.exchangeCodeForSession(pkceCode!);
           if (cancelled) return;
@@ -183,20 +201,15 @@ const AuthCallback: React.FC = () => {
             redirect();
             return;
           }
-          // Exchange failed — likely code_verifier missing (mobile app-switch)
           const errMsg = exchErr?.message || 'unknown';
           logger.error('[AuthCallback] exchangeCodeForSession failed:', errMsg);
           Sentry.captureMessage('PKCE exchange failed', {
             level: 'warning',
             extra: { error: errMsg, provider: provider || 'unknown' },
           });
-          // Check if detectSessionInUrl already handled it
-          const existingSession = await getSessionSafe(2000);
-          if (existingSession) {
-            redirect();
-            return;
-          }
-          // Immediate feedback — don't make the user wait 20s
+          // Final session check before showing error
+          const lastChance = await getSessionSafe(2000);
+          if (lastChance) { redirect(); return; }
           setError(
             t('auth.callbackPkceFailed', 'Sign-in verification failed. This can happen on mobile browsers or when switching apps during sign-in.')
           );
@@ -204,15 +217,14 @@ const AuthCallback: React.FC = () => {
         } catch (err) {
           if (cancelled) return;
           logger.error('[AuthCallback] exchangeCodeForSession exception:', err);
-          // Fall through to polling as last resort
         }
-      })();
+      }, 4000);
     }
 
     // Show retry button after 6s (fallback for hash-based flows or if exchange is slow)
     const retryTimerId = setTimeout(() => { if (!cancelled) setShowRetry(true); }, 6000);
 
-    // Hard timeout: 15s. If exchange already failed, this is a safety net for hash flows.
+    // Hard timeout: 12s safety net
     const timeoutId = setTimeout(async () => {
       if (cancelled) return;
       const session = await getSessionSafe(3000);
@@ -221,16 +233,14 @@ const AuthCallback: React.FC = () => {
         return;
       }
       const failureContext = hasPKCECode ? 'pkce' : hasHash ? 'hash' : 'none';
-      logger.error('[AuthCallback] Timeout — no session after 15s', { failureContext, pollCount });
+      logger.error('[AuthCallback] Timeout — no session after 12s', { failureContext, pollCount });
       Sentry.captureMessage('Auth callback timeout — session not established', {
         level: 'warning',
-        extra: { hasPKCECode, hasHash, pollCount, failureContext, exchangeAttempted },
+        extra: { hasPKCECode, hasHash, pollCount, failureContext },
       });
-      if (!exchangeAttempted || !error) {
-        setError(t('auth.callbackSlow', 'Sign-in is taking longer than expected.'));
-      }
+      setError(t('auth.callbackSlow', 'Sign-in is taking longer than expected.'));
       setShowRetry(true);
-    }, 15000);
+    }, 12000);
 
     // Poll for session every 2s using non-blocking getSession
     const pollSession = async () => {
@@ -250,6 +260,7 @@ const AuthCallback: React.FC = () => {
       subscription.unsubscribe();
       clearTimeout(timeoutId);
       clearTimeout(retryTimerId);
+      if (lateExchangeTimerId) clearTimeout(lateExchangeTimerId);
       clearInterval(pollId);
     };
   }, [navigate]);
