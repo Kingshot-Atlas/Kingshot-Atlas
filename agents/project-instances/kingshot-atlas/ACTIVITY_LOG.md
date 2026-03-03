@@ -3,6 +3,16 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-03 13:00 | Product Engineer | COMPLETED
+Task: AccountSwitcher cleanup — split into sub-components, fix || undefined bug, add observability + stale indicator
+Files: `apps/web/src/components/AccountSwitcher.tsx` (828→183 lines), new `apps/web/src/components/account-switcher/` dir (types.ts, AccountRow.tsx, AddAccountFlow.tsx, index.ts)
+Changes:
+1. **Component split:** Extracted `AccountRow` (presentational), `AddAccountFlow` (self-contained verification flow), shared `types.ts` (interfaces + session storage helpers). Main file now 183 lines (was 828, lint limit 800).
+2. **Bug fix:** Changed `|| undefined` → `?? undefined` in `updateProfile` call. `||` would drop falsy-but-valid values like `0` (kingdom 0) or empty strings. `??` only coerces `null` to `undefined`.
+3. **Sentry breadcrumb + logger:** Added for account switch events, matching the unlink pattern from Profile.tsx.
+4. **Stale accounts indicator:** Amber hint banner shown when accounts exist but none is active (e.g., after unlink from Profile page). Guides user to re-link.
+Result: AccountSwitcher no longer flagged by consistency lint. Cleaner architecture with clear separation of concerns. Build passes.
+
 ## 2026-03-03 12:45 | Product Engineer | COMPLETED
 Task: Account unlinking hardening + Campaign system cleanup
 Files: `apps/web/src/pages/Profile.tsx`, `agents/project-instances/kingshot-atlas/FEATURES_IMPLEMENTED.md`
