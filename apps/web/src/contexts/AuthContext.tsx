@@ -613,26 +613,55 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     );
     
     if (Object.keys(dbUpdates).length > 0) {
-      const { error } = await supabase
-        .from('profiles')
-        .update(dbUpdates)
-        .eq('id', user.id);
+      // Retry once on abort/network errors — Supabase JS v2.39+ uses Web Locks
+      // API internally which can abort on mobile browsers (especially Android)
+      let lastError: { message: string; code?: string } | null = null;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const { error } = await supabase
+            .from('profiles')
+            .update(dbUpdates)
+            .eq('id', user.id);
 
-      if (error) {
-        logger.error('Profile update failed:', error.message);
+          if (!error) {
+            logger.info('Profile updated in Supabase:', dbUpdates);
+            return { success: true };
+          }
+          lastError = error;
+        } catch (err) {
+          // Supabase client can throw AbortError on mobile
+          lastError = { message: (err as Error).message || 'Unknown error' };
+        }
+
+        // Only retry on abort/network errors
+        const msg = (lastError?.message || '').toLowerCase();
+        const isRetryable = msg.includes('abort') || msg.includes('signal') || msg.includes('failed to fetch');
+        if (attempt === 0 && isRetryable) {
+          logger.warn('[updateProfile] Retryable error, retrying after 600ms:', lastError?.message);
+          await new Promise(r => setTimeout(r, 600));
+          try { await supabase.auth.getSession(); } catch { /* refresh before retry */ }
+          continue;
+        }
+        break;
+      }
+
+      if (lastError) {
+        logger.error('Profile update failed:', lastError.message);
         // Revert optimistic update on failure
         if (profile) {
           setProfile(profile);
           localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
         }
         // Handle unique constraint violation on linked_player_id
-        if (error.code === '23505' && error.message?.includes('linked_player_id')) {
+        if (lastError.code === '23505' && lastError.message?.includes('linked_player_id')) {
           return { success: false, error: 'This Player ID is already linked to another Atlas account.' };
         }
-        return { success: false, error: error.message };
-      } else {
-        logger.info('Profile updated in Supabase:', dbUpdates);
-        return { success: true };
+        // User-friendly message for abort errors instead of raw browser error
+        const msg = (lastError.message || '').toLowerCase();
+        if (msg.includes('abort') || msg.includes('signal')) {
+          return { success: false, error: 'Profile update interrupted. Please try again.' };
+        }
+        return { success: false, error: lastError.message };
       }
     }
     
