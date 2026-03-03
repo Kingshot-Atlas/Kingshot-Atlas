@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import * as Sentry from '@sentry/react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import ParticleEffect from '../components/ParticleEffect';
 import UserAchievements from '../components/UserAchievements';
@@ -640,6 +641,7 @@ const Profile: React.FC = () => {
                           onClick={async () => {
                             if (confirm(t('profile.unlinkConfirm', 'Are you sure you want to unlink your Kingshot account?'))) {
                               if (updateProfile && user) {
+                                const prevPlayerId = viewedProfile?.linked_player_id;
                                 await updateProfile({
                                   linked_player_id: null,
                                   linked_username: null,
@@ -648,6 +650,16 @@ const Profile: React.FC = () => {
                                   linked_tc_level: null,
                                   linked_last_synced: null,
                                 });
+                                // Deactivate player_accounts entry so AccountSwitcher stays consistent
+                                if (supabase && prevPlayerId) {
+                                  supabase.from('player_accounts')
+                                    .update({ is_active: false })
+                                    .eq('user_id', user.id)
+                                    .eq('player_id', prevPlayerId)
+                                    .then(() => {});
+                                }
+                                Sentry.addBreadcrumb({ category: 'account', message: 'Kingshot account unlinked', level: 'info', data: { player_id: prevPlayerId } });
+                                logger.info('[Profile] Kingshot account unlinked', { player_id: prevPlayerId });
                                 showToast(t('profile.kingshotUnlinked', 'Kingshot account unlinked'), 'success');
                                 // Remove Settler role from Discord (fire and forget)
                                 discordService.syncSettlerRole(user.id, false).catch(() => {});

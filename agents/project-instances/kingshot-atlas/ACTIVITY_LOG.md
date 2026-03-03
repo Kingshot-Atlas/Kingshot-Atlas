@@ -3,6 +3,16 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-03 12:45 | Product Engineer | COMPLETED
+Task: Account unlinking hardening + Campaign system cleanup
+Files: `apps/web/src/pages/Profile.tsx`, `agents/project-instances/kingshot-atlas/FEATURES_IMPLEMENTED.md`
+Changes:
+1. **player_accounts deactivation:** Unlink handler now deactivates the `player_accounts` row (`is_active: false`) so AccountSwitcher stays consistent after unlinking.
+2. **Sentry breadcrumb:** Added `Sentry.addBreadcrumb()` + `logger.info()` for unlink events to track success rate and debug issues.
+3. **Campaign system audit:** Verified `/campaigns/kingdom-settlers` page already handles "No Active Campaign" state. Kept all campaign components, i18n keys, and hooks for future campaigns.
+4. **FEATURES_IMPLEMENTED.md:** Updated Kingdom Settlers Campaign status from 🔨 Local → ✅ Live, noting Campaign #1 completed and system kept for future campaigns.
+Result: Unlink flow now properly cleans up player_accounts table. Campaign system ready for Campaign #2.
+
 ## 2026-03-03 12:30 | Product Engineer | COMPLETED
 Task: Remove Kingdom Settlers Campaign #1 banner + Fix Kingshot account unlinking bug
 Files: `apps/web/src/App.tsx`, `apps/web/src/pages/Profile.tsx`, `apps/web/src/contexts/AuthContext.tsx`, `apps/web/src/types/index.ts`
