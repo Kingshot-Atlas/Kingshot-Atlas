@@ -436,9 +436,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           data.avatar_url
         );
         
-        // Auto-populate Discord info for Discord-authenticated users who don't have it set
+        // Auto-populate Discord info for Discord-authenticated users who don't have it set.
+        // IMPORTANT: Skip if the user explicitly unlinked their Discord account —
+        // otherwise this re-links it on every profile fetch, defeating the unlink.
+        // We detect explicit unlinks via a localStorage flag set by the unlink flow.
         let discordData: { discord_id?: string | null; discord_username?: string | null; discord_linked_at?: string | null } = {};
-        if (!data.discord_id) {
+        const wasExplicitlyUnlinked = localStorage.getItem('discord_explicitly_unlinked') === user.id;
+        if (!data.discord_id && !wasExplicitlyUnlinked) {
           const { discordId, discordUsername } = getDiscordInfoFromAuth(user);
           if (discordId) {
             discordData = {
@@ -451,6 +455,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               if (updateError) logger.error('Failed to save Discord info:', updateError);
             });
           }
+        }
+        // Clear the unlink flag if Discord is now linked (e.g. user re-linked via OAuth)
+        if (data.discord_id && wasExplicitlyUnlinked) {
+          localStorage.removeItem('discord_explicitly_unlinked');
         }
         
         // Merge with cached linked player data (prioritize cache over null DB values)

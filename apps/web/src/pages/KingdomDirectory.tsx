@@ -27,7 +27,6 @@ import { countActiveFilters, DEFAULT_FILTERS } from '../utils/kingdomStats';
 import { DataSyncIndicator } from '../components/DataSyncIndicator';
 import QuickActions from '../components/homepage/QuickActions';
 import TransferHubBanner from '../components/homepage/TransferHubBanner';
-import Kvk11PromoBanner from '../components/homepage/Kvk11PromoBanner';
 import ConversionBanner from '../components/ConversionBanner';
 import TransferGroupUpdateBanner from '../components/CampaignNotificationBanner';
 import SupporterSpotlight from '../components/homepage/SupporterSpotlight';
@@ -262,8 +261,6 @@ const KingdomDirectory: React.FC = () => {
       {/* Transfer Group Update Notification */}
       <TransferGroupUpdateBanner />
 
-      {/* KvK #11 Silver Tier Promotion Banner */}
-      <Kvk11PromoBanner />
 
       {/* Transfer Hub Banner - dismissable CTA */}
       <TransferHubBanner />

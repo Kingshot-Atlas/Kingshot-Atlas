@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
+import { useActiveCampaign } from '../hooks/useCampaignQueries';
 
 const DISMISS_KEY = 'kingshot_settlers_campaign_dismissed';
 const RESHOW_HOURS = 24;
@@ -10,6 +11,7 @@ const CampaignSettlersBanner: React.FC = () => {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const location = useLocation();
+  const { data: campaign } = useActiveCampaign();
   const [dismissed, setDismissed] = useState(true); // Start hidden to avoid flash
 
   useEffect(() => {
@@ -29,6 +31,8 @@ const CampaignSettlersBanner: React.FC = () => {
     }
   }, []);
 
+  // Only show for active campaigns (not completed/drawing/draft)
+  if (!campaign || campaign.status !== 'active') return null;
   // Don't show on the campaign page itself or the draw page
   if (location.pathname === '/campaigns/kingdom-settlers') return null;
   if (location.pathname === '/admin/campaign-draw') return null;

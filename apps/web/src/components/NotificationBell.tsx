@@ -201,8 +201,21 @@ const NotificationBell: React.FC = () => {
       );
       setUnreadCount(prev => Math.max(0, prev - unreadInGroup.length));
     }
-    const link = resolveNotificationLink(group.latestNotification);
+    let link = resolveNotificationLink(group.latestNotification);
     if (link) {
+      // Handle full URLs: extract pathname for same-origin, or use window.location for external
+      if (link.startsWith('http://') || link.startsWith('https://')) {
+        try {
+          const url = new URL(link);
+          if (url.hostname === 'ks-atlas.com' || url.hostname === window.location.hostname) {
+            link = url.pathname + url.search + url.hash;
+          } else {
+            window.location.href = link;
+            setIsOpen(false);
+            return;
+          }
+        } catch { /* invalid URL, use as-is */ }
+      }
       navigate(link);
     }
     setIsOpen(false);

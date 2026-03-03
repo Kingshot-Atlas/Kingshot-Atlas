@@ -145,6 +145,9 @@ class DiscordService {
         return { success: false, error: error.message };
       }
 
+      // Flag explicit unlink so AuthContext doesn't auto-repopulate from auth metadata
+      localStorage.setItem('discord_explicitly_unlinked', user.id);
+
       return { success: true };
     } catch (error) {
       logger.error('Discord unlink error:', error);
