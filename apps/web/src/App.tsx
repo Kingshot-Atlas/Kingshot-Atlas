@@ -12,7 +12,6 @@ const FeedbackWidget = lazy(() => import('./components/FeedbackWidget'));
 import SignupNudgeBar from './components/SignupNudgeBar';
 import SiteFooter from './components/SiteFooter';
 import KvKPhaseBanner from './components/KvKPhaseBanner';
-import CampaignSettlersBanner from './components/CampaignSettlersBanner';
 import { useKeyboardShortcuts, useKeyboardHelp } from './hooks/useKeyboardShortcuts';
 import { usePageTracking } from './hooks/useAnalytics';
 import { useDefaultMetaTags } from './hooks/useDefaultMetaTags';
@@ -126,7 +125,6 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-bg flex flex-col">
       <Header />
-      <CampaignSettlersBanner />
       <KvKPhaseBanner />
       <Suspense fallback={null}><KeyboardShortcutsModal isOpen={showHelp} onClose={closeHelp} /></Suspense>
       <main className="container mx-auto px-4 py-8 flex-1" aria-label="Main content">

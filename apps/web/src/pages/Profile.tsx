@@ -546,7 +546,7 @@ const Profile: React.FC = () => {
                 }}>
                   <AvatarWithFallback 
                     avatarUrl={viewedProfile?.linked_username ? viewedProfile?.linked_avatar_url || undefined : undefined}
-                    username={viewedProfile?.linked_username}
+                    username={viewedProfile?.linked_username ?? undefined}
                     size={isMobile ? 96 : 80}
                     themeColor={getTierBorderColor(isAdmin ? 'admin' : isSupporter ? 'supporter' : 'free')}
                     badgeStyle={viewedProfile?.badge_style}
@@ -641,13 +641,12 @@ const Profile: React.FC = () => {
                             if (confirm(t('profile.unlinkConfirm', 'Are you sure you want to unlink your Kingshot account?'))) {
                               if (updateProfile && user) {
                                 await updateProfile({
-                                  ...viewedProfile,
-                                  linked_player_id: undefined,
-                                  linked_username: undefined,
-                                  linked_avatar_url: undefined,
-                                  linked_kingdom: undefined,
-                                  linked_tc_level: undefined,
-                                  linked_last_synced: undefined,
+                                  linked_player_id: null,
+                                  linked_username: null,
+                                  linked_avatar_url: null,
+                                  linked_kingdom: null,
+                                  linked_tc_level: null,
+                                  linked_last_synced: null,
                                 });
                                 showToast(t('profile.kingshotUnlinked', 'Kingshot account unlinked'), 'success');
                                 // Remove Settler role from Discord (fire and forget)

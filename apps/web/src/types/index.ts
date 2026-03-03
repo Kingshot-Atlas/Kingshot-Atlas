@@ -114,11 +114,11 @@ export interface UserProfile {
   theme_color: string;
   badge_style: string;
   created_at: string;
-  linked_player_id?: string;
-  linked_username?: string;
+  linked_player_id?: string | null;
+  linked_username?: string | null;
   linked_avatar_url?: string | null;
-  linked_kingdom?: number;
-  linked_tc_level?: number;
+  linked_kingdom?: number | null;
+  linked_tc_level?: number | null;
 }
 
 // Raw JSON data types for type safety

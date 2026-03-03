@@ -3,6 +3,16 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-03 12:30 | Product Engineer | COMPLETED
+Task: Remove Kingdom Settlers Campaign #1 banner + Fix Kingshot account unlinking bug
+Files: `apps/web/src/App.tsx`, `apps/web/src/pages/Profile.tsx`, `apps/web/src/contexts/AuthContext.tsx`, `apps/web/src/types/index.ts`
+Changes:
+1. **Banner removal:** Removed `CampaignSettlersBanner` import and JSX from `App.tsx`. Campaign is over.
+2. **Unlink bug root cause:** Profile.tsx unlink handler passed `undefined` values to `updateProfile()`. `JSON.stringify()` strips `undefined` — so the Supabase update payload was empty and fields were never cleared. Additionally, `...viewedProfile` was spread before the overrides, re-sending old linked values.
+3. **Fix:** Changed all 6 linked fields from `undefined` to `null` in unlink handler. Removed `...viewedProfile` spread. Updated `UserProfile` type in AuthContext.tsx and types/index.ts to allow `null` for `linked_player_id`, `linked_username`, `linked_kingdom`, `linked_tc_level`, `linked_last_synced`.
+4. **Type safety:** Added `?? undefined` coercion where `AvatarWithFallback` expects `string | undefined`.
+Result: Users can now successfully unlink their Kingshot accounts. Banner removed from all pages.
+
 ## 2026-03-02 15:15 | Product Engineer | COMPLETED
 Task: Fix "signal is aborted without reason" error on Link Kingshot Account page (mobile)
 Files: `apps/web/src/services/authHeaders.ts`, `apps/web/src/components/LinkKingshotAccount.tsx`, `apps/web/src/components/AccountSwitcher.tsx`

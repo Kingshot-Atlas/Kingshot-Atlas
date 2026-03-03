@@ -22,12 +22,12 @@ export interface UserProfile {
   badge_style: string;
   created_at: string;
   is_admin?: boolean;
-  linked_player_id?: string;
-  linked_username?: string;
+  linked_player_id?: string | null;
+  linked_username?: string | null;
   linked_avatar_url?: string | null;
-  linked_kingdom?: number;
-  linked_tc_level?: number;
-  linked_last_synced?: string;
+  linked_kingdom?: number | null;
+  linked_tc_level?: number | null;
+  linked_last_synced?: string | null;
   subscription_tier?: string;
   discord_id?: string | null;
   discord_username?: string | null;
