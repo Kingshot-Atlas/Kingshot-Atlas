@@ -1,6 +1,6 @@
 // ─── Alliance Event Coordinator ─────────────────────────────────────────
 // Members select 30-min time slots per day (UTC). Managers see tallied heatmap.
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useMediaQuery';
@@ -76,74 +76,205 @@ const EventCoordinatorGate: React.FC<{ children: React.ReactNode }> = ({ childre
   return <>{children}</>;
 };
 
-// ─── Slot Grid Picker (multi-select 30-min slots for one day) ───
-const SlotGridPicker: React.FC<{
-  slots: string[];
-  onToggle: (slot: string) => void;
-  onRangeSelect: (from: number, to: number) => void;
+// ─── Time Range type ───
+interface TimeRange { from: string; to: string }
+
+// ─── Convert time ranges → individual 30-min slots ───
+function rangesToSlots(ranges: TimeRange[]): string[] {
+  const result = new Set<string>();
+  for (const r of ranges) {
+    const fi = TIME_SLOTS_30MIN.indexOf(r.from);
+    const ti = TIME_SLOTS_30MIN.indexOf(r.to);
+    if (fi < 0 || ti < 0) continue;
+    for (let i = fi; i <= ti; i++) {
+      const s = TIME_SLOTS_30MIN[i];
+      if (s) result.add(s);
+    }
+  }
+  return [...result].sort();
+}
+
+// ─── Convert individual 30-min slots → merged time ranges ───
+function slotsToRanges(slots: string[]): TimeRange[] {
+  if (slots.length === 0) return [];
+  const indices = slots.map(s => TIME_SLOTS_30MIN.indexOf(s)).filter(i => i >= 0).sort((a, b) => a - b);
+  if (indices.length === 0) return [];
+  const ranges: TimeRange[] = [];
+  let start = indices[0]!;
+  let end = indices[0]!;
+  for (let i = 1; i < indices.length; i++) {
+    if (indices[i] === end + 1) {
+      end = indices[i]!;
+    } else {
+      ranges.push({ from: TIME_SLOTS_30MIN[start]!, to: TIME_SLOTS_30MIN[end]! });
+      start = indices[i]!;
+      end = indices[i]!;
+    }
+  }
+  ranges.push({ from: TIME_SLOTS_30MIN[start]!, to: TIME_SLOTS_30MIN[end]! });
+  return ranges;
+}
+
+// ─── UTC → Local Time Helper ───
+function utcToLocalLabel(utcTime: string): string {
+  const [h, m] = utcTime.split(':').map(Number);
+  const now = new Date();
+  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), h ?? 0, m ?? 0));
+  return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+}
+
+function formatSlotLabel(slot: string): string {
+  return `${slot} UTC (${utcToLocalLabel(slot)})`;
+}
+
+// ─── Searchable Time Slot Dropdown ───
+const ECTimeSlotDropdown: React.FC<{
+  value: string;
+  onChange: (v: string) => void;
   disabled?: boolean;
   isMobile: boolean;
-}> = ({ slots, onToggle, onRangeSelect, disabled, isMobile }) => {
-  const selectedSet = useMemo(() => new Set(slots), [slots]);
-  const [dragStart, setDragStart] = useState<number | null>(null);
+  minSlot?: string;
+}> = ({ value, onChange, disabled, isMobile, minSlot }) => {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const ref = useRef<HTMLDivElement>(null);
 
-  // Group into 2-hour blocks for a compact grid (4 slots per block)
-  const blocks = useMemo(() => {
-    const b: { label: string; slotsInBlock: string[] }[] = [];
-    for (let h = 0; h < 24; h++) {
-      const s1 = `${String(h).padStart(2, '0')}:00`;
-      const s2 = `${String(h).padStart(2, '0')}:30`;
-      b.push({ label: `${String(h).padStart(2, '0')}`, slotsInBlock: [s1, s2] });
+  const minIndex = minSlot ? TIME_SLOTS_30MIN.indexOf(minSlot) : 0;
+  const availableSlots = TIME_SLOTS_30MIN.filter((_, i) => i >= (minIndex >= 0 ? minIndex : 0));
+
+  const filtered = availableSlots.filter(slot =>
+    formatSlotLabel(slot).toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleClickOutside = useCallback((e: MouseEvent) => {
+    if (ref.current && !ref.current.contains(e.target as Node)) {
+      setOpen(false);
+      setSearch('');
     }
-    return b;
   }, []);
 
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [handleClickOutside]);
+
+  const handleSelect = (slot: string) => {
+    onChange(slot);
+    setOpen(false);
+    setSearch('');
+  };
+
+  const dropdownInputStyle: React.CSSProperties = {
+    width: '100%', padding: '0.5rem 0.65rem', backgroundColor: disabled ? '#1a1a1a' : '#0d1117',
+    border: `1px solid ${open ? ACCENT : '#2a2a2a'}`, borderRadius: '8px', color: '#fff',
+    fontSize: isMobile ? '1rem' : '0.8rem', outline: 'none', boxSizing: 'border-box' as const,
+    cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1,
+    transition: 'border-color 0.15s ease', minHeight: '44px',
+    WebkitTapHighlightColor: 'transparent',
+  };
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(6, 1fr)' : 'repeat(8, 1fr)', gap: '2px' }}>
-      {blocks.map((block) => (
-        <div key={block.label} style={{ display: 'flex', flexDirection: 'column' }}>
-          <div style={{ fontSize: '0.55rem', color: '#6b7280', textAlign: 'center', padding: '0.1rem 0', fontWeight: 600 }}>
-            {block.label}
-          </div>
-          <div style={{ display: 'flex', gap: '1px' }}>
-            {block.slotsInBlock.map((slot) => {
-              const idx = TIME_SLOTS_30MIN.indexOf(slot);
-              const isSelected = selectedSet.has(slot);
-              return (
-                <button
-                  key={slot}
-                  disabled={disabled}
-                  title={slot}
-                  onMouseDown={() => setDragStart(idx)}
-                  onMouseUp={() => {
-                    if (dragStart !== null && dragStart !== idx) {
-                      const from = Math.min(dragStart, idx);
-                      const to = Math.max(dragStart, idx);
-                      onRangeSelect(from, to);
-                    } else {
-                      onToggle(slot);
-                    }
-                    setDragStart(null);
-                  }}
-                  onMouseEnter={(e) => {
-                    if (e.buttons === 1 && dragStart === null) setDragStart(idx);
-                  }}
-                  style={{
-                    flex: 1,
-                    height: isMobile ? '22px' : '20px',
-                    border: 'none',
-                    borderRadius: '2px',
-                    cursor: disabled ? 'not-allowed' : 'pointer',
-                    backgroundColor: isSelected ? ACCENT : '#1a1a20',
-                    opacity: disabled ? 0.4 : isSelected ? 1 : 0.6,
-                    transition: 'background-color 0.1s',
-                  }}
-                />
-              );
-            })}
-          </div>
+    <div ref={ref} style={{ position: 'relative' }}>
+      <input
+        readOnly={!open}
+        value={open ? search : formatSlotLabel(value)}
+        placeholder={formatSlotLabel(value)}
+        onChange={(e) => setSearch(e.target.value)}
+        onFocus={() => { if (!disabled) { setOpen(true); setSearch(''); } }}
+        onClick={() => { if (!disabled) { setOpen(true); setSearch(''); } }}
+        style={dropdownInputStyle}
+      />
+      <span style={{
+        position: 'absolute', right: '0.65rem', top: '50%', transform: `translateY(-50%) rotate(${open ? '180' : '0'}deg)`,
+        color: '#6b7280', fontSize: '0.55rem', pointerEvents: 'none', transition: 'transform 0.2s ease',
+      }}>▼</span>
+      {open && (
+        <div style={{
+          position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '4px', zIndex: 50,
+          backgroundColor: '#111111', border: '1px solid #2a2a2a', borderRadius: '10px',
+          maxHeight: '200px', overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+        }}>
+          {filtered.length === 0 ? (
+            <div style={{ padding: '0.75rem', color: '#6b7280', fontSize: '0.8rem', textAlign: 'center' }}>
+              No matching time
+            </div>
+          ) : filtered.map(slot => (
+            <button key={slot} onClick={() => handleSelect(slot)}
+              style={{
+                display: 'block', width: '100%', padding: '0.5rem 0.75rem', border: 'none',
+                backgroundColor: slot === value ? ACCENT + '18' : 'transparent',
+                color: slot === value ? ACCENT : '#e5e7eb', fontSize: isMobile ? '0.9rem' : '0.78rem',
+                fontWeight: slot === value ? 700 : 400, cursor: 'pointer', textAlign: 'left',
+                minHeight: '44px', transition: 'background-color 0.1s ease',
+              }}
+              onMouseEnter={e => { if (slot !== value) e.currentTarget.style.backgroundColor = '#1a1a20'; }}
+              onMouseLeave={e => { e.currentTarget.style.backgroundColor = slot === value ? ACCENT + '18' : 'transparent'; }}>
+              {formatSlotLabel(slot)}
+            </button>
+          ))}
         </div>
-      ))}
+      )}
+    </div>
+  );
+};
+
+// ─── Single Time Range Row (From → To) ───
+const TimeRangeRow: React.FC<{
+  range: TimeRange;
+  index: number;
+  total: number;
+  onChange: (r: TimeRange) => void;
+  onRemove: () => void;
+  disabled?: boolean;
+  isMobile: boolean;
+}> = ({ range, index, total, onChange, onRemove, disabled, isMobile }) => {
+  const { t } = useTranslation();
+  const fromIdx = TIME_SLOTS_30MIN.indexOf(range.from);
+  const toIdx = TIME_SLOTS_30MIN.indexOf(range.to);
+  const isInvalid = fromIdx >= 0 && toIdx >= 0 && toIdx < fromIdx;
+
+  return (
+    <div style={{
+      padding: '0.6rem 0.65rem', borderRadius: '8px',
+      border: `1px solid ${isInvalid ? '#ef444460' : '#1e1e24'}`,
+      backgroundColor: isInvalid ? '#ef444408' : '#0d1117',
+    }}>
+      {total > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+          <span style={{ color: '#6b7280', fontSize: '0.65rem', fontWeight: 600 }}>
+            {t('eventCoordinator.timeSlotLabel', 'Time Slot {{n}}', { n: index + 1 })}
+          </span>
+          {!disabled && (
+            <button onClick={onRemove}
+              style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer', padding: '0.1rem 0.3rem', borderRadius: '4px', opacity: 0.7 }}
+              onMouseEnter={e => { e.currentTarget.style.opacity = '1'; }}
+              onMouseLeave={e => { e.currentTarget.style.opacity = '0.7'; }}>
+              ✕ {t('eventCoordinator.removeSlot', 'Remove')}
+            </button>
+          )}
+        </div>
+      )}
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? '0.4rem' : '0.6rem' }}>
+        <div style={{ flex: 1 }}>
+          <label style={{ color: '#9ca3af', fontSize: '0.65rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>{t('eventCoordinator.timeFrom', 'From')}</label>
+          <ECTimeSlotDropdown value={range.from} onChange={(v) => {
+            const fi = TIME_SLOTS_30MIN.indexOf(v);
+            const ti = TIME_SLOTS_30MIN.indexOf(range.to);
+            if (fi > ti) onChange({ from: v, to: v });
+            else onChange({ ...range, from: v });
+          }} disabled={disabled} isMobile={isMobile} />
+        </div>
+        <span style={{ color: '#6b7280', fontSize: '0.75rem', fontWeight: 600, textAlign: 'center', paddingTop: isMobile ? '0' : '1.1rem', flexShrink: 0 }}>{t('eventCoordinator.timeTo', 'to')}</span>
+        <div style={{ flex: 1 }}>
+          <label style={{ color: '#9ca3af', fontSize: '0.65rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>{t('eventCoordinator.timeTo_label', 'To')}</label>
+          <ECTimeSlotDropdown value={range.to} onChange={(v) => onChange({ ...range, to: v })} disabled={disabled} isMobile={isMobile} minSlot={range.from} />
+        </div>
+      </div>
+      {isInvalid && (
+        <p style={{ color: '#ef4444', fontSize: '0.6rem', marginTop: '0.3rem', fontWeight: 600 }}>
+          ⚠️ {t('eventCoordinator.invalidRange', '"To" must be equal to or after "From".')}
+        </p>
+      )}
     </div>
   );
 };
@@ -159,12 +290,14 @@ const MyAvailabilityForm: React.FC<{
   const [saving, setSaving] = useState(false);
   const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set([1])); // Mon expanded by default
 
-  // Initialize from existing data
-  const [daySlots, setDaySlots] = useState<Record<number, string[]>>(() => {
-    const initial: Record<number, string[]> = {};
+  // Initialize from existing data — convert individual slots to ranges
+  const [dayRanges, setDayRanges] = useState<Record<number, TimeRange[]>>(() => {
+    const initial: Record<number, TimeRange[]> = {};
     DAYS_OF_WEEK.forEach(d => { initial[d.value] = []; });
     ec.myAvailability.forEach(row => {
-      initial[row.day_of_week] = [...(initial[row.day_of_week] || []), ...row.time_slots];
+      const existing = initial[row.day_of_week] || [];
+      const newRanges = slotsToRanges(row.time_slots);
+      initial[row.day_of_week] = [...existing, ...newRanges];
     });
     return initial;
   });
@@ -179,32 +312,38 @@ const MyAvailabilityForm: React.FC<{
     });
   };
 
-  const toggleSlot = (day: number, slot: string) => {
-    setDaySlots(prev => {
-      const current = prev[day] || [];
-      const next = current.includes(slot) ? current.filter(s => s !== slot) : [...current, slot];
-      return { ...prev, [day]: next };
+  const updateRange = (day: number, index: number, range: TimeRange) => {
+    setDayRanges(prev => {
+      const ranges = [...(prev[day] || [])];
+      ranges[index] = range;
+      return { ...prev, [day]: ranges };
     });
   };
 
-  const handleRangeSelect = (day: number, from: number, to: number) => {
-    setDaySlots(prev => {
-      const current = new Set(prev[day] || []);
-      for (let i = from; i <= to; i++) {
-        const slot = TIME_SLOTS_30MIN[i];
-        if (slot) current.add(slot);
-      }
-      return { ...prev, [day]: [...current] };
+  const removeRange = (day: number, index: number) => {
+    setDayRanges(prev => {
+      const ranges = (prev[day] || []).filter((_, i) => i !== index);
+      return { ...prev, [day]: ranges };
+    });
+  };
+
+  const addRange = (day: number) => {
+    setDayRanges(prev => {
+      const ranges = [...(prev[day] || []), { from: '12:00', to: '18:00' }];
+      return { ...prev, [day]: ranges };
     });
   };
 
   const clearDay = (day: number) => {
-    setDaySlots(prev => ({ ...prev, [day]: [] }));
+    setDayRanges(prev => ({ ...prev, [day]: [] }));
   };
 
   const handleSave = async () => {
     setSaving(true);
-    const days = DAYS_OF_WEEK.map(d => ({ day: d.value, slots: daySlots[d.value] || [] }));
+    const days = DAYS_OF_WEEK.map(d => ({
+      day: d.value,
+      slots: rangesToSlots(dayRanges[d.value] || []),
+    }));
     const result = await ec.saveMyAvailability(memberName, days);
     setSaving(false);
     if (result.success) {
@@ -214,7 +353,7 @@ const MyAvailabilityForm: React.FC<{
     }
   };
 
-  const totalSlots = Object.values(daySlots).reduce((sum, arr) => sum + arr.length, 0);
+  const totalSlots = Object.values(dayRanges).reduce((sum, ranges) => sum + rangesToSlots(ranges).length, 0);
 
   return (
     <div style={{ maxWidth: '700px', margin: '0 auto' }}>
@@ -227,7 +366,7 @@ const MyAvailabilityForm: React.FC<{
           <span style={{ color: '#6b7280', fontSize: '0.7rem', marginLeft: 'auto' }}>{memberName}</span>
         </div>
         <p style={{ color: '#6b7280', fontSize: '0.75rem', marginBottom: '0.75rem', lineHeight: 1.4 }}>
-          {t('eventCoordinator.selectSlots', 'Select your available 30-minute time slots for each day in UTC.')}
+          {t('eventCoordinator.selectRanges', 'Select your available time ranges for each day. Times are in UTC.')}
           {' '}<span style={{ color: '#a855f7' }}>{TZ_ABBR} (UTC{UTC_OFFSET_HOURS >= 0 ? '+' : ''}{UTC_OFFSET_HOURS})</span>
         </p>
 
@@ -240,7 +379,8 @@ const MyAvailabilityForm: React.FC<{
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {DAYS_OF_WEEK.map(day => {
             const isExpanded = expandedDays.has(day.value);
-            const slotCount = (daySlots[day.value] || []).length;
+            const ranges = dayRanges[day.value] || [];
+            const slotCount = rangesToSlots(ranges).length;
             return (
               <div key={day.value} style={{ borderRadius: '8px', border: `1px solid ${isExpanded ? ACCENT_BORDER : '#1e1e24'}`, backgroundColor: isExpanded ? '#10b98108' : '#111116' }}>
                 <button onClick={() => toggleDay(day.value)} style={{
@@ -258,16 +398,16 @@ const MyAvailabilityForm: React.FC<{
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     {slotCount > 0 && (
                       <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '0.1rem 0.3rem', borderRadius: '3px', backgroundColor: ACCENT + '20', color: ACCENT }}>
-                        {slotCount} slots
+                        {ranges.length} {ranges.length === 1 ? 'range' : 'ranges'} · {slotCount} slots
                       </span>
                     )}
                   </div>
                 </button>
                 {isExpanded && (
                   <div style={{ padding: '0 0.75rem 0.75rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                       <span style={{ color: '#6b7280', fontSize: '0.6rem' }}>
-                        {t('eventCoordinator.tapOrDrag', 'Tap slots or drag to select a range')}
+                        {t('eventCoordinator.selectTimeRange', 'Select time ranges for {{day}}', { day: day.label })}
                       </span>
                       {slotCount > 0 && (
                         <button onClick={() => clearDay(day.value)} style={{ padding: '0.15rem 0.3rem', border: 'none', backgroundColor: 'transparent', color: '#ef4444', fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer' }}>
@@ -275,12 +415,27 @@ const MyAvailabilityForm: React.FC<{
                         </button>
                       )}
                     </div>
-                    <SlotGridPicker
-                      slots={daySlots[day.value] || []}
-                      onToggle={(slot) => toggleSlot(day.value, slot)}
-                      onRangeSelect={(from, to) => handleRangeSelect(day.value, from, to)}
-                      isMobile={isMobile}
-                    />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      {ranges.map((range, idx) => (
+                        <TimeRangeRow key={idx} range={range} index={idx} total={ranges.length}
+                          onChange={(r) => updateRange(day.value, idx, r)}
+                          onRemove={() => removeRange(day.value, idx)}
+                          isMobile={isMobile} />
+                      ))}
+                      {ranges.length < 4 && (
+                        <button onClick={() => addRange(day.value)}
+                          style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                            padding: '0.5rem', borderRadius: '8px', border: `1px dashed ${ranges.length === 0 ? ACCENT + '60' : '#2a2a2a'}`,
+                            backgroundColor: 'transparent', color: ranges.length === 0 ? ACCENT : '#6b7280',
+                            fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', minHeight: '40px',
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = ranges.length === 0 ? ACCENT + '60' : '#2a2a2a'; e.currentTarget.style.color = ranges.length === 0 ? ACCENT : '#6b7280'; }}>
+                          + {t('eventCoordinator.addTimeRange', 'Add Time Range')}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -395,43 +550,51 @@ const ManualInputModal: React.FC<{
   const [saving, setSaving] = useState(false);
   const [activeDayTab, setActiveDayTab] = useState(1); // Monday default
 
-  // Initialize from existing data if editing
-  const [daySlots, setDaySlots] = useState<Record<number, string[]>>(() => {
-    const initial: Record<number, string[]> = {};
+  // Initialize from existing data if editing — convert slots to ranges
+  const [dayRanges, setDayRanges] = useState<Record<number, TimeRange[]>>(() => {
+    const initial: Record<number, TimeRange[]> = {};
     DAYS_OF_WEEK.forEach(d => { initial[d.value] = []; });
     if (editMember) {
       ec.allAvailability
         .filter(r => r.member_name === editMember)
         .forEach(row => {
-          initial[row.day_of_week] = [...(initial[row.day_of_week] || []), ...row.time_slots];
+          const existing = initial[row.day_of_week] || [];
+          const newRanges = slotsToRanges(row.time_slots);
+          initial[row.day_of_week] = [...existing, ...newRanges];
         });
     }
     return initial;
   });
 
-  const toggleSlot = (day: number, slot: string) => {
-    setDaySlots(prev => {
-      const current = prev[day] || [];
-      const next = current.includes(slot) ? current.filter(s => s !== slot) : [...current, slot];
-      return { ...prev, [day]: next };
+  const updateRange = (day: number, index: number, range: TimeRange) => {
+    setDayRanges(prev => {
+      const ranges = [...(prev[day] || [])];
+      ranges[index] = range;
+      return { ...prev, [day]: ranges };
     });
   };
 
-  const handleRangeSelect = (day: number, from: number, to: number) => {
-    setDaySlots(prev => {
-      const current = new Set(prev[day] || []);
-      for (let i = from; i <= to; i++) {
-        const slot = TIME_SLOTS_30MIN[i];
-        if (slot) current.add(slot);
-      }
-      return { ...prev, [day]: [...current] };
+  const removeRange = (day: number, index: number) => {
+    setDayRanges(prev => {
+      const ranges = (prev[day] || []).filter((_, i) => i !== index);
+      return { ...prev, [day]: ranges };
+    });
+  };
+
+  const addRange = (day: number) => {
+    setDayRanges(prev => {
+      const ranges = [...(prev[day] || []), { from: '12:00', to: '18:00' }];
+      return { ...prev, [day]: ranges };
     });
   };
 
   const handleSave = async () => {
     if (!memberName.trim()) return;
     setSaving(true);
-    const days = DAYS_OF_WEEK.map(d => ({ day: d.value, slots: daySlots[d.value] || [] }));
+    const days = DAYS_OF_WEEK.map(d => ({
+      day: d.value,
+      slots: rangesToSlots(dayRanges[d.value] || []),
+    }));
     const result = await ec.saveForMember(memberName.trim(), days);
     setSaving(false);
     if (result.success) {
@@ -443,8 +606,8 @@ const ManualInputModal: React.FC<{
   };
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '520px', backgroundColor: '#111111', borderRadius: '16px', border: '1px solid #2a2a2a', padding: isMobile ? '1rem' : '1.5rem', boxShadow: '0 16px 64px rgba(0,0,0,0.5)', maxHeight: '85vh', overflowY: 'auto' }}>
+    <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', zIndex: 1000, padding: isMobile ? '0' : '1rem' }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ width: isMobile ? '100%' : '520px', maxWidth: '520px', backgroundColor: '#111111', borderRadius: isMobile ? '16px 16px 0 0' : '16px', border: '1px solid #2a2a2a', padding: isMobile ? '1.25rem 1rem' : '1.5rem', boxShadow: '0 16px 64px rgba(0,0,0,0.5)', maxHeight: isMobile ? '90vh' : '85vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: isMobile ? 'max(1.5rem, env(safe-area-inset-bottom))' : '1.5rem' }}>
         <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: 700, marginBottom: '0.75rem' }}>
           {editMember ? t('eventCoordinator.editMember', 'Edit Availability') : t('eventCoordinator.manualInput', 'Manual Input')}
         </h3>
@@ -462,7 +625,8 @@ const ManualInputModal: React.FC<{
         {/* Day tabs */}
         <div style={{ display: 'flex', gap: '0.2rem', marginBottom: '0.5rem', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           {DAYS_OF_WEEK.map(day => {
-            const slotCount = (daySlots[day.value] || []).length;
+            const ranges = dayRanges[day.value] || [];
+            const slotCount = rangesToSlots(ranges).length;
             return (
               <button key={day.value} onClick={() => setActiveDayTab(day.value)} style={{
                 padding: '0.35rem 0.5rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer',
@@ -478,21 +642,44 @@ const ManualInputModal: React.FC<{
         </div>
 
         <div style={{ marginBottom: '0.75rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-            <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>UTC slots for {DAYS_OF_WEEK[activeDayTab]?.label}</span>
-            {(daySlots[activeDayTab] || []).length > 0 && (
-              <button onClick={() => setDaySlots(prev => ({ ...prev, [activeDayTab]: [] }))}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+            <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>
+              {t('eventCoordinator.selectTimeRange', 'Select time ranges for {{day}}', { day: DAYS_OF_WEEK[activeDayTab]?.label || '' })}
+            </span>
+            {(dayRanges[activeDayTab] || []).length > 0 && (
+              <button onClick={() => setDayRanges(prev => ({ ...prev, [activeDayTab]: [] }))}
                 style={{ padding: '0.15rem 0.3rem', border: 'none', backgroundColor: 'transparent', color: '#ef4444', fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer' }}>
                 Clear
               </button>
             )}
           </div>
-          <SlotGridPicker
-            slots={daySlots[activeDayTab] || []}
-            onToggle={(slot) => toggleSlot(activeDayTab, slot)}
-            onRangeSelect={(from, to) => handleRangeSelect(activeDayTab, from, to)}
-            isMobile={isMobile}
-          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {(dayRanges[activeDayTab] || []).map((range, idx) => (
+              <TimeRangeRow key={idx} range={range} index={idx} total={(dayRanges[activeDayTab] || []).length}
+                onChange={(r) => updateRange(activeDayTab, idx, r)}
+                onRemove={() => removeRange(activeDayTab, idx)}
+                isMobile={isMobile} />
+            ))}
+            {(dayRanges[activeDayTab] || []).length < 4 && (
+              <button onClick={() => addRange(activeDayTab)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                  padding: '0.5rem', borderRadius: '8px',
+                  border: `1px dashed ${(dayRanges[activeDayTab] || []).length === 0 ? ACCENT + '60' : '#2a2a2a'}`,
+                  backgroundColor: 'transparent',
+                  color: (dayRanges[activeDayTab] || []).length === 0 ? ACCENT : '#6b7280',
+                  fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', minHeight: '40px',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
+                onMouseLeave={e => {
+                  const empty = (dayRanges[activeDayTab] || []).length === 0;
+                  e.currentTarget.style.borderColor = empty ? ACCENT + '60' : '#2a2a2a';
+                  e.currentTarget.style.color = empty ? ACCENT : '#6b7280';
+                }}>
+                + {t('eventCoordinator.addTimeRange', 'Add Time Range')}
+              </button>
+            )}
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem' }}>

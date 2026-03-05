@@ -454,7 +454,7 @@ const Tools: React.FC = () => {
 
   const kingdomTools = tools.slice(0, 4);
   // Discord Bot (tools[4]) is index 4, Base Designer (tools[5]) is index 5
-  const discordBotCard = { ...tools[4]!, accentColor: '#3b82f6' };
+  const discordBotCard = tools[4]!;
   const baseDesignerCard = tools[5]!;
   const allianceTools = [discordBotCard, allianceCenterCard, eventCoordinatorCard, baseDesignerCard];
   const individualTools = tools.slice(6);

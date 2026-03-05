@@ -59,14 +59,10 @@ type MutResult = { success: boolean; error?: string };
 // ─── TC Level → TG Conversion ───
 
 export function tcLevelToTG(level: number | null | undefined): string | null {
-  if (level == null || level < 1) return null;
-  // TC levels: 1-10 = T1, 11-20 = T2, 21-30 = T3, 31-40 = T4, 41-50 = T5
-  // TG levels start at 51: 51=TG1, 52=TG2, 53=TG3, 54=TG4, 55=TG5, etc.
-  if (level <= 50) {
-    const tier = Math.ceil(level / 10);
-    return `T${tier}`;
-  }
-  const tg = level - 50;
+  if (level == null || level < 30) return null;
+  // 30-34 = TC30, then TG tiers in 5-level increments starting at 35
+  if (level < 35) return 'TC30';
+  const tg = Math.floor((level - 35) / 5) + 1;
   return `TG${tg}`;
 }
 

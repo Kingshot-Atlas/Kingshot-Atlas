@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMemo, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { logger } from '../utils/logger';
@@ -22,6 +23,12 @@ export interface AllianceMember {
   player_name: string;
   player_id: string | null;
   notes: string | null;
+  infantry_tier: number | null;
+  infantry_tg: number | null;
+  cavalry_tier: number | null;
+  cavalry_tg: number | null;
+  archers_tier: number | null;
+  archers_tg: number | null;
   added_by: string;
   created_at: string;
 }
@@ -45,9 +52,18 @@ export interface MemberSearchResult {
 
 export interface PlayerProfileData {
   player_id: string;
+  user_id: string;
   linked_username: string | null;
   linked_tc_level: number | null;
   linked_kingdom: number | null;
+  language: string | null;
+}
+
+export interface ApiPlayerData {
+  username: string;
+  avatar_url: string;
+  kingdom: number;
+  town_center_level: number;
 }
 
 const MAX_MEMBERS = 100;
@@ -84,7 +100,7 @@ export interface UseAllianceCenterResult {
 
   // Member CRUD
   addMember: (data: { player_name: string; player_id?: string; notes?: string }) => Promise<MutResult>;
-  updateMember: (memberId: string, data: { player_name?: string; player_id?: string; notes?: string }) => Promise<MutResult>;
+  updateMember: (memberId: string, data: { player_name?: string; player_id?: string; notes?: string; infantry_tier?: number | null; infantry_tg?: number | null; cavalry_tier?: number | null; cavalry_tg?: number | null; archers_tier?: number | null; archers_tg?: number | null }) => Promise<MutResult>;
   removeMember: (memberId: string) => Promise<MutResult>;
   importByPlayerIds: (playerIds: string[]) => Promise<{ success: number; failed: number; errors: string[] }>;
 
@@ -93,11 +109,21 @@ export interface UseAllianceCenterResult {
   isOwner: boolean;
   isManager: boolean;
   canManage: boolean; // owner OR manager
-  accessRole: 'owner' | 'manager' | 'delegate' | 'none';
+  accessRole: 'owner' | 'manager' | 'delegate' | 'member' | 'none';
 
   // Player profile data (resolved from player IDs)
   playerProfiles: Map<string, PlayerProfileData>;
   playerProfilesLoading: boolean;
+
+  // API player data for non-Atlas members
+  apiPlayerData: Map<string, ApiPlayerData>;
+  apiPlayerDataLoading: boolean;
+
+  // Battle Registry troop data (most recent entry per player)
+  registryTroopData: Map<string, { infantry_tier: number; infantry_tg: number; cavalry_tier: number; cavalry_tg: number; archers_tier: number; archers_tg: number; updated_at: string }>;
+
+  // Current user's member ID (if they are a roster member)
+  currentMemberId: string | null;
 }
 
 /**
@@ -105,13 +131,13 @@ export interface UseAllianceCenterResult {
  * Access path: owner → manager → delegate
  */
 export function useAllianceCenter(): UseAllianceCenterResult {
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
 
   // ─── Fetch alliance (owner → manager → delegate path) ───
   const { data: allianceData = { alliance: null, accessRole: 'none' as const }, isLoading: queryLoading } = useQuery({
     queryKey: ['alliance-center', user?.id],
-    queryFn: async (): Promise<{ alliance: Alliance | null; accessRole: 'owner' | 'manager' | 'delegate' | 'none' }> => {
+    queryFn: async (): Promise<{ alliance: Alliance | null; accessRole: 'owner' | 'manager' | 'delegate' | 'member' | 'none' }> => {
       if (!isSupabaseConfigured || !supabase || !user) return { alliance: null, accessRole: 'none' };
 
       // 1. Check if user owns an alliance
@@ -156,6 +182,25 @@ export function useAllianceCenter(): UseAllianceCenterResult {
           .eq('owner_id', delegateRow.owner_id)
           .maybeSingle();
         if (ownerAlliance) return { alliance: ownerAlliance as Alliance, accessRole: 'delegate' };
+      }
+
+      // 4. Check if user is a member of an alliance (via linked_player_id)
+      const linkedPid = (profile as { linked_player_id?: string | null } | null)?.linked_player_id;
+      if (linkedPid) {
+        const { data: memberRow } = await supabase
+          .from('alliance_members')
+          .select('alliance_id')
+          .eq('player_id', linkedPid)
+          .maybeSingle();
+
+        if (memberRow) {
+          const { data: memberAlliance } = await supabase
+            .from('alliances')
+            .select('*')
+            .eq('id', memberRow.alliance_id)
+            .maybeSingle();
+          if (memberAlliance) return { alliance: memberAlliance as Alliance, accessRole: 'member' };
+        }
       }
 
       return { alliance: null, accessRole: 'none' };
@@ -211,7 +256,7 @@ export function useAllianceCenter(): UseAllianceCenterResult {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('linked_player_id, linked_username, linked_tc_level, linked_kingdom')
+        .select('id, linked_player_id, linked_username, linked_tc_level, linked_kingdom, language')
         .in('linked_player_id', playerIds);
 
       if (error) {
@@ -220,13 +265,15 @@ export function useAllianceCenter(): UseAllianceCenterResult {
       }
 
       const map = new Map<string, PlayerProfileData>();
-      (data || []).forEach((p: { linked_player_id: string | null; linked_username: string | null; linked_tc_level: number | null; linked_kingdom: number | null }) => {
+      (data || []).forEach((p: { id: string; linked_player_id: string | null; linked_username: string | null; linked_tc_level: number | null; linked_kingdom: number | null; language: string | null }) => {
         if (p.linked_player_id) {
           map.set(p.linked_player_id, {
             player_id: p.linked_player_id,
+            user_id: p.id,
             linked_username: p.linked_username,
             linked_tc_level: p.linked_tc_level,
             linked_kingdom: p.linked_kingdom,
+            language: p.language,
           });
         }
       });
@@ -235,6 +282,136 @@ export function useAllianceCenter(): UseAllianceCenterResult {
     enabled: !!alliance && playerIds.length > 0,
     staleTime: 5 * 60 * 1000,
   });
+
+  // ─── Fetch latest Battle Registry troop data for Atlas members ───
+  const { data: registryTroopData = new Map<string, { infantry_tier: number; infantry_tg: number; cavalry_tier: number; cavalry_tg: number; archers_tier: number; archers_tg: number; updated_at: string }>() } = useQuery({
+    queryKey: ['alliance-registry-troops', alliance?.id, playerIds.join(',')],
+    queryFn: async () => {
+      if (!isSupabaseConfigured || !supabase || playerIds.length === 0) return new Map();
+
+      // Get user IDs for linked player IDs
+      const { data: profileRows } = await supabase
+        .from('profiles')
+        .select('id, linked_player_id')
+        .in('linked_player_id', playerIds);
+
+      if (!profileRows || profileRows.length === 0) return new Map();
+
+      const userIdToPlayerId = new Map<string, string>();
+      profileRows.forEach((p: { id: string; linked_player_id: string | null }) => {
+        if (p.linked_player_id) userIdToPlayerId.set(p.id, p.linked_player_id);
+      });
+
+      const userIds = [...userIdToPlayerId.keys()];
+      // Fetch the most recent entry per user from battle_registry_entries
+      const { data: entries } = await supabase
+        .from('battle_registry_entries')
+        .select('user_id, infantry_tier, infantry_tg, cavalry_tier, cavalry_tg, archers_tier, archers_tg, updated_at')
+        .in('user_id', userIds)
+        .order('updated_at', { ascending: false });
+
+      if (!entries || entries.length === 0) return new Map();
+
+      // Keep only the most recent entry per user
+      const result = new Map<string, { infantry_tier: number; infantry_tg: number; cavalry_tier: number; cavalry_tg: number; archers_tier: number; archers_tg: number; updated_at: string }>();
+      entries.forEach((e: { user_id: string; infantry_tier: number; infantry_tg: number; cavalry_tier: number; cavalry_tg: number; archers_tier: number; archers_tg: number; updated_at: string }) => {
+        const playerId = userIdToPlayerId.get(e.user_id);
+        if (playerId && !result.has(playerId)) {
+          result.set(playerId, {
+            infantry_tier: e.infantry_tier, infantry_tg: e.infantry_tg,
+            cavalry_tier: e.cavalry_tier, cavalry_tg: e.cavalry_tg,
+            archers_tier: e.archers_tier, archers_tg: e.archers_tg,
+            updated_at: e.updated_at,
+          });
+        }
+      });
+      return result;
+    },
+    enabled: !!alliance && playerIds.length > 0,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // ─── Fetch player data from Kingshot API for non-Atlas members ───
+  const nonAtlasPlayerIds = useMemo(() => {
+    if (!alliance || playerProfilesLoading) return [];
+    return members
+      .filter(m => m.player_id && !playerProfiles.has(m.player_id))
+      .map(m => m.player_id!);
+  }, [members, playerProfiles, playerProfilesLoading, alliance]);
+
+  const { data: apiPlayerData = new Map<string, ApiPlayerData>(), isLoading: apiPlayerDataLoading } = useQuery({
+    queryKey: ['alliance-api-players', alliance?.id, nonAtlasPlayerIds.join(',')],
+    queryFn: async (): Promise<Map<string, ApiPlayerData>> => {
+      const map = new Map<string, ApiPlayerData>();
+      const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+      const batch = nonAtlasPlayerIds.slice(0, 50);
+
+      for (const pid of batch) {
+        try {
+          const res = await fetch(`${API_BASE}/api/v1/player-link/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ player_id: pid }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            map.set(pid, data);
+          }
+        } catch { /* skip failed lookups */ }
+        // Small delay to respect rate limits
+        await new Promise(r => setTimeout(r, 250));
+      }
+      return map;
+    },
+    enabled: nonAtlasPlayerIds.length > 0 && !playerProfilesLoading,
+    staleTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  // Auto-update "Player {id}" names with real API data once resolved
+  const autoUpdateDoneRef = useRef(new Set<string>());
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase || !alliance) return;
+    if (apiPlayerDataLoading) return; // wait until API query is complete
+    const sb = supabase;
+
+    // Find members still showing "Player {id}" whose API lookup is finished
+    const staleMembers = members.filter(m =>
+      m.player_id && !autoUpdateDoneRef.current.has(m.player_id) && /^Player \d+$/.test(m.player_name)
+    );
+    if (staleMembers.length === 0) return;
+
+    // Build updates: use API username if available, otherwise keep stale (API may not know this player)
+    const updates: { id: string; player_id: string; newName: string }[] = [];
+    staleMembers.forEach(m => {
+      const apiData = apiPlayerData.get(m.player_id!);
+      if (apiData?.username) {
+        updates.push({ id: m.id, player_id: m.player_id!, newName: apiData.username });
+      }
+      // Mark as done regardless — don't retry endlessly for truly unknown players
+      autoUpdateDoneRef.current.add(m.player_id!);
+    });
+
+    if (updates.length === 0) return;
+
+    (async () => {
+      await Promise.all(updates.map(u =>
+        sb.from('alliance_members')
+          .update({ player_name: u.newName })
+          .eq('id', u.id)
+          .eq('alliance_id', alliance.id)
+      ));
+      queryClient.invalidateQueries({ queryKey: ['alliance-members', alliance.id] });
+    })();
+  }, [apiPlayerData, apiPlayerDataLoading, members, alliance, queryClient]);
+
+  // Current user's member ID
+  const currentMemberId = useMemo(() => {
+    const linkedPid = (profile as { linked_player_id?: string | null } | null)?.linked_player_id;
+    if (!linkedPid) return null;
+    const member = members.find(m => m.player_id === linkedPid);
+    return member?.id || null;
+  }, [members, profile]);
 
   // ─── Fetch managers ───
   const { data: managers = [], isLoading: managersLoading } = useQuery({
@@ -572,7 +749,7 @@ export function useAllianceCenter(): UseAllianceCenterResult {
 
   // ─── Update member ───
   const updateMemberMutation = useMutation({
-    mutationFn: async ({ memberId, data }: { memberId: string; data: { player_name?: string; player_id?: string; notes?: string } }): Promise<MutResult> => {
+    mutationFn: async ({ memberId, data }: { memberId: string; data: { player_name?: string; player_id?: string; notes?: string; infantry_tier?: number | null; infantry_tg?: number | null; cavalry_tier?: number | null; cavalry_tg?: number | null; archers_tier?: number | null; archers_tg?: number | null } }): Promise<MutResult> => {
       if (!isSupabaseConfigured || !supabase || !user || !alliance) {
         return { success: false, error: 'No alliance found' };
       }
@@ -581,6 +758,12 @@ export function useAllianceCenter(): UseAllianceCenterResult {
       if (data.player_name !== undefined) updates.player_name = data.player_name.trim();
       if (data.player_id !== undefined) updates.player_id = data.player_id.trim() || null;
       if (data.notes !== undefined) updates.notes = data.notes.trim() || null;
+      if (data.infantry_tier !== undefined) updates.infantry_tier = data.infantry_tier;
+      if (data.infantry_tg !== undefined) updates.infantry_tg = data.infantry_tg;
+      if (data.cavalry_tier !== undefined) updates.cavalry_tier = data.cavalry_tier;
+      if (data.cavalry_tg !== undefined) updates.cavalry_tg = data.cavalry_tg;
+      if (data.archers_tier !== undefined) updates.archers_tier = data.archers_tier;
+      if (data.archers_tg !== undefined) updates.archers_tg = data.archers_tg;
 
       const { error } = await supabase
         .from('alliance_members')
@@ -661,6 +844,26 @@ export function useAllianceCenter(): UseAllianceCenterResult {
       }
     });
 
+    // Resolve remaining names from Kingshot API
+    const unresolvedIds = toAdd.filter(pid => !profileMap.has(pid));
+    if (unresolvedIds.length > 0) {
+      const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+      for (const pid of unresolvedIds.slice(0, 50)) {
+        try {
+          const res = await fetch(`${API_BASE}/api/v1/player-link/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ player_id: pid }),
+          });
+          if (res.ok) {
+            const apiData = await res.json();
+            if (apiData.username) profileMap.set(pid, apiData.username);
+          }
+        } catch { /* skip */ }
+        await new Promise(r => setTimeout(r, 250));
+      }
+    }
+
     // Build rows — use resolved name or fallback to "Player <ID>"
     const rows = toAdd.map(pid => ({
       alliance_id: alliance.id,
@@ -713,7 +916,7 @@ export function useAllianceCenter(): UseAllianceCenterResult {
     transferOwnership: transferMutation.mutateAsync,
 
     addMember: addMemberMutation.mutateAsync,
-    updateMember: (memberId: string, data: { player_name?: string; player_id?: string; notes?: string }) =>
+    updateMember: (memberId: string, data: { player_name?: string; player_id?: string; notes?: string; infantry_tier?: number | null; infantry_tg?: number | null; cavalry_tier?: number | null; cavalry_tg?: number | null; archers_tier?: number | null; archers_tg?: number | null }) =>
       updateMemberMutation.mutateAsync({ memberId, data }),
     removeMember: removeMemberMutation.mutateAsync,
     importByPlayerIds,
@@ -726,5 +929,10 @@ export function useAllianceCenter(): UseAllianceCenterResult {
 
     playerProfiles,
     playerProfilesLoading,
+
+    apiPlayerData,
+    apiPlayerDataLoading,
+    registryTroopData,
+    currentMemberId,
   };
 }

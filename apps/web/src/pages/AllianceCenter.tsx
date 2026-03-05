@@ -7,7 +7,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { useToolAccess } from '../hooks/useToolAccess';
 import { useAllianceCenter } from '../hooks/useAllianceCenter';
-import type { AllianceMember, MemberSearchResult, PlayerProfileData } from '../hooks/useAllianceCenter';
+import type { AllianceMember, MemberSearchResult } from '../hooks/useAllianceCenter';
 import { tcLevelToTG } from '../hooks/useAllianceEventCoordinator';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -25,13 +25,69 @@ const inputBase: React.CSSProperties = {
   fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box',
 };
 
-// ─── Access Gate (reuses useToolAccess pattern) ───
+const thStyle: React.CSSProperties = {
+  padding: '0.5rem 0.6rem', color: '#6b7280', fontSize: '0.7rem', fontWeight: 700,
+  textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap', textAlign: 'center',
+};
+
+const tdStyle: React.CSSProperties = {
+  padding: '0.45rem 0.6rem', verticalAlign: 'middle',
+};
+
+// ─── Troop constants (matching Battle Registry) ───
+const TROOP_COLORS = { infantry: '#3b82f6', cavalry: '#f97316', archers: '#ef4444' };
+const MIN_TIER = 8;
+const MAX_TIER = 11;
+const MIN_TG = 0;
+const MAX_TG = 8;
+
+// ─── TG badge color helper (unique per level) ───
+const TG_COLORS: Record<string, { bg: string; fg: string }> = {
+  TC30: { bg: '#94a3b820', fg: '#94a3b8' }, // slate
+  TG1:  { bg: '#22d3ee20', fg: '#22d3ee' }, // cyan
+  TG2:  { bg: '#10b98120', fg: '#10b981' }, // emerald
+  TG3:  { bg: '#84cc1620', fg: '#84cc16' }, // lime
+  TG4:  { bg: '#eab30820', fg: '#eab308' }, // yellow
+  TG5:  { bg: '#f9731620', fg: '#f97316' }, // orange
+  TG6:  { bg: '#ef444420', fg: '#ef4444' }, // red
+  TG7:  { bg: '#ec489920', fg: '#ec4899' }, // pink
+  TG8:  { bg: '#a855f720', fg: '#a855f7' }, // purple
+};
+function tgBadgeColor(label: string): { bg: string; fg: string } {
+  return TG_COLORS[label] || { bg: '#6b728020', fg: '#6b7280' };
+}
+
+// ─── Language flag helper ───
+const LANG_FLAGS: Record<string, string> = {
+  // Full language names (as stored in profiles.language)
+  english: '🇬🇧', spanish: '🇪🇸', french: '🇫🇷', german: '🇩🇪', portuguese: '🇧🇷',
+  italian: '🇮🇹', dutch: '🇳🇱', russian: '🇷🇺', polish: '🇵🇱', turkish: '🇹🇷',
+  arabic: '🇸🇦', chinese: '🇨�', japanese: '🇯🇵', korean: '🇰🇷', vietnamese: '🇻🇳',
+  thai: '🇹🇭', indonesian: '🇮🇩', malay: '🇲🇾', hindi: '🇮🇳', swedish: '🇸�',
+  norwegian: '🇳🇴', danish: '�🇰', finnish: '🇫🇮', greek: '🇬🇷', czech: '🇨🇿',
+  romanian: '🇷🇴', hungarian: '🇭🇺', ukrainian: '🇺🇦', tagalog: '🇵🇭', filipino: '🇵🇭',
+  persian: '🇮🇷', hebrew: '🇮🇱', bengali: '🇧🇩', urdu: '🇵🇰', tamil: '🇮🇳',
+  // ISO 2-letter fallback
+  en: '🇬🇧', es: '🇪�', fr: '🇫🇷', de: '🇩🇪', pt: '🇧🇷', it: '🇮🇹', nl: '🇳🇱',
+  ru: '🇷🇺', pl: '🇵🇱', tr: '🇹🇷', ar: '🇸🇦', zh: '🇨🇳', ja: '🇯🇵', ko: '🇰🇷',
+  vi: '🇻🇳', th: '🇹🇭', id: '🇮🇩', ms: '🇲🇾', hi: '🇮🇳', sv: '🇸🇪', no: '🇳🇴',
+  da: '🇩🇰', fi: '🇫🇮', el: '🇬🇷', cs: '🇨🇿', ro: '🇷🇴', hu: '🇭🇺', uk: '🇺🇦',
+};
+function langFlag(lang: string | null | undefined): string | null {
+  if (!lang || !lang.trim()) return null;
+  return LANG_FLAGS[lang.toLowerCase().trim()] || LANG_FLAGS[lang.toLowerCase().trim().slice(0, 2)] || null;
+}
+
+type SortKey = 'name' | 'id' | 'tc' | 'infantry' | 'cavalry' | 'archers' | 'lang' | 'avail';
+type SortDir = 'asc' | 'desc';
+
+// ─── Access Gate (allows any authenticated user; dashboard handles role-specific views) ───
 const AllianceCenterGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { hasAccess, loading } = useToolAccess();
+  const { user, loading: authLoading } = useAuth();
   const { t } = useTranslation();
   const isMobile = useIsMobile();
 
-  if (loading) {
+  if (authLoading) {
     return (
       <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>{t('common.loading', 'Loading...')}</div>
@@ -39,7 +95,7 @@ const AllianceCenterGate: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   }
 
-  if (!hasAccess) {
+  if (!user) {
     return (
       <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', textAlign: 'center' }}>
         <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🏰</div>
@@ -47,12 +103,9 @@ const AllianceCenterGate: React.FC<{ children: React.ReactNode }> = ({ children 
           {t('allianceCenter.gateTitle', 'Alliance Center')}
         </h2>
         <p style={{ color: '#9ca3af', maxWidth: '420px', marginBottom: '1.5rem', lineHeight: 1.6, fontSize: isMobile ? '0.85rem' : '0.9rem' }}>
-          {t('allianceCenter.gateDesc', 'The Alliance Center is available to Atlas Supporters, Ambassadors, Discord Server Boosters, and Admins. Manage your alliance roster and access powerful coordination tools.')}
+          {t('allianceCenter.gateDescLogin', 'Sign in to access the Alliance Center. Manage your alliance roster and coordinate with your team.')}
         </p>
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <Link to="/support" style={{ textDecoration: 'none' }}>
-            <Button variant="primary">{t('allianceCenter.becomeSupporter', 'Become a Supporter')}</Button>
-          </Link>
           <Link to="/tools" style={{ textDecoration: 'none' }}>
             <Button variant="ghost">{t('allianceCenter.backToTools', 'Back to Tools')}</Button>
           </Link>
@@ -355,8 +408,8 @@ const ImportMembersModal: React.FC<{
   );
 };
 
-// ─── Manager Section (owner only) ───
-const ManagerSection: React.FC<{ ac: ReturnType<typeof useAllianceCenter> }> = ({ ac }) => {
+// ─── Manager Modal (owner only) ───
+const ManagerModal: React.FC<{ ac: ReturnType<typeof useAllianceCenter>; onClose: () => void }> = ({ ac, onClose }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
@@ -393,44 +446,51 @@ const ManagerSection: React.FC<{ ac: ReturnType<typeof useAllianceCenter> }> = (
   };
 
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-        <span style={{ color: '#9ca3af', fontSize: '0.75rem', fontWeight: '600' }}>
-          {t('allianceCenter.managersLabel', 'Managers')} ({ac.managers.length}/{ac.maxManagers})
-        </span>
-      </div>
-      <p style={{ color: '#4b5563', fontSize: '0.7rem', marginBottom: '0.75rem', lineHeight: 1.4 }}>
-        {t('allianceCenter.managersDesc', 'Managers can add/remove members and edit info, but cannot delete the alliance, transfer ownership, or manage other managers.')}
-      </p>
-      {ac.managers.map(mgr => (
-        <div key={mgr.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.4rem 0.6rem', backgroundColor: '#0d1117', borderRadius: '6px', border: '1px solid #1e1e24', marginBottom: '0.3rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.3rem', backgroundColor: '#a855f720', color: '#a855f7', borderRadius: '3px', fontWeight: '700' }}>MGR</span>
-            <span style={{ color: '#e5e7eb', fontSize: '0.8rem' }}>{mgr.username}</span>
-          </div>
-          {ac.isOwner && (
-            <button onClick={() => handleRemove(mgr.id, mgr.username || 'Manager')} style={{ padding: '0.15rem 0.3rem', backgroundColor: 'transparent', border: '1px solid transparent', borderRadius: '3px', color: '#ef4444', fontSize: '0.6rem', cursor: 'pointer' }}>✕</button>
-          )}
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '440px', backgroundColor: '#111111', borderRadius: '16px', border: '1px solid #a855f730', padding: '1.5rem', boxShadow: '0 16px 64px rgba(0,0,0,0.5)', maxHeight: '80vh', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '700', margin: 0 }}>
+            {t('allianceCenter.managersLabel', 'Managers')} ({ac.managers.length}/{ac.maxManagers})
+          </h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '1rem', padding: '0.2rem' }}>✕</button>
         </div>
-      ))}
-      {ac.isOwner && ac.canAddManager && (
-        <div style={{ marginTop: '0.5rem' }}>
-          <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-            placeholder={t('allianceCenter.searchManagerPlaceholder', 'Search Atlas users to add...')}
-            style={{ ...inputBase, fontSize: '0.8rem' }} />
-          {searching && <div style={{ color: '#6b7280', fontSize: '0.7rem', padding: '0.3rem 0' }}>{t('common.loading', 'Loading...')}</div>}
-          {searchResults.length > 0 && (
-            <div style={{ marginTop: '0.3rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-              {searchResults.map(r => (
-                <div key={r.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.35rem 0.5rem', backgroundColor: '#0d1117', borderRadius: '4px', border: '1px solid #1e1e24' }}>
-                  <span style={{ color: '#e5e7eb', fontSize: '0.8rem' }}>{r.username}</span>
-                  <button onClick={() => handleAdd(r.id, r.username)} style={{ padding: '0.15rem 0.4rem', backgroundColor: '#a855f715', border: '1px solid #a855f730', borderRadius: '3px', color: '#a855f7', fontSize: '0.65rem', fontWeight: '600', cursor: 'pointer' }}>+ Manager</button>
-                </div>
-              ))}
+        <p style={{ color: '#4b5563', fontSize: '0.7rem', marginBottom: '0.75rem', lineHeight: 1.4 }}>
+          {t('allianceCenter.managersDesc', 'Managers can add/remove members and edit info, but cannot delete the alliance, transfer ownership, or manage other managers.')}
+        </p>
+        {ac.managers.map(mgr => (
+          <div key={mgr.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.4rem 0.6rem', backgroundColor: '#0d1117', borderRadius: '6px', border: '1px solid #1e1e24', marginBottom: '0.3rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.3rem', backgroundColor: '#a855f720', color: '#a855f7', borderRadius: '3px', fontWeight: '700' }}>MGR</span>
+              <span style={{ color: '#e5e7eb', fontSize: '0.8rem' }}>{mgr.username}</span>
             </div>
-          )}
-        </div>
-      )}
+            {ac.isOwner && (
+              <button onClick={() => handleRemove(mgr.id, mgr.username || 'Manager')} style={{ padding: '0.15rem 0.3rem', backgroundColor: 'transparent', border: '1px solid transparent', borderRadius: '3px', color: '#ef4444', fontSize: '0.6rem', cursor: 'pointer' }}>✕</button>
+            )}
+          </div>
+        ))}
+        {ac.managers.length === 0 && (
+          <div style={{ padding: '0.75rem', textAlign: 'center', color: '#4b5563', fontSize: '0.75rem' }}>No managers yet</div>
+        )}
+        {ac.isOwner && ac.canAddManager && (
+          <div style={{ marginTop: '0.75rem' }}>
+            <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+              placeholder={t('allianceCenter.searchManagerPlaceholder', 'Search Atlas users to add...')}
+              style={{ ...inputBase, fontSize: '0.8rem' }} autoFocus />
+            {searching && <div style={{ color: '#6b7280', fontSize: '0.7rem', padding: '0.3rem 0' }}>{t('common.loading', 'Loading...')}</div>}
+            {searchResults.length > 0 && (
+              <div style={{ marginTop: '0.3rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                {searchResults.map(r => (
+                  <div key={r.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.35rem 0.5rem', backgroundColor: '#0d1117', borderRadius: '4px', border: '1px solid #1e1e24' }}>
+                    <span style={{ color: '#e5e7eb', fontSize: '0.8rem' }}>{r.username}</span>
+                    <button onClick={() => handleAdd(r.id, r.username)} style={{ padding: '0.15rem 0.4rem', backgroundColor: '#a855f715', border: '1px solid #a855f730', borderRadius: '3px', color: '#a855f7', fontSize: '0.65rem', fontWeight: '600', cursor: 'pointer' }}>+ Manager</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        <Button variant="ghost" onClick={onClose} style={{ width: '100%', marginTop: '1rem' }}>{t('common.close', 'Close')}</Button>
+      </div>
     </div>
   );
 };
@@ -518,128 +578,105 @@ const TransferOwnershipModal: React.FC<{
   );
 };
 
-// ─── Member Row (with TC level badge + collapsed availability) ───
-const MemberRow: React.FC<{
-  member: AllianceMember;
-  onUpdate: ReturnType<typeof useAllianceCenter>['updateMember'];
-  onRemove: ReturnType<typeof useAllianceCenter>['removeMember'];
-  canManage: boolean;
-  isMobile: boolean;
-  profile?: PlayerProfileData;
-  availabilityDays?: number;
-  availabilitySlots?: number;
-}> = ({ member, onUpdate, onRemove, canManage, isMobile, profile, availabilityDays, availabilitySlots }) => {
-  const { showToast } = useToast();
-  const { t } = useTranslation();
-  const [editing, setEditing] = useState(false);
-  const [editName, setEditName] = useState(member.player_name);
-  const [editNotes, setEditNotes] = useState(member.notes || '');
-  const [removing, setRemoving] = useState(false);
-  const [showAvail, setShowAvail] = useState(false);
-
-  const tgLabel = profile ? tcLevelToTG(profile.linked_tc_level) : null;
-
-  const handleSave = async () => {
-    const result = await onUpdate(member.id, { player_name: editName.trim(), notes: editNotes.trim() });
-    if (result.success) { setEditing(false); showToast(t('allianceCenter.memberUpdated', 'Member updated'), 'success'); }
-    else { showToast(result.error || 'Failed to update', 'error'); }
-  };
-
-  const handleRemove = async () => {
-    setRemoving(true);
-    const result = await onRemove(member.id);
-    setRemoving(false);
-    if (result.success) { showToast(t('allianceCenter.memberRemoved', '{{name}} removed', { name: member.player_name }), 'success'); }
-    else { showToast(result.error || 'Failed to remove', 'error'); }
-  };
-
-  if (editing) {
-    return (
-      <div style={{ padding: '0.6rem 0.75rem', backgroundColor: '#1a1a20', borderRadius: '8px', border: `1px solid ${ACCENT_BORDER}`, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        <input type="text" value={editName} onChange={e => setEditName(e.target.value.slice(0, 30))}
-          style={{ ...inputBase, padding: '0.35rem 0.5rem', fontSize: '0.8rem' }} />
-        <input type="text" value={editNotes} onChange={e => setEditNotes(e.target.value.slice(0, 200))}
-          placeholder="Notes..." maxLength={200} style={{ ...inputBase, padding: '0.35rem 0.5rem', fontSize: '0.75rem' }} />
-        <div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'flex-end' }}>
-          <button onClick={() => setEditing(false)} style={{ padding: '0.25rem 0.5rem', backgroundColor: 'transparent', border: '1px solid #2a2a2a', borderRadius: '4px', color: '#6b7280', fontSize: '0.7rem', cursor: 'pointer' }}>
-            {t('common.cancel', 'Cancel')}
-          </button>
-          <button onClick={handleSave} style={{ padding: '0.25rem 0.5rem', backgroundColor: ACCENT + '20', border: `1px solid ${ACCENT}40`, borderRadius: '4px', color: ACCENT, fontSize: '0.7rem', fontWeight: '600', cursor: 'pointer' }}>
-            {t('common.save', 'Save')}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
+// ─── Tier/TG select helper ───
+const TroopSelect: React.FC<{
+  label: string; color: string;
+  tier: number | null; tg: number | null;
+  onTierChange: (v: number | null) => void; onTgChange: (v: number | null) => void;
+}> = ({ label, color, tier, tg, onTierChange, onTgChange }) => {
+  const selStyle: React.CSSProperties = { ...inputBase, padding: '0.35rem 0.4rem', fontSize: '0.8rem', appearance: 'auto' as const };
   return (
-    <div style={{ borderRadius: '8px', border: '1px solid #1e1e24', transition: 'border-color 0.15s', backgroundColor: '#111116' }}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#2a2a2a'; }}
-      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#1e1e24'; }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.5rem' : '0.75rem', padding: '0.5rem 0.75rem' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
-            <span style={{ color: '#e5e7eb', fontSize: '0.85rem', fontWeight: '500', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {member.player_name}
-            </span>
-            {tgLabel && (
-              <span style={{
-                fontSize: '0.55rem', fontWeight: 700, padding: '0.05rem 0.3rem', borderRadius: '3px',
-                backgroundColor: tgLabel.startsWith('TG') ? '#fbbf2420' : '#22d3ee20',
-                color: tgLabel.startsWith('TG') ? '#fbbf24' : '#22d3ee',
-              }}>{tgLabel}</span>
-            )}
-            {profile?.linked_kingdom && (
-              <span style={{ color: '#4b5563', fontSize: '0.55rem' }}>K{profile.linked_kingdom}</span>
-            )}
-          </div>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            {member.player_id && <span style={{ color: '#4b5563', fontSize: '0.6rem', fontFamily: 'monospace' }}>ID: {member.player_id}</span>}
-            {member.notes && <span style={{ color: '#4b5563', fontSize: '0.6rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{member.notes}</span>}
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexShrink: 0 }}>
-          {/* Collapsed availability badge */}
-          {availabilityDays != null && availabilityDays > 0 && (
-            <button onClick={() => setShowAvail(prev => !prev)} title={t('allianceCenter.toggleAvailability', 'Toggle availability')}
-              style={{ padding: '0.15rem 0.35rem', backgroundColor: '#10b98115', border: '1px solid #10b98130', borderRadius: '3px', color: '#10b981', fontSize: '0.55rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-              📅 {availabilityDays}d/{availabilitySlots}s
-            </button>
-          )}
-          {canManage && (
-            <>
-              <button onClick={() => setEditing(true)} style={{ padding: '0.2rem 0.4rem', backgroundColor: 'transparent', border: '1px solid transparent', borderRadius: '4px', color: '#6b7280', fontSize: '0.65rem', cursor: 'pointer' }} title="Edit">✏️</button>
-              <button onClick={handleRemove} disabled={removing} style={{ padding: '0.2rem 0.4rem', backgroundColor: 'transparent', border: '1px solid transparent', borderRadius: '4px', color: '#ef4444', fontSize: '0.65rem', cursor: removing ? 'wait' : 'pointer', opacity: removing ? 0.5 : 1 }} title="Remove">🗑️</button>
-            </>
-          )}
-        </div>
+    <div>
+      <label style={{ color, fontSize: '0.7rem', fontWeight: '700', display: 'block', marginBottom: '0.25rem' }}>{label}</label>
+      <div style={{ display: 'flex', gap: '0.3rem' }}>
+        <select value={tier ?? ''} onChange={e => onTierChange(e.target.value ? Number(e.target.value) : null)} style={{ ...selStyle, flex: 1 }}>
+          <option value="">Tier</option>
+          {Array.from({ length: MAX_TIER - MIN_TIER + 1 }, (_, i) => MIN_TIER + i).map(t => (
+            <option key={t} value={t}>T{t}</option>
+          ))}
+        </select>
+        <select value={tg ?? ''} onChange={e => onTgChange(e.target.value ? Number(e.target.value) : null)} style={{ ...selStyle, flex: 1 }}>
+          <option value="">TG</option>
+          {Array.from({ length: MAX_TG - MIN_TG + 1 }, (_, i) => MIN_TG + i).map(t => (
+            <option key={t} value={t}>TG{t}</option>
+          ))}
+        </select>
       </div>
-      {/* Expanded availability detail */}
-      {showAvail && availabilityDays != null && availabilityDays > 0 && (
-        <div style={{ padding: '0.25rem 0.75rem 0.5rem', borderTop: '1px solid #1e1e24' }}>
-          <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>
-            {t('allianceCenter.availabilityHint', 'Has submitted availability for {{days}} days ({{slots}} time slots). View details in the Event Coordinator.', { days: availabilityDays, slots: availabilitySlots })}
-          </span>
-        </div>
-      )}
     </div>
   );
 };
 
-// ─── Section Wrapper ───
-const DashboardSection: React.FC<{
-  title: string; icon: string; rightContent?: React.ReactNode; children: React.ReactNode; accentColor?: string;
-}> = ({ title, icon, rightContent, children, accentColor = '#6b7280' }) => (
-  <div style={{ marginBottom: '1.5rem' }}>
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-      <span style={{ fontSize: '1rem' }}>{icon}</span>
-      <h3 style={{ color: '#fff', fontSize: '0.95rem', fontWeight: '700', margin: 0, fontFamily: FONT_DISPLAY }}>{title}</h3>
-      <div style={{ flex: 1, height: '1px', backgroundColor: accentColor + '30', marginLeft: '0.25rem' }} />
-      {rightContent}
+// ─── Edit Member Modal ───
+const EditMemberModal: React.FC<{
+  member: AllianceMember;
+  onUpdate: ReturnType<typeof useAllianceCenter>['updateMember'];
+  onClose: () => void;
+  restrictedMode?: boolean; // member self-edit: only troop fields
+}> = ({ member, onUpdate, onClose, restrictedMode }) => {
+  const { t } = useTranslation();
+  const { showToast } = useToast();
+  const [editName, setEditName] = useState(member.player_name);
+  const [editNotes, setEditNotes] = useState(member.notes || '');
+  const [infTier, setInfTier] = useState<number | null>(member.infantry_tier);
+  const [infTg, setInfTg] = useState<number | null>(member.infantry_tg);
+  const [cavTier, setCavTier] = useState<number | null>(member.cavalry_tier);
+  const [cavTg, setCavTg] = useState<number | null>(member.cavalry_tg);
+  const [arcTier, setArcTier] = useState<number | null>(member.archers_tier);
+  const [arcTg, setArcTg] = useState<number | null>(member.archers_tg);
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    const data: Parameters<typeof onUpdate>[1] = {
+      infantry_tier: infTier, infantry_tg: infTg,
+      cavalry_tier: cavTier, cavalry_tg: cavTg,
+      archers_tier: arcTier, archers_tg: arcTg,
+    };
+    if (!restrictedMode) {
+      data.player_name = editName.trim();
+      data.notes = editNotes.trim();
+    }
+    const result = await onUpdate(member.id, data);
+    setSaving(false);
+    if (result.success) { showToast(t('allianceCenter.memberUpdated', 'Member updated'), 'success'); onClose(); }
+    else { showToast(result.error || 'Failed to update', 'error'); }
+  };
+
+  return (
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '440px', backgroundColor: '#111111', borderRadius: '16px', border: '1px solid #2a2a2a', padding: '1.5rem', boxShadow: '0 16px 64px rgba(0,0,0,0.5)' }}>
+        <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '700', marginBottom: '1rem' }}>
+          {restrictedMode ? t('allianceCenter.editMyTroops', 'Edit My Troops') : t('allianceCenter.editMember', 'Edit Member')}
+        </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {!restrictedMode && (
+            <div>
+              <label style={{ color: '#9ca3af', fontSize: '0.7rem', fontWeight: '600', display: 'block', marginBottom: '0.2rem' }}>Username</label>
+              <input type="text" value={editName} onChange={e => setEditName(e.target.value.slice(0, 30))} style={inputBase} autoFocus />
+            </div>
+          )}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
+            <TroopSelect label="Infantry" color={TROOP_COLORS.infantry} tier={infTier} tg={infTg} onTierChange={setInfTier} onTgChange={setInfTg} />
+            <TroopSelect label="Cavalry" color={TROOP_COLORS.cavalry} tier={cavTier} tg={cavTg} onTierChange={setCavTier} onTgChange={setCavTg} />
+            <TroopSelect label="Archers" color={TROOP_COLORS.archers} tier={arcTier} tg={arcTg} onTierChange={setArcTier} onTgChange={setArcTg} />
+          </div>
+          {!restrictedMode && (
+            <div>
+              <label style={{ color: '#9ca3af', fontSize: '0.7rem', fontWeight: '600', display: 'block', marginBottom: '0.2rem' }}>Notes</label>
+              <input type="text" value={editNotes} onChange={e => setEditNotes(e.target.value.slice(0, 200))} placeholder="Optional notes" maxLength={200} style={inputBase} />
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+            <Button variant="ghost" onClick={onClose} style={{ flex: 1 }}>{t('common.cancel', 'Cancel')}</Button>
+            <Button variant="primary" onClick={handleSave} disabled={saving || (!restrictedMode && !editName.trim())} loading={saving} style={{ flex: 1 }}>
+              {t('common.save', 'Save')}
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
-    {children}
-  </div>
-);
+  );
+};
 
 // ─── Alliance Dashboard ───
 const AllianceDashboard: React.FC = () => {
@@ -647,17 +684,22 @@ const AllianceDashboard: React.FC = () => {
   const isMobile = useIsMobile();
   const { showToast } = useToast();
   const ac = useAllianceCenter();
-  const { reason, grantedBy } = useToolAccess();
+  const { hasAccess, reason, grantedBy } = useToolAccess();
   const [showAddMember, setShowAddMember] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showEditAlliance, setShowEditAlliance] = useState(false);
   const [showTransfer, setShowTransfer] = useState(false);
+  const [showManagers, setShowManagers] = useState(false);
+  const [editingMember, setEditingMember] = useState<AllianceMember | null>(null);
   const [editTag, setEditTag] = useState('');
   const [editName, setEditName] = useState('');
   const [editDesc, setEditDesc] = useState('');
   const [memberFilter, setMemberFilter] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
+  const [sortKey, setSortKey] = useState<SortKey>('name');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
 
   // Fetch availability summary per member (lightweight: just member_name + day count + slot count)
   const { data: availSummary = new Map<string, { days: number; slots: number }>() } = useQuery({
@@ -709,7 +751,7 @@ const AllianceDashboard: React.FC = () => {
     );
   }
 
-  // No alliance — show create or delegate/manager message
+  // No alliance — show create, delegate message, or "not in any alliance" for regular users
   if (!ac.alliance) {
     if (ac.accessRole === 'delegate' || reason === 'delegate') {
       return (
@@ -724,15 +766,72 @@ const AllianceDashboard: React.FC = () => {
         </div>
       );
     }
-    return <CreateAllianceForm onCreated={() => window.location.reload()} createAlliance={ac.createAlliance} />;
+    // Supporters can create; regular users see "not in any alliance"
+    if (hasAccess) {
+      return <CreateAllianceForm onCreated={() => window.location.reload()} createAlliance={ac.createAlliance} />;
+    }
+    return (
+      <div style={{ minHeight: '50vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', textAlign: 'center' }}>
+        <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>🏰</div>
+        <h2 style={{ color: '#fff', fontSize: '1.25rem', marginBottom: '0.5rem' }}>
+          {t('allianceCenter.noAlliance', 'You\'re not in any Alliance Center')}
+        </h2>
+        <p style={{ color: '#6b7280', fontSize: '0.85rem', maxWidth: '420px', lineHeight: 1.6 }}>
+          {t('allianceCenter.noAllianceDesc', 'Ask your alliance leader to add your Player ID to their roster. Once added, you\'ll be able to view the roster and update your own troop levels here.')}
+        </p>
+        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <Link to="/support" style={{ textDecoration: 'none' }}>
+            <Button variant="primary">{t('allianceCenter.becomeSupporter', 'Become a Supporter')}</Button>
+          </Link>
+          <Link to="/tools" style={{ textDecoration: 'none' }}>
+            <Button variant="ghost">{t('allianceCenter.backToTools', 'Back to Tools')}</Button>
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   const alliance = ac.alliance!;
-  const filtered = ac.sortedMembers.filter(m =>
-    !memberFilter || m.player_name.toLowerCase().includes(memberFilter.toLowerCase()) ||
-    (m.player_id && m.player_id.includes(memberFilter))
-  );
-  const roleLabel = ac.isOwner ? 'Owner' : ac.isManager ? 'Manager' : ac.accessRole === 'delegate' ? 'Delegate' : '';
+  const roleLabel = ac.isOwner ? 'Owner' : ac.isManager ? 'Manager' : ac.accessRole === 'delegate' ? 'Delegate' : ac.accessRole === 'member' ? 'Member' : '';
+  const isMemberOnly = ac.accessRole === 'member';
+
+  // Sort toggle
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  };
+  const sortArrow = (key: SortKey) => sortKey === key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '';
+
+  // Build enriched + filtered + sorted list
+  const filtered = useMemo(() => {
+    const base = ac.sortedMembers.filter(m =>
+      !memberFilter || m.player_name.toLowerCase().includes(memberFilter.toLowerCase()) ||
+      (m.player_id && m.player_id.includes(memberFilter))
+    );
+    // Sort
+    const getVal = (m: AllianceMember): string | number => {
+      const prof = m.player_id ? profilesMap.get(m.player_id) : undefined;
+      const apiData = m.player_id ? ac.apiPlayerData.get(m.player_id) : undefined;
+      const regTroop = m.player_id ? ac.registryTroopData.get(m.player_id) : undefined;
+      const tcLevel = prof?.linked_tc_level ?? apiData?.town_center_level ?? 0;
+      switch (sortKey) {
+        case 'name': return m.player_name.toLowerCase();
+        case 'id': return m.player_id || '';
+        case 'tc': return tcLevel;
+        case 'infantry': return m.infantry_tier ?? regTroop?.infantry_tier ?? 0;
+        case 'cavalry': return m.cavalry_tier ?? regTroop?.cavalry_tier ?? 0;
+        case 'archers': return m.archers_tier ?? regTroop?.archers_tier ?? 0;
+        case 'lang': return prof?.language || 'zzz';
+        case 'avail': return availSummary.get(m.player_name)?.slots ?? 0;
+        default: return m.player_name.toLowerCase();
+      }
+    };
+    return [...base].sort((a, b) => {
+      const va = getVal(a), vb = getVal(b);
+      const cmp = typeof va === 'number' && typeof vb === 'number' ? va - vb : String(va).localeCompare(String(vb));
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+  }, [ac.sortedMembers, memberFilter, sortKey, sortDir, profilesMap, ac.apiPlayerData, ac.registryTroopData, availSummary]);
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: isMobile ? '0.5rem' : '1rem' }}>
@@ -783,6 +882,10 @@ const AllianceDashboard: React.FC = () => {
                     style={{ padding: '0.35rem 0.6rem', backgroundColor: '#f59e0b10', border: '1px solid #f59e0b30', borderRadius: '6px', color: '#f59e0b', fontSize: '0.7rem', cursor: 'pointer' }}>
                     🔄 Transfer
                   </button>
+                  <button onClick={() => setShowManagers(true)}
+                    style={{ padding: '0.35rem 0.6rem', backgroundColor: '#a855f710', border: '1px solid #a855f730', borderRadius: '6px', color: '#a855f7', fontSize: '0.7rem', cursor: 'pointer' }}>
+                    ⚙️ Managers ({ac.managers.length}/{ac.maxManagers})
+                  </button>
                   <button onClick={() => setShowDeleteConfirm(true)}
                     style={{ padding: '0.35rem 0.6rem', backgroundColor: '#ef444410', border: '1px solid #ef444430', borderRadius: '6px', color: '#ef4444', fontSize: '0.7rem', cursor: 'pointer' }}>
                     🗑️
@@ -792,86 +895,286 @@ const AllianceDashboard: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
-
-      {/* Two-column layout on desktop */}
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 320px', gap: '1.5rem', alignItems: 'start' }}>
-        {/* Left: Members */}
-        <div>
-          <DashboardSection title={t('allianceCenter.rosterTitle', 'Alliance Roster')} icon="👥" accentColor={ACCENT}
-            rightContent={ac.canManage ? (
-              <div style={{ display: 'flex', gap: '0.3rem' }}>
-                <button onClick={() => setShowImport(true)} disabled={!ac.canAddMember}
-                  style={{ padding: '0.25rem 0.5rem', backgroundColor: '#22d3ee15', border: '1px solid #22d3ee30', borderRadius: '6px', color: '#22d3ee', fontSize: '0.65rem', fontWeight: '600', cursor: ac.canAddMember ? 'pointer' : 'not-allowed', opacity: ac.canAddMember ? 1 : 0.5 }}>
-                  📋 Import IDs
-                </button>
-                <button onClick={() => setShowAddMember(true)} disabled={!ac.canAddMember}
-                  style={{ padding: '0.25rem 0.6rem', backgroundColor: ACCENT + '15', border: `1px solid ${ACCENT}30`, borderRadius: '6px', color: ACCENT, fontSize: '0.7rem', fontWeight: '600', cursor: ac.canAddMember ? 'pointer' : 'not-allowed', opacity: ac.canAddMember ? 1 : 0.5 }}>
-                  + {t('allianceCenter.addMember', 'Add Member')}
-                </button>
-              </div>
-            ) : undefined}>
-            {/* Search bar */}
-            <div style={{ marginBottom: '0.75rem' }}>
-              <input type="text" value={memberFilter} onChange={e => setMemberFilter(e.target.value)}
-                placeholder={t('allianceCenter.searchMembers', 'Search by name or ID...')}
-                style={{ ...inputBase, fontSize: '0.8rem', padding: '0.4rem 0.6rem' }} />
-            </div>
-
-            {/* Member list */}
-            {ac.membersLoading ? (
-              <div style={{ color: '#6b7280', fontSize: '0.85rem', padding: '1rem 0', textAlign: 'center' }}>{t('common.loading', 'Loading...')}</div>
-            ) : filtered.length === 0 ? (
-              <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: '#111116', borderRadius: '10px', border: '1px dashed #2a2a2a' }}>
-                <p style={{ color: '#4b5563', fontSize: '0.85rem', margin: 0 }}>
-                  {ac.memberCount === 0
-                    ? t('allianceCenter.noMembers', 'No members yet. Add your alliance roster to get started.')
-                    : t('allianceCenter.noResults', 'No members match your filter.')}
-                </p>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', maxHeight: '500px', overflowY: 'auto' }}>
-                {filtered.map(m => {
-                  const prof = m.player_id ? profilesMap.get(m.player_id) : undefined;
-                  const avail = availSummary.get(m.player_name);
-                  return (
-                    <MemberRow key={m.id} member={m} onUpdate={ac.updateMember} onRemove={ac.removeMember} canManage={ac.canManage} isMobile={isMobile}
-                      profile={prof} availabilityDays={avail?.days} availabilitySlots={avail?.slots} />
-                  );
-                })}
-              </div>
-            )}
-          </DashboardSection>
-        </div>
-
-        {/* Right sidebar: Managers */}
-        <div>
-          <DashboardSection title={t('allianceCenter.managementTitle', 'Alliance Management')} icon="⚙️" accentColor="#a855f7">
-            <ManagerSection ac={ac} />
-          </DashboardSection>
-
-          {/* Event Coordinator Quick Link */}
-          <Link to="/tools/event-coordinator" style={{ textDecoration: 'none', display: 'block' }}>
-            <div style={{
-              padding: '0.75rem 1rem', backgroundColor: '#111116', borderRadius: '10px',
-              border: '1px solid #10b98130', cursor: 'pointer', transition: 'all 0.15s',
-              display: 'flex', alignItems: 'center', gap: '0.6rem',
-            }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#10b981'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#10b98130'; }}>
-              <span style={{ fontSize: '1.25rem' }}>📅</span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ color: '#e5e7eb', fontSize: '0.8rem', fontWeight: 600 }}>
-                  {t('allianceCenter.eventCoordinatorLink', 'Event Coordinator')}
-                </div>
-                <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>
-                  {t('allianceCenter.eventCoordinatorDesc', 'Find the best times for alliance events')}
-                </div>
-              </div>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </div>
+        {/* Alliance Tools Row */}
+        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #ffffff10', flexWrap: 'wrap' }}>
+          <Link to="/tools/event-coordinator" style={{
+            textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+            padding: '0.4rem 0.75rem', backgroundColor: '#3b82f610', border: '1px solid #3b82f625',
+            borderRadius: '8px', color: '#3b82f6', fontSize: '0.75rem', fontWeight: 600, transition: 'border-color 0.15s',
+          }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#3b82f6'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#3b82f625'; }}>
+            📅 {t('allianceCenter.eventCoordinatorLink', 'Event Coordinator')}
+          </Link>
+          <Link to="/tools/base-designer/about" style={{
+            textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+            padding: '0.4rem 0.75rem', backgroundColor: '#3b82f610', border: '1px solid #3b82f625',
+            borderRadius: '8px', color: '#3b82f6', fontSize: '0.75rem', fontWeight: 600, transition: 'border-color 0.15s',
+          }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#3b82f6'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#3b82f625'; }}>
+            🏰 {t('allianceCenter.baseDesignerLink', 'Base Designer')}
           </Link>
         </div>
+      </div>
+
+      {/* Alliance Roster — Full Width */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '1rem' }}>👥</span>
+          <h3 style={{ color: '#fff', fontSize: '0.95rem', fontWeight: '700', margin: 0, fontFamily: FONT_DISPLAY }}>
+            {t('allianceCenter.rosterTitle', 'Alliance Roster')}
+          </h3>
+          <div style={{ flex: 1, height: '1px', backgroundColor: ACCENT + '30', marginLeft: '0.25rem' }} />
+          {ac.canManage && (
+            <div style={{ display: 'flex', gap: '0.3rem' }}>
+              <button onClick={() => setShowImport(true)} disabled={!ac.canAddMember}
+                style={{ padding: '0.25rem 0.5rem', backgroundColor: '#22d3ee15', border: '1px solid #22d3ee30', borderRadius: '6px', color: '#22d3ee', fontSize: '0.65rem', fontWeight: '600', cursor: ac.canAddMember ? 'pointer' : 'not-allowed', opacity: ac.canAddMember ? 1 : 0.5 }}>
+                📋 Import IDs
+              </button>
+              <button onClick={() => setShowAddMember(true)} disabled={!ac.canAddMember}
+                style={{ padding: '0.25rem 0.6rem', backgroundColor: ACCENT + '15', border: `1px solid ${ACCENT}30`, borderRadius: '6px', color: ACCENT, fontSize: '0.7rem', fontWeight: '600', cursor: ac.canAddMember ? 'pointer' : 'not-allowed', opacity: ac.canAddMember ? 1 : 0.5 }}>
+                + {t('allianceCenter.addMember', 'Add Member')}
+              </button>
+            </div>
+          )}
+        </div>
+        {/* Search bar */}
+        <div style={{ marginBottom: '0.75rem' }}>
+          <input type="text" value={memberFilter} onChange={e => setMemberFilter(e.target.value)}
+            placeholder={t('allianceCenter.searchMembers', 'Search by name or ID...')}
+            style={{ ...inputBase, fontSize: '0.8rem', padding: '0.4rem 0.6rem' }} />
+        </div>
+
+        {/* Roster */}
+        {ac.membersLoading ? (
+          <div style={{ color: '#6b7280', fontSize: '0.85rem', padding: '1rem 0', textAlign: 'center' }}>{t('common.loading', 'Loading...')}</div>
+        ) : filtered.length === 0 ? (
+          <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: '#111116', borderRadius: '10px', border: '1px dashed #2a2a2a' }}>
+            <p style={{ color: '#4b5563', fontSize: '0.85rem', margin: 0 }}>
+              {ac.memberCount === 0
+                ? t('allianceCenter.noMembers', 'No members yet. Add your alliance roster to get started.')
+                : t('allianceCenter.noResults', 'No members match your filter.')}
+            </p>
+          </div>
+        ) : isMobile ? (
+          /* ─── Mobile Card Layout ─── */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {/* Mobile sort bar */}
+            <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', marginBottom: '0.25rem' }}>
+              {([['name', 'Name'], ['tc', 'TC'], ['infantry', 'Inf'], ['cavalry', 'Cav'], ['archers', 'Arc'], ['lang', 'Lang']] as [SortKey, string][]).map(([key, label]) => (
+                <button key={key} onClick={() => toggleSort(key)} style={{
+                  padding: '0.2rem 0.45rem', fontSize: '0.6rem', fontWeight: 600, borderRadius: '4px', border: 'none', cursor: 'pointer',
+                  backgroundColor: sortKey === key ? ACCENT + '25' : '#1a1a20', color: sortKey === key ? ACCENT : '#6b7280',
+                }}>{label}{sortArrow(key)}</button>
+              ))}
+            </div>
+            {filtered.map((m) => {
+              const prof = m.player_id ? profilesMap.get(m.player_id) : undefined;
+              const apiData = m.player_id ? ac.apiPlayerData.get(m.player_id) : undefined;
+              const regTroop = m.player_id ? ac.registryTroopData.get(m.player_id) : undefined;
+              const avail = availSummary.get(m.player_name);
+              const tcLevel = prof?.linked_tc_level ?? apiData?.town_center_level ?? null;
+              const tgLabel = tcLevelToTG(tcLevel);
+              const tgColors = tgLabel ? tgBadgeColor(tgLabel) : null;
+              const isNotInAtlas = m.player_id && !prof;
+              const isOwnRow = ac.currentMemberId === m.id;
+              const isRemoving = removingMemberId === m.id;
+              const flag = prof ? langFlag(prof.language) : null;
+
+              const renderTroopMobile = (label: string, manualTier: number | null, manualTg: number | null, regTier: number | undefined, regTg: number | undefined, color: string) => {
+                const tier = manualTier ?? regTier ?? null;
+                const tg = manualTier ? manualTg : (regTg ?? null);
+                const fromReg = !manualTier && regTier != null;
+                if (!tier) return null;
+                const text = tg != null && tg > 0 ? `T${tier}/TG${tg}` : `T${tier}`;
+                return (
+                  <span style={{ color: fromReg ? color + 'aa' : color, fontSize: '0.7rem', fontWeight: 600 }}>
+                    {label}: {text}{fromReg && <sup style={{ fontSize: '0.45rem', opacity: 0.6 }}>R</sup>}
+                  </span>
+                );
+              };
+
+              return (
+                <div key={m.id} style={{
+                  backgroundColor: isOwnRow ? '#111120' : '#111116', borderRadius: '10px', border: `1px solid ${isOwnRow ? '#3b82f625' : '#1e1e24'}`,
+                  padding: '0.75rem', transition: 'background-color 0.1s',
+                }}>
+                  {/* Top row: name + badges */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flex: 1, minWidth: 0 }}>
+                      {isNotInAtlas && <span title={t('allianceCenter.notInAtlas', 'User not in Atlas')} style={{ cursor: 'help', fontSize: '0.55rem', lineHeight: 1, flexShrink: 0 }}>🔴</span>}
+                      {prof ? (
+                        <Link to={`/profile/${prof.user_id}`} style={{ color: '#e5e7eb', fontWeight: 600, fontSize: '0.85rem', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          onMouseOver={e => (e.currentTarget.style.color = ACCENT)} onMouseOut={e => (e.currentTarget.style.color = '#e5e7eb')}>
+                          {m.player_name}
+                        </Link>
+                      ) : (
+                        <span style={{ color: '#e5e7eb', fontWeight: 600, fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.player_name}</span>
+                      )}
+                      {isOwnRow && <span style={{ fontSize: '0.5rem', fontWeight: 700, padding: '0.05rem 0.2rem', borderRadius: '3px', backgroundColor: '#3b82f625', color: '#3b82f6', flexShrink: 0 }}>YOU</span>}
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.15rem', flexShrink: 0 }}>
+                      {tgLabel && tgColors && <span style={{ fontSize: '0.6rem', fontWeight: 700, padding: '0.05rem 0.3rem', borderRadius: '3px', backgroundColor: tgColors.bg, color: tgColors.fg }}>{tgLabel}</span>}
+                      {flag && <span style={{ fontSize: '0.75rem' }} title={prof?.language || ''}>{flag}</span>}
+                    </div>
+                  </div>
+                  {/* Troop row */}
+                  <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', marginBottom: '0.3rem' }}>
+                    {renderTroopMobile('Inf', m.infantry_tier, m.infantry_tg, regTroop?.infantry_tier, regTroop?.infantry_tg, TROOP_COLORS.infantry)}
+                    {renderTroopMobile('Cav', m.cavalry_tier, m.cavalry_tg, regTroop?.cavalry_tier, regTroop?.cavalry_tg, TROOP_COLORS.cavalry)}
+                    {renderTroopMobile('Arc', m.archers_tier, m.archers_tg, regTroop?.archers_tier, regTroop?.archers_tg, TROOP_COLORS.archers)}
+                    {avail && <span style={{ color: '#10b981', fontSize: '0.65rem', fontWeight: 600 }}>{avail.days}d/{avail.slots}s</span>}
+                  </div>
+                  {/* Bottom row: ID + actions */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#4b5563', fontFamily: 'monospace', fontSize: '0.65rem' }}>{m.player_id || '—'}</span>
+                    <div style={{ display: 'flex', gap: '0.3rem' }}>
+                      {ac.canManage ? (
+                        <>
+                          <button onClick={() => setEditingMember(m)} style={{ padding: '0.3rem 0.5rem', backgroundColor: '#1a1a24', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#6b7280', fontSize: '0.7rem', cursor: 'pointer', minHeight: '28px' }} title="Edit">✏️</button>
+                          <button onClick={async () => {
+                            setRemovingMemberId(m.id);
+                            const result = await ac.removeMember(m.id);
+                            setRemovingMemberId(null);
+                            if (result.success) showToast(t('allianceCenter.memberRemoved', '{{name}} removed', { name: m.player_name }), 'success');
+                            else showToast(result.error || 'Failed to remove', 'error');
+                          }} disabled={isRemoving} style={{ padding: '0.3rem 0.5rem', backgroundColor: '#1a1a24', border: '1px solid #ef444430', borderRadius: '6px', color: '#ef4444', fontSize: '0.7rem', cursor: isRemoving ? 'wait' : 'pointer', opacity: isRemoving ? 0.5 : 1, minHeight: '28px' }} title="Remove">🗑️</button>
+                        </>
+                      ) : isOwnRow ? (
+                        <button onClick={() => setEditingMember(m)} style={{ padding: '0.3rem 0.5rem', backgroundColor: '#1a1a24', border: `1px solid ${ACCENT}30`, borderRadius: '6px', color: ACCENT, fontSize: '0.7rem', cursor: 'pointer', minHeight: '28px' }} title="Edit my troops">✏️</button>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          /* ─── Desktop Table ─── */
+          <div style={{ overflowX: 'auto', borderRadius: '10px', border: '1px solid #1e1e24' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#0d1117', borderBottom: '2px solid #2a2a2a' }}>
+                  <th style={{ ...thStyle, textAlign: 'left', cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('name')}>Username{sortArrow('name')}</th>
+                  <th style={{ ...thStyle, textAlign: 'left', cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('id')}>ID{sortArrow('id')}</th>
+                  <th style={{ ...thStyle, cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('tc')}>TC{sortArrow('tc')}</th>
+                  <th style={{ ...thStyle, color: TROOP_COLORS.infantry, cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('infantry')}>Infantry{sortArrow('infantry')}</th>
+                  <th style={{ ...thStyle, color: TROOP_COLORS.cavalry, cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('cavalry')}>Cavalry{sortArrow('cavalry')}</th>
+                  <th style={{ ...thStyle, color: TROOP_COLORS.archers, cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('archers')}>Archers{sortArrow('archers')}</th>
+                  <th style={{ ...thStyle, cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('lang')}>Lang{sortArrow('lang')}</th>
+                  <th style={{ ...thStyle, cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('avail')}>Avail{sortArrow('avail')}</th>
+                  {(ac.canManage || isMemberOnly) && <th style={{ ...thStyle, width: '60px' }}></th>}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((m, idx) => {
+                  const prof = m.player_id ? profilesMap.get(m.player_id) : undefined;
+                  const apiData = m.player_id ? ac.apiPlayerData.get(m.player_id) : undefined;
+                  const regTroop = m.player_id ? ac.registryTroopData.get(m.player_id) : undefined;
+                  const avail = availSummary.get(m.player_name);
+                  const tcLevel = prof?.linked_tc_level ?? apiData?.town_center_level ?? null;
+                  const tgLabel = tcLevelToTG(tcLevel);
+                  const tgColors = tgLabel ? tgBadgeColor(tgLabel) : null;
+                  const isNotInAtlas = m.player_id && !prof;
+                  const isRemoving = removingMemberId === m.id;
+                  const isOwnRow = ac.currentMemberId === m.id;
+                  const flag = prof ? langFlag(prof.language) : null;
+
+                  const renderTroop = (manualTier: number | null, manualTg: number | null, regTier: number | undefined, regTg: number | undefined, color: string) => {
+                    const tier = manualTier ?? regTier ?? null;
+                    const tg = manualTier ? manualTg : (regTg ?? null);
+                    const fromRegistry = !manualTier && regTier != null;
+                    if (!tier) return <span style={{ color: '#3a3a40' }}>—</span>;
+                    const label = tg != null && tg > 0 ? `T${tier}/TG${tg}` : `T${tier}`;
+                    return (
+                      <span style={{ color: fromRegistry ? color + 'aa' : color, fontSize: '0.75rem', fontWeight: 600 }} title={fromRegistry ? 'From Battle Registry' : undefined}>
+                        {label}{fromRegistry && <span style={{ fontSize: '0.5rem', verticalAlign: 'super', opacity: 0.6 }}>R</span>}
+                      </span>
+                    );
+                  };
+
+                  return (
+                    <tr key={m.id} style={{ borderBottom: '1px solid #1e1e24', backgroundColor: isOwnRow ? '#1a1a3020' : idx % 2 === 0 ? '#111116' : '#0d1117', transition: 'background-color 0.1s' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = '#1a1a24'; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = isOwnRow ? '#1a1a3020' : idx % 2 === 0 ? '#111116' : '#0d1117'; }}>
+                      <td style={tdStyle}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+                          {isNotInAtlas && (
+                            <span title={t('allianceCenter.notInAtlas', 'User not in Atlas')} style={{ cursor: 'help', fontSize: '0.55rem', lineHeight: 1 }}>🔴</span>
+                          )}
+                          {prof ? (
+                            <Link to={`/profile/${prof.user_id}`} style={{ color: '#e5e7eb', fontWeight: 500, textDecoration: 'none' }}
+                              onMouseOver={e => (e.currentTarget.style.color = ACCENT)} onMouseOut={e => (e.currentTarget.style.color = '#e5e7eb')}>
+                              {m.player_name}
+                            </Link>
+                          ) : (
+                            <span style={{ color: '#e5e7eb', fontWeight: 500 }}>{m.player_name}</span>
+                          )}
+                          {isOwnRow && (
+                            <span style={{
+                              fontSize: '0.55rem', fontWeight: 700, padding: '0.05rem 0.25rem', borderRadius: '3px',
+                              backgroundColor: '#3b82f625', color: '#3b82f6', whiteSpace: 'nowrap',
+                            }}>YOU</span>
+                          )}
+                        </div>
+                        {m.notes && <div style={{ color: '#4b5563', fontSize: '0.65rem', marginTop: '0.1rem' }}>{m.notes}</div>}
+                      </td>
+                      <td style={tdStyle}>
+                        <span style={{ color: '#6b7280', fontFamily: 'monospace', fontSize: '0.75rem' }}>{m.player_id || '—'}</span>
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: 'center' }}>
+                        {tgLabel && tgColors ? (
+                          <span style={{
+                            fontSize: '0.65rem', fontWeight: 700, padding: '0.1rem 0.35rem', borderRadius: '3px',
+                            backgroundColor: tgColors.bg, color: tgColors.fg,
+                          }}>{tgLabel}</span>
+                        ) : <span style={{ color: '#3a3a40' }}>—</span>}
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: 'center' }}>
+                        {renderTroop(m.infantry_tier, m.infantry_tg, regTroop?.infantry_tier, regTroop?.infantry_tg, TROOP_COLORS.infantry)}
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: 'center' }}>
+                        {renderTroop(m.cavalry_tier, m.cavalry_tg, regTroop?.cavalry_tier, regTroop?.cavalry_tg, TROOP_COLORS.cavalry)}
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: 'center' }}>
+                        {renderTroop(m.archers_tier, m.archers_tg, regTroop?.archers_tier, regTroop?.archers_tg, TROOP_COLORS.archers)}
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: 'center' }}>
+                        {flag ? <span title={prof?.language || ''} style={{ fontSize: '0.85rem' }}>{flag}</span> : <span style={{ color: '#3a3a40' }}>—</span>}
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: 'center' }}>
+                        {avail ? (
+                          <span style={{ color: '#10b981', fontSize: '0.7rem', fontWeight: 600 }}>{avail.days}d/{avail.slots}s</span>
+                        ) : <span style={{ color: '#3a3a40' }}>—</span>}
+                      </td>
+                      {(ac.canManage || isMemberOnly) && (
+                        <td style={{ ...tdStyle, textAlign: 'center' }}>
+                          <div style={{ display: 'flex', gap: '0.15rem', justifyContent: 'center' }}>
+                            {ac.canManage ? (
+                              <>
+                                <button onClick={() => setEditingMember(m)} style={{ padding: '0.15rem 0.3rem', backgroundColor: 'transparent', border: 'none', color: '#6b7280', fontSize: '0.7rem', cursor: 'pointer' }} title="Edit">✏️</button>
+                                <button onClick={async () => {
+                                  setRemovingMemberId(m.id);
+                                  const result = await ac.removeMember(m.id);
+                                  setRemovingMemberId(null);
+                                  if (result.success) showToast(t('allianceCenter.memberRemoved', '{{name}} removed', { name: m.player_name }), 'success');
+                                  else showToast(result.error || 'Failed to remove', 'error');
+                                }} disabled={isRemoving} style={{ padding: '0.15rem 0.3rem', backgroundColor: 'transparent', border: 'none', color: '#ef4444', fontSize: '0.7rem', cursor: isRemoving ? 'wait' : 'pointer', opacity: isRemoving ? 0.5 : 1 }} title="Remove">🗑️</button>
+                              </>
+                            ) : isOwnRow ? (
+                              <button onClick={() => setEditingMember(m)} style={{ padding: '0.15rem 0.3rem', backgroundColor: 'transparent', border: 'none', color: '#3b82f6', fontSize: '0.7rem', cursor: 'pointer' }} title="Edit my troops">✏️</button>
+                            ) : null}
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Modals */}
@@ -884,6 +1187,8 @@ const AllianceDashboard: React.FC = () => {
           onClose={() => setShowImport(false)} memberCount={ac.memberCount} maxMembers={ac.maxMembers} />
       )}
       {showTransfer && <TransferOwnershipModal ac={ac} onClose={() => setShowTransfer(false)} />}
+      {showManagers && <ManagerModal ac={ac} onClose={() => setShowManagers(false)} />}
+      {editingMember && <EditMemberModal member={editingMember} onUpdate={ac.updateMember} onClose={() => setEditingMember(null)} restrictedMode={isMemberOnly && editingMember.id === ac.currentMemberId} />}
 
       {/* Edit alliance modal */}
       {showEditAlliance && (
