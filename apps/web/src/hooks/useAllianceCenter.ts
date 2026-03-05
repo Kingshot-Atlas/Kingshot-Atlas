@@ -114,18 +114,6 @@ export function useAllianceCenter(): UseAllianceCenterResult {
     queryFn: async (): Promise<{ alliance: Alliance | null; accessRole: 'owner' | 'manager' | 'delegate' | 'none' }> => {
       if (!isSupabaseConfigured || !supabase || !user) return { alliance: null, accessRole: 'none' };
 
-      // CRITICAL: Always refresh the session before querying RLS-protected tables.
-      // A stale JWT causes auth.uid() to return NULL in PostgREST, making rows invisible.
-      // refreshSession() unconditionally exchanges the refresh token for a fresh access token.
-      try {
-        const { error: refreshErr } = await supabase.auth.refreshSession();
-        if (refreshErr) {
-          logger.warn('refreshSession() failed before alliance fetch:', refreshErr.message);
-        }
-      } catch (e) {
-        logger.error('Session refresh threw:', e);
-      }
-
       // 1. Check if user owns an alliance
       const { data: ownAlliance, error: ownError } = await supabase
         .from('alliances')
