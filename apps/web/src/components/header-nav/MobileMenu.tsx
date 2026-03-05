@@ -258,7 +258,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
           {/* Kingdom Tools */}
           <button
             onClick={() => setExpandedToolCategory(expandedToolCategory === 'kingdom' ? null : 'kingdom')}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0.45rem 1rem 0.45rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', backgroundColor: expandedToolCategory === 'kingdom' ? '#f9731610' : 'transparent', color: '#f97316', fontSize: '0.7rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left' }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0.45rem 1rem 0.45rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', backgroundColor: expandedToolCategory === 'kingdom' ? '#ffffff08' : 'transparent', color: '#e5e7eb', fontSize: '0.7rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left' }}
           >
             {t('nav.kingdomTools', 'Kingdom Tools')}
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={chevronStyle(expandedToolCategory === 'kingdom')}><path d="M6 9l6 6 6-6"/></svg>
@@ -283,18 +283,24 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
           {/* Alliance Tools */}
           <button
             onClick={() => setExpandedToolCategory(expandedToolCategory === 'alliance' ? null : 'alliance')}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0.45rem 1rem 0.45rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', backgroundColor: expandedToolCategory === 'alliance' ? '#3b82f610' : 'transparent', color: '#3b82f6', fontSize: '0.7rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left' }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0.45rem 1rem 0.45rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', backgroundColor: expandedToolCategory === 'alliance' ? '#ffffff08' : 'transparent', color: '#e5e7eb', fontSize: '0.7rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left' }}
           >
             {t('nav.allianceTools', 'Alliance Tools')}
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={chevronStyle(expandedToolCategory === 'alliance')}><path d="M6 9l6 6 6-6"/></svg>
           </button>
           {expandedToolCategory === 'alliance' && (
             <>
-              <Link to="/tools/base-designer/about" style={{ color: (isActive('/tools/base-designer') || isActive('/tools/base-designer/about')) ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ color: '#3b82f6', fontSize: '0.7rem' }}>●</span> {t('nav.baseDesigner', 'Base Designer')}
-              </Link>
               <Link to="/atlas-bot" style={{ color: isActive('/atlas-bot') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ color: '#5865F2', fontSize: '0.7rem' }}>●</span> {t('nav.atlasBot')}
+              </Link>
+              <Link to="/alliance-center" style={{ color: isActive('/alliance-center') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#3b82f6', fontSize: '0.7rem' }}>●</span> {t('nav.allianceCenter', 'Alliance Center')}
+              </Link>
+              <Link to="/tools/event-coordinator" style={{ color: isActive('/tools/event-coordinator') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#10b981', fontSize: '0.7rem' }}>●</span> {t('nav.eventCoordinator', 'Event Coordinator')}
+              </Link>
+              <Link to="/tools/base-designer/about" style={{ color: (isActive('/tools/base-designer') || isActive('/tools/base-designer/about')) ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#3b82f6', fontSize: '0.7rem' }}>●</span> {t('nav.baseDesigner', 'Base Designer')}
               </Link>
             </>
           )}
@@ -302,7 +308,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
           {/* Individual Tools */}
           <button
             onClick={() => setExpandedToolCategory(expandedToolCategory === 'individual' ? null : 'individual')}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0.45rem 1rem 0.45rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', backgroundColor: expandedToolCategory === 'individual' ? '#22d3ee10' : 'transparent', color: '#22d3ee', fontSize: '0.7rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left' }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0.45rem 1rem 0.45rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', backgroundColor: expandedToolCategory === 'individual' ? '#ffffff08' : 'transparent', color: '#e5e7eb', fontSize: '0.7rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left' }}
           >
             {t('nav.individualTools', 'Individual Tools')}
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={chevronStyle(expandedToolCategory === 'individual')}><path d="M6 9l6 6 6-6"/></svg>

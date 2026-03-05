@@ -66,6 +66,8 @@ const BattleRegistry = lazy(() => import('./pages/BattleRegistry'));
 const BattleRegistryLanding = lazy(() => import('./pages/BattleRegistryLanding'));
 const Top100Leaderboard = lazy(() => import('./pages/Top100Leaderboard'));
 const KvKSpreadsheet = lazy(() => import('./pages/KvKSpreadsheet'));
+const AllianceCenter = lazy(() => import('./pages/AllianceCenter'));
+const AllianceEventCoordinator = lazy(() => import('./pages/AllianceEventCoordinator'));
 
 // 404 Not Found component
 const NotFound = () => {
@@ -180,6 +182,8 @@ function AppContent() {
               <Route path="/campaigns/kingdom-settlers" element={<ErrorBoundary><KingdomSettlers /></ErrorBoundary>} />
               <Route path="/admin/campaign-draw" element={<ErrorBoundary><AdminCampaignDraw /></ErrorBoundary>} />
               <Route path="/tools/kvk-spreadsheet" element={<ErrorBoundary><KvKSpreadsheet /></ErrorBoundary>} />
+              <Route path="/alliance-center" element={<ErrorBoundary><AllianceCenter /></ErrorBoundary>} />
+              <Route path="/tools/event-coordinator" element={<ErrorBoundary><AllianceEventCoordinator /></ErrorBoundary>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

@@ -10,8 +10,8 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { logger } from '../utils/logger';
 import { getBrowserLanguage } from '../utils/translateMessage';
 import type { Conversation, ChatMessage } from './messages/types';
-import ConversationListItem from './messages/ConversationListItem';
-import ChatBubble from './messages/ChatBubble';
+import ConversationListPanel from './messages/ConversationListPanel';
+import ChatPanel from './messages/ChatPanel';
 import { getAnonAlias } from '../utils/anonAlias';
 
 // ─── Rate Limiter ─────────────────────────────────────────────
@@ -763,226 +763,40 @@ const Messages: React.FC = () => {
         }}>
           {/* Conversation List */}
           {showConvoList && (
-            <div style={{
-              width: isMobile ? '100%' : '320px',
-              borderRight: isMobile ? 'none' : `1px solid ${colors.border}`,
-              overflowY: 'auto',
-              flexShrink: 0,
-              display: 'flex',
-              flexDirection: 'column',
-            }}>
-              {/* Search bar */}
-              <div style={{
-                padding: '0.5rem',
-                borderBottom: `1px solid ${colors.border}`,
-                position: 'sticky',
-                top: 0,
-                backgroundColor: '#0a0a0a',
-                zIndex: 1,
-              }}>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={t('messages.searchPlaceholder', 'Search conversations...')}
-                  style={{
-                    width: '100%',
-                    padding: '0.4rem 0.6rem',
-                    backgroundColor: '#111',
-                    border: `1px solid ${colors.border}`,
-                    borderRadius: '6px',
-                    color: colors.text,
-                    fontSize: '0.75rem',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
-              <div style={{ flex: 1, overflowY: 'auto' }}>
-              {filteredConversations.length === 0 && searchQuery.trim() ? (
-                <div style={{ padding: '1.5rem', textAlign: 'center', color: colors.textMuted, fontSize: '0.75rem' }}>
-                  {t('messages.noSearchResults', 'No conversations found.')}
-                </div>
-              ) : filteredConversations.map(convo => (
-                <ConversationListItem
-                  key={convo.application_id}
-                  convo={convo}
-                  isActive={activeConvo === convo.application_id}
-                  isMobile={isMobile}
-                  currentUserId={user?.id || ''}
-                  formatTime={formatTime}
-                  onClick={() => setActiveConvo(convo.application_id)}
-                />
-              ))}
-              </div>
-            </div>
+            <ConversationListPanel
+              conversations={filteredConversations}
+              activeConvo={activeConvo}
+              isMobile={isMobile}
+              currentUserId={user?.id || ''}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              formatTime={formatTime}
+              setActiveConvo={setActiveConvo}
+            />
           )}
 
           {/* Chat Panel */}
           {showChat && (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-              {activeConvo && activeConversation ? (
-                <>
-                  {/* Chat Header */}
-                  <div style={{
-                    padding: isMobile ? '0.75rem 1rem' : '0.65rem 0.85rem',
-                    borderBottom: `1px solid ${colors.border}`,
-                    display: 'flex', alignItems: 'center', gap: '0.5rem',
-                    backgroundColor: '#0d0d0d',
-                  }}>
-                    {isMobile && (
-                      <button onClick={() => setActiveConvo(null)} style={{
-                        background: 'none', border: 'none', color: '#22d3ee',
-                        fontSize: '1.1rem', cursor: 'pointer', padding: '0.2rem',
-                        display: 'flex', alignItems: 'center',
-                      }}>
-                        ←
-                      </button>
-                    )}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <span style={{ fontWeight: '600', color: '#fff', fontSize: '0.85rem' }}>
-                          {activeConversation.other_party_name}
-                        </span>
-                        <Link to={`/kingdom/${activeConversation.role === 'recruiter' && activeConversation.candidate_kingdom ? activeConversation.candidate_kingdom : activeConversation.kingdom_number}`} style={{
-                          fontSize: '0.65rem', color: '#22d3ee', textDecoration: 'none',
-                        }}>
-                          K{activeConversation.role === 'recruiter' && activeConversation.candidate_kingdom ? activeConversation.candidate_kingdom : activeConversation.kingdom_number}
-                        </Link>
-                      </div>
-                      <span style={{ fontSize: '0.6rem', color: colors.textMuted }}>
-                        {activeConversation.is_pre_app
-                          ? t('messages.preAppStatus', 'Pre-application message')
-                          : `${activeConversation.status.charAt(0).toUpperCase() + activeConversation.status.slice(1)} · ${activeConversation.role === 'recruiter' ? t('messages.youAreRecruiter', 'You are recruiting') : t('messages.youAreTransferee', 'You applied')}`
-                        }
-                      </span>
-                    </div>
-                    {!activeConversation.is_pre_app && (
-                      <Link
-                        to={activeConversation.role === 'recruiter'
-                          ? `/transfer-hub?view=recruiter&app=${activeConversation.application_id}`
-                          : `/transfer-hub?view=my-apps`}
-                        style={{
-                          padding: '0.25rem 0.5rem', backgroundColor: '#ffffff08',
-                          border: '1px solid #ffffff15', borderRadius: '4px',
-                          color: colors.textMuted, fontSize: '0.6rem', textDecoration: 'none',
-                        }}
-                      >
-                        {t('messages.viewApp', 'View App')}
-                      </Link>
-                    )}
-                  </div>
-
-                  {/* Messages Area */}
-                  <div style={{
-                    flex: 1, overflowY: 'auto', padding: '0.75rem',
-                    display: 'flex', flexDirection: 'column', gap: '0.3rem',
-                  }}>
-                    {loadingMessages ? (
-                      <div style={{ textAlign: 'center', color: colors.textMuted, fontSize: '0.75rem', padding: '2rem 0' }}>
-                        {t('messages.loadingMessages', 'Loading messages...')}
-                      </div>
-                    ) : messages.length === 0 ? (
-                      <div style={{ textAlign: 'center', color: colors.textMuted, fontSize: '0.75rem', padding: '2rem 0' }}>
-                        <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>💬</div>
-                        {t('messages.emptyChat', 'No messages yet. Say hello!')}
-                      </div>
-                    ) : (
-                      messages.map(msg => (
-                        <ChatBubble
-                          key={msg.id}
-                          msg={msg}
-                          isMe={msg.sender_user_id === user?.id}
-                          isMobile={isMobile}
-                          senderName={msg.sender_user_id !== user?.id ? senderNames[msg.sender_user_id] : undefined}
-                          otherReadAt={otherReadAt}
-                          browserLang={browserLang}
-                        />
-                      ))
-                    )}
-                    {otherTyping && (
-                      <div style={{
-                        display: 'flex', justifyContent: 'flex-start',
-                        padding: '0.15rem 0',
-                      }}>
-                        <div style={{
-                          padding: '0.3rem 0.6rem',
-                          backgroundColor: '#ffffff08',
-                          border: '1px solid #ffffff15',
-                          borderRadius: '12px 12px 12px 2px',
-                          display: 'flex', alignItems: 'center', gap: '0.25rem',
-                        }}>
-                          <span style={{ fontSize: '0.7rem', color: colors.textMuted, fontStyle: 'italic' }}>
-                            {t('messages.typing', 'typing')}
-                          </span>
-                          <span style={{
-                            display: 'inline-flex', gap: '2px', alignItems: 'center',
-                          }}>
-                            {[0, 1, 2].map(i => (
-                              <span key={i} style={{
-                                width: '4px', height: '4px', borderRadius: '50%',
-                                backgroundColor: '#6b7280',
-                                animation: `typingDot 1.2s ${i * 0.2}s infinite`,
-                              }} />
-                            ))}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                    <div ref={msgEndRef} />
-                  </div>
-
-                  {/* Send Box */}
-                  <div style={{
-                    padding: isMobile ? '0.6rem 0.75rem' : '0.5rem 0.75rem',
-                    borderTop: `1px solid ${colors.border}`,
-                    backgroundColor: '#0d0d0d',
-                    display: 'flex', gap: '0.4rem', alignItems: 'center',
-                  }}>
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      value={msgText}
-                      onChange={(e) => { setMsgText(e.target.value.slice(0, 500)); broadcastTyping(); }}
-                      onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-                      placeholder={t('messages.typePlaceholder', 'Type a message...')}
-                      style={{
-                        flex: 1, padding: isMobile ? '0.6rem 0.75rem' : '0.4rem 0.6rem',
-                        backgroundColor: '#111', border: `1px solid ${colors.border}`,
-                        borderRadius: '8px', color: colors.text,
-                        fontSize: isMobile ? '1rem' : '0.8rem',
-                        outline: 'none', minHeight: isMobile ? '44px' : '36px',
-                      }}
-                    />
-                    <button
-                      onClick={sendMessage}
-                      disabled={sendingMsg || !msgText.trim()}
-                      style={{
-                        padding: isMobile ? '0.6rem 1rem' : '0.4rem 0.75rem',
-                        backgroundColor: sendingMsg || !msgText.trim() ? '#3b82f620' : '#3b82f6',
-                        border: 'none', borderRadius: '8px',
-                        color: sendingMsg || !msgText.trim() ? '#3b82f680' : '#fff',
-                        fontSize: isMobile ? '0.9rem' : '0.78rem',
-                        fontWeight: '600', cursor: sendingMsg || !msgText.trim() ? 'not-allowed' : 'pointer',
-                        minHeight: isMobile ? '44px' : '36px',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}
-                    >
-                      {sendingMsg ? '...' : t('messages.send', 'Send')}
-                    </button>
-                  </div>
-                </>
-              ) : (
-                !isMobile && (
-                  <div style={{
-                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexDirection: 'column', color: colors.textMuted,
-                  }}>
-                    <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>💬</div>
-                    <p style={{ fontSize: '0.85rem' }}>{t('messages.selectConvo', 'Select a conversation to start chatting')}</p>
-                  </div>
-                )
-              )}
+              <ChatPanel
+                activeConversation={activeConversation}
+                messages={messages}
+                loadingMessages={loadingMessages}
+                isMobile={isMobile}
+                currentUserId={user?.id || ''}
+                senderNames={senderNames}
+                otherReadAt={otherReadAt}
+                browserLang={browserLang}
+                otherTyping={otherTyping}
+                msgText={msgText}
+                setMsgText={setMsgText}
+                sendingMsg={sendingMsg}
+                sendMessage={sendMessage}
+                broadcastTyping={broadcastTyping}
+                setActiveConvo={setActiveConvo}
+                msgEndRef={msgEndRef}
+                inputRef={inputRef}
+              />
             </div>
           )}
         </div>

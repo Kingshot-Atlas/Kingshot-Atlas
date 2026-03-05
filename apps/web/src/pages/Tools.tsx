@@ -417,8 +417,46 @@ const Tools: React.FC = () => {
     }
   ];
 
+  const allianceCenterCard: ToolCardProps = {
+    title: t('tools.allianceCenterTitle', 'Alliance Center'),
+    description: t('tools.allianceCenterDesc', 'Your alliance command hub. Manage your roster, coordinate tools, and delegate access — all from one dashboard.'),
+    tagline: t('tools.allianceCenterTagline', 'One hub. Full control.'),
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 21h18"/>
+        <path d="M5 21V7l7-4 7 4v14"/>
+        <path d="M9 21v-4h6v4"/>
+        <path d="M9 10h1M14 10h1"/>
+      </svg>
+    ),
+    href: '/alliance-center',
+    accentColor: '#3b82f6',
+    ctaLabel: t('tools.openDashboard', 'Open Dashboard'),
+  };
+
+  const eventCoordinatorCard: ToolCardProps = {
+    title: t('tools.eventCoordinatorTitle', 'Event Coordinator'),
+    description: t('tools.eventCoordinatorDesc', 'Find the best times for alliance events. Members submit their available play times — managers see the most active 30-minute time slots at a glance.'),
+    tagline: t('tools.eventCoordinatorTagline', 'Right time. Full attendance.'),
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+        <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>
+      </svg>
+    ),
+    href: '/tools/event-coordinator',
+    accentColor: '#3b82f6',
+    ctaLabel: t('tools.launchTool', 'Launch Tool'),
+  };
+
   const kingdomTools = tools.slice(0, 4);
-  const allianceTools = tools.slice(4, 6);
+  // Discord Bot (tools[4]) is index 4, Base Designer (tools[5]) is index 5
+  const discordBotCard = { ...tools[4]!, accentColor: '#3b82f6' };
+  const baseDesignerCard = tools[5]!;
+  const allianceTools = [discordBotCard, allianceCenterCard, eventCoordinatorCard, baseDesignerCard];
   const individualTools = tools.slice(6);
 
   return (
@@ -475,11 +513,11 @@ const Tools: React.FC = () => {
         {/* Kingdom Tools */}
         <div style={{ marginBottom: isMobile ? '1.5rem' : '2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: isMobile ? '0.75rem' : '1rem' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M9 21v-4h6v4"/></svg>
-            <h2 style={{ fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: '700', color: '#f97316', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: FONT_DISPLAY }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e5e7eb" strokeWidth="2"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M9 21v-4h6v4"/></svg>
+            <h2 style={{ fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: '700', color: '#e5e7eb', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: FONT_DISPLAY }}>
               {t('tools.categoryKingdom', 'Kingdom Tools')}
             </h2>
-            <div style={{ flex: 1, height: '1px', backgroundColor: '#f9731630' }} />
+            <div style={{ flex: 1, height: '1px', backgroundColor: '#ffffff20' }} />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: isMobile ? '1rem' : '1.5rem' }}>
             {kingdomTools.map((tool, index) => (<ToolCard key={`k-${index}`} {...tool} />))}
@@ -489,11 +527,11 @@ const Tools: React.FC = () => {
         {/* Alliance Tools */}
         <div style={{ marginBottom: isMobile ? '1.5rem' : '2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: isMobile ? '0.75rem' : '1rem' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            <h2 style={{ fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: '700', color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: FONT_DISPLAY }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e5e7eb" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <h2 style={{ fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: '700', color: '#e5e7eb', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: FONT_DISPLAY }}>
               {t('tools.categoryAlliance', 'Alliance Tools')}
             </h2>
-            <div style={{ flex: 1, height: '1px', backgroundColor: '#3b82f630' }} />
+            <div style={{ flex: 1, height: '1px', backgroundColor: '#ffffff20' }} />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: isMobile ? '1rem' : '1.5rem' }}>
             {allianceTools.map((tool, index) => (<ToolCard key={`a-${index}`} {...tool} />))}
@@ -503,11 +541,11 @@ const Tools: React.FC = () => {
         {/* Individual Tools */}
         <div style={{ marginBottom: isMobile ? '1.5rem' : '2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: isMobile ? '0.75rem' : '1rem' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <h2 style={{ fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: '700', color: '#22d3ee', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: FONT_DISPLAY }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e5e7eb" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <h2 style={{ fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: '700', color: '#e5e7eb', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: FONT_DISPLAY }}>
               {t('tools.categoryIndividual', 'Individual Tools')}
             </h2>
-            <div style={{ flex: 1, height: '1px', backgroundColor: '#22d3ee30' }} />
+            <div style={{ flex: 1, height: '1px', backgroundColor: '#ffffff20' }} />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: isMobile ? '1rem' : '1.5rem' }}>
             {individualTools.map((tool, index) => (<ToolCard key={`i-${index}`} {...tool} />))}

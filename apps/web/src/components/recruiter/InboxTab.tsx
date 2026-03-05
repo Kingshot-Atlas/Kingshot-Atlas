@@ -6,21 +6,65 @@ import WatchlistTab from './WatchlistTab';
 import type { IncomingApplication, EditorInfo } from './types';
 import { formatTCLevel, inputStyle } from './types';
 import { supabase } from '../../lib/supabase';
-import { getAnonAlias } from '../../utils/anonAlias';
+import { useIsMobile } from '../../hooks/useMediaQuery';
 
-const downloadApprovedCSV = (apps: IncomingApplication[]) => {
-  const headers = ['Player ID', 'Username', 'Kingdom', 'TC Level', 'Power', 'Language', 'KvK Availability', 'Applied At', 'Note'];
-  const rows = apps.map(app => [
-    app.profile?.linked_player_id || '',
-    (app.profile?.is_anonymous ? getAnonAlias(app.transfer_profile_id) : app.profile?.username) || 'Unknown',
-    app.profile?.current_kingdom?.toString() || '',
-    app.profile?.tc_level ? formatTCLevel(app.profile.tc_level) : '',
-    app.profile?.power_million ? `${app.profile.power_million}M` : app.profile?.power_range || '',
-    app.profile?.main_language || '',
-    app.profile?.kvk_availability || '',
-    new Date(app.applied_at).toLocaleDateString(),
-    app.applicant_note || '',
-  ]);
+type GroupPlayer = { username: string; power_million: string; tc_level: string; player_id: string };
+const emptyGroupPlayer = (): GroupPlayer => ({ username: '', power_million: '', tc_level: '', player_id: '' });
+
+type ExternalRecruit = {
+  id: string;
+  type: 'individual' | 'group';
+  username?: string;
+  player_id?: string;
+  from_kingdom?: number;
+  power_million?: number;
+  tc_level?: number;
+  contact_username?: string;
+  contact_kingdom?: number;
+  player_count?: number;
+  note?: string;
+  assigned_alliance?: string;
+  group_players?: GroupPlayer[];
+  created_at: string;
+};
+
+const downloadApprovedCSV = (apps: IncomingApplication[], externals: ExternalRecruit[]) => {
+  const headers = ['Kingdom', 'Username', 'Power', 'Town Center', 'Player ID', 'Alliance'];
+  const rows: string[][] = [];
+  for (const app of apps) {
+    rows.push([
+      app.profile?.current_kingdom ? `K${app.profile.current_kingdom}` : '',
+      app.profile?.username || 'Unknown',
+      app.profile?.power_million ? `${app.profile.power_million}M` : app.profile?.power_range || '',
+      app.profile?.tc_level ? formatTCLevel(app.profile.tc_level) : '',
+      app.profile?.linked_player_id || '',
+      app.assigned_alliance || '',
+    ]);
+  }
+  for (const r of externals) {
+    if (r.type === 'individual') {
+      rows.push([
+        r.from_kingdom ? `K${r.from_kingdom}` : '',
+        r.username || '',
+        r.power_million ? `${r.power_million}M` : '',
+        r.tc_level ? formatTCLevel(r.tc_level) : '',
+        r.player_id || '',
+        r.assigned_alliance || '',
+      ]);
+    } else if (r.type === 'group') {
+      const players = (r.group_players || []) as GroupPlayer[];
+      for (const p of players) {
+        rows.push([
+          r.contact_kingdom ? `K${r.contact_kingdom}` : '',
+          p.username || '',
+          p.power_million ? `${p.power_million}M` : '',
+          p.tc_level ? formatTCLevel(parseInt(p.tc_level) || 0) : '',
+          p.player_id || '',
+          r.assigned_alliance || '',
+        ]);
+      }
+    }
+  }
   const csvContent = [headers, ...rows].map(r => r.map(c => `"${(c || '').replace(/"/g, '""')}"`).join(',')).join('\n');
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
@@ -69,34 +113,24 @@ const InboxTab: React.FC<InboxTabProps> = ({
   onAssignAlliance,
 }) => {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
+  const mInput: React.CSSProperties = { ...inputStyle, fontSize: isMobile ? '1rem' : '0.7rem', padding: isMobile ? '0.5rem 0.6rem' : '0.35rem 0.5rem', minHeight: isMobile ? '44px' : '34px' };
+  const mInputSm: React.CSSProperties = { ...inputStyle, fontSize: isMobile ? '0.9rem' : '0.65rem', padding: isMobile ? '0.4rem 0.5rem' : '0.25rem 0.35rem', minHeight: isMobile ? '44px' : '30px' };
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkUpdating, setBulkUpdating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'tc_desc' | 'power_desc'>('newest');
 
   // External Recruits Tracker state
-  type ExternalRecruit = {
-    id: string;
-    type: 'individual' | 'group';
-    username?: string;
-    player_id?: string;
-    from_kingdom?: number;
-    power_million?: number;
-    tc_level?: number;
-    contact_username?: string;
-    contact_kingdom?: number;
-    player_count?: number;
-    note?: string;
-    assigned_alliance?: string;
-    created_at: string;
-  };
   const [externalRecruits, setExternalRecruits] = useState<ExternalRecruit[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [addMode, setAddMode] = useState<'individual' | 'group'>('individual');
   const [addForm, setAddForm] = useState({ username: '', player_id: '', from_kingdom: '', power_million: '', tc_level: '', contact_username: '', contact_kingdom: '', player_count: '', note: '', assigned_alliance: '' });
+  const [addGroupPlayers, setAddGroupPlayers] = useState<GroupPlayer[]>([]);
   const [addingSaving, setAddingSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ username: '', player_id: '', from_kingdom: '', power_million: '', tc_level: '', contact_username: '', contact_kingdom: '', player_count: '', note: '', assigned_alliance: '' });
+  const [editGroupPlayers, setEditGroupPlayers] = useState<GroupPlayer[]>([]);
 
   // Fetch external recruits
   useEffect(() => {
@@ -140,20 +174,23 @@ const InboxTab: React.FC<InboxTabProps> = ({
         type: addMode,
       };
       if (addMode === 'individual') {
-        if (!addForm.username.trim()) { setAddingSaving(false); return; }
+        if (!addForm.username.trim() || !addForm.from_kingdom || !addForm.power_million || !addForm.player_id.trim() || !addForm.tc_level || !addForm.assigned_alliance.trim()) { setAddingSaving(false); return; }
         row.username = addForm.username.trim();
-        if (addForm.player_id.trim()) row.player_id = addForm.player_id.trim();
-        if (addForm.from_kingdom) row.from_kingdom = parseInt(addForm.from_kingdom);
-        if (addForm.power_million) row.power_million = parseFloat(addForm.power_million);
-        if (addForm.tc_level) row.tc_level = parseInt(addForm.tc_level);
+        row.player_id = addForm.player_id.trim();
+        row.from_kingdom = parseInt(addForm.from_kingdom);
+        row.power_million = parseFloat(addForm.power_million);
+        row.tc_level = parseInt(addForm.tc_level);
       } else {
-        if (!addForm.contact_username.trim() || !addForm.player_count) { setAddingSaving(false); return; }
+        if (!addForm.contact_username.trim() || !addForm.player_count || !addForm.contact_kingdom || !addForm.assigned_alliance.trim()) { setAddingSaving(false); return; }
+        const hasEmptyPlayerFields = addGroupPlayers.some(p => !p.username.trim() || !p.power_million.trim() || !p.tc_level.trim() || !p.player_id.trim());
+        if (addGroupPlayers.length === 0 || hasEmptyPlayerFields) { setAddingSaving(false); return; }
         row.contact_username = addForm.contact_username.trim();
-        if (addForm.contact_kingdom) row.contact_kingdom = parseInt(addForm.contact_kingdom);
+        row.contact_kingdom = parseInt(addForm.contact_kingdom);
         row.player_count = parseInt(addForm.player_count);
+        row.group_players = addGroupPlayers;
       }
       if (addForm.note.trim()) row.note = addForm.note.trim();
-      if (addForm.assigned_alliance.trim()) row.assigned_alliance = addForm.assigned_alliance.trim();
+      row.assigned_alliance = addForm.assigned_alliance.trim();
       const { data, error } = await supabase.from('external_recruits').insert(row).select().single();
       if (error) {
         console.error('Failed to save external recruit:', error);
@@ -162,12 +199,13 @@ const InboxTab: React.FC<InboxTabProps> = ({
       if (data) {
         setExternalRecruits(prev => [data as ExternalRecruit, ...prev]);
         setAddForm({ username: '', player_id: '', from_kingdom: '', power_million: '', tc_level: '', contact_username: '', contact_kingdom: '', player_count: '', note: '', assigned_alliance: '' });
+        setAddGroupPlayers([]);
         setShowAddForm(false);
       }
     } finally {
       setAddingSaving(false);
     }
-  }, [supabase, kingdomNumber, addMode, addForm, addingSaving]);
+  }, [supabase, kingdomNumber, addMode, addForm, addGroupPlayers, addingSaving]);
 
   const handleDeleteRecruit = useCallback(async (id: string) => {
     if (!supabase) return;
@@ -189,6 +227,7 @@ const InboxTab: React.FC<InboxTabProps> = ({
       note: r.note || '',
       assigned_alliance: r.assigned_alliance || '',
     });
+    setEditGroupPlayers(r.group_players && r.group_players.length > 0 ? r.group_players : Array.from({ length: r.player_count || 0 }, emptyGroupPlayer));
   }, []);
 
   const handleSaveEdit = useCallback(async () => {
@@ -199,20 +238,23 @@ const InboxTab: React.FC<InboxTabProps> = ({
       if (!recruit) return;
       const updates: Record<string, unknown> = {};
       if (recruit.type === 'individual') {
-        if (!editForm.username.trim()) { setAddingSaving(false); return; }
+        if (!editForm.username.trim() || !editForm.from_kingdom || !editForm.power_million || !editForm.player_id.trim() || !editForm.tc_level || !editForm.assigned_alliance.trim()) { setAddingSaving(false); return; }
         updates.username = editForm.username.trim();
-        updates.player_id = editForm.player_id.trim() || null;
-        updates.from_kingdom = editForm.from_kingdom ? parseInt(editForm.from_kingdom) : null;
-        updates.power_million = editForm.power_million ? parseFloat(editForm.power_million) : null;
-        updates.tc_level = editForm.tc_level ? parseInt(editForm.tc_level) : null;
+        updates.player_id = editForm.player_id.trim();
+        updates.from_kingdom = parseInt(editForm.from_kingdom);
+        updates.power_million = parseFloat(editForm.power_million);
+        updates.tc_level = parseInt(editForm.tc_level);
       } else {
-        if (!editForm.contact_username.trim() || !editForm.player_count) { setAddingSaving(false); return; }
+        if (!editForm.contact_username.trim() || !editForm.player_count || !editForm.contact_kingdom || !editForm.assigned_alliance.trim()) { setAddingSaving(false); return; }
+        const hasEmptyEditPlayerFields = editGroupPlayers.some(p => !p.username.trim() || !p.power_million.trim() || !p.tc_level.trim() || !p.player_id.trim());
+        if (editGroupPlayers.length === 0 || hasEmptyEditPlayerFields) { setAddingSaving(false); return; }
         updates.contact_username = editForm.contact_username.trim();
-        updates.contact_kingdom = editForm.contact_kingdom ? parseInt(editForm.contact_kingdom) : null;
+        updates.contact_kingdom = parseInt(editForm.contact_kingdom);
         updates.player_count = parseInt(editForm.player_count);
+        updates.group_players = editGroupPlayers;
       }
       updates.note = editForm.note.trim() || null;
-      updates.assigned_alliance = editForm.assigned_alliance.trim() || null;
+      updates.assigned_alliance = editForm.assigned_alliance.trim();
       const { data, error } = await supabase.from('external_recruits').update(updates).eq('id', editingId).select().single();
       if (error) {
         console.error('Failed to update external recruit:', error);
@@ -225,7 +267,7 @@ const InboxTab: React.FC<InboxTabProps> = ({
     } finally {
       setAddingSaving(false);
     }
-  }, [supabase, editingId, editForm, addingSaving, externalRecruits]);
+  }, [supabase, editingId, editForm, editGroupPlayers, addingSaving, externalRecruits]);
 
   const visibleApps = useMemo(() => {
     let apps = [...filteredApps];
@@ -372,7 +414,7 @@ const InboxTab: React.FC<InboxTabProps> = ({
       {/* CSV Download for Gold tier */}
       {filterStatus !== 'watchlist' && fundTier === 'gold' && filterStatus === 'approved' && approvedApps.length > 0 && (
         <button
-          onClick={() => downloadApprovedCSV(approvedApps)}
+          onClick={() => downloadApprovedCSV(approvedApps, externalRecruits)}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -484,29 +526,59 @@ const InboxTab: React.FC<InboxTabProps> = ({
 
                 {addMode === 'individual' ? (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem' }}>
-                    <input value={addForm.username} onChange={e => setAddForm(p => ({ ...p, username: e.target.value }))} placeholder={t('recruiter.usernamePlaceholder', 'Username *')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px', gridColumn: '1 / -1' }} />
-                    <input value={addForm.from_kingdom} onChange={e => setAddForm(p => ({ ...p, from_kingdom: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.kingdomPlaceholder', 'From Kingdom')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} inputMode="numeric" />
-                    <input value={addForm.player_id} onChange={e => setAddForm(p => ({ ...p, player_id: e.target.value }))} placeholder={t('recruiter.playerIdPlaceholder', 'Player ID')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} />
-                    <input value={addForm.power_million} onChange={e => setAddForm(p => ({ ...p, power_million: e.target.value.replace(/[^0-9.]/g, '') }))} placeholder={t('recruiter.powerPlaceholder', 'Power (M)')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} inputMode="decimal" />
-                    <input value={addForm.tc_level} onChange={e => setAddForm(p => ({ ...p, tc_level: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.tcLevelPlaceholder', 'TC Level')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} inputMode="numeric" />
+                    <input value={addForm.username} onChange={e => setAddForm(p => ({ ...p, username: e.target.value }))} placeholder={t('recruiter.usernamePlaceholder', 'Username *')} style={{ ...mInput, gridColumn: '1 / -1' }} />
+                    <input value={addForm.from_kingdom} onChange={e => setAddForm(p => ({ ...p, from_kingdom: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.kingdomReqPlaceholder', 'Kingdom *')} style={mInput} inputMode="numeric" />
+                    <input value={addForm.player_id} onChange={e => setAddForm(p => ({ ...p, player_id: e.target.value }))} placeholder={t('recruiter.playerIdReqPlaceholder', 'Player ID *')} style={mInput} />
+                    <input value={addForm.power_million} onChange={e => setAddForm(p => ({ ...p, power_million: e.target.value.replace(/[^0-9.]/g, '') }))} placeholder={t('recruiter.powerReqPlaceholder', 'Power (M) *')} style={mInput} inputMode="decimal" />
+                    <input value={addForm.tc_level} onChange={e => setAddForm(p => ({ ...p, tc_level: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.tcLevelReqPlaceholder', 'TC Level *')} style={mInput} inputMode="numeric" />
                   </div>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem' }}>
-                    <input value={addForm.contact_username} onChange={e => setAddForm(p => ({ ...p, contact_username: e.target.value }))} placeholder={t('recruiter.contactNamePlaceholder', 'Contact name *')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px', gridColumn: '1 / -1' }} />
-                    <input value={addForm.contact_kingdom} onChange={e => setAddForm(p => ({ ...p, contact_kingdom: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.kingdomPlaceholder', 'From Kingdom')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} inputMode="numeric" />
-                    <input value={addForm.player_count} onChange={e => setAddForm(p => ({ ...p, player_count: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.playerCountPlaceholder', 'Players *')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} inputMode="numeric" />
-                  </div>
+                  <>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem' }}>
+                      <input value={addForm.contact_username} onChange={e => setAddForm(p => ({ ...p, contact_username: e.target.value }))} placeholder={t('recruiter.contactNamePlaceholder', 'Contact name *')} style={{ ...mInput, gridColumn: '1 / -1' }} />
+                      <input value={addForm.contact_kingdom} onChange={e => setAddForm(p => ({ ...p, contact_kingdom: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.kingdomReqPlaceholder', 'Kingdom *')} style={mInput} inputMode="numeric" />
+                      <input value={addForm.player_count} onChange={e => {
+                        const val = e.target.value.replace(/\D/g, '');
+                        setAddForm(p => ({ ...p, player_count: val }));
+                        const count = parseInt(val) || 0;
+                        setAddGroupPlayers(prev => {
+                          if (count === 0) return [];
+                          const arr = [...prev];
+                          while (arr.length < count) arr.push(emptyGroupPlayer());
+                          return arr.slice(0, count);
+                        });
+                      }} placeholder={t('recruiter.playerCountPlaceholder', 'Players *')} style={mInput} inputMode="numeric" />
+                    </div>
+                    {addGroupPlayers.length > 0 && (
+                      <div style={{ marginTop: '0.4rem', border: `1px solid ${colors.purple}20`, borderRadius: '6px', overflowX: isMobile ? 'auto' : 'hidden', WebkitOverflowScrolling: 'touch' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.5fr', gap: '0', backgroundColor: `${colors.purple}10`, padding: '0.25rem 0.35rem', minWidth: isMobile ? '340px' : undefined }}>
+                          <span style={{ fontSize: isMobile ? '0.65rem' : '0.55rem', fontWeight: 700, color: colors.purple, textTransform: 'uppercase' }}>{t('recruiter.usernamePlaceholder', 'Username *')}</span>
+                          <span style={{ fontSize: isMobile ? '0.65rem' : '0.55rem', fontWeight: 700, color: colors.purple, textTransform: 'uppercase' }}>{t('recruiter.powerReqPlaceholder', 'Power (M) *')}</span>
+                          <span style={{ fontSize: isMobile ? '0.65rem' : '0.55rem', fontWeight: 700, color: colors.purple, textTransform: 'uppercase' }}>{t('recruiter.tcLevelReqPlaceholder', 'TC Level *')}</span>
+                          <span style={{ fontSize: isMobile ? '0.65rem' : '0.55rem', fontWeight: 700, color: colors.purple, textTransform: 'uppercase' }}>{t('recruiter.playerIdReqPlaceholder', 'Player ID *')}</span>
+                        </div>
+                        {addGroupPlayers.map((player, idx) => (
+                          <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.5fr', gap: '0.2rem', padding: '0.2rem 0.35rem', borderTop: `1px solid ${colors.purple}12`, minWidth: isMobile ? '340px' : undefined }}>
+                            <input value={player.username} onChange={e => { const v = e.target.value; setAddGroupPlayers(prev => prev.map((p, i) => i === idx ? { ...p, username: v } : p)); }} placeholder={`${t('recruiter.playerLabel', 'Player')} ${idx + 1} *`} style={mInputSm} />
+                            <input value={player.power_million} onChange={e => { const v = e.target.value.replace(/[^0-9.]/g, ''); setAddGroupPlayers(prev => prev.map((p, i) => i === idx ? { ...p, power_million: v } : p)); }} placeholder="M *" style={mInputSm} inputMode="decimal" />
+                            <input value={player.tc_level} onChange={e => { const v = e.target.value.replace(/\D/g, ''); setAddGroupPlayers(prev => prev.map((p, i) => i === idx ? { ...p, tc_level: v } : p)); }} placeholder="TC *" style={mInputSm} inputMode="numeric" />
+                            <input value={player.player_id} onChange={e => { const v = e.target.value; setAddGroupPlayers(prev => prev.map((p, i) => i === idx ? { ...p, player_id: v } : p)); }} placeholder="ID *" style={mInputSm} />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
 
-                <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.35rem' }}>
-                  <input value={addForm.note} onChange={e => setAddForm(p => ({ ...p, note: e.target.value }))} placeholder={t('recruiter.notePlaceholder', 'Note (optional)')} maxLength={200} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px', flex: 1 }} />
+                <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.35rem', flexWrap: isMobile ? 'wrap' : undefined }}>
+                  <input value={addForm.note} onChange={e => setAddForm(p => ({ ...p, note: e.target.value }))} placeholder={t('recruiter.notePlaceholder', 'Note (optional)')} maxLength={200} style={{ ...mInput, flex: 1 }} />
                   {alliances.length > 0 ? (
-                    <select value={addForm.assigned_alliance} onChange={e => setAddForm(p => ({ ...p, assigned_alliance: e.target.value }))} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.4rem', minHeight: '34px', width: 'auto', minWidth: '70px', cursor: 'pointer' }}>
-                      <option value="">{t('recruiter.noAlliance', 'Unassigned')}</option>
+                    <select value={addForm.assigned_alliance} onChange={e => setAddForm(p => ({ ...p, assigned_alliance: e.target.value }))} style={{ ...mInput, width: 'auto', minWidth: '70px', cursor: 'pointer' }}>
+                      <option value="">{t('recruiter.allianceReqPlaceholder', 'Alliance *')}</option>
                       {alliances.map(a => <option key={a} value={a}>{a}</option>)}
                     </select>
                   ) : (
-                    <input value={addForm.assigned_alliance} onChange={e => setAddForm(p => ({ ...p, assigned_alliance: e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 6) }))} placeholder={t('recruiter.alliancePlaceholder', 'Alliance')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px', width: '70px' }} />
+                    <input value={addForm.assigned_alliance} onChange={e => setAddForm(p => ({ ...p, assigned_alliance: e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 6) }))} placeholder={t('recruiter.allianceReqPlaceholder', 'Alliance *')} style={{ ...mInput, width: isMobile ? '90px' : '70px' }} />
                   )}
                   <button
                     onClick={handleAddRecruit}
@@ -534,28 +606,58 @@ const InboxTab: React.FC<InboxTabProps> = ({
                     }}>
                       {r.type === 'individual' ? (
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem' }}>
-                          <input value={editForm.username} onChange={e => setEditForm(p => ({ ...p, username: e.target.value }))} placeholder={t('recruiter.usernamePlaceholder', 'Username *')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px', gridColumn: '1 / -1' }} />
-                          <input value={editForm.from_kingdom} onChange={e => setEditForm(p => ({ ...p, from_kingdom: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.kingdomPlaceholder', 'From Kingdom')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} inputMode="numeric" />
-                          <input value={editForm.player_id} onChange={e => setEditForm(p => ({ ...p, player_id: e.target.value }))} placeholder={t('recruiter.playerIdPlaceholder', 'Player ID')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} />
-                          <input value={editForm.power_million} onChange={e => setEditForm(p => ({ ...p, power_million: e.target.value.replace(/[^0-9.]/g, '') }))} placeholder={t('recruiter.powerPlaceholder', 'Power (M)')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} inputMode="decimal" />
-                          <input value={editForm.tc_level} onChange={e => setEditForm(p => ({ ...p, tc_level: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.tcLevelPlaceholder', 'TC Level')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} inputMode="numeric" />
+                          <input value={editForm.username} onChange={e => setEditForm(p => ({ ...p, username: e.target.value }))} placeholder={t('recruiter.usernamePlaceholder', 'Username *')} style={{ ...mInput, gridColumn: '1 / -1' }} />
+                          <input value={editForm.from_kingdom} onChange={e => setEditForm(p => ({ ...p, from_kingdom: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.kingdomReqPlaceholder', 'Kingdom *')} style={mInput} inputMode="numeric" />
+                          <input value={editForm.player_id} onChange={e => setEditForm(p => ({ ...p, player_id: e.target.value }))} placeholder={t('recruiter.playerIdReqPlaceholder', 'Player ID *')} style={mInput} />
+                          <input value={editForm.power_million} onChange={e => setEditForm(p => ({ ...p, power_million: e.target.value.replace(/[^0-9.]/g, '') }))} placeholder={t('recruiter.powerReqPlaceholder', 'Power (M) *')} style={mInput} inputMode="decimal" />
+                          <input value={editForm.tc_level} onChange={e => setEditForm(p => ({ ...p, tc_level: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.tcLevelReqPlaceholder', 'TC Level *')} style={mInput} inputMode="numeric" />
                         </div>
                       ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem' }}>
-                          <input value={editForm.contact_username} onChange={e => setEditForm(p => ({ ...p, contact_username: e.target.value }))} placeholder={t('recruiter.contactNamePlaceholder', 'Contact name *')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px', gridColumn: '1 / -1' }} />
-                          <input value={editForm.contact_kingdom} onChange={e => setEditForm(p => ({ ...p, contact_kingdom: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.kingdomPlaceholder', 'From Kingdom')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} inputMode="numeric" />
-                          <input value={editForm.player_count} onChange={e => setEditForm(p => ({ ...p, player_count: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.playerCountPlaceholder', 'Players *')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px' }} inputMode="numeric" />
-                        </div>
+                        <>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem' }}>
+                            <input value={editForm.contact_username} onChange={e => setEditForm(p => ({ ...p, contact_username: e.target.value }))} placeholder={t('recruiter.contactNamePlaceholder', 'Contact name *')} style={{ ...mInput, gridColumn: '1 / -1' }} />
+                            <input value={editForm.contact_kingdom} onChange={e => setEditForm(p => ({ ...p, contact_kingdom: e.target.value.replace(/\D/g, '') }))} placeholder={t('recruiter.kingdomReqPlaceholder', 'Kingdom *')} style={mInput} inputMode="numeric" />
+                            <input value={editForm.player_count} onChange={e => {
+                              const val = e.target.value.replace(/\D/g, '');
+                              setEditForm(p => ({ ...p, player_count: val }));
+                              const count = parseInt(val) || 0;
+                              setEditGroupPlayers(prev => {
+                                if (count === 0) return [];
+                                const arr = [...prev];
+                                while (arr.length < count) arr.push(emptyGroupPlayer());
+                                return arr.slice(0, count);
+                              });
+                            }} placeholder={t('recruiter.playerCountPlaceholder', 'Players *')} style={mInput} inputMode="numeric" />
+                          </div>
+                          {editGroupPlayers.length > 0 && (
+                            <div style={{ marginTop: '0.4rem', border: `1px solid ${colors.purple}20`, borderRadius: '6px', overflowX: isMobile ? 'auto' : 'hidden', WebkitOverflowScrolling: 'touch' }}>
+                              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.5fr', gap: '0', backgroundColor: `${colors.purple}10`, padding: '0.25rem 0.35rem', minWidth: isMobile ? '340px' : undefined }}>
+                                <span style={{ fontSize: isMobile ? '0.65rem' : '0.55rem', fontWeight: 700, color: colors.purple, textTransform: 'uppercase' }}>{t('recruiter.usernamePlaceholder', 'Username *')}</span>
+                                <span style={{ fontSize: isMobile ? '0.65rem' : '0.55rem', fontWeight: 700, color: colors.purple, textTransform: 'uppercase' }}>{t('recruiter.powerReqPlaceholder', 'Power (M) *')}</span>
+                                <span style={{ fontSize: isMobile ? '0.65rem' : '0.55rem', fontWeight: 700, color: colors.purple, textTransform: 'uppercase' }}>{t('recruiter.tcLevelReqPlaceholder', 'TC Level *')}</span>
+                                <span style={{ fontSize: isMobile ? '0.65rem' : '0.55rem', fontWeight: 700, color: colors.purple, textTransform: 'uppercase' }}>{t('recruiter.playerIdReqPlaceholder', 'Player ID *')}</span>
+                              </div>
+                              {editGroupPlayers.map((player, idx) => (
+                                <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.5fr', gap: '0.2rem', padding: '0.2rem 0.35rem', borderTop: `1px solid ${colors.purple}12`, minWidth: isMobile ? '340px' : undefined }}>
+                                  <input value={player.username} onChange={e => { const v = e.target.value; setEditGroupPlayers(prev => prev.map((p, i) => i === idx ? { ...p, username: v } : p)); }} placeholder={`${t('recruiter.playerLabel', 'Player')} ${idx + 1} *`} style={mInputSm} />
+                                  <input value={player.power_million} onChange={e => { const v = e.target.value.replace(/[^0-9.]/g, ''); setEditGroupPlayers(prev => prev.map((p, i) => i === idx ? { ...p, power_million: v } : p)); }} placeholder="M *" style={mInputSm} inputMode="decimal" />
+                                  <input value={player.tc_level} onChange={e => { const v = e.target.value.replace(/\D/g, ''); setEditGroupPlayers(prev => prev.map((p, i) => i === idx ? { ...p, tc_level: v } : p)); }} placeholder="TC *" style={mInputSm} inputMode="numeric" />
+                                  <input value={player.player_id} onChange={e => { const v = e.target.value; setEditGroupPlayers(prev => prev.map((p, i) => i === idx ? { ...p, player_id: v } : p)); }} placeholder="ID *" style={mInputSm} />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </>
                       )}
-                      <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.35rem' }}>
-                        <input value={editForm.note} onChange={e => setEditForm(p => ({ ...p, note: e.target.value }))} placeholder={t('recruiter.notePlaceholder', 'Note (optional)')} maxLength={200} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px', flex: 1 }} />
+                      <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.35rem', flexWrap: isMobile ? 'wrap' : undefined }}>
+                        <input value={editForm.note} onChange={e => setEditForm(p => ({ ...p, note: e.target.value }))} placeholder={t('recruiter.notePlaceholder', 'Note (optional)')} maxLength={200} style={{ ...mInput, flex: 1 }} />
                         {alliances.length > 0 ? (
-                          <select value={editForm.assigned_alliance} onChange={e => setEditForm(p => ({ ...p, assigned_alliance: e.target.value }))} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.4rem', minHeight: '34px', width: 'auto', minWidth: '70px', cursor: 'pointer' }}>
-                            <option value="">{t('recruiter.noAlliance', 'Unassigned')}</option>
+                          <select value={editForm.assigned_alliance} onChange={e => setEditForm(p => ({ ...p, assigned_alliance: e.target.value }))} style={{ ...mInput, width: 'auto', minWidth: '70px', cursor: 'pointer' }}>
+                            <option value="">{t('recruiter.allianceReqPlaceholder', 'Alliance *')}</option>
                             {alliances.map(a => <option key={a} value={a}>{a}</option>)}
                           </select>
                         ) : (
-                          <input value={editForm.assigned_alliance} onChange={e => setEditForm(p => ({ ...p, assigned_alliance: e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 6) }))} placeholder={t('recruiter.alliancePlaceholder', 'Alliance')} style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.35rem 0.5rem', minHeight: '34px', width: '70px' }} />
+                          <input value={editForm.assigned_alliance} onChange={e => setEditForm(p => ({ ...p, assigned_alliance: e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 6) }))} placeholder={t('recruiter.allianceReqPlaceholder', 'Alliance *')} style={{ ...mInput, width: isMobile ? '90px' : '70px' }} />
                         )}
                         <button
                           onClick={handleSaveEdit}

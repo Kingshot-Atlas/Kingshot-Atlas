@@ -28,7 +28,7 @@ import { DataSyncIndicator } from '../components/DataSyncIndicator';
 import QuickActions from '../components/homepage/QuickActions';
 import TransferHubBanner from '../components/homepage/TransferHubBanner';
 import ConversionBanner from '../components/ConversionBanner';
-import TransferGroupUpdateBanner from '../components/CampaignNotificationBanner';
+// TransferGroupUpdateBanner removed (campaign ended)
 import SupporterSpotlight from '../components/homepage/SupporterSpotlight';
 import MobileCountdowns from '../components/homepage/MobileCountdowns';
 import { useScrollDepth } from '../hooks/useScrollDepth';
@@ -258,8 +258,7 @@ const KingdomDirectory: React.FC = () => {
       {/* Quick Actions - 4 tiles (2x2 mobile, 4-col desktop) */}
       <QuickActions />
 
-      {/* Transfer Group Update Notification */}
-      <TransferGroupUpdateBanner />
+      {/* Transfer Group Update Notification — removed (campaign ended) */}
 
 
       {/* Transfer Hub Banner - dismissable CTA */}

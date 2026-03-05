@@ -11,6 +11,8 @@ import { incrementStat } from './UserAchievements';
 import { useTranslation } from 'react-i18next';
 import { useTrustedSubmitter } from '../hooks/useTrustedSubmitter';
 import { supabase } from '../lib/supabase';
+import ScreenshotUpload from './kvk-submission/ScreenshotUpload';
+import ResultSelector from './kvk-submission/ResultSelector';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -467,68 +469,8 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
           {/* Results */}
           {!isBye && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-            <div>
-              <label style={{ display: 'block', color: '#eab308', fontSize: '0.75rem', marginBottom: '0.35rem' }}>Prep Phase *</label>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                {(['W', 'L'] as const).map(result => (
-                  <button
-                    key={result}
-                    type="button"
-                    onClick={() => setPrepResult(result)}
-                    style={{
-                      flex: 1,
-                      padding: '0.6rem',
-                      backgroundColor: prepResult === result 
-                        ? (result === 'W' ? '#22c55e20' : '#ef444420')
-                        : '#0a0a0a',
-                      border: `1px solid ${prepResult === result 
-                        ? (result === 'W' ? '#22c55e' : '#ef4444')
-                        : '#2a2a2a'}`,
-                      borderRadius: '6px',
-                      color: prepResult === result 
-                        ? (result === 'W' ? '#22c55e' : '#ef4444')
-                        : '#6b7280',
-                      cursor: 'pointer',
-                      fontWeight: '600',
-                      fontSize: '0.9rem'
-                    }}
-                  >
-                    {result === 'W' ? 'Win' : 'Loss'}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label style={{ display: 'block', color: '#f97316', fontSize: '0.75rem', marginBottom: '0.35rem' }}>Battle Phase *</label>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                {(['W', 'L'] as const).map(result => (
-                  <button
-                    key={result}
-                    type="button"
-                    onClick={() => setBattleResult(result)}
-                    style={{
-                      flex: 1,
-                      padding: '0.6rem',
-                      backgroundColor: battleResult === result 
-                        ? (result === 'W' ? '#22c55e20' : '#ef444420')
-                        : '#0a0a0a',
-                      border: `1px solid ${battleResult === result 
-                        ? (result === 'W' ? '#22c55e' : '#ef4444')
-                        : '#2a2a2a'}`,
-                      borderRadius: '6px',
-                      color: battleResult === result 
-                        ? (result === 'W' ? '#22c55e' : '#ef4444')
-                        : '#6b7280',
-                      cursor: 'pointer',
-                      fontWeight: '600',
-                      fontSize: '0.9rem'
-                    }}
-                  >
-                    {result === 'W' ? 'Win' : 'Loss'}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <ResultSelector label="Prep Phase" labelColor="#eab308" value={prepResult} onChange={setPrepResult} />
+            <ResultSelector label="Battle Phase" labelColor="#f97316" value={battleResult} onChange={setBattleResult} />
           </div>
 
           )}
@@ -552,152 +494,29 @@ const PostKvKSubmission: React.FC<PostKvKSubmissionProps> = ({
 
           {/* Screenshot Upload */}
           {!isBye && (
-          <div>
-            <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>
-              Screenshot Proof {canSkipScreenshot ? '' : '*'} <span style={{ color: '#6b7280' }}>{canSkipScreenshot ? '(Optional — trusted submitter)' : '(Required for verification)'}</span>
-            </label>
-            
-            {!screenshotPreview ? (
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                style={{
-                  border: '2px dashed #3a3a3a',
-                  borderRadius: '8px',
-                  padding: '1.5rem',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  transition: 'border-color 0.2s',
-                  backgroundColor: '#0a0a0a'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.borderColor = '#22d3ee50'}
-                onMouseLeave={(e) => e.currentTarget.style.borderColor = '#3a3a3a'}
-              >
-                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📸</div>
-                <div style={{ color: '#9ca3af', fontSize: '0.85rem' }}>
-                  Click to upload screenshot
-                </div>
-                <div style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem' }}>
-                  PNG, JPG up to 5MB
-                </div>
-              </div>
-            ) : (
-              <div style={{ position: 'relative' }}>
-                <img
-                  src={screenshotPreview}
-                  alt="Screenshot preview"
-                  style={{
-                    width: '100%',
-                    maxHeight: '200px',
-                    objectFit: 'contain',
-                    borderRadius: '8px',
-                    border: '1px solid #2a2a2a'
-                  }}
-                />
-                <button
-                  onClick={clearScreenshot}
-                  style={{
-                    position: 'absolute',
-                    top: '0.5rem',
-                    right: '0.5rem',
-                    background: 'rgba(0,0,0,0.8)',
-                    border: '1px solid #3a3a3a',
-                    borderRadius: '50%',
-                    width: '28px',
-                    height: '28px',
-                    color: '#fff',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1rem'
-                  }}
-                >
-                  ×
-                </button>
-              </div>
-            )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
+            <ScreenshotUpload
+              label={`Screenshot Proof ${canSkipScreenshot ? '' : '*'}`}
+              sublabel={canSkipScreenshot ? '(Optional — trusted submitter)' : '(Required for verification)'}
+              preview={screenshotPreview}
+              onClear={clearScreenshot}
+              onSelect={() => fileInputRef.current?.click()}
+              fileInputRef={fileInputRef}
               onChange={handleScreenshotChange}
-              style={{ display: 'none' }}
             />
-          </div>
-
           )}
 
           {/* Second Screenshot Upload (Optional) */}
           {!isBye && (
-          <div>
-            <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.35rem' }}>
-              Second Screenshot <span style={{ color: '#6b7280' }}>(Optional - e.g., battle results)</span>
-            </label>
-            
-            {!screenshotPreview2 ? (
-              <div
-                onClick={() => fileInputRef2.current?.click()}
-                style={{
-                  border: '2px dashed #3a3a3a',
-                  borderRadius: '8px',
-                  padding: '1rem',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  transition: 'border-color 0.2s',
-                  backgroundColor: '#0a0a0a'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.borderColor = '#22d3ee50'}
-                onMouseLeave={(e) => e.currentTarget.style.borderColor = '#3a3a3a'}
-              >
-                <div style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>➕</div>
-                <div style={{ color: '#6b7280', fontSize: '0.8rem' }}>
-                  Add second screenshot
-                </div>
-              </div>
-            ) : (
-              <div style={{ position: 'relative' }}>
-                <img
-                  src={screenshotPreview2}
-                  alt="Screenshot 2 preview"
-                  style={{
-                    width: '100%',
-                    maxHeight: '150px',
-                    objectFit: 'contain',
-                    borderRadius: '8px',
-                    border: '1px solid #2a2a2a'
-                  }}
-                />
-                <button
-                  onClick={clearScreenshot2}
-                  style={{
-                    position: 'absolute',
-                    top: '0.5rem',
-                    right: '0.5rem',
-                    background: 'rgba(0,0,0,0.8)',
-                    border: '1px solid #3a3a3a',
-                    borderRadius: '50%',
-                    width: '28px',
-                    height: '28px',
-                    color: '#fff',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1rem'
-                  }}
-                >
-                  ×
-                </button>
-              </div>
-            )}
-            <input
-              ref={fileInputRef2}
-              type="file"
-              accept="image/*"
+            <ScreenshotUpload
+              label="Second Screenshot"
+              sublabel="(Optional - e.g., battle results)"
+              preview={screenshotPreview2}
+              onClear={clearScreenshot2}
+              onSelect={() => fileInputRef2.current?.click()}
+              fileInputRef={fileInputRef2}
               onChange={handleScreenshot2Change}
-              style={{ display: 'none' }}
+              compact
             />
-          </div>
           )}
 
           {/* Notes */}

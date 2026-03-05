@@ -3,6 +3,16 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-05 02:28 | Product Engineer | COMPLETED
+Task: Fix Alliance Center access (TWS K172) — expired JWT causes RLS SELECT to silently return 0 rows
+Files: `apps/web/src/hooks/useAllianceCenter.ts`, `apps/web/src/pages/Tools.tsx`, `apps/web/src/components/header-nav/DesktopNav.tsx`, `apps/web/src/components/header-nav/MobileMenu.tsx`, `apps/web/src/pages/KingdomDirectory.tsx`
+Changes:
+1. **Alliance Center JWT fix (root cause):** Added `getUser()` + `refreshSession()` fallback before RLS-protected SELECT. Added belt-and-suspenders retry: if first SELECT returns null with no error, check token expiry and retry once after explicit refresh. Also added cache invalidation on 409 Conflict in createAlliance so dashboard loads even if create form was shown.
+2. **Removed banners:** KvK #11 marked `is_complete=true` in DB (Add Battle Result banner gone). Removed TransferGroupUpdateBanner from homepage.
+3. **Tools dropdown reordered:** Alliance Tools now: Discord Bot Atlas → Alliance Center → Event Coordinator → Base Designer (desktop + mobile).
+4. **Tools page reordered:** Same order, all alliance tools now use blue (#3b82f6) accent color.
+Result: Build passes. Alliance Center should now correctly show the dashboard for existing alliance owners on first load.
+
 ## 2026-03-03 13:00 | Product Engineer | COMPLETED
 Task: AccountSwitcher cleanup — split into sub-components, fix || undefined bug, add observability + stale indicator
 Files: `apps/web/src/components/AccountSwitcher.tsx` (828→183 lines), new `apps/web/src/components/account-switcher/` dir (types.ts, AccountRow.tsx, AddAccountFlow.tsx, index.ts)
