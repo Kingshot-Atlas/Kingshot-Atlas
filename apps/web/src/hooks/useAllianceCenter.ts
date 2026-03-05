@@ -372,7 +372,6 @@ export function useAllianceCenter(): UseAllianceCenterResult {
 
       let fetchedFromApi = false;
       try {
-        // Use batch endpoint — single request, server handles rate limiting to Century Games
         const res = await fetch(`${API_BASE}/api/v1/player-link/batch-verify`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -387,46 +386,23 @@ export function useAllianceCenter(): UseAllianceCenterResult {
             });
           }
         }
-      } catch { /* batch endpoint unavailable — fall back to individual calls */ }
-
-      // Fallback: if batch returned nothing (e.g. old API without batch endpoint), try individual
-      if (!fetchedFromApi && batch.length > 0) {
-        for (const pid of batch.slice(0, 10)) {
-          try {
-            const res = await fetch(`${API_BASE}/api/v1/player-link/verify`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ player_id: pid }),
-            });
-            if (res.ok) {
-              const data = await res.json();
-              map.set(pid, data);
-              fetchedFromApi = true;
-            }
-          } catch { /* skip failed lookups */ }
-          await new Promise(r => setTimeout(r, 1000));
-        }
-      }
+      } catch { /* batch endpoint unavailable */ }
 
       // Persist resolved data to alliance_members cached columns
       if (fetchedFromApi && isSupabaseConfigured && supabase && alliance) {
         const sb = supabase;
         const now = new Date().toISOString();
-        const updates = members
-          .filter(m => m.player_id && map.has(m.player_id))
-          .map(m => {
-            const d = map.get(m.player_id!)!;
-            return sb.from('alliance_members')
-              .update({ cached_tc_level: d.town_center_level || null, cached_kingdom: d.kingdom || null, cached_username: d.username || null, cached_at: now })
-              .eq('id', m.id)
-              .eq('alliance_id', alliance.id);
-          });
-        if (updates.length > 0) {
-          Promise.all(updates).then(() => {
-            // Invalidate members query so cached columns are visible immediately
-            queryClient.invalidateQueries({ queryKey: ['alliance-members', alliance.id] });
-          }).catch(() => { /* non-critical — cache write failure is OK */ });
+        const toUpdate = members.filter(m => m.player_id && map.has(m.player_id));
+        for (const m of toUpdate) {
+          const d = map.get(m.player_id!)!;
+          const tcLevel = d.town_center_level ? Math.min(Math.max(d.town_center_level, 1), 60) : null;
+          const { error } = await sb.from('alliance_members')
+            .update({ cached_tc_level: tcLevel, cached_kingdom: d.kingdom || null, cached_username: d.username || null, cached_at: now })
+            .eq('id', m.id)
+            .eq('alliance_id', alliance.id);
+          if (error) console.warn(`[Alliance] Failed to persist cache for ${m.player_id}:`, error.message);
         }
+        queryClient.invalidateQueries({ queryKey: ['alliance-members', alliance.id] });
       }
 
       return map;

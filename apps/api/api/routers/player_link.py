@@ -263,7 +263,7 @@ class BatchVerifyResponse(BaseModel):
     summary="Batch Verify Kingshot Player IDs",
     description="Verify up to 50 player IDs in a single request. Used by Alliance Center to resolve non-Atlas members.",
 )
-@limiter.limit("3/minute")
+@limiter.limit("6/minute")
 async def batch_verify_players(request: Request, body: BatchVerifyRequest):
     """
     Batch verify player IDs against Century Games API.
