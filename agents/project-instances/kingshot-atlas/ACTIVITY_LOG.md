@@ -3,6 +3,17 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-05 03:14 | Platform Engineer | COMPLETED
+Task: Fix 42P17 infinite recursion in alliance RLS policies (500 Internal Server Error)
+Files: Supabase migration (DB only — no client changes needed)
+Root Cause: The permissive `USING(true)` SELECT policies added earlier didn't short-circuit — PostgreSQL still evaluates ALL policies. The old SELECT policies cross-referenced each other:
+- `alliances."Managers can read alliance"` → subquery on `alliance_managers`
+- `alliance_managers."Managers can read managers"` → self-references `alliance_managers`
+- `alliance_members."Managers can read members"` → subquery on `alliance_managers`
+This created circular evaluation chains → 42P17 infinite recursion → 500 errors on every SELECT.
+Fix: Dropped all 6 redundant SELECT policies (Managers/Delegates can read) on all 3 alliance tables. The `USING(true)` policies already cover all reads. Write policies (ALL/INSERT/UPDATE/DELETE) remain unchanged.
+Result: Queries return immediately. No more 500 errors. Alliance Center dashboard should now load.
+
 ## 2026-03-05 03:00 | Platform Engineer | COMPLETED
 Task: Fix Alliance Center — dashboard never loads because RLS policies block SELECT with stale JWT
 Files: `apps/web/src/hooks/useAllianceCenter.ts` (client), Supabase migration (DB)
