@@ -5,6 +5,29 @@
 
 ---
 
+## Critical Gotchas
+
+### Supabase JWT + RLS + React Query (2026-03-05)
+**Problem:** On page load, the Supabase client may restore an expired JWT from localStorage. `auth.uid()` returns NULL in PostgREST RLS policies with a stale token, causing SELECTs to silently return 0 rows (no error). The user appears logged in (React state has `user` from the expired session) but all RLS-protected queries fail.
+
+**What DOESN'T work reliably:**
+- `getUser()` before the query — doesn't always propagate the refreshed token to PostgREST
+- `refreshSession()` before the query — same issue in some edge cases
+- `setQueryData` + `invalidateQueries` — the invalidation triggers a refetch that can override the injected data with null
+
+**What DOES work:**
+- `window.location.reload()` after state-changing mutations (create/delete). A full reload re-initializes the Supabase client from scratch, guaranteeing a fresh session.
+- Keep `refreshSession()` in the queryFn as a best-effort pre-flight (works in most cases). The reload is the fallback for when it doesn't.
+
+**Pattern for mutations that should transition UI:**
+```typescript
+// In the mutation's onSuccess or via an onCreated callback:
+onCreated={() => window.location.reload()}
+// NOT: queryClient.invalidateQueries() — unreliable with stale JWTs
+```
+
+---
+
 ## React Best Practices (2026)
 
 ### Component Architecture

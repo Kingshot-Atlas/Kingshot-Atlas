@@ -3,6 +3,15 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-05 02:45 | Product Engineer | COMPLETED
+Task: Fix Alliance Center post-create flow — page stays on create form after successful creation
+Files: `apps/web/src/hooks/useAllianceCenter.ts`, `apps/web/src/pages/AllianceCenter.tsx`
+Root Cause: TWO bugs working together:
+1. `onCreated` callback was `() => {}` (no-op) — after successful create, nothing transitioned the UI
+2. The 409 handler's `setQueryData` was immediately overridden by `onSuccess`'s `invalidateQueries`, which triggered a refetch that returned null (stale JWT), wiping the injected data
+Fix: `onCreated` now calls `window.location.reload()`. A full page reload re-initializes the Supabase client with a fresh session, guaranteeing the SELECT finds the alliance. 409 handler simplified to return `{ success: true }` (same reload path). Removed broken `invalidateQueries` from createMutation's onSuccess.
+Result: Build passes. Both first-time create and 409 (duplicate) paths now reliably show the dashboard after a page reload.
+
 ## 2026-03-05 02:28 | Product Engineer | COMPLETED
 Task: Fix Alliance Center access (TWS K172) — expired JWT causes RLS SELECT to silently return 0 rows
 Files: `apps/web/src/hooks/useAllianceCenter.ts`, `apps/web/src/pages/Tools.tsx`, `apps/web/src/components/header-nav/DesktopNav.tsx`, `apps/web/src/components/header-nav/MobileMenu.tsx`, `apps/web/src/pages/KingdomDirectory.tsx`
