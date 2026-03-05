@@ -322,33 +322,9 @@ export function useAllianceCenter(): UseAllianceCenterResult {
 
       if (error) {
         if (error.message.includes('alliances_owner_id_unique') || error.code === '23505') {
-          // Alliance already exists. The 409 proves the JWT IS valid (INSERT auth passed).
-          // Force-refresh session then directly fetch and inject into cache.
-          try {
-            await supabase.auth.refreshSession();
-            const { data: existing } = await supabase
-              .from('alliances')
-              .select('*')
-              .eq('owner_id', user.id)
-              .maybeSingle();
-
-            if (existing) {
-              // Inject directly into React Query cache — dashboard renders immediately
-              queryClient.setQueryData(['alliance-center', user.id], {
-                alliance: existing as Alliance,
-                accessRole: 'owner' as const,
-              });
-              return { success: true };
-            }
-          } catch (fetchErr) {
-            logger.error('Failed to recover alliance after 409:', fetchErr);
-          }
-
-          // Nuclear fallback: if we STILL can't fetch it, hard-reload the page.
-          // A full reload re-initializes the Supabase client from scratch.
-          logger.warn('409 recovery failed — forcing page reload');
-          window.location.reload();
-          return { success: false, error: 'Refreshing...' };
+          // Alliance already exists — return success so the component reloads the page.
+          // A full page reload guarantees fresh auth state and the SELECT will find the alliance.
+          return { success: true };
         }
         if (error.message.includes('alliances_tag_format')) {
           return { success: false, error: 'Tag must be 2-6 alphanumeric characters' };
@@ -359,10 +335,8 @@ export function useAllianceCenter(): UseAllianceCenterResult {
 
       return { success: true };
     },
-    onSuccess: (result) => {
-      if (result.success) {
-        queryClient.invalidateQueries({ queryKey: ['alliance-center', user?.id] });
-      }
+    onSuccess: () => {
+      // Component handles the post-create flow (page reload via onCreated callback)
     },
   });
 

@@ -724,7 +724,7 @@ const AllianceDashboard: React.FC = () => {
         </div>
       );
     }
-    return <CreateAllianceForm onCreated={() => {}} createAlliance={ac.createAlliance} />;
+    return <CreateAllianceForm onCreated={() => window.location.reload()} createAlliance={ac.createAlliance} />;
   }
 
   const alliance = ac.alliance!;
