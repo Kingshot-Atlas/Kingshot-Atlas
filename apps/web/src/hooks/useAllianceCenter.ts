@@ -114,43 +114,24 @@ export function useAllianceCenter(): UseAllianceCenterResult {
     queryFn: async (): Promise<{ alliance: Alliance | null; accessRole: 'owner' | 'manager' | 'delegate' | 'none' }> => {
       if (!isSupabaseConfigured || !supabase || !user) return { alliance: null, accessRole: 'none' };
 
-      // Ensure the Supabase client has a fresh JWT before querying RLS-protected tables.
-      // On initial page load the stored token may be expired; getUser() forces a server
-      // round-trip that refreshes it, preventing the SELECT from silently returning 0 rows.
+      // CRITICAL: Always refresh the session before querying RLS-protected tables.
+      // A stale JWT causes auth.uid() to return NULL in PostgREST, making rows invisible.
+      // refreshSession() unconditionally exchanges the refresh token for a fresh access token.
       try {
-        const { error: refreshErr } = await supabase.auth.getUser();
+        const { error: refreshErr } = await supabase.auth.refreshSession();
         if (refreshErr) {
-          logger.warn('getUser() failed, trying explicit refreshSession:', refreshErr.message);
-          await supabase.auth.refreshSession();
+          logger.warn('refreshSession() failed before alliance fetch:', refreshErr.message);
         }
       } catch (e) {
-        logger.error('Token refresh threw unexpectedly:', e);
+        logger.error('Session refresh threw:', e);
       }
 
       // 1. Check if user owns an alliance
-      let { data: ownAlliance, error: ownError } = await supabase
+      const { data: ownAlliance, error: ownError } = await supabase
         .from('alliances')
         .select('*')
         .eq('owner_id', user.id)
         .maybeSingle();
-
-      // Belt-and-suspenders: if SELECT returned null with no error, the JWT may still
-      // have been stale. Force an explicit session refresh and retry once.
-      if (!ownAlliance && !ownError) {
-        const { data: sess } = await supabase.auth.getSession();
-        const exp = sess?.session?.expires_at;
-        // Retry if the token was very recently refreshed (within 5s) or is still expired
-        if (!exp || exp * 1000 - Date.now() < 5000) {
-          await supabase.auth.refreshSession();
-          const retry = await supabase
-            .from('alliances')
-            .select('*')
-            .eq('owner_id', user.id)
-            .maybeSingle();
-          if (retry.data) ownAlliance = retry.data;
-          if (retry.error) ownError = retry.error;
-        }
-      }
 
       if (ownAlliance) return { alliance: ownAlliance as Alliance, accessRole: 'owner' };
       if (ownError && ownError.code !== 'PGRST116') {
@@ -341,9 +322,33 @@ export function useAllianceCenter(): UseAllianceCenterResult {
 
       if (error) {
         if (error.message.includes('alliances_owner_id_unique') || error.code === '23505') {
-          // Alliance already exists — refetch so the dashboard appears
-          queryClient.invalidateQueries({ queryKey: ['alliance-center', user?.id] });
-          return { success: false, error: 'You already have an alliance center' };
+          // Alliance already exists. The 409 proves the JWT IS valid (INSERT auth passed).
+          // Force-refresh session then directly fetch and inject into cache.
+          try {
+            await supabase.auth.refreshSession();
+            const { data: existing } = await supabase
+              .from('alliances')
+              .select('*')
+              .eq('owner_id', user.id)
+              .maybeSingle();
+
+            if (existing) {
+              // Inject directly into React Query cache — dashboard renders immediately
+              queryClient.setQueryData(['alliance-center', user.id], {
+                alliance: existing as Alliance,
+                accessRole: 'owner' as const,
+              });
+              return { success: true };
+            }
+          } catch (fetchErr) {
+            logger.error('Failed to recover alliance after 409:', fetchErr);
+          }
+
+          // Nuclear fallback: if we STILL can't fetch it, hard-reload the page.
+          // A full reload re-initializes the Supabase client from scratch.
+          logger.warn('409 recovery failed — forcing page reload');
+          window.location.reload();
+          return { success: false, error: 'Refreshing...' };
         }
         if (error.message.includes('alliances_tag_format')) {
           return { success: false, error: 'Tag must be 2-6 alphanumeric characters' };
