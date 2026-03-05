@@ -1000,7 +1000,10 @@ const AllianceDashboard: React.FC = () => {
             <span style={{ fontSize: '0.6rem', fontWeight: 700, padding: '0.1rem 0.4rem', borderRadius: '10px', backgroundColor: ac.apiPlayerDataLoading ? '#f59e0b20' : '#22d3ee20', color: ac.apiPlayerDataLoading ? '#f59e0b' : '#22d3ee', fontFamily: 'monospace', letterSpacing: '0.03em' }}>
               {ac.apiPlayerDataLoading
                 ? t('allianceCenter.resolving', 'Resolving...')
-                : `${ac.memberCount - filtered.filter(m => m.player_id && !profilesMap.get(m.player_id) && !ac.apiPlayerData.get(m.player_id)).length}/${ac.memberCount}`}
+                : (() => {
+                    const resolved = filtered.filter(m => !m.player_id || profilesMap.get(m.player_id) || ac.apiPlayerData.get(m.player_id)).length;
+                    return `${resolved}/${ac.memberCount}`;
+                  })()}
             </span>
           )}
           <div style={{ flex: 1, height: '1px', backgroundColor: ACCENT + '30', marginLeft: '0.25rem' }} />
@@ -1050,6 +1053,17 @@ const AllianceDashboard: React.FC = () => {
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </div>
         )}
+        {!ac.apiPlayerDataLoading && !ac.apiPlayerDataError && ac.canManage && ac.memberCount > 0 && (() => {
+          const unresolvedCount = filtered.filter(m => m.player_id && !profilesMap.get(m.player_id) && !ac.apiPlayerData.get(m.player_id)).length;
+          return unresolvedCount > 0 ? (
+            <div style={{ padding: '0.4rem 0.75rem', marginBottom: '0.5rem', backgroundColor: '#6366f108', border: '1px solid #6366f115', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span style={{ fontSize: '0.7rem' }}>💡</span>
+              <span style={{ color: '#818cf8', fontSize: '0.7rem' }}>
+                {t('allianceCenter.unresolvedHint', '{{count}} member(s) not yet resolved. Click 🔄 Refresh to fetch data from game server.', { count: unresolvedCount })}
+              </span>
+            </div>
+          ) : null;
+        })()}
 
         {/* Roster */}
         {ac.membersLoading ? (

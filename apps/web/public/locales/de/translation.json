@@ -3525,7 +3525,8 @@
     "apiUnavailable": "Spielerdaten-Service nicht verfügbar — zeige zwischengespeicherte Daten wo vorhanden.",
     "refreshData": "Aktualisieren",
     "notInAtlasResolved": "Kein Atlas-Benutzer — vom Spielserver aufgelöst",
-    "unknownPlayer": "Unbekannter Spieler — weder in Atlas noch auf dem Spielserver gefunden"
+    "unknownPlayer": "Unbekannter Spieler — weder in Atlas noch auf dem Spielserver gefunden",
+    "unresolvedHint": "{{count}} Mitglied(er) noch nicht aufgelöst. Klicke auf 🔄 Aktualisieren, um Daten vom Spielserver abzurufen."
   },
   "eventCoordinator": {
     "pageTitle": "Allianz Event-Koordinator",

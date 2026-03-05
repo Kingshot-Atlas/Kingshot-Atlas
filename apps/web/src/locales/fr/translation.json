@@ -3525,7 +3525,8 @@
     "apiUnavailable": "Service de données joueur indisponible — affichage des données en cache si disponibles.",
     "refreshData": "Actualiser",
     "notInAtlasResolved": "Pas un utilisateur Atlas — résolu depuis le serveur de jeu",
-    "unknownPlayer": "Joueur inconnu — introuvable sur Atlas ou le serveur de jeu"
+    "unknownPlayer": "Joueur inconnu — introuvable sur Atlas ou le serveur de jeu",
+    "unresolvedHint": "{{count}} membre(s) non résolu(s). Cliquez sur 🔄 Actualiser pour récupérer les données du serveur de jeu."
   },
   "eventCoordinator": {
     "pageTitle": "Coordinateur d'Événements d'Alliance",

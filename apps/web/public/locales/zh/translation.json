@@ -3525,7 +3525,8 @@
     "apiUnavailable": "玩家数据服务不可用 — 显示可用的缓存数据。",
     "refreshData": "刷新",
     "notInAtlasResolved": "非Atlas用户 — 已从游戏服务器解析",
-    "unknownPlayer": "未知玩家 — 在Atlas和游戏服务器中均未找到"
+    "unknownPlayer": "未知玩家 — 在Atlas和游戏服务器中均未找到",
+    "unresolvedHint": "{{count}} 名成员尚未解析。点击 🔄 刷新 从游戏服务器获取数据。"
   },
   "eventCoordinator": {
     "pageTitle": "联盟活动协调员",

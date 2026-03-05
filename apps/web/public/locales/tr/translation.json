@@ -3525,7 +3525,8 @@
     "apiUnavailable": "Oyuncu veri servisi kullanılamıyor — mevcut önbellek verileri gösteriliyor.",
     "refreshData": "Yenile",
     "notInAtlasResolved": "Atlas kullanıcısı değil — oyun sunucusundan çözümlendi",
-    "unknownPlayer": "Bilinmeyen oyuncu — Atlas veya oyun sunucusunda bulunamadı"
+    "unknownPlayer": "Bilinmeyen oyuncu — Atlas veya oyun sunucusunda bulunamadı",
+    "unresolvedHint": "{{count}} üye henüz çözülmedi. Oyun sunucusundan veri almak için 🔄 Yenile'ye tıklayın."
   },
   "eventCoordinator": {
     "pageTitle": "İttifak Etkinlik Koordinatörü",

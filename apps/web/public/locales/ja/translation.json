@@ -3525,7 +3525,8 @@
     "apiUnavailable": "プレイヤーデータサービスが利用できません — キャッシュされたデータを表示しています。",
     "refreshData": "更新",
     "notInAtlasResolved": "Atlasユーザーではありません — ゲームサーバーから解決済み",
-    "unknownPlayer": "不明なプレイヤー — Atlasまたはゲームサーバーに見つかりません"
+    "unknownPlayer": "不明なプレイヤー — Atlasまたはゲームサーバーに見つかりません",
+    "unresolvedHint": "{{count}}人のメンバーが未解決です。🔄 更新をクリックしてゲームサーバーからデータを取得してください。"
   },
   "eventCoordinator": {
     "pageTitle": "同盟イベントコーディネーター",

@@ -3534,7 +3534,8 @@
     "apiUnavailable": "Layanan data pemain tidak tersedia — menampilkan data cache jika ada.",
     "refreshData": "Segarkan",
     "notInAtlasResolved": "Bukan pengguna Atlas — terverifikasi dari server game",
-    "unknownPlayer": "Pemain tidak dikenal — tidak ditemukan di Atlas atau server game"
+    "unknownPlayer": "Pemain tidak dikenal — tidak ditemukan di Atlas atau server game",
+    "unresolvedHint": "{{count}} anggota belum terselesaikan. Klik 🔄 Segarkan untuk mengambil data dari server game."
   },
   "eventCoordinator": {
     "pageTitle": "Koordinator Acara Aliansi",

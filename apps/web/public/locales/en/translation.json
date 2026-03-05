@@ -3633,7 +3633,8 @@
     "apiUnavailable": "Player data service unavailable — showing cached data where available.",
     "refreshData": "Refresh",
     "notInAtlasResolved": "Not an Atlas user — resolved from game server",
-    "unknownPlayer": "Unknown player — not found in Atlas or game server"
+    "unknownPlayer": "Unknown player — not found in Atlas or game server",
+    "unresolvedHint": "{{count}} member(s) not yet resolved. Click 🔄 Refresh to fetch data from game server."
   },
   "eventCoordinator": {
     "pageTitle": "Alliance Event Coordinator",

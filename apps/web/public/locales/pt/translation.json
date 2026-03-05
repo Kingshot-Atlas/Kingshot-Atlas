@@ -3532,7 +3532,8 @@
     "apiUnavailable": "Serviço de dados do jogador indisponível — exibindo dados em cache quando disponíveis.",
     "refreshData": "Atualizar",
     "notInAtlasResolved": "Não é usuário do Atlas — resolvido a partir do servidor do jogo",
-    "unknownPlayer": "Jogador desconhecido — não encontrado no Atlas ou no servidor do jogo"
+    "unknownPlayer": "Jogador desconhecido — não encontrado no Atlas ou no servidor do jogo",
+    "unresolvedHint": "{{count}} membro(s) ainda não resolvido(s). Clique em 🔄 Atualizar para buscar dados do servidor do jogo."
   },
   "eventCoordinator": {
     "pageTitle": "Coordenador de Eventos da Aliança",

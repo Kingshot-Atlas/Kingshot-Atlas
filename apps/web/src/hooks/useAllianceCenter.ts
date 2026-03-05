@@ -364,12 +364,11 @@ export function useAllianceCenter(): UseAllianceCenterResult {
   const { data: apiPlayerData = cachedApiData, isLoading: apiPlayerDataLoading, isError: apiPlayerDataError, refetch: refetchApiPlayerData } = useQuery({
     queryKey: ['alliance-api-players', alliance?.id, nonAtlasPlayerIds.join(',')],
     queryFn: async (): Promise<Map<string, ApiPlayerData>> => {
-      const map = new Map<string, ApiPlayerData>(cachedApiData);
+      const map = new Map<string, ApiPlayerData>();
       const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
-      // Only fetch IDs that are NOT already cached
-      const uncachedIds = nonAtlasPlayerIds.filter(pid => !cachedApiData.has(pid));
-      const batch = uncachedIds.slice(0, 50);
-      if (batch.length === 0) return map;
+      // Fetch ALL non-Atlas IDs (manual trigger — no uncached filter)
+      const batch = nonAtlasPlayerIds.slice(0, 50);
+      if (batch.length === 0) return cachedApiData;
 
       let fetchedFromApi = false;
       try {
@@ -409,12 +408,12 @@ export function useAllianceCenter(): UseAllianceCenterResult {
         }
       }
 
-      // Persist newly-resolved data to alliance_members cached columns
+      // Persist resolved data to alliance_members cached columns
       if (fetchedFromApi && isSupabaseConfigured && supabase && alliance) {
         const sb = supabase;
         const now = new Date().toISOString();
         const updates = members
-          .filter(m => m.player_id && map.has(m.player_id) && !cachedApiData.has(m.player_id))
+          .filter(m => m.player_id && map.has(m.player_id))
           .map(m => {
             const d = map.get(m.player_id!)!;
             return sb.from('alliance_members')
@@ -423,20 +422,23 @@ export function useAllianceCenter(): UseAllianceCenterResult {
               .eq('alliance_id', alliance.id);
           });
         if (updates.length > 0) {
-          Promise.all(updates).catch(() => { /* non-critical — cache write failure is OK */ });
+          Promise.all(updates).then(() => {
+            // Invalidate members query so cached columns are visible immediately
+            queryClient.invalidateQueries({ queryKey: ['alliance-members', alliance.id] });
+          }).catch(() => { /* non-critical — cache write failure is OK */ });
         }
       }
 
       return map;
     },
-    enabled: nonAtlasPlayerIds.length > 0 && !playerProfilesLoading,
-    staleTime: 10 * 60 * 1000,
+    // Manual-only: never auto-fetch. User clicks Refresh to trigger.
+    enabled: false,
+    staleTime: Infinity,
     refetchOnWindowFocus: false,
     retry: 1,
   });
 
   const refreshApiPlayerData = useCallback(() => {
-    // Clear cached columns so next fetch re-resolves from API
     refetchApiPlayerData();
   }, [refetchApiPlayerData]);
 
