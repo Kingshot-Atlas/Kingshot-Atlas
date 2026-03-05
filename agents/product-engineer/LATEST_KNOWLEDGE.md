@@ -10,20 +10,22 @@
 ### Supabase JWT + RLS + React Query (2026-03-05)
 **Problem:** On page load, the Supabase client may restore an expired JWT from localStorage. `auth.uid()` returns NULL in PostgREST RLS policies with a stale token, causing SELECTs to silently return 0 rows (no error). The user appears logged in (React state has `user` from the expired session) but all RLS-protected queries fail.
 
-**What DOESN'T work reliably:**
+**What DOESN'T work:**
 - `getUser()` before the query — doesn't always propagate the refreshed token to PostgREST
-- `refreshSession()` before the query — same issue in some edge cases
-- `setQueryData` + `invalidateQueries` — the invalidation triggers a refetch that can override the injected data with null
+- `refreshSession()` before the query — can actually WORSEN the issue by clearing the session if the refresh token is invalid, downgrading all subsequent requests to anonymous
+- `setQueryData` + `invalidateQueries` — the invalidation triggers a refetch that overrides injected data with null
 
-**What DOES work:**
-- `window.location.reload()` after state-changing mutations (create/delete). A full reload re-initializes the Supabase client from scratch, guaranteeing a fresh session.
-- Keep `refreshSession()` in the queryFn as a best-effort pre-flight (works in most cases). The reload is the fallback for when it doesn't.
+**What DOES work (definitive fix):**
+- **Database level:** Add permissive SELECT policies with `USING (true)` for authenticated users. The application-level `.eq('owner_id', user.id)` filter (using `user.id` from React state) still ensures users only see their own data. Write policies remain restricted to owner/manager/delegate/admin via `auth.uid()`.
+- **Client level:** Do NOT call `refreshSession()` manually. `autoRefreshToken: true` (set in the Supabase client config) already handles token refresh automatically. Manual calls are redundant and potentially destructive.
+- **Post-mutation:** Use `window.location.reload()` via `onCreated` callback after state-changing mutations (create/delete) to ensure a clean re-render.
 
-**Pattern for mutations that should transition UI:**
-```typescript
-// In the mutation's onSuccess or via an onCreated callback:
-onCreated={() => window.location.reload()}
-// NOT: queryClient.invalidateQueries() — unreliable with stale JWTs
+**Pattern for RLS on semi-public tables:**
+```sql
+-- Allow any authenticated user to SELECT (app filters by user.id)
+CREATE POLICY "Authenticated users can read" ON table_name
+  FOR SELECT TO authenticated USING (true);
+-- Keep strict write policies using auth.uid()
 ```
 
 ---

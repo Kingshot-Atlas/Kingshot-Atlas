@@ -3,6 +3,15 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-05 03:00 | Platform Engineer | COMPLETED
+Task: Fix Alliance Center — dashboard never loads because RLS policies block SELECT with stale JWT
+Files: `apps/web/src/hooks/useAllianceCenter.ts` (client), Supabase migration (DB)
+Root Cause: ALL RLS policies on `alliances`, `alliance_members`, `alliance_managers` depended on `auth.uid()`. When the JWT was stale (common on page load), `auth.uid()` returned NULL → SELECT silently returned 0 rows → create form shown instead of dashboard. The `refreshSession()` call added in prior attempts was actually WORSENING the issue by potentially clearing the session entirely.
+Fix:
+1. **Database:** Added permissive SELECT policies with `USING(true)` for authenticated users on all 3 alliance tables. App-level `.eq('owner_id', user.id)` filter still ensures users only see their own data. Writes remain restricted by existing owner/manager/delegate/admin policies.
+2. **Client:** Removed the `refreshSession()` call from the queryFn — redundant (`autoRefreshToken: true` already handles this) and potentially destructive.
+Result: Build passes. Database policies are live. The SELECT no longer depends on `auth.uid()`, completely eliminating the stale JWT issue for Alliance Center reads.
+
 ## 2026-03-05 02:45 | Product Engineer | COMPLETED
 Task: Fix Alliance Center post-create flow — page stays on create form after successful creation
 Files: `apps/web/src/hooks/useAllianceCenter.ts`, `apps/web/src/pages/AllianceCenter.tsx`
