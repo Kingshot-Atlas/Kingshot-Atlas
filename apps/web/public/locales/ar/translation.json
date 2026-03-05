@@ -3512,7 +3512,20 @@
   },
   "allianceCenter": {
     "eventCoordinatorLink": "منسق الأحداث",
-    "baseDesignerLink": "مصمم القاعدة"
+    "baseDesignerLink": "مصمم القاعدة",
+    "availYes": "نعم",
+    "availNo": "لا",
+    "availSchedule": "التوفر",
+    "mainLanguage": "اللغة الرئيسية",
+    "availability": "التوفر",
+    "resolving": "جارٍ التحقق...",
+    "resolvingData": "جارٍ استرجاع بيانات اللاعب من خادم اللعبة...",
+    "resolvingInline": "(جارٍ التحقق...)",
+    "resolvingPlayer": "جارٍ التحقق من بيانات اللاعب...",
+    "apiUnavailable": "خدمة بيانات اللاعب غير متاحة — عرض البيانات المخزنة مؤقتاً إن وُجدت.",
+    "refreshData": "تحديث",
+    "notInAtlasResolved": "ليس مستخدم Atlas — تم التحقق من خادم اللعبة",
+    "unknownPlayer": "لاعب غير معروف — لم يُعثر عليه في Atlas أو خادم اللعبة"
   },
   "eventCoordinator": {
     "pageTitle": "منسق أحداث التحالف",

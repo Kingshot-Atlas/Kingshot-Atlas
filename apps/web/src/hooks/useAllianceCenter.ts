@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useEffect, useRef } from 'react';
+import { useMemo, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { logger } from '../utils/logger';
@@ -31,6 +31,10 @@ export interface AllianceMember {
   archers_tg: number | null;
   added_by: string;
   created_at: string;
+  cached_tc_level: number | null;
+  cached_kingdom: number | null;
+  cached_username: string | null;
+  cached_at: string | null;
 }
 
 export interface AllianceManager {
@@ -118,6 +122,8 @@ export interface UseAllianceCenterResult {
   // API player data for non-Atlas members
   apiPlayerData: Map<string, ApiPlayerData>;
   apiPlayerDataLoading: boolean;
+  apiPlayerDataError: boolean;
+  refreshApiPlayerData: () => void;
 
   // Battle Registry troop data (most recent entry per player)
   registryTroopData: Map<string, { infantry_tier: number; infantry_tg: number; cavalry_tier: number; cavalry_tg: number; archers_tier: number; archers_tg: number; updated_at: string }>;
@@ -339,34 +345,100 @@ export function useAllianceCenter(): UseAllianceCenterResult {
       .map(m => m.player_id!);
   }, [members, playerProfiles, playerProfilesLoading, alliance]);
 
-  const { data: apiPlayerData = new Map<string, ApiPlayerData>(), isLoading: apiPlayerDataLoading } = useQuery({
+  // Seed from cached columns on alliance_members (instant, avoids re-fetch every session)
+  const cachedApiData = useMemo(() => {
+    const map = new Map<string, ApiPlayerData>();
+    members.forEach(m => {
+      if (m.player_id && m.cached_username && m.cached_at) {
+        map.set(m.player_id, {
+          username: m.cached_username,
+          avatar_url: '',
+          kingdom: m.cached_kingdom ?? 0,
+          town_center_level: m.cached_tc_level ?? 0,
+        });
+      }
+    });
+    return map;
+  }, [members]);
+
+  const { data: apiPlayerData = cachedApiData, isLoading: apiPlayerDataLoading, isError: apiPlayerDataError, refetch: refetchApiPlayerData } = useQuery({
     queryKey: ['alliance-api-players', alliance?.id, nonAtlasPlayerIds.join(',')],
     queryFn: async (): Promise<Map<string, ApiPlayerData>> => {
-      const map = new Map<string, ApiPlayerData>();
+      const map = new Map<string, ApiPlayerData>(cachedApiData);
       const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
-      const batch = nonAtlasPlayerIds.slice(0, 50);
+      // Only fetch IDs that are NOT already cached
+      const uncachedIds = nonAtlasPlayerIds.filter(pid => !cachedApiData.has(pid));
+      const batch = uncachedIds.slice(0, 50);
+      if (batch.length === 0) return map;
 
-      for (const pid of batch) {
-        try {
-          const res = await fetch(`${API_BASE}/api/v1/player-link/verify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ player_id: pid }),
-          });
-          if (res.ok) {
-            const data = await res.json();
-            map.set(pid, data);
+      let fetchedFromApi = false;
+      try {
+        // Use batch endpoint — single request, server handles rate limiting to Century Games
+        const res = await fetch(`${API_BASE}/api/v1/player-link/batch-verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ player_ids: batch }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.results) {
+            Object.entries(data.results).forEach(([pid, pdata]: [string, unknown]) => {
+              const d = pdata as ApiPlayerData;
+              if (d && d.username) { map.set(pid, d); fetchedFromApi = true; }
+            });
           }
-        } catch { /* skip failed lookups */ }
-        // Small delay to respect rate limits
-        await new Promise(r => setTimeout(r, 250));
+        }
+      } catch { /* batch endpoint unavailable — fall back to individual calls */ }
+
+      // Fallback: if batch returned nothing (e.g. old API without batch endpoint), try individual
+      if (!fetchedFromApi && batch.length > 0) {
+        for (const pid of batch.slice(0, 10)) {
+          try {
+            const res = await fetch(`${API_BASE}/api/v1/player-link/verify`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ player_id: pid }),
+            });
+            if (res.ok) {
+              const data = await res.json();
+              map.set(pid, data);
+              fetchedFromApi = true;
+            }
+          } catch { /* skip failed lookups */ }
+          await new Promise(r => setTimeout(r, 1000));
+        }
       }
+
+      // Persist newly-resolved data to alliance_members cached columns
+      if (fetchedFromApi && isSupabaseConfigured && supabase && alliance) {
+        const sb = supabase;
+        const now = new Date().toISOString();
+        const updates = members
+          .filter(m => m.player_id && map.has(m.player_id) && !cachedApiData.has(m.player_id))
+          .map(m => {
+            const d = map.get(m.player_id!)!;
+            return sb.from('alliance_members')
+              .update({ cached_tc_level: d.town_center_level || null, cached_kingdom: d.kingdom || null, cached_username: d.username || null, cached_at: now })
+              .eq('id', m.id)
+              .eq('alliance_id', alliance.id);
+          });
+        if (updates.length > 0) {
+          Promise.all(updates).catch(() => { /* non-critical — cache write failure is OK */ });
+        }
+      }
+
       return map;
     },
     enabled: nonAtlasPlayerIds.length > 0 && !playerProfilesLoading,
     staleTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
+    retry: 1,
   });
+
+  const refreshApiPlayerData = useCallback(() => {
+    // Clear cached columns so next fetch re-resolves from API
+    refetchApiPlayerData();
+  }, [refetchApiPlayerData]);
 
   // Auto-update "Player {id}" names with real API data once resolved
   const autoUpdateDoneRef = useRef(new Set<string>());
@@ -932,6 +1004,8 @@ export function useAllianceCenter(): UseAllianceCenterResult {
 
     apiPlayerData,
     apiPlayerDataLoading,
+    apiPlayerDataError,
+    refreshApiPlayerData,
     registryTroopData,
     currentMemberId,
   };

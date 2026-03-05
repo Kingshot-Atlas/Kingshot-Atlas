@@ -3512,7 +3512,20 @@
   },
   "allianceCenter": {
     "eventCoordinatorLink": "Etkinlik Koordinatörü",
-    "baseDesignerLink": "Üs Tasarımcısı"
+    "baseDesignerLink": "Üs Tasarımcısı",
+    "availYes": "Evet",
+    "availNo": "Hayır",
+    "availSchedule": "Müsaitlik",
+    "mainLanguage": "Ana Dil",
+    "availability": "Müsaitlik",
+    "resolving": "Çözümleniyor...",
+    "resolvingData": "Oyun sunucusundan oyuncu verileri alınıyor...",
+    "resolvingInline": "(çözümleniyor...)",
+    "resolvingPlayer": "Oyuncu verileri çözümleniyor...",
+    "apiUnavailable": "Oyuncu veri servisi kullanılamıyor — mevcut önbellek verileri gösteriliyor.",
+    "refreshData": "Yenile",
+    "notInAtlasResolved": "Atlas kullanıcısı değil — oyun sunucusundan çözümlendi",
+    "unknownPlayer": "Bilinmeyen oyuncu — Atlas veya oyun sunucusunda bulunamadı"
   },
   "eventCoordinator": {
     "pageTitle": "İttifak Etkinlik Koordinatörü",

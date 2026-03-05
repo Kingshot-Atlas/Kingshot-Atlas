@@ -3512,7 +3512,20 @@
   },
   "allianceCenter": {
     "eventCoordinatorLink": "イベントコーディネーター",
-    "baseDesignerLink": "基地デザイナー"
+    "baseDesignerLink": "基地デザイナー",
+    "availYes": "はい",
+    "availNo": "いいえ",
+    "availSchedule": "空き時間",
+    "mainLanguage": "主な言語",
+    "availability": "空き状況",
+    "resolving": "解決中...",
+    "resolvingData": "ゲームサーバーからプレイヤーデータを取得中...",
+    "resolvingInline": "(解決中...)",
+    "resolvingPlayer": "プレイヤーデータを解決中...",
+    "apiUnavailable": "プレイヤーデータサービスが利用できません — キャッシュされたデータを表示しています。",
+    "refreshData": "更新",
+    "notInAtlasResolved": "Atlasユーザーではありません — ゲームサーバーから解決済み",
+    "unknownPlayer": "不明なプレイヤー — Atlasまたはゲームサーバーに見つかりません"
   },
   "eventCoordinator": {
     "pageTitle": "同盟イベントコーディネーター",

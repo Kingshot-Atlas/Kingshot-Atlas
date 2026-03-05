@@ -57,26 +57,97 @@ function tgBadgeColor(label: string): { bg: string; fg: string } {
   return TG_COLORS[label] || { bg: '#6b728020', fg: '#6b7280' };
 }
 
-// ─── Language flag helper ───
-const LANG_FLAGS: Record<string, string> = {
-  // Full language names (as stored in profiles.language)
-  english: '🇬🇧', spanish: '🇪🇸', french: '🇫🇷', german: '🇩🇪', portuguese: '🇧🇷',
-  italian: '🇮🇹', dutch: '🇳🇱', russian: '🇷🇺', polish: '🇵🇱', turkish: '🇹🇷',
-  arabic: '🇸🇦', chinese: '🇨�', japanese: '🇯🇵', korean: '🇰🇷', vietnamese: '🇻🇳',
-  thai: '🇹🇭', indonesian: '🇮🇩', malay: '🇲🇾', hindi: '🇮🇳', swedish: '🇸�',
-  norwegian: '🇳🇴', danish: '�🇰', finnish: '🇫🇮', greek: '🇬🇷', czech: '🇨🇿',
-  romanian: '🇷🇴', hungarian: '🇭🇺', ukrainian: '🇺🇦', tagalog: '🇵🇭', filipino: '🇵🇭',
-  persian: '🇮🇷', hebrew: '🇮🇱', bengali: '🇧🇩', urdu: '🇵🇰', tamil: '🇮🇳',
-  // ISO 2-letter fallback
-  en: '🇬🇧', es: '🇪�', fr: '🇫🇷', de: '🇩🇪', pt: '🇧🇷', it: '🇮🇹', nl: '🇳🇱',
-  ru: '🇷🇺', pl: '🇵🇱', tr: '🇹🇷', ar: '🇸🇦', zh: '🇨🇳', ja: '🇯🇵', ko: '🇰🇷',
-  vi: '🇻🇳', th: '🇹🇭', id: '🇮🇩', ms: '🇲🇾', hi: '🇮🇳', sv: '🇸🇪', no: '🇳🇴',
-  da: '🇩🇰', fi: '🇫🇮', el: '🇬🇷', cs: '🇨🇿', ro: '🇷🇴', hu: '🇭🇺', uk: '🇺🇦',
+// ─── Language name helper (English names instead of flags) ───
+const LANG_NAMES: Record<string, string> = {
+  english: 'English', spanish: 'Spanish', french: 'French', german: 'German', portuguese: 'Portuguese',
+  italian: 'Italian', dutch: 'Dutch', russian: 'Russian', polish: 'Polish', turkish: 'Turkish',
+  arabic: 'Arabic', chinese: 'Chinese', japanese: 'Japanese', korean: 'Korean', vietnamese: 'Vietnamese',
+  thai: 'Thai', indonesian: 'Indonesian', malay: 'Malay', hindi: 'Hindi', swedish: 'Swedish',
+  norwegian: 'Norwegian', danish: 'Danish', finnish: 'Finnish', greek: 'Greek', czech: 'Czech',
+  romanian: 'Romanian', hungarian: 'Hungarian', ukrainian: 'Ukrainian', tagalog: 'Tagalog', filipino: 'Filipino',
+  persian: 'Persian', hebrew: 'Hebrew', bengali: 'Bengali', urdu: 'Urdu', tamil: 'Tamil',
+  en: 'English', es: 'Spanish', fr: 'French', de: 'German', pt: 'Portuguese', it: 'Italian', nl: 'Dutch',
+  ru: 'Russian', pl: 'Polish', tr: 'Turkish', ar: 'Arabic', zh: 'Chinese', ja: 'Japanese', ko: 'Korean',
+  vi: 'Vietnamese', th: 'Thai', id: 'Indonesian', ms: 'Malay', hi: 'Hindi', sv: 'Swedish', no: 'Norwegian',
+  da: 'Danish', fi: 'Finnish', el: 'Greek', cs: 'Czech', ro: 'Romanian', hu: 'Hungarian', uk: 'Ukrainian',
 };
-function langFlag(lang: string | null | undefined): string | null {
+function langName(lang: string | null | undefined): string | null {
   if (!lang || !lang.trim()) return null;
-  return LANG_FLAGS[lang.toLowerCase().trim()] || LANG_FLAGS[lang.toLowerCase().trim().slice(0, 2)] || null;
+  return LANG_NAMES[lang.toLowerCase().trim()] || LANG_NAMES[lang.toLowerCase().trim().slice(0, 2)] || null;
 }
+
+// ─── Availability tooltip with visual bars ───
+const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+/** Renders a visual per-day availability bar chart inside a hover/click popover */
+const AvailTooltip: React.FC<{
+  avail: { days: number; slots: number; byDay: { day: number; slots: string[] }[] };
+  t: (key: string, fallback: string, opts?: Record<string, unknown>) => string;
+}> = ({ avail, t }) => {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  // Close on click outside
+  React.useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  // Sort byDay and build bar data — 48 half-hour slots per day (0-47)
+  const sortedDays = [...avail.byDay].sort((a, b) => a.day - b.day);
+
+  return (
+    <div ref={ref} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+      <button
+        onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
+        style={{
+          background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+          color: '#10b981', fontSize: '0.7rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.2rem',
+        }}
+      >
+        {t('allianceCenter.availYes', 'Yes')} <span style={{ fontSize: '0.55rem', opacity: 0.7 }}>▾</span>
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
+          marginBottom: '6px', zIndex: 50, backgroundColor: '#111827', border: '1px solid #22d3ee40',
+          borderRadius: '8px', padding: '0.5rem 0.6rem', boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
+          minWidth: '180px', whiteSpace: 'nowrap',
+        }}>
+          <div style={{ fontSize: '0.6rem', fontWeight: 700, color: '#9ca3af', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            {t('allianceCenter.availSchedule', 'Availability')}
+          </div>
+          {sortedDays.map(d => {
+            // Convert slot strings to indices for the bar visualization
+            const slotSet = new Set(d.slots.map(s => {
+              const parts = s.split(':').map(Number);
+              return (parts[0] ?? 0) * 2 + ((parts[1] ?? 0) >= 30 ? 1 : 0);
+            }));
+            return (
+              <div key={d.day} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.2rem' }}>
+                <span style={{ fontSize: '0.6rem', color: '#6b7280', width: '26px', flexShrink: 0, fontWeight: 600 }}>{DAY_SHORT[d.day]}</span>
+                <div style={{ display: 'flex', flex: 1, height: '8px', borderRadius: '2px', overflow: 'hidden', backgroundColor: '#1a1a24' }}>
+                  {Array.from({ length: 48 }, (_, i) => (
+                    <div key={i} style={{
+                      flex: 1, backgroundColor: slotSet.has(i) ? '#10b981' : 'transparent',
+                      borderRight: i % 4 === 3 ? '1px solid #0d111720' : 'none',
+                    }} />
+                  ))}
+                </div>
+                <span style={{ fontSize: '0.5rem', color: '#4b5563', width: '20px', textAlign: 'right', flexShrink: 0 }}>{d.slots.length}</span>
+              </div>
+            );
+          })}
+          <div style={{ fontSize: '0.5rem', color: '#4b5563', marginTop: '0.25rem', display: 'flex', justifyContent: 'space-between' }}>
+            <span>00:00</span><span>12:00</span><span>24:00</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 type SortKey = 'name' | 'id' | 'tc' | 'infantry' | 'cavalry' | 'archers' | 'lang' | 'avail';
 type SortDir = 'asc' | 'desc';
@@ -701,21 +772,22 @@ const AllianceDashboard: React.FC = () => {
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
 
-  // Fetch availability summary per member (lightweight: just member_name + day count + slot count)
-  const { data: availSummary = new Map<string, { days: number; slots: number }>() } = useQuery({
+  // Fetch availability summary per member (includes per-day detail for tooltip)
+  const { data: availSummary = new Map<string, { days: number; slots: number; byDay: { day: number; slots: string[] }[] }>() } = useQuery({
     queryKey: ['alliance-avail-summary', ac.alliance?.id],
     queryFn: async () => {
       if (!isSupabaseConfigured || !supabase || !ac.alliance) return new Map();
       const { data, error } = await supabase
         .from('alliance_event_availability')
-        .select('member_name, time_slots')
+        .select('member_name, day_of_week, time_slots')
         .eq('alliance_id', ac.alliance.id);
       if (error || !data) return new Map();
-      const map = new Map<string, { days: number; slots: number }>();
-      data.forEach((row: { member_name: string; time_slots: string[] }) => {
-        const existing = map.get(row.member_name) || { days: 0, slots: 0 };
+      const map = new Map<string, { days: number; slots: number; byDay: { day: number; slots: string[] }[] }>();
+      data.forEach((row: { member_name: string; day_of_week: number; time_slots: string[] }) => {
+        const existing = map.get(row.member_name) || { days: 0, slots: 0, byDay: [] };
         existing.days += 1;
         existing.slots += (row.time_slots?.length || 0);
+        existing.byDay.push({ day: row.day_of_week, slots: row.time_slots || [] });
         map.set(row.member_name, existing);
       });
       return map;
@@ -741,6 +813,36 @@ const AllianceDashboard: React.FC = () => {
     if (result.success) { setShowEditAlliance(false); showToast(t('allianceCenter.updated', 'Alliance updated'), 'success'); }
     else { showToast(result.error || 'Failed to update', 'error'); }
   }, [ac, editTag, editName, editDesc, showToast, t]);
+
+  // Build enriched + filtered + sorted list (MUST be above early returns — Rules of Hooks)
+  const filtered = useMemo(() => {
+    const base = ac.sortedMembers.filter(m =>
+      !memberFilter || m.player_name.toLowerCase().includes(memberFilter.toLowerCase()) ||
+      (m.player_id && m.player_id.includes(memberFilter))
+    );
+    const getVal = (m: AllianceMember): string | number => {
+      const prof = m.player_id ? profilesMap.get(m.player_id) : undefined;
+      const apiData = m.player_id ? ac.apiPlayerData.get(m.player_id) : undefined;
+      const regTroop = m.player_id ? ac.registryTroopData.get(m.player_id) : undefined;
+      const tcLevel = prof?.linked_tc_level ?? apiData?.town_center_level ?? 0;
+      switch (sortKey) {
+        case 'name': return m.player_name.toLowerCase();
+        case 'id': return m.player_id || '';
+        case 'tc': return tcLevel;
+        case 'infantry': return m.infantry_tier ?? regTroop?.infantry_tier ?? 0;
+        case 'cavalry': return m.cavalry_tier ?? regTroop?.cavalry_tier ?? 0;
+        case 'archers': return m.archers_tier ?? regTroop?.archers_tier ?? 0;
+        case 'lang': return prof?.language || 'zzz';
+        case 'avail': return availSummary.get(m.player_name)?.slots ?? 0;
+        default: return m.player_name.toLowerCase();
+      }
+    };
+    return [...base].sort((a, b) => {
+      const va = getVal(a), vb = getVal(b);
+      const cmp = typeof va === 'number' && typeof vb === 'number' ? va - vb : String(va).localeCompare(String(vb));
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+  }, [ac.sortedMembers, memberFilter, sortKey, sortDir, profilesMap, ac.apiPlayerData, ac.registryTroopData, availSummary]);
 
   // Loading state — show spinner FIRST to prevent create form flash for returning users
   if (ac.allianceLoading) {
@@ -801,37 +903,6 @@ const AllianceDashboard: React.FC = () => {
     else { setSortKey(key); setSortDir('asc'); }
   };
   const sortArrow = (key: SortKey) => sortKey === key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '';
-
-  // Build enriched + filtered + sorted list
-  const filtered = useMemo(() => {
-    const base = ac.sortedMembers.filter(m =>
-      !memberFilter || m.player_name.toLowerCase().includes(memberFilter.toLowerCase()) ||
-      (m.player_id && m.player_id.includes(memberFilter))
-    );
-    // Sort
-    const getVal = (m: AllianceMember): string | number => {
-      const prof = m.player_id ? profilesMap.get(m.player_id) : undefined;
-      const apiData = m.player_id ? ac.apiPlayerData.get(m.player_id) : undefined;
-      const regTroop = m.player_id ? ac.registryTroopData.get(m.player_id) : undefined;
-      const tcLevel = prof?.linked_tc_level ?? apiData?.town_center_level ?? 0;
-      switch (sortKey) {
-        case 'name': return m.player_name.toLowerCase();
-        case 'id': return m.player_id || '';
-        case 'tc': return tcLevel;
-        case 'infantry': return m.infantry_tier ?? regTroop?.infantry_tier ?? 0;
-        case 'cavalry': return m.cavalry_tier ?? regTroop?.cavalry_tier ?? 0;
-        case 'archers': return m.archers_tier ?? regTroop?.archers_tier ?? 0;
-        case 'lang': return prof?.language || 'zzz';
-        case 'avail': return availSummary.get(m.player_name)?.slots ?? 0;
-        default: return m.player_name.toLowerCase();
-      }
-    };
-    return [...base].sort((a, b) => {
-      const va = getVal(a), vb = getVal(b);
-      const cmp = typeof va === 'number' && typeof vb === 'number' ? va - vb : String(va).localeCompare(String(vb));
-      return sortDir === 'asc' ? cmp : -cmp;
-    });
-  }, [ac.sortedMembers, memberFilter, sortKey, sortDir, profilesMap, ac.apiPlayerData, ac.registryTroopData, availSummary]);
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: isMobile ? '0.5rem' : '1rem' }}>
@@ -925,19 +996,34 @@ const AllianceDashboard: React.FC = () => {
           <h3 style={{ color: '#fff', fontSize: '0.95rem', fontWeight: '700', margin: 0, fontFamily: FONT_DISPLAY }}>
             {t('allianceCenter.rosterTitle', 'Alliance Roster')}
           </h3>
-          <div style={{ flex: 1, height: '1px', backgroundColor: ACCENT + '30', marginLeft: '0.25rem' }} />
-          {ac.canManage && (
-            <div style={{ display: 'flex', gap: '0.3rem' }}>
-              <button onClick={() => setShowImport(true)} disabled={!ac.canAddMember}
-                style={{ padding: '0.25rem 0.5rem', backgroundColor: '#22d3ee15', border: '1px solid #22d3ee30', borderRadius: '6px', color: '#22d3ee', fontSize: '0.65rem', fontWeight: '600', cursor: ac.canAddMember ? 'pointer' : 'not-allowed', opacity: ac.canAddMember ? 1 : 0.5 }}>
-                📋 Import IDs
-              </button>
-              <button onClick={() => setShowAddMember(true)} disabled={!ac.canAddMember}
-                style={{ padding: '0.25rem 0.6rem', backgroundColor: ACCENT + '15', border: `1px solid ${ACCENT}30`, borderRadius: '6px', color: ACCENT, fontSize: '0.7rem', fontWeight: '600', cursor: ac.canAddMember ? 'pointer' : 'not-allowed', opacity: ac.canAddMember ? 1 : 0.5 }}>
-                + {t('allianceCenter.addMember', 'Add Member')}
-              </button>
-            </div>
+          {ac.memberCount > 0 && (
+            <span style={{ fontSize: '0.6rem', fontWeight: 700, padding: '0.1rem 0.4rem', borderRadius: '10px', backgroundColor: ac.apiPlayerDataLoading ? '#f59e0b20' : '#22d3ee20', color: ac.apiPlayerDataLoading ? '#f59e0b' : '#22d3ee', fontFamily: 'monospace', letterSpacing: '0.03em' }}>
+              {ac.apiPlayerDataLoading
+                ? t('allianceCenter.resolving', 'Resolving...')
+                : `${ac.memberCount - filtered.filter(m => m.player_id && !profilesMap.get(m.player_id) && !ac.apiPlayerData.get(m.player_id)).length}/${ac.memberCount}`}
+            </span>
           )}
+          <div style={{ flex: 1, height: '1px', backgroundColor: ACCENT + '30', marginLeft: '0.25rem' }} />
+          <div style={{ display: 'flex', gap: '0.3rem' }}>
+            {ac.canManage && (
+              <button onClick={() => ac.refreshApiPlayerData()} disabled={ac.apiPlayerDataLoading}
+                style={{ padding: isMobile ? '0.4rem 0.6rem' : '0.25rem 0.5rem', minHeight: isMobile ? '36px' : 'auto', backgroundColor: '#10b98115', border: '1px solid #10b98130', borderRadius: '6px', color: '#10b981', fontSize: '0.65rem', fontWeight: '600', cursor: ac.apiPlayerDataLoading ? 'wait' : 'pointer', opacity: ac.apiPlayerDataLoading ? 0.5 : 1, WebkitTapHighlightColor: 'transparent' }}>
+                🔄 {t('allianceCenter.refreshData', 'Refresh')}
+              </button>
+            )}
+            {ac.canManage && (
+              <>
+                <button onClick={() => setShowImport(true)} disabled={!ac.canAddMember}
+                  style={{ padding: '0.25rem 0.5rem', backgroundColor: '#22d3ee15', border: '1px solid #22d3ee30', borderRadius: '6px', color: '#22d3ee', fontSize: '0.65rem', fontWeight: '600', cursor: ac.canAddMember ? 'pointer' : 'not-allowed', opacity: ac.canAddMember ? 1 : 0.5 }}>
+                  📋 Import IDs
+                </button>
+                <button onClick={() => setShowAddMember(true)} disabled={!ac.canAddMember}
+                  style={{ padding: '0.25rem 0.6rem', backgroundColor: ACCENT + '15', border: `1px solid ${ACCENT}30`, borderRadius: '6px', color: ACCENT, fontSize: '0.7rem', fontWeight: '600', cursor: ac.canAddMember ? 'pointer' : 'not-allowed', opacity: ac.canAddMember ? 1 : 0.5 }}>
+                  + {t('allianceCenter.addMember', 'Add Member')}
+                </button>
+              </>
+            )}
+          </div>
         </div>
         {/* Search bar */}
         <div style={{ marginBottom: '0.75rem' }}>
@@ -946,9 +1032,43 @@ const AllianceDashboard: React.FC = () => {
             style={{ ...inputBase, fontSize: '0.8rem', padding: '0.4rem 0.6rem' }} />
         </div>
 
+        {/* API status banners */}
+        {ac.apiPlayerDataError && !ac.apiPlayerDataLoading && (
+          <div style={{ padding: '0.5rem 0.75rem', marginBottom: '0.5rem', backgroundColor: '#ef444410', border: '1px solid #ef444425', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <span style={{ fontSize: '0.75rem' }}>⚠️</span>
+            <span style={{ color: '#f87171', fontSize: '0.75rem' }}>
+              {t('allianceCenter.apiUnavailable', 'Player data service unavailable — showing cached data where available.')}
+            </span>
+          </div>
+        )}
+        {ac.apiPlayerDataLoading && ac.memberCount > 0 && (
+          <div style={{ padding: '0.4rem 0.75rem', marginBottom: '0.5rem', backgroundColor: '#f59e0b08', border: '1px solid #f59e0b15', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <span style={{ display: 'inline-block', width: '10px', height: '10px', border: '2px solid #f59e0b40', borderTop: '2px solid #f59e0b', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+            <span style={{ color: '#f59e0b', fontSize: '0.75rem' }}>
+              {t('allianceCenter.resolvingData', 'Resolving player data from game server...')}
+            </span>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          </div>
+        )}
+
         {/* Roster */}
         {ac.membersLoading ? (
-          <div style={{ color: '#6b7280', fontSize: '0.85rem', padding: '1rem 0', textAlign: 'center' }}>{t('common.loading', 'Loading...')}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {[1, 2, 3, 4, 5].map(i => (
+              <div key={i} style={{ backgroundColor: '#111116', borderRadius: '10px', border: '1px solid #1e1e24', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <div style={{ width: '120px', height: '14px', backgroundColor: '#1a1a24', borderRadius: '3px', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                  <div style={{ width: '60px', height: '12px', backgroundColor: '#1a1a24', borderRadius: '3px', animation: 'pulse 1.5s ease-in-out 0.2s infinite' }} />
+                </div>
+                <div style={{ display: 'flex', gap: '0.6rem' }}>
+                  <div style={{ width: '50px', height: '12px', backgroundColor: '#1a1a24', borderRadius: '3px', animation: 'pulse 1.5s ease-in-out 0.4s infinite' }} />
+                  <div style={{ width: '50px', height: '12px', backgroundColor: '#1a1a24', borderRadius: '3px', animation: 'pulse 1.5s ease-in-out 0.6s infinite' }} />
+                  <div style={{ width: '50px', height: '12px', backgroundColor: '#1a1a24', borderRadius: '3px', animation: 'pulse 1.5s ease-in-out 0.8s infinite' }} />
+                </div>
+                <style>{`@keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }`}</style>
+              </div>
+            ))}
+          </div>
         ) : filtered.length === 0 ? (
           <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: '#111116', borderRadius: '10px', border: '1px dashed #2a2a2a' }}>
             <p style={{ color: '#4b5563', fontSize: '0.85rem', margin: 0 }}>
@@ -980,7 +1100,7 @@ const AllianceDashboard: React.FC = () => {
               const isNotInAtlas = m.player_id && !prof;
               const isOwnRow = ac.currentMemberId === m.id;
               const isRemoving = removingMemberId === m.id;
-              const flag = prof ? langFlag(prof.language) : null;
+              const lang = prof ? langName(prof.language) : null;
 
               const renderTroopMobile = (label: string, manualTier: number | null, manualTg: number | null, regTier: number | undefined, regTg: number | undefined, color: string) => {
                 const tier = manualTier ?? regTier ?? null;
@@ -1000,35 +1120,60 @@ const AllianceDashboard: React.FC = () => {
                   backgroundColor: isOwnRow ? '#111120' : '#111116', borderRadius: '10px', border: `1px solid ${isOwnRow ? '#3b82f625' : '#1e1e24'}`,
                   padding: '0.75rem', transition: 'background-color 0.1s',
                 }}>
-                  {/* Top row: name + badges */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                  {/* Row 1: Username + TC badge + Player ID (top-right) */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', marginBottom: '0.3rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flex: 1, minWidth: 0 }}>
-                      {isNotInAtlas && <span title={t('allianceCenter.notInAtlas', 'User not in Atlas')} style={{ cursor: 'help', fontSize: '0.55rem', lineHeight: 1, flexShrink: 0 }}>🔴</span>}
+                      {isNotInAtlas && (
+                        <span
+                          title={apiData
+                            ? t('allianceCenter.notInAtlasResolved', 'Not an Atlas user — resolved from game server')
+                            : ac.apiPlayerDataLoading
+                              ? t('allianceCenter.resolvingPlayer', 'Resolving player data...')
+                              : t('allianceCenter.unknownPlayer', 'Unknown player — not found in Atlas or game server')}
+                          style={{ cursor: 'help', width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0, display: 'inline-block', backgroundColor: apiData ? '#f59e0b' : ac.apiPlayerDataLoading ? '#6b7280' : '#ef4444' }}
+                        />
+                      )}
                       {prof ? (
                         <Link to={`/profile/${prof.user_id}`} style={{ color: '#e5e7eb', fontWeight: 600, fontSize: '0.85rem', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                           onMouseOver={e => (e.currentTarget.style.color = ACCENT)} onMouseOut={e => (e.currentTarget.style.color = '#e5e7eb')}>
                           {m.player_name}
                         </Link>
+                      ) : ac.apiPlayerDataLoading && /^Player \d+$/.test(m.player_name) ? (
+                        <span style={{ color: '#9ca3af', fontWeight: 600, fontSize: '0.85rem', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {m.player_name} <span style={{ color: '#f59e0b', fontSize: '0.65rem', animation: 'pulse 1.5s ease-in-out infinite' }}>{t('allianceCenter.resolvingInline', '(resolving...)')}</span>
+                        </span>
                       ) : (
                         <span style={{ color: '#e5e7eb', fontWeight: 600, fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.player_name}</span>
                       )}
                       {isOwnRow && <span style={{ fontSize: '0.5rem', fontWeight: 700, padding: '0.05rem 0.2rem', borderRadius: '3px', backgroundColor: '#3b82f625', color: '#3b82f6', flexShrink: 0 }}>YOU</span>}
+                      {tgLabel && tgColors && <span style={{ fontSize: '0.55rem', fontWeight: 700, padding: '0.05rem 0.25rem', borderRadius: '3px', backgroundColor: tgColors.bg, color: tgColors.fg, flexShrink: 0 }}>{tgLabel}</span>}
                     </div>
-                    <div style={{ display: 'flex', gap: '0.15rem', flexShrink: 0 }}>
-                      {tgLabel && tgColors && <span style={{ fontSize: '0.6rem', fontWeight: 700, padding: '0.05rem 0.3rem', borderRadius: '3px', backgroundColor: tgColors.bg, color: tgColors.fg }}>{tgLabel}</span>}
-                      {flag && <span style={{ fontSize: '0.75rem' }} title={prof?.language || ''}>{flag}</span>}
-                    </div>
+                    <span style={{ color: '#4b5563', fontFamily: 'monospace', fontSize: '0.65rem', flexShrink: 0 }}>{m.player_id || '—'}</span>
                   </div>
-                  {/* Troop row */}
+                  {/* Row 2: Inf + Cav + Arc */}
                   <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', marginBottom: '0.3rem' }}>
                     {renderTroopMobile('Inf', m.infantry_tier, m.infantry_tg, regTroop?.infantry_tier, regTroop?.infantry_tg, TROOP_COLORS.infantry)}
                     {renderTroopMobile('Cav', m.cavalry_tier, m.cavalry_tg, regTroop?.cavalry_tier, regTroop?.cavalry_tg, TROOP_COLORS.cavalry)}
                     {renderTroopMobile('Arc', m.archers_tier, m.archers_tg, regTroop?.archers_tier, regTroop?.archers_tg, TROOP_COLORS.archers)}
-                    {avail && <span style={{ color: '#10b981', fontSize: '0.65rem', fontWeight: 600 }}>{avail.days}d/{avail.slots}s</span>}
                   </div>
-                  {/* Bottom row: ID + actions */}
+                  {/* Row 3: Main Language */}
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.3rem' }}>
+                    <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>
+                      {lang
+                        ? <>{t('allianceCenter.mainLanguage', 'Main Language')}: <span style={{ color: '#9ca3af', fontWeight: 600 }}>{lang}</span></>
+                        : <span style={{ color: '#3a3a40' }}>—</span>
+                      }
+                    </span>
+                  </div>
+                  {/* Row 4: Availability + Edit + Delete */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#4b5563', fontFamily: 'monospace', fontSize: '0.65rem' }}>{m.player_id || '—'}</span>
+                    <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>
+                      {t('allianceCenter.availability', 'Availability')}:{' '}
+                      {avail
+                        ? <AvailTooltip avail={avail} t={t} />
+                        : <span style={{ color: '#ef4444', fontWeight: 600, fontSize: '0.7rem' }}>{t('allianceCenter.availNo', 'No')}</span>
+                      }
+                    </span>
                     <div style={{ display: 'flex', gap: '0.3rem' }}>
                       {ac.canManage ? (
                         <>
@@ -1056,15 +1201,15 @@ const AllianceDashboard: React.FC = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
               <thead>
                 <tr style={{ backgroundColor: '#0d1117', borderBottom: '2px solid #2a2a2a' }}>
-                  <th style={{ ...thStyle, textAlign: 'left', cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('name')}>Username{sortArrow('name')}</th>
-                  <th style={{ ...thStyle, textAlign: 'left', cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('id')}>ID{sortArrow('id')}</th>
-                  <th style={{ ...thStyle, cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('tc')}>TC{sortArrow('tc')}</th>
-                  <th style={{ ...thStyle, color: TROOP_COLORS.infantry, cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('infantry')}>Infantry{sortArrow('infantry')}</th>
-                  <th style={{ ...thStyle, color: TROOP_COLORS.cavalry, cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('cavalry')}>Cavalry{sortArrow('cavalry')}</th>
-                  <th style={{ ...thStyle, color: TROOP_COLORS.archers, cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('archers')}>Archers{sortArrow('archers')}</th>
-                  <th style={{ ...thStyle, cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('lang')}>Lang{sortArrow('lang')}</th>
-                  <th style={{ ...thStyle, cursor: 'pointer', userSelect: 'none' }} onClick={() => toggleSort('avail')}>Avail{sortArrow('avail')}</th>
-                  {(ac.canManage || isMemberOnly) && <th style={{ ...thStyle, width: '60px' }}></th>}
+                  <th style={{ ...thStyle, textAlign: 'left', cursor: 'pointer', userSelect: 'none', minWidth: '120px' }} onClick={() => toggleSort('name')}>Username{sortArrow('name')}</th>
+                  <th style={{ ...thStyle, textAlign: 'left', cursor: 'pointer', userSelect: 'none', width: '90px' }} onClick={() => toggleSort('id')}>ID{sortArrow('id')}</th>
+                  <th style={{ ...thStyle, cursor: 'pointer', userSelect: 'none', width: '52px' }} onClick={() => toggleSort('tc')}>TC{sortArrow('tc')}</th>
+                  <th style={{ ...thStyle, color: TROOP_COLORS.infantry, cursor: 'pointer', userSelect: 'none', width: '78px' }} onClick={() => toggleSort('infantry')}>Inf{sortArrow('infantry')}</th>
+                  <th style={{ ...thStyle, color: TROOP_COLORS.cavalry, cursor: 'pointer', userSelect: 'none', width: '78px' }} onClick={() => toggleSort('cavalry')}>Cav{sortArrow('cavalry')}</th>
+                  <th style={{ ...thStyle, color: TROOP_COLORS.archers, cursor: 'pointer', userSelect: 'none', width: '78px' }} onClick={() => toggleSort('archers')}>Arc{sortArrow('archers')}</th>
+                  <th style={{ ...thStyle, cursor: 'pointer', userSelect: 'none', width: '72px' }} onClick={() => toggleSort('lang')}>Lang{sortArrow('lang')}</th>
+                  <th style={{ ...thStyle, cursor: 'pointer', userSelect: 'none', width: '56px' }} onClick={() => toggleSort('avail')}>Avail{sortArrow('avail')}</th>
+                  {(ac.canManage || isMemberOnly) && <th style={{ ...thStyle, width: '56px' }}></th>}
                 </tr>
               </thead>
               <tbody>
@@ -1079,7 +1224,7 @@ const AllianceDashboard: React.FC = () => {
                   const isNotInAtlas = m.player_id && !prof;
                   const isRemoving = removingMemberId === m.id;
                   const isOwnRow = ac.currentMemberId === m.id;
-                  const flag = prof ? langFlag(prof.language) : null;
+                  const lang = prof ? langName(prof.language) : null;
 
                   const renderTroop = (manualTier: number | null, manualTg: number | null, regTier: number | undefined, regTg: number | undefined, color: string) => {
                     const tier = manualTier ?? regTier ?? null;
@@ -1101,13 +1246,24 @@ const AllianceDashboard: React.FC = () => {
                       <td style={tdStyle}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
                           {isNotInAtlas && (
-                            <span title={t('allianceCenter.notInAtlas', 'User not in Atlas')} style={{ cursor: 'help', fontSize: '0.55rem', lineHeight: 1 }}>🔴</span>
+                            <span
+                              title={apiData
+                                ? t('allianceCenter.notInAtlasResolved', 'Not an Atlas user — resolved from game server')
+                                : ac.apiPlayerDataLoading
+                                  ? t('allianceCenter.resolvingPlayer', 'Resolving player data...')
+                                  : t('allianceCenter.unknownPlayer', 'Unknown player — not found in Atlas or game server')}
+                              style={{ cursor: 'help', width: '6px', height: '6px', borderRadius: '50%', display: 'inline-block', flexShrink: 0, backgroundColor: apiData ? '#f59e0b' : ac.apiPlayerDataLoading ? '#6b7280' : '#ef4444' }}
+                            />
                           )}
                           {prof ? (
                             <Link to={`/profile/${prof.user_id}`} style={{ color: '#e5e7eb', fontWeight: 500, textDecoration: 'none' }}
                               onMouseOver={e => (e.currentTarget.style.color = ACCENT)} onMouseOut={e => (e.currentTarget.style.color = '#e5e7eb')}>
                               {m.player_name}
                             </Link>
+                          ) : ac.apiPlayerDataLoading && /^Player \d+$/.test(m.player_name) ? (
+                            <span style={{ color: '#9ca3af', fontWeight: 500, fontStyle: 'italic' }}>
+                              {m.player_name} <span style={{ color: '#f59e0b', fontSize: '0.65rem', animation: 'pulse 1.5s ease-in-out infinite' }}>{t('allianceCenter.resolvingInline', '(resolving...)')}</span>
+                            </span>
                           ) : (
                             <span style={{ color: '#e5e7eb', fontWeight: 500 }}>{m.player_name}</span>
                           )}
@@ -1141,12 +1297,12 @@ const AllianceDashboard: React.FC = () => {
                         {renderTroop(m.archers_tier, m.archers_tg, regTroop?.archers_tier, regTroop?.archers_tg, TROOP_COLORS.archers)}
                       </td>
                       <td style={{ ...tdStyle, textAlign: 'center' }}>
-                        {flag ? <span title={prof?.language || ''} style={{ fontSize: '0.85rem' }}>{flag}</span> : <span style={{ color: '#3a3a40' }}>—</span>}
+                        {lang ? <span style={{ color: '#9ca3af', fontSize: '0.7rem', fontWeight: 500 }}>{lang}</span> : <span style={{ color: '#3a3a40' }}>—</span>}
                       </td>
                       <td style={{ ...tdStyle, textAlign: 'center' }}>
                         {avail ? (
-                          <span style={{ color: '#10b981', fontSize: '0.7rem', fontWeight: 600 }}>{avail.days}d/{avail.slots}s</span>
-                        ) : <span style={{ color: '#3a3a40' }}>—</span>}
+                          <AvailTooltip avail={avail} t={t} />
+                        ) : <span style={{ color: '#ef4444', fontSize: '0.7rem', fontWeight: 600 }}>{t('allianceCenter.availNo', 'No')}</span>}
                       </td>
                       {(ac.canManage || isMemberOnly) && (
                         <td style={{ ...tdStyle, textAlign: 'center' }}>

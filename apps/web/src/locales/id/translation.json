@@ -3521,7 +3521,20 @@
   },
   "allianceCenter": {
     "eventCoordinatorLink": "Koordinator Acara",
-    "baseDesignerLink": "Desainer Pangkalan"
+    "baseDesignerLink": "Desainer Pangkalan",
+    "availYes": "Ya",
+    "availNo": "Tidak",
+    "availSchedule": "Ketersediaan",
+    "mainLanguage": "Bahasa utama",
+    "availability": "Ketersediaan",
+    "resolving": "Memuat...",
+    "resolvingData": "Mengambil data pemain dari server game...",
+    "resolvingInline": "(memuat...)",
+    "resolvingPlayer": "Memuat data pemain...",
+    "apiUnavailable": "Layanan data pemain tidak tersedia — menampilkan data cache jika ada.",
+    "refreshData": "Segarkan",
+    "notInAtlasResolved": "Bukan pengguna Atlas — terverifikasi dari server game",
+    "unknownPlayer": "Pemain tidak dikenal — tidak ditemukan di Atlas atau server game"
   },
   "eventCoordinator": {
     "pageTitle": "Koordinator Acara Aliansi",

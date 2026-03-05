@@ -3511,7 +3511,20 @@
   },
   "allianceCenter": {
     "eventCoordinatorLink": "Coordinador de Eventos",
-    "baseDesignerLink": "Diseñador de Base"
+    "baseDesignerLink": "Diseñador de Base",
+    "availYes": "Sí",
+    "availNo": "No",
+    "availSchedule": "Disponibilidad",
+    "mainLanguage": "Idioma principal",
+    "availability": "Disponibilidad",
+    "resolving": "Resolviendo...",
+    "resolvingData": "Resolviendo datos del jugador desde el servidor del juego...",
+    "resolvingInline": "(resolviendo...)",
+    "resolvingPlayer": "Resolviendo datos del jugador...",
+    "apiUnavailable": "Servicio de datos del jugador no disponible — mostrando datos en caché donde estén disponibles.",
+    "refreshData": "Actualizar",
+    "notInAtlasResolved": "No es usuario de Atlas — resuelto desde el servidor del juego",
+    "unknownPlayer": "Jugador desconocido — no encontrado en Atlas ni en el servidor del juego"
   },
   "eventCoordinator": {
     "pageTitle": "Coordinador de Eventos de Alianza",

@@ -3620,7 +3620,20 @@
   },
   "allianceCenter": {
     "eventCoordinatorLink": "Event Coordinator",
-    "baseDesignerLink": "Base Designer"
+    "baseDesignerLink": "Base Designer",
+    "availYes": "Yes",
+    "availNo": "No",
+    "availSchedule": "Availability",
+    "mainLanguage": "Main Language",
+    "availability": "Availability",
+    "resolving": "Resolving...",
+    "resolvingData": "Resolving player data from game server...",
+    "resolvingInline": "(resolving...)",
+    "resolvingPlayer": "Resolving player data...",
+    "apiUnavailable": "Player data service unavailable — showing cached data where available.",
+    "refreshData": "Refresh",
+    "notInAtlasResolved": "Not an Atlas user — resolved from game server",
+    "unknownPlayer": "Unknown player — not found in Atlas or game server"
   },
   "eventCoordinator": {
     "pageTitle": "Alliance Event Coordinator",
@@ -3660,6 +3673,7 @@
     "editMember": "Edit Availability",
     "memberNameLabel": "Member Name",
     "manualSaved": "Availability saved for {{name}}",
-    "memberDeleted": "{{name}} availability removed"
+    "memberDeleted": "{{name}} availability removed",
+    "copyFrom": "Copy from..."
   }
 }

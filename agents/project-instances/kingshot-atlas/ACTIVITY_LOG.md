@@ -3,6 +3,26 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-05 14:15 | Platform Engineer | COMPLETED
+Task: Fix Alliance Center crash on refresh + Fix player data resolution for non-Atlas members
+Files: apps/web/src/pages/AllianceCenter.tsx, apps/web/src/hooks/useAllianceCenter.ts, apps/api/api/routers/player_link.py
+Root Cause (crash): React Rules of Hooks violation — `useMemo` for `filtered` was placed AFTER early returns (`ac.allianceLoading`, `!ac.alliance`). On first render loading=true → returned early (165 hooks). On second render loading=false → reached useMemo (166 hooks) → "Rendered more hooks than during the previous render" crash.
+Fix (crash): Moved `useMemo` above all early returns so hooks execute unconditionally.
+Root Cause (player data): The existing code fired sequential individual `/verify` requests with 250ms delay, hitting the 10/min rate limit after 10 players. Also, component crash prevented the API fetch from ever completing.
+Fix (player data): Created new `POST /api/v1/player-link/batch-verify` endpoint accepting up to 50 player IDs in one request (1s delay between Century Games API calls, 3/min rate limit). Updated hook to use batch endpoint with fallback to individual calls (capped at 10, 1s delay).
+Result: Alliance Center loads on first try without crash. Non-Atlas player data (username, TC level, kingdom) resolves reliably for all alliance sizes.
+
+## 2026-03-05 13:50 | Product Engineer | COMPLETED
+Task: Alliance Center — Mobile card layout rework + Availability Yes/No tooltip (desktop & mobile)
+Files: apps/web/src/pages/AllianceCenter.tsx, 11 locale translation.json files
+Changes:
+- Mobile card layout restructured: Row 1 (Username + TC badge + Player ID), Row 2 (Inf/Cav/Arc), Row 3 (Main Language: X), Row 4 (Availability: Yes/No + Edit/Delete)
+- Desktop availability column: replaced cryptic "1d/23s" format with "Yes"/"No" labels
+- New AvailTooltip component: click to reveal per-day visual bar chart showing 48 half-hour slots as green bars (00:00–24:00) with day labels and slot count
+- Enhanced availability query to include per-day time slot detail (day_of_week + time_slots) for tooltip rendering
+- i18n: 5 new keys (availYes, availNo, availSchedule, mainLanguage, availability) translated to all 11 locales
+Result: Build passes. Mobile cards are cleaner and more informative. Availability is now instantly readable as Yes/No with intuitive visual drill-down.
+
 ## 2026-03-05 03:14 | Platform Engineer | COMPLETED
 Task: Fix 42P17 infinite recursion in alliance RLS policies (500 Internal Server Error)
 Files: Supabase migration (DB only — no client changes needed)

@@ -3512,7 +3512,20 @@
   },
   "allianceCenter": {
     "eventCoordinatorLink": "活动协调员",
-    "baseDesignerLink": "基地设计师"
+    "baseDesignerLink": "基地设计师",
+    "availYes": "是",
+    "availNo": "否",
+    "availSchedule": "可用时间",
+    "mainLanguage": "主要语言",
+    "availability": "可用性",
+    "resolving": "解析中...",
+    "resolvingData": "正在从游戏服务器解析玩家数据...",
+    "resolvingInline": "(解析中...)",
+    "resolvingPlayer": "正在解析玩家数据...",
+    "apiUnavailable": "玩家数据服务不可用 — 显示可用的缓存数据。",
+    "refreshData": "刷新",
+    "notInAtlasResolved": "非Atlas用户 — 已从游戏服务器解析",
+    "unknownPlayer": "未知玩家 — 在Atlas和游戏服务器中均未找到"
   },
   "eventCoordinator": {
     "pageTitle": "联盟活动协调员",

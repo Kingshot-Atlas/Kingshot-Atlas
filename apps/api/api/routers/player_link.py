@@ -246,6 +246,75 @@ async def verify_player(request: Request, body: PlayerVerifyRequest):
     )
 
 
+class BatchVerifyRequest(BaseModel):
+    """Request model for batch player verification"""
+    player_ids: list[str] = Field(..., min_length=1, max_length=50)
+
+
+class BatchVerifyResponse(BaseModel):
+    """Response model for batch player verification"""
+    results: dict[str, PlayerProfileResponse]
+    errors: list[str]
+
+
+@router.post(
+    "/batch-verify",
+    response_model=BatchVerifyResponse,
+    summary="Batch Verify Kingshot Player IDs",
+    description="Verify up to 50 player IDs in a single request. Used by Alliance Center to resolve non-Atlas members.",
+)
+@limiter.limit("3/minute")
+async def batch_verify_players(request: Request, body: BatchVerifyRequest):
+    """
+    Batch verify player IDs against Century Games API.
+    Processes sequentially with 1s delay between calls to respect upstream rate limits.
+    """
+    t_start = time.monotonic()
+    results: dict[str, PlayerProfileResponse] = {}
+    errors: list[str] = []
+
+    # Deduplicate and validate
+    seen = set()
+    valid_ids = []
+    for pid in body.player_ids:
+        pid = pid.strip()
+        if pid and pid.isdigit() and 6 <= len(pid) <= 20 and pid not in seen:
+            seen.add(pid)
+            valid_ids.append(pid)
+
+    logger.info("batch-verify: %d requested, %d valid IDs", len(body.player_ids), len(valid_ids))
+
+    for i, pid in enumerate(valid_ids):
+        t_call = time.monotonic()
+        try:
+            player_data = await fetch_player_from_century_games(pid)
+            results[pid] = PlayerProfileResponse(
+                player_id=str(player_data.get("fid", pid)),
+                username=player_data.get("nickname", "Unknown"),
+                avatar_url=player_data.get("avatar_image"),
+                kingdom=int(player_data.get("kid", 0)),
+                town_center_level=int(player_data.get("stove_lv", 0)),
+                verified=True,
+            )
+            logger.debug("batch-verify: [%d/%d] pid=%s resolved in %.1fs", i + 1, len(valid_ids), pid, time.monotonic() - t_call)
+        except HTTPException as e:
+            if e.status_code == 429:
+                errors.append(f"{pid}: rate limited — remaining players skipped")
+                logger.warning("batch-verify: rate limited at [%d/%d], stopping", i + 1, len(valid_ids))
+                break  # Stop processing if rate limited
+            errors.append(f"{pid}: {e.detail.get('code', 'error') if isinstance(e.detail, dict) else 'error'}")
+        except Exception:
+            errors.append(f"{pid}: lookup failed")
+
+        # Delay between calls to respect Century Games rate limits (skip after last)
+        if i < len(valid_ids) - 1:
+            await asyncio.sleep(1.0)
+
+    elapsed = time.monotonic() - t_start
+    logger.info("batch-verify: completed %d/%d in %.1fs (%d errors)", len(results), len(valid_ids), elapsed, len(errors))
+    return BatchVerifyResponse(results=results, errors=errors)
+
+
 @router.post(
     "/refresh",
     response_model=PlayerProfileResponse,
