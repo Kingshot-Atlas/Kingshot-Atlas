@@ -2936,6 +2936,9 @@
     "beOnline": "كن متصلاً خلال فترتك المخصصة",
     "changeScreenshot": "تغيير لقطة الشاشة",
     "copyFrom": "نسخ من",
+    "topPeakSlots": "أوقات الذروة الرئيسية",
+    "uniqueMembers": "الأعضاء",
+    "activeSlots": "الفترات النشطة",
     "createScheduleBtn": "إنشاء جدول",
     "day": "يوم",
     "deadlineHintUTC": "الموعد النهائي بتوقيت UTC",
@@ -3526,7 +3529,12 @@
     "refreshData": "تحديث",
     "notInAtlasResolved": "ليس مستخدم Atlas — تم التحقق من خادم اللعبة",
     "unknownPlayer": "لاعب غير معروف — لم يُعثر عليه في Atlas أو خادم اللعبة",
-    "unresolvedHint": "{{count}} عضو(أعضاء) لم يتم حلهم بعد. انقر على 🔄 تحديث لجلب البيانات من خادم اللعبة."
+    "unresolvedHint": "{{count}} عضو(أعضاء) لم يتم حلهم بعد. انقر على 🔄 تحديث لجلب البيانات من خادم اللعبة.",
+    "chartsTitle": "تحليلات التحالف",
+    "chartsCount": "{{count}} أعضاء",
+    "chartsTcDist": "مستوى TC / TrueGold",
+    "chartsLangDist": "اللغات المستخدمة",
+    "chartsTroopDist": "تركيبات مستوى القوات و TrueGold"
   },
   "eventCoordinator": {
     "pageTitle": "منسق أحداث التحالف",

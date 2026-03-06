@@ -2936,6 +2936,9 @@
     "beOnline": "Während Ihres zugewiesenen Slots online sein",
     "changeScreenshot": "Screenshot ändern",
     "copyFrom": "Kopieren von",
+    "topPeakSlots": "Top-Spitzenzeiten",
+    "uniqueMembers": "Mitglieder",
+    "activeSlots": "Aktive Zeitfenster",
     "createScheduleBtn": "Zeitplan erstellen",
     "day": "Tag",
     "deadlineHintUTC": "Frist ist in UTC",
@@ -3526,7 +3529,12 @@
     "refreshData": "Aktualisieren",
     "notInAtlasResolved": "Kein Atlas-Benutzer — vom Spielserver aufgelöst",
     "unknownPlayer": "Unbekannter Spieler — weder in Atlas noch auf dem Spielserver gefunden",
-    "unresolvedHint": "{{count}} Mitglied(er) noch nicht aufgelöst. Klicke auf 🔄 Aktualisieren, um Daten vom Spielserver abzurufen."
+    "unresolvedHint": "{{count}} Mitglied(er) noch nicht aufgelöst. Klicke auf 🔄 Aktualisieren, um Daten vom Spielserver abzurufen.",
+    "chartsTitle": "Allianz-Analyse",
+    "chartsCount": "{{count}} Mitglieder",
+    "chartsTcDist": "TC / TrueGold-Stufe",
+    "chartsLangDist": "Gesprochene Sprachen",
+    "chartsTroopDist": "Truppenstufe & TrueGold-Kombinationen"
   },
   "eventCoordinator": {
     "pageTitle": "Allianz Event-Koordinator",

@@ -2935,6 +2935,9 @@
     "beOnline": "Estar en línea durante tu turno asignado",
     "changeScreenshot": "Cambiar captura",
     "copyFrom": "Copiar de",
+    "topPeakSlots": "Horarios Pico Principales",
+    "uniqueMembers": "Miembros",
+    "activeSlots": "Horarios Activos",
     "createScheduleBtn": "Crear horario",
     "day": "Día",
     "deadlineHintUTC": "La fecha límite está en UTC",
@@ -3525,7 +3528,12 @@
     "refreshData": "Actualizar",
     "notInAtlasResolved": "No es usuario de Atlas — resuelto desde el servidor del juego",
     "unknownPlayer": "Jugador desconocido — no encontrado en Atlas ni en el servidor del juego",
-    "unresolvedHint": "{{count}} miembro(s) sin resolver. Haz clic en 🔄 Actualizar para obtener datos del servidor del juego."
+    "unresolvedHint": "{{count}} miembro(s) sin resolver. Haz clic en 🔄 Actualizar para obtener datos del servidor del juego.",
+    "chartsTitle": "Análisis de Alianza",
+    "chartsCount": "{{count}} miembros",
+    "chartsTcDist": "Nivel TC / TrueGold",
+    "chartsLangDist": "Idiomas Hablados",
+    "chartsTroopDist": "Combinaciones de Nivel de Tropa y TrueGold"
   },
   "eventCoordinator": {
     "pageTitle": "Coordinador de Eventos de Alianza",

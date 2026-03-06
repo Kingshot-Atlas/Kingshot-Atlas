@@ -2936,6 +2936,9 @@
     "beOnline": "Atanan slotunuzda çevrimiçi olun",
     "changeScreenshot": "Ekran Görüntüsünü Değiştir",
     "copyFrom": "Şuradan Kopyala",
+    "topPeakSlots": "En Yoğun Zaman Dilimleri",
+    "uniqueMembers": "Üyeler",
+    "activeSlots": "Aktif Dilimler",
     "createScheduleBtn": "Program Oluştur",
     "day": "Gün",
     "deadlineHintUTC": "Son tarih UTC'dedir",
@@ -3526,7 +3529,12 @@
     "refreshData": "Yenile",
     "notInAtlasResolved": "Atlas kullanıcısı değil — oyun sunucusundan çözümlendi",
     "unknownPlayer": "Bilinmeyen oyuncu — Atlas veya oyun sunucusunda bulunamadı",
-    "unresolvedHint": "{{count}} üye henüz çözülmedi. Oyun sunucusundan veri almak için 🔄 Yenile'ye tıklayın."
+    "unresolvedHint": "{{count}} üye henüz çözülmedi. Oyun sunucusundan veri almak için 🔄 Yenile'ye tıklayın.",
+    "chartsTitle": "İttifak Analizi",
+    "chartsCount": "{{count}} üye",
+    "chartsTcDist": "TC / TrueGold Seviyesi",
+    "chartsLangDist": "Konuşulan Diller",
+    "chartsTroopDist": "Asker Seviyesi & TrueGold Kombinasyonları"
   },
   "eventCoordinator": {
     "pageTitle": "İttifak Etkinlik Koordinatörü",

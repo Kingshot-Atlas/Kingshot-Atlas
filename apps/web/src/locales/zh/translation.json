@@ -2936,6 +2936,9 @@
     "beOnline": "在分配的时段内在线",
     "changeScreenshot": "更换截图",
     "copyFrom": "复制自",
+    "topPeakSlots": "热门高峰时段",
+    "uniqueMembers": "成员",
+    "activeSlots": "活跃时段",
     "createScheduleBtn": "创建计划",
     "day": "天",
     "deadlineHintUTC": "截止时间为UTC",
@@ -3526,7 +3529,12 @@
     "refreshData": "刷新",
     "notInAtlasResolved": "非Atlas用户 — 已从游戏服务器解析",
     "unknownPlayer": "未知玩家 — 在Atlas和游戏服务器中均未找到",
-    "unresolvedHint": "{{count}} 名成员尚未解析。点击 🔄 刷新 从游戏服务器获取数据。"
+    "unresolvedHint": "{{count}} 名成员尚未解析。点击 🔄 刷新 从游戏服务器获取数据。",
+    "chartsTitle": "联盟分析",
+    "chartsCount": "{{count}} 名成员",
+    "chartsTcDist": "TC / TrueGold 等级",
+    "chartsLangDist": "使用语言",
+    "chartsTroopDist": "兵种等级与TrueGold组合"
   },
   "eventCoordinator": {
     "pageTitle": "联盟活动协调员",

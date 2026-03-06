@@ -2936,6 +2936,9 @@
     "beOnline": "Soyez en ligne pendant votre créneau assigné",
     "changeScreenshot": "Changer la capture",
     "copyFrom": "Copier depuis",
+    "topPeakSlots": "Créneaux de Pointe",
+    "uniqueMembers": "Membres",
+    "activeSlots": "Créneaux Actifs",
     "createScheduleBtn": "Créer un planning",
     "day": "Jour",
     "deadlineHintUTC": "La date limite est en UTC",
@@ -3526,7 +3529,12 @@
     "refreshData": "Actualiser",
     "notInAtlasResolved": "Pas un utilisateur Atlas — résolu depuis le serveur de jeu",
     "unknownPlayer": "Joueur inconnu — introuvable sur Atlas ou le serveur de jeu",
-    "unresolvedHint": "{{count}} membre(s) non résolu(s). Cliquez sur 🔄 Actualiser pour récupérer les données du serveur de jeu."
+    "unresolvedHint": "{{count}} membre(s) non résolu(s). Cliquez sur 🔄 Actualiser pour récupérer les données du serveur de jeu.",
+    "chartsTitle": "Statistiques d'Alliance",
+    "chartsCount": "{{count}} membres",
+    "chartsTcDist": "Niveau TC / TrueGold",
+    "chartsLangDist": "Langues Parlées",
+    "chartsTroopDist": "Combinaisons Niveau de Troupe & TrueGold"
   },
   "eventCoordinator": {
     "pageTitle": "Coordinateur d'Événements d'Alliance",

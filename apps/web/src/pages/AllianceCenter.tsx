@@ -649,6 +649,158 @@ const TransferOwnershipModal: React.FC<{
   );
 };
 
+// ─── Alliance Charts Section (Distribution Analytics) ───
+const AllianceChartsSection: React.FC<{
+  members: AllianceMember[];
+  profilesMap: Map<string, import('../hooks/useAllianceCenter').PlayerProfileData>;
+  apiPlayerData: Map<string, import('../hooks/useAllianceCenter').ApiPlayerData>;
+  registryTroopData: Map<string, { infantry_tier: number; infantry_tg: number; cavalry_tier: number; cavalry_tg: number; archers_tier: number; archers_tg: number; updated_at: string }>;
+  isMobile: boolean;
+  t: (key: string, fallback: string, opts?: Record<string, unknown>) => string;
+}> = ({ members, profilesMap, apiPlayerData, registryTroopData, isMobile, t }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  // ── TC Level / TG Distribution ──
+  const tgDist = useMemo(() => {
+    const counts = new Map<string, number>();
+    members.forEach(m => {
+      const prof = m.player_id ? profilesMap.get(m.player_id) : undefined;
+      const api = m.player_id ? apiPlayerData.get(m.player_id) : undefined;
+      const tcLevel = prof?.linked_tc_level ?? api?.town_center_level ?? null;
+      const label = tcLevelToTG(tcLevel);
+      if (label) counts.set(label, (counts.get(label) || 0) + 1);
+    });
+    return [...counts.entries()]
+      .sort((a, b) => {
+        const order = ['TC30', 'TG1', 'TG2', 'TG3', 'TG4', 'TG5', 'TG6', 'TG7', 'TG8'];
+        return order.indexOf(a[0]) - order.indexOf(b[0]);
+      });
+  }, [members, profilesMap, apiPlayerData]);
+
+  // ── Troop Tier+TG Distribution (combined across all troop types) ──
+  const troopDist = useMemo(() => {
+    const counts = new Map<string, number>();
+    members.forEach(m => {
+      const reg = m.player_id ? registryTroopData.get(m.player_id) : undefined;
+      const types = [
+        { tier: m.infantry_tier ?? reg?.infantry_tier, tg: m.infantry_tier ? m.infantry_tg : reg?.infantry_tg },
+        { tier: m.cavalry_tier ?? reg?.cavalry_tier, tg: m.cavalry_tier ? m.cavalry_tg : reg?.cavalry_tg },
+        { tier: m.archers_tier ?? reg?.archers_tier, tg: m.archers_tier ? m.archers_tg : reg?.archers_tg },
+      ];
+      types.forEach(({ tier, tg }) => {
+        if (tier) {
+          const label = tg != null && tg > 0 ? `T${tier}/TG${tg}` : `T${tier}`;
+          counts.set(label, (counts.get(label) || 0) + 1);
+        }
+      });
+    });
+    return [...counts.entries()]
+      .sort((a, b) => {
+        // Sort by tier then TG
+        const parseLabel = (s: string): [number, number] => {
+          const m = s.match(/T(\d+)(?:\/TG(\d+))?/);
+          return m ? [Number(m[1]), Number(m[2] || 0)] : [0, 0];
+        };
+        const pa = parseLabel(a[0]);
+        const pb = parseLabel(b[0]);
+        return pa[0] !== pb[0] ? pa[0] - pb[0] : pa[1] - pb[1];
+      });
+  }, [members, registryTroopData]);
+
+  // ── Language Distribution ──
+  const langDist = useMemo(() => {
+    const counts = new Map<string, number>();
+    members.forEach(m => {
+      const prof = m.player_id ? profilesMap.get(m.player_id) : undefined;
+      const name = prof ? langName(prof.language) : null;
+      if (name) counts.set(name, (counts.get(name) || 0) + 1);
+    });
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  }, [members, profilesMap]);
+
+  const hasData = tgDist.length > 0 || troopDist.length > 0 || langDist.length > 0;
+  if (!hasData) return null;
+
+  const BarChart: React.FC<{ data: [string, number][]; color: string; maxVal?: number }> = ({ data, color, maxVal }) => {
+    const max = maxVal ?? Math.max(...data.map(d => d[1]), 1);
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+        {data.map(([label, count]) => (
+          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <span style={{ color: '#9ca3af', fontSize: '0.65rem', fontWeight: 600, width: isMobile ? '52px' : '60px', textAlign: 'right', flexShrink: 0 }}>{label}</span>
+            <div style={{ flex: 1, height: '14px', backgroundColor: '#1a1a20', borderRadius: '3px', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${(count / max) * 100}%`, backgroundColor: color, borderRadius: '3px', opacity: 0.75, minWidth: '2px', transition: 'width 0.3s' }} />
+            </div>
+            <span style={{ color: '#e5e7eb', fontSize: '0.65rem', fontWeight: 700, width: '22px', textAlign: 'right', flexShrink: 0 }}>{count}</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <div style={{ backgroundColor: '#111111', borderRadius: '12px', border: `1px solid ${ACCENT_BORDER}`, marginBottom: '1.5rem', overflow: 'hidden' }}>
+      <button
+        onClick={() => setExpanded(e => !e)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: isMobile ? '0.75rem 1rem' : '0.75rem 1.25rem', minHeight: isMobile ? '44px' : undefined,
+          backgroundColor: 'transparent', border: 'none',
+          cursor: 'pointer', color: '#fff', textAlign: 'left',
+          WebkitTapHighlightColor: 'transparent',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ fontSize: '1rem' }}>📊</span>
+          <h3 style={{ color: '#fff', fontSize: '0.95rem', fontWeight: 700, margin: 0, fontFamily: FONT_DISPLAY }}>
+            {t('allianceCenter.chartsTitle', 'Alliance Analytics')}
+          </h3>
+          <span style={{ fontSize: '0.6rem', fontWeight: 600, padding: '0.1rem 0.35rem', borderRadius: '4px', backgroundColor: ACCENT + '20', color: ACCENT }}>
+            {t('allianceCenter.chartsCount', '{{count}} members', { count: members.length })}
+          </span>
+        </div>
+        <span style={{ color: '#6b7280', fontSize: '0.75rem', transition: 'transform 0.2s', transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</span>
+      </button>
+
+      {expanded && (
+        <div style={{ padding: isMobile ? '0 1rem 1rem' : '0 1.25rem 1.25rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
+            {/* TC Level / TrueGold Distribution */}
+            {tgDist.length > 0 && (
+              <div style={{ backgroundColor: '#0d1117', borderRadius: '10px', border: '1px solid #1e1e24', padding: '0.75rem' }}>
+                <h4 style={{ color: '#e5e7eb', fontSize: '0.75rem', fontWeight: 700, margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  🏰 {t('allianceCenter.chartsTcDist', 'TC / TrueGold Level')}
+                </h4>
+                <BarChart data={tgDist} color="#22d3ee" />
+              </div>
+            )}
+
+            {/* Language Distribution */}
+            {langDist.length > 0 && (
+              <div style={{ backgroundColor: '#0d1117', borderRadius: '10px', border: '1px solid #1e1e24', padding: '0.75rem' }}>
+                <h4 style={{ color: '#e5e7eb', fontSize: '0.75rem', fontWeight: 700, margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  🌐 {t('allianceCenter.chartsLangDist', 'Languages Spoken')}
+                </h4>
+                <BarChart data={langDist} color="#a855f7" />
+              </div>
+            )}
+
+            {/* Troop Tier + TG Combos */}
+            {troopDist.length > 0 && (
+              <div style={{ backgroundColor: '#0d1117', borderRadius: '10px', border: '1px solid #1e1e24', padding: '0.75rem', gridColumn: isMobile ? undefined : troopDist.length > 6 ? '1 / -1' : undefined }}>
+                <h4 style={{ color: '#e5e7eb', fontSize: '0.75rem', fontWeight: 700, margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  ⚔️ {t('allianceCenter.chartsTroopDist', 'Troop Tier & TrueGold Combos')}
+                </h4>
+                <BarChart data={troopDist} color="#f97316" />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ─── Tier/TG select helper ───
 const TroopSelect: React.FC<{
   label: string; color: string;
@@ -988,6 +1140,11 @@ const AllianceDashboard: React.FC = () => {
           </Link>
         </div>
       </div>
+
+      {/* Alliance Charts — Distribution Analytics */}
+      {ac.memberCount >= 3 && (
+        <AllianceChartsSection members={filtered} profilesMap={profilesMap} apiPlayerData={ac.apiPlayerData} registryTroopData={ac.registryTroopData} isMobile={isMobile} t={t} />
+      )}
 
       {/* Alliance Roster — Full Width */}
       <div style={{ marginBottom: '1.5rem' }}>

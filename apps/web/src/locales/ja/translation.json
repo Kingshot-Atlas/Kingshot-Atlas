@@ -2936,6 +2936,9 @@
     "beOnline": "割り当てスロット中はオンラインに",
     "changeScreenshot": "スクリーンショットを変更",
     "copyFrom": "コピー元",
+    "topPeakSlots": "トップピーク時間帯",
+    "uniqueMembers": "メンバー",
+    "activeSlots": "アクティブスロット",
     "createScheduleBtn": "スケジュール作成",
     "day": "日",
     "deadlineHintUTC": "締切はUTCです",
@@ -3526,7 +3529,12 @@
     "refreshData": "更新",
     "notInAtlasResolved": "Atlasユーザーではありません — ゲームサーバーから解決済み",
     "unknownPlayer": "不明なプレイヤー — Atlasまたはゲームサーバーに見つかりません",
-    "unresolvedHint": "{{count}}人のメンバーが未解決です。🔄 更新をクリックしてゲームサーバーからデータを取得してください。"
+    "unresolvedHint": "{{count}}人のメンバーが未解決です。🔄 更新をクリックしてゲームサーバーからデータを取得してください。",
+    "chartsTitle": "同盟分析",
+    "chartsCount": "{{count}}人のメンバー",
+    "chartsTcDist": "TC / TrueGoldレベル",
+    "chartsLangDist": "使用言語",
+    "chartsTroopDist": "兵種レベル & TrueGold組み合わせ"
   },
   "eventCoordinator": {
     "pageTitle": "同盟イベントコーディネーター",

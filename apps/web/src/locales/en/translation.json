@@ -3634,7 +3634,12 @@
     "refreshData": "Refresh",
     "notInAtlasResolved": "Not an Atlas user — resolved from game server",
     "unknownPlayer": "Unknown player — not found in Atlas or game server",
-    "unresolvedHint": "{{count}} member(s) not yet resolved. Click 🔄 Refresh to fetch data from game server."
+    "unresolvedHint": "{{count}} member(s) not yet resolved. Click 🔄 Refresh to fetch data from game server.",
+    "chartsTitle": "Alliance Analytics",
+    "chartsCount": "{{count}} members",
+    "chartsTcDist": "TC / TrueGold Level",
+    "chartsLangDist": "Languages Spoken",
+    "chartsTroopDist": "Troop Tier & TrueGold Combos"
   },
   "eventCoordinator": {
     "pageTitle": "Alliance Event Coordinator",
@@ -3675,6 +3680,9 @@
     "memberNameLabel": "Member Name",
     "manualSaved": "Availability saved for {{name}}",
     "memberDeleted": "{{name}} availability removed",
-    "copyFrom": "Copy from..."
+    "copyFrom": "Copy from...",
+    "topPeakSlots": "Top Peak Slots",
+    "uniqueMembers": "Members",
+    "activeSlots": "Active Slots"
   }
 }
