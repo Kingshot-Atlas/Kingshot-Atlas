@@ -201,7 +201,7 @@
     "fundActivity": "基金活動",
     "fundMoreTransactions": "+ {{count}}件の取引",
     "gracePeriodWarning": "ランク猶予期間有効 — {{date}} までに貢献して現在のランクを維持してください",
-    "transferHistory": "移転履歴",
+    "transferHistory": "移転ステータス履歴",
     "transferEvent": "移転 #{{num}}",
     "transferGroup": "グループ",
     "unofficial": "非公式",

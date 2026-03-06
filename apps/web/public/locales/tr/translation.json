@@ -201,7 +201,7 @@
     "fundActivity": "Fon Aktivitesi",
     "fundMoreTransactions": "+ {{count}} daha fazla işlem",
     "gracePeriodWarning": "Seviye tolerans süresi aktif — mevcut seviyeyi korumak için {{date}} tarihinden önce katkıda bulunun",
-    "transferHistory": "Transfer Geçmişi",
+    "transferHistory": "Transfer Durum Geçmişi",
     "transferEvent": "Transfer #{{num}}",
     "transferGroup": "Grup",
     "unofficial": "Gayri Resmi",
@@ -3519,7 +3519,7 @@
     "allTools": "← Tüm Araçlar"
   },
   "allianceCenter": {
-    "eventCoordinatorLink": "İttifak Etkinlik Koordinatörü",
+    "eventCoordinatorLink": "Etkinlik Koordinatörü",
     "baseDesignerLink": "Üs Tasarımcısı",
     "availYes": "Evet",
     "availNo": "Hayır",

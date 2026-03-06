@@ -200,7 +200,7 @@
     "fundActivity": "Actividad del Fondo",
     "fundMoreTransactions": "+ {{count}} transacciones más",
     "gracePeriodWarning": "Período de gracia activo — contribuye para mantener el nivel actual antes del {{date}}",
-    "transferHistory": "Historial de Transferencias",
+    "transferHistory": "Historial de Estado de Transferencias",
     "transferEvent": "Transferencia #{{num}}",
     "transferGroup": "Grupo",
     "unofficial": "No oficial",

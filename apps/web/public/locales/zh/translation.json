@@ -201,7 +201,7 @@
     "fundActivity": "基金活动",
     "fundMoreTransactions": "+ {{count}} 笔更多交易",
     "gracePeriodWarning": "等级宽限期生效中 — 在 {{date}} 前贡献以维持当前等级",
-    "transferHistory": "迁移历史",
+    "transferHistory": "迁移状态历史",
     "transferEvent": "迁移 #{{num}}",
     "transferGroup": "组",
     "unofficial": "非官方",
@@ -3519,7 +3519,7 @@
     "allTools": "← 所有工具"
   },
   "allianceCenter": {
-    "eventCoordinatorLink": "联盟活动协调员",
+    "eventCoordinatorLink": "活动协调员",
     "baseDesignerLink": "基地设计师",
     "availYes": "是",
     "availNo": "否",

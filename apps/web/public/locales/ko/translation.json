@@ -201,7 +201,7 @@
     "fundActivity": "기금 활동",
     "fundMoreTransactions": "+ {{count}}건의 거래 더 보기",
     "gracePeriodWarning": "등급 유예 기간 활성 — {{date}} 전에 기여하여 현재 등급을 유지하세요",
-    "transferHistory": "이주 기록",
+    "transferHistory": "이주 상태 기록",
     "transferEvent": "이주 #{{num}}",
     "transferGroup": "그룹",
     "unofficial": "비공식",
@@ -3516,7 +3516,7 @@
     "allTools": "← 모든 도구"
   },
   "allianceCenter": {
-    "eventCoordinatorLink": "동맹 이벤트 코디네이터",
+    "eventCoordinatorLink": "이벤트 코디네이터",
     "baseDesignerLink": "기지 디자이너",
     "availYes": "예",
     "availNo": "아니오",

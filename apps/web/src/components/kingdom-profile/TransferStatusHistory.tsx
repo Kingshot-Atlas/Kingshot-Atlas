@@ -2,17 +2,21 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTransferStatusHistory, useTransferEvents } from '../../hooks/useTransferHubQueries';
 import SmartTooltip from '../shared/SmartTooltip';
+import { colors } from '../../utils/styles';
 
 interface TransferStatusHistoryProps {
   kingdomNumber: number;
   isMobile: boolean;
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  Leading: '#22d3ee',
-  Ordinary: '#6b7280',
-  Unannounced: '#4b5563',
-};
+/** Parse YYYY-MM-DD as UTC to avoid timezone date shift */
+function parseEventDate(dateStr: string): string {
+  const parts = dateStr.split('-').map(Number);
+  const year = parts[0] ?? 2025;
+  const month = parts[1] ?? 1;
+  const d = new Date(Date.UTC(year, month - 1, 1));
+  return d.toLocaleDateString(undefined, { month: 'short', year: 'numeric', timeZone: 'UTC' });
+}
 
 const TransferStatusHistory: React.FC<TransferStatusHistoryProps> = ({ kingdomNumber, isMobile }) => {
   const { t } = useTranslation();
@@ -24,16 +28,16 @@ const TransferStatusHistory: React.FC<TransferStatusHistoryProps> = ({ kingdomNu
   if (isLoading) {
     return (
       <div style={{
-        backgroundColor: '#131318',
+        backgroundColor: colors.card,
         borderRadius: '12px',
         padding: isMobile ? '1rem' : '1.25rem',
-        border: '1px solid #2a2a2a',
+        border: `1px solid ${colors.border}`,
         marginBottom: isMobile ? '1.25rem' : '1.5rem',
       }}>
-        <h3 style={{ color: '#fff', fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: '600', margin: '0 0 0.75rem 0', textAlign: 'center' }}>
-          {t('kingdomProfile.transferHistory', 'Transfer History')}
+        <h3 style={{ color: colors.text, fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: '600', margin: '0 0 0.75rem 0', textAlign: 'center' }}>
+          {t('kingdomProfile.transferHistory', 'Transfer Status History')}
         </h3>
-        <div style={{ color: '#6b7280', fontSize: '0.8rem', textAlign: 'center', padding: '1rem 0' }}>
+        <div style={{ color: colors.textMuted, fontSize: '0.8rem', textAlign: 'center', padding: '1rem 0' }}>
           {t('common.loading', 'Loading...')}
         </div>
       </div>
@@ -48,45 +52,44 @@ const TransferStatusHistory: React.FC<TransferStatusHistoryProps> = ({ kingdomNu
 
   return (
     <div style={{
-      backgroundColor: '#131318',
+      backgroundColor: colors.card,
       borderRadius: '12px',
       padding: isMobile ? '1rem' : '1.25rem',
-      border: '1px solid #2a2a2a',
+      border: `1px solid ${colors.border}`,
       marginBottom: isMobile ? '1.25rem' : '1.5rem',
     }}>
-      <h3 style={{ color: '#fff', fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: '600', margin: '0 0 0.75rem 0', textAlign: 'center' }}>
-        {t('kingdomProfile.transferHistory', 'Transfer History')}
+      <h3 style={{ color: colors.text, fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: '600', margin: '0 0 0.75rem 0', textAlign: 'center' }}>
+        {t('kingdomProfile.transferHistory', 'Transfer Status History')}
       </h3>
 
       <div style={{
         display: 'grid',
-        gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '0.5rem',
+        gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(180px, 1fr))',
+        gap: isMobile ? '0.6rem' : '0.5rem',
       }}>
         {history.map((entry) => {
           const event = eventMap.get(entry.event_number);
-          const eventDate = event?.event_date
-            ? new Date(event.event_date).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
-            : '';
-          const statusColor = STATUS_COLORS[entry.status] || '#6b7280';
-          const isCurrent = event?.is_current ?? false;
+          const eventDate = event?.event_date ? parseEventDate(event.event_date) : '';
+          const isActive = event?.is_current ?? false;
+          const isLeading = entry.status === 'Leading';
+          const statusColor = isLeading ? colors.primary : colors.text;
 
           return (
             <SmartTooltip
               key={entry.event_number}
-              accentColor={statusColor}
+              accentColor={isLeading ? colors.primary : colors.textMuted}
               content={
-                <div style={{ fontSize: '0.75rem', lineHeight: '1.4' }}>
+                <div style={{ fontSize: '0.75rem', lineHeight: '1.5' }}>
                   <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>
                     {t('kingdomProfile.transferEvent', 'Transfer #{{num}}', { num: entry.event_number })}
-                    {eventDate ? ` — ${eventDate}` : ''}
+                    {eventDate ? ` (${eventDate})` : ''}
                   </div>
                   <div>
-                    {t('kingdomProfile.transferGroup', 'Group')}: {entry.group_number}
+                    {t('kingdomProfile.transferGroup', 'Group')} {entry.group_number} — {t(`transferStatuses.${entry.status}`, entry.status)}
                     {entry.is_unofficial ? ` (${t('kingdomProfile.unofficial', 'Unofficial')})` : ''}
                   </div>
                   <div style={{ marginTop: '0.25rem' }}>
-                    {entry.status === 'Leading'
+                    {isLeading
                       ? t('transferStatuses.leadingDesc', 'This kingdom is leading its transfer group.')
                       : t('transferStatuses.ordinaryDesc', 'This kingdom is an ordinary member of its transfer group.')}
                   </div>
@@ -95,73 +98,39 @@ const TransferStatusHistory: React.FC<TransferStatusHistoryProps> = ({ kingdomNu
             >
               <div
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.5rem 0.75rem',
-                  borderRadius: '8px',
-                  backgroundColor: isCurrent ? `${statusColor}08` : '#0a0a0a',
-                  border: `1px solid ${isCurrent ? `${statusColor}30` : '#1a1a1a'}`,
+                  padding: isMobile ? '0.65rem 0.75rem' : '0.6rem 0.85rem',
+                  borderRadius: '10px',
+                  backgroundColor: isActive ? `${colors.success}08` : colors.bg,
+                  border: `1px solid ${isActive ? `${colors.success}40` : colors.borderSubtle}`,
+                  boxShadow: isActive ? `0 0 8px ${colors.success}18, inset 0 0 0 0.5px ${colors.success}20` : 'none',
                   cursor: 'default',
-                  transition: 'border-color 0.2s',
+                  transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
                 }}
               >
                 <div style={{
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  backgroundColor: statusColor,
-                  flexShrink: 0,
-                  boxShadow: isCurrent ? `0 0 6px ${statusColor}60` : 'none',
-                }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                    <span style={{ color: '#e5e7eb', fontSize: '0.8rem', fontWeight: '500' }}>
-                      #{entry.event_number}
-                    </span>
-                    {isCurrent && (
-                      <span style={{
-                        fontSize: '0.55rem',
-                        padding: '0.05rem 0.3rem',
-                        borderRadius: '3px',
-                        backgroundColor: `${statusColor}15`,
-                        border: `1px solid ${statusColor}30`,
-                        color: statusColor,
-                        fontWeight: '600',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.03em',
-                      }}>
-                        {t('kingdomProfile.current', 'Current')}
-                      </span>
-                    )}
-                    {entry.is_unofficial && (
-                      <span style={{
-                        fontSize: '0.55rem',
-                        padding: '0.05rem 0.3rem',
-                        borderRadius: '3px',
-                        backgroundColor: '#eab30815',
-                        border: '1px solid #eab30830',
-                        color: '#eab308',
-                        fontWeight: '600',
-                      }}>
-                        {t('kingdomProfile.unofficial', 'Unofficial')}
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.15rem' }}>
-                    <span style={{ color: statusColor, fontSize: '0.7rem', fontWeight: '500' }}>
-                      {t(`transferStatuses.${entry.status}`, entry.status)}
-                    </span>
-                    <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>
-                      · {t('kingdomProfile.transferGroup', 'Group')} {entry.group_number}
-                    </span>
-                  </div>
-                </div>
-                {eventDate && (
-                  <span style={{ color: '#4b5563', fontSize: '0.65rem', flexShrink: 0, whiteSpace: 'nowrap' }}>
-                    {eventDate}
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  justifyContent: 'space-between',
+                  gap: '0.35rem',
+                  marginBottom: '0.3rem',
+                }}>
+                  <span style={{ color: colors.text, fontSize: isMobile ? '0.8rem' : '0.82rem', fontWeight: '600' }}>
+                    {t('kingdomProfile.transferEvent', 'Transfer #{{num}}', { num: entry.event_number })}
                   </span>
-                )}
+                  {eventDate && (
+                    <span style={{ color: colors.textMuted, fontSize: isMobile ? '0.68rem' : '0.7rem', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                      {eventDate}
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap' }}>
+                  <span style={{ color: colors.textMuted, fontSize: isMobile ? '0.75rem' : '0.75rem' }}>
+                    {t('kingdomProfile.transferGroup', 'Group')} {entry.group_number} —
+                  </span>
+                  <span style={{ color: statusColor, fontSize: isMobile ? '0.75rem' : '0.75rem', fontWeight: '500' }}>
+                    {t(`transferStatuses.${entry.status}`, entry.status)}
+                  </span>
+                </div>
               </div>
             </SmartTooltip>
           );

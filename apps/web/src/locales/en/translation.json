@@ -216,7 +216,7 @@
     "fundActivity": "Fund Activity",
     "fundMoreTransactions": "+ {{count}} more transactions",
     "gracePeriodWarning": "Tier grace period active — contribute to maintain the current tier before {{date}}",
-    "transferHistory": "Transfer History",
+    "transferHistory": "Transfer Status History",
     "transferEvent": "Transfer #{{num}}",
     "transferGroup": "Group",
     "unofficial": "Unofficial",

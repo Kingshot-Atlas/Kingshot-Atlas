@@ -216,7 +216,7 @@
     "fundActivity": "Aktivitas Dana",
     "fundMoreTransactions": "+ {{count}} transaksi lagi",
     "gracePeriodWarning": "Masa tenggang tier aktif — kontribusi untuk mempertahankan tier saat ini sebelum {{date}}",
-    "transferHistory": "Riwayat Transfer",
+    "transferHistory": "Riwayat Status Transfer",
     "transferEvent": "Transfer #{{num}}",
     "transferGroup": "Grup",
     "unofficial": "Tidak Resmi",

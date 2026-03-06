@@ -201,7 +201,7 @@
     "fundActivity": "نشاط الصندوق",
     "fundMoreTransactions": "+ {{count}} معاملات إضافية",
     "gracePeriodWarning": "فترة السماح للمستوى نشطة — ساهم قبل {{date}} للحفاظ على المستوى الحالي",
-    "transferHistory": "سجل الانتقالات",
+    "transferHistory": "سجل حالة الانتقالات",
     "transferEvent": "انتقال #{{num}}",
     "transferGroup": "مجموعة",
     "unofficial": "غير رسمي",
@@ -3519,7 +3519,7 @@
     "allTools": "← جميع الأدوات"
   },
   "allianceCenter": {
-    "eventCoordinatorLink": "منسق أحداث التحالف",
+    "eventCoordinatorLink": "منسق الأحداث",
     "baseDesignerLink": "مصمم القاعدة",
     "availYes": "نعم",
     "availNo": "لا",

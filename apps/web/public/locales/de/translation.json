@@ -201,7 +201,7 @@
     "fundActivity": "Fondsaktivität",
     "fundMoreTransactions": "+ {{count}} weitere Transaktionen",
     "gracePeriodWarning": "Stufen-Schonfrist aktiv — trage bei, um die aktuelle Stufe vor dem {{date}} zu erhalten",
-    "transferHistory": "Transfer-Verlauf",
+    "transferHistory": "Transfer-Statusverlauf",
     "transferEvent": "Transfer #{{num}}",
     "transferGroup": "Gruppe",
     "unofficial": "Inoffiziell",
@@ -3519,7 +3519,7 @@
     "allTools": "← Alle Werkzeuge"
   },
   "allianceCenter": {
-    "eventCoordinatorLink": "Allianz Event-Koordinator",
+    "eventCoordinatorLink": "Event-Koordinator",
     "baseDesignerLink": "Basis-Designer",
     "availYes": "Ja",
     "availNo": "Nein",
