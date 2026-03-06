@@ -26,7 +26,9 @@
     "losses": "Derrotas",
     "clear": "Limpar",
     "allTools": "← Todas as Ferramentas",
-    "copied": "Copiado!"
+    "copied": "Copiado!",
+    "failed": "Falhou",
+    "remove": "Remover"
   },
   "quickAction": {
     "transferHub_1": "Centro de",
@@ -3546,7 +3548,18 @@
     "refreshData": "Atualizar",
     "notInAtlasResolved": "Não é usuário do Atlas — resolvido a partir do servidor do jogo",
     "unknownPlayer": "Jogador desconhecido — não encontrado no Atlas ou no servidor do jogo",
-    "unresolvedHint": "{{count}} membro(s) ainda não resolvido(s). Clique em 🔄 Atualizar para buscar dados do servidor do jogo."
+    "unresolvedHint": "{{count}} membro(s) ainda não resolvido(s). Clique em 🔄 Atualizar para buscar dados do servidor do jogo.",
+    "noManagersYet": "Nenhum gerente ainda",
+    "addMemberFailed": "Falha ao adicionar membro",
+    "updateFailed": "Falha ao atualizar",
+    "deleteFailed": "Falha ao excluir",
+    "removeFailed": "Falha ao remover",
+    "managerAdded": "{{name}} agora é gerente",
+    "managerRemoved": "{{name}} removido",
+    "managersLabel": "Gerentes",
+    "searchManagerPlaceholder": "Pesquisar usuários Atlas para adicionar...",
+    "transferTitle": "Transferir Propriedade",
+    "transferSuccess": "Propriedade transferida para {{name}}"
   },
   "eventCoordinator": {
     "pageTitle": "Coordenador de Eventos da Aliança",

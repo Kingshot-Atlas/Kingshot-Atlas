@@ -325,7 +325,7 @@ const AddMemberModal: React.FC<{
       showToast(t('allianceCenter.memberAdded', '{{name}} added to roster', { name: result.linked_username || result.username }), 'success');
       setSearchQuery(''); setSearchResults([]);
     } else {
-      showToast(res.error || 'Failed to add member', 'error');
+      showToast(res.error || t('allianceCenter.addMemberFailed', 'Failed to add member'), 'error');
     }
   };
 
@@ -338,7 +338,7 @@ const AddMemberModal: React.FC<{
       showToast(t('allianceCenter.memberAdded', '{{name}} added to roster', { name: playerName.trim() }), 'success');
       setPlayerName(''); setPlayerId(''); setNotes('');
     } else {
-      showToast(res.error || 'Failed to add member', 'error');
+      showToast(res.error || t('allianceCenter.addMemberFailed', 'Failed to add member'), 'error');
     }
   };
 
@@ -507,13 +507,13 @@ const ManagerModal: React.FC<{ ac: ReturnType<typeof useAllianceCenter>; onClose
     if (result.success) {
       showToast(t('allianceCenter.managerAdded', '{{name}} is now a manager', { name }), 'success');
       setSearchQuery(''); setSearchResults([]);
-    } else { showToast(result.error || 'Failed', 'error'); }
+    } else { showToast(result.error || t('common.failed', 'Failed'), 'error'); }
   };
 
   const handleRemove = async (managerId: string, name: string) => {
     const result = await ac.removeManager(managerId);
     if (result.success) { showToast(t('allianceCenter.managerRemoved', '{{name}} removed', { name }), 'success'); }
-    else { showToast(result.error || 'Failed', 'error'); }
+    else { showToast(result.error || t('common.failed', 'Failed'), 'error'); }
   };
 
   return (
@@ -540,7 +540,7 @@ const ManagerModal: React.FC<{ ac: ReturnType<typeof useAllianceCenter>; onClose
           </div>
         ))}
         {ac.managers.length === 0 && (
-          <div style={{ padding: '0.75rem', textAlign: 'center', color: '#4b5563', fontSize: '0.75rem' }}>No managers yet</div>
+          <div style={{ padding: '0.75rem', textAlign: 'center', color: '#4b5563', fontSize: '0.75rem' }}>{t('allianceCenter.noManagersYet', 'No managers yet')}</div>
         )}
         {ac.isOwner && ac.canAddManager && (
           <div style={{ marginTop: '0.75rem' }}>
@@ -600,7 +600,7 @@ const TransferOwnershipModal: React.FC<{
     if (result.success) {
       showToast(t('allianceCenter.transferSuccess', 'Ownership transferred to {{name}}', { name: confirmTarget.username }), 'success');
       onClose();
-    } else { showToast(result.error || 'Failed', 'error'); }
+    } else { showToast(result.error || t('common.failed', 'Failed'), 'error'); }
   };
 
   return (
@@ -891,7 +891,7 @@ const EditMemberModal: React.FC<{
     const result = await onUpdate(member.id, data);
     setSaving(false);
     if (result.success) { showToast(t('allianceCenter.memberUpdated', 'Member updated'), 'success'); onClose(); }
-    else { showToast(result.error || 'Failed to update', 'error'); }
+    else { showToast(result.error || t('allianceCenter.updateFailed', 'Failed to update'), 'error'); }
   };
 
   return (
@@ -986,13 +986,13 @@ const AllianceDashboard: React.FC = () => {
     setDeleting(false);
     setShowDeleteConfirm(false);
     if (result.success) { showToast(t('allianceCenter.deleted', 'Alliance center deleted'), 'success'); }
-    else { showToast(result.error || 'Failed to delete', 'error'); }
+    else { showToast(result.error || t('allianceCenter.deleteFailed', 'Failed to delete'), 'error'); }
   }, [ac, showToast, t]);
 
   const handleEditSave = useCallback(async () => {
     const result = await ac.updateAlliance({ tag: editTag, name: editName, description: editDesc });
     if (result.success) { setShowEditAlliance(false); showToast(t('allianceCenter.updated', 'Alliance updated'), 'success'); }
-    else { showToast(result.error || 'Failed to update', 'error'); }
+    else { showToast(result.error || t('allianceCenter.updateFailed', 'Failed to update'), 'error'); }
   }, [ac, editTag, editName, editDesc, showToast, t]);
 
   // Build enriched + filtered + sorted list (MUST be above early returns — Rules of Hooks)
@@ -1383,8 +1383,8 @@ const AllianceDashboard: React.FC = () => {
                             const result = await ac.removeMember(m.id);
                             setRemovingMemberId(null);
                             if (result.success) showToast(t('allianceCenter.memberRemoved', '{{name}} removed', { name: m.player_name }), 'success');
-                            else showToast(result.error || 'Failed to remove', 'error');
-                          }} disabled={isRemoving} style={{ padding: '0.3rem 0.5rem', backgroundColor: '#1a1a24', border: '1px solid #ef444430', borderRadius: '6px', color: '#ef4444', fontSize: '0.7rem', cursor: isRemoving ? 'wait' : 'pointer', opacity: isRemoving ? 0.5 : 1, minHeight: '28px' }} title="Remove">🗑️</button>
+                            else showToast(result.error || t('allianceCenter.removeFailed', 'Failed to remove'), 'error');
+                          }} disabled={isRemoving} style={{ padding: '0.3rem 0.5rem', backgroundColor: '#1a1a24', border: '1px solid #ef444430', borderRadius: '6px', color: '#ef4444', fontSize: '0.7rem', cursor: isRemoving ? 'wait' : 'pointer', opacity: isRemoving ? 0.5 : 1, minHeight: '28px' }} title={t('common.remove', 'Remove')}>🗑️</button>
                         </>
                       ) : isOwnRow ? (
                         <button onClick={() => setEditingMember(m)} style={{ padding: '0.3rem 0.5rem', backgroundColor: '#1a1a24', border: `1px solid ${ACCENT}30`, borderRadius: '6px', color: ACCENT, fontSize: '0.7rem', cursor: 'pointer', minHeight: '28px' }} title="Edit my troops">✏️</button>
@@ -1515,7 +1515,7 @@ const AllianceDashboard: React.FC = () => {
                                   const result = await ac.removeMember(m.id);
                                   setRemovingMemberId(null);
                                   if (result.success) showToast(t('allianceCenter.memberRemoved', '{{name}} removed', { name: m.player_name }), 'success');
-                                  else showToast(result.error || 'Failed to remove', 'error');
+                                  else showToast(result.error || t('allianceCenter.removeFailed', 'Failed to remove'), 'error');
                                 }} disabled={isRemoving} style={{ padding: '0.15rem 0.3rem', backgroundColor: 'transparent', border: 'none', color: '#ef4444', fontSize: '0.7rem', cursor: isRemoving ? 'wait' : 'pointer', opacity: isRemoving ? 0.5 : 1 }} title="Remove">🗑️</button>
                               </>
                             ) : isOwnRow ? (

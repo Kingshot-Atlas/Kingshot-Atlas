@@ -470,10 +470,10 @@ const MyApplicationsTracker: React.FC<{
       const editorUserIds = [...new Set(editors.map((e: { user_id: string }) => e.user_id))];
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, discord_username, display_name, username')
+        .select('id, discord_username, display_name, username, linked_username')
         .in('id', editorUserIds);
       if (!profiles) return;
-      const profileMap = new Map(profiles.map((p: { id: string; discord_username: string | null; display_name: string | null; username: string | null }) => [p.id, p.discord_username || p.display_name || p.username || 'Unknown']));
+      const profileMap = new Map(profiles.map((p: { id: string; discord_username: string | null; display_name: string | null; username: string | null; linked_username: string | null }) => [p.id, p.linked_username || p.discord_username || p.display_name || p.username || 'Unknown']));
       const contactMap = new Map<number, string[]>();
       editors.forEach((e: { kingdom_number: number; user_id: string }) => {
         const name = profileMap.get(e.user_id);

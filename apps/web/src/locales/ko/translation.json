@@ -26,7 +26,9 @@
     "losses": "패배",
     "clear": "지우기",
     "allTools": "← 모든 도구",
-    "copied": "복사됨!"
+    "copied": "복사됨!",
+    "failed": "실패",
+    "remove": "제거"
   },
   "quickAction": {
     "transferHub_1": "이적",
@@ -3546,7 +3548,18 @@
     "chartsLangDist": "사용 언어",
     "chartsInfantry": "보병",
     "chartsCavalry": "기병",
-    "chartsArchers": "궁수"
+    "chartsArchers": "궁수",
+    "noManagersYet": "아직 관리자가 없습니다",
+    "addMemberFailed": "멤버 추가 실패",
+    "updateFailed": "업데이트 실패",
+    "deleteFailed": "삭제 실패",
+    "removeFailed": "제거 실패",
+    "managerAdded": "{{name}}님이 관리자가 되었습니다",
+    "managerRemoved": "{{name}} 제거됨",
+    "managersLabel": "관리자",
+    "searchManagerPlaceholder": "추가할 Atlas 사용자 검색...",
+    "transferTitle": "소유권 이전",
+    "transferSuccess": "{{name}}님에게 소유권이 이전되었습니다"
   },
   "eventCoordinator": {
     "pageTitle": "동맹 이벤트 코디네이터",

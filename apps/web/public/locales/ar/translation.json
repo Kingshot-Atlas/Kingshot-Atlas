@@ -26,7 +26,9 @@
     "losses": "هزائم",
     "clear": "مسح",
     "allTools": "← جميع الأدوات",
-    "copied": "تم النسخ!"
+    "copied": "تم النسخ!",
+    "failed": "فشل",
+    "remove": "إزالة"
   },
   "quickAction": {
     "transferHub_1": "مركز",
@@ -3248,7 +3250,15 @@
     "shareNotFound": "لم يتم العثور على التصميم المشارك.",
     "shareNotFoundDesc": "ربما انتهت صلاحية هذا الرابط أو تمت إزالته.",
     "backToDesigner": "العودة إلى المصمم",
-    "openDesigner": "فتح المصمم"
+    "openDesigner": "فتح المصمم",
+    "btnUndo": "تراجع",
+    "btnRedo": "إعادة",
+    "btnSave": "حفظ",
+    "btnLoad": "تحميل",
+    "btnLabel": "تسمية",
+    "btnShare": "مشاركة",
+    "btnClear": "مسح",
+    "backToAlliance": "مركز التحالف"
   },
   "toolDelegates": {
     "title": "مفوّضو الأدوات",
@@ -3541,7 +3551,18 @@
     "chartsLangDist": "اللغات المستخدمة",
     "chartsInfantry": "مشاة",
     "chartsCavalry": "فرسان",
-    "chartsArchers": "رماة"
+    "chartsArchers": "رماة",
+    "noManagersYet": "لا يوجد مدراء بعد",
+    "addMemberFailed": "فشل في إضافة العضو",
+    "updateFailed": "فشل في التحديث",
+    "deleteFailed": "فشل في الحذف",
+    "removeFailed": "فشل في الإزالة",
+    "managerAdded": "{{name}} أصبح مديراً الآن",
+    "managerRemoved": "تمت إزالة {{name}}",
+    "managersLabel": "المدراء",
+    "searchManagerPlaceholder": "ابحث عن مستخدمي Atlas لإضافتهم...",
+    "transferTitle": "نقل الملكية",
+    "transferSuccess": "تم نقل الملكية إلى {{name}}"
   },
   "eventCoordinator": {
     "pageTitle": "منسق أحداث التحالف",

@@ -26,7 +26,9 @@
     "losses": "Niederlagen",
     "clear": "Löschen",
     "allTools": "← Alle Werkzeuge",
-    "copied": "Kopiert!"
+    "copied": "Kopiert!",
+    "failed": "Fehlgeschlagen",
+    "remove": "Entfernen"
   },
   "quickAction": {
     "transferHub_1": "Transfer-",
@@ -3549,7 +3551,18 @@
     "chartsLangDist": "Gesprochene Sprachen",
     "chartsInfantry": "Infanterie",
     "chartsCavalry": "Kavallerie",
-    "chartsArchers": "Bogenschützen"
+    "chartsArchers": "Bogenschützen",
+    "noManagersYet": "Noch keine Manager",
+    "addMemberFailed": "Mitglied konnte nicht hinzugefügt werden",
+    "updateFailed": "Aktualisierung fehlgeschlagen",
+    "deleteFailed": "Löschen fehlgeschlagen",
+    "removeFailed": "Entfernen fehlgeschlagen",
+    "managerAdded": "{{name}} ist jetzt Manager",
+    "managerRemoved": "{{name}} entfernt",
+    "managersLabel": "Manager",
+    "searchManagerPlaceholder": "Atlas-Benutzer zum Hinzufügen suchen...",
+    "transferTitle": "Eigentum übertragen",
+    "transferSuccess": "Eigentum an {{name}} übertragen"
   },
   "eventCoordinator": {
     "pageTitle": "Allianz Event-Koordinator",

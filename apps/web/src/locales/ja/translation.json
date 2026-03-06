@@ -26,7 +26,9 @@
     "losses": "敗北",
     "clear": "クリア",
     "allTools": "← すべてのツール",
-    "copied": "コピーしました！"
+    "copied": "コピーしました！",
+    "failed": "失敗",
+    "remove": "削除"
   },
   "quickAction": {
     "transferHub_1": "トランスファー",
@@ -3549,7 +3551,18 @@
     "chartsLangDist": "使用言語",
     "chartsInfantry": "歩兵",
     "chartsCavalry": "騎兵",
-    "chartsArchers": "弓兵"
+    "chartsArchers": "弓兵",
+    "noManagersYet": "まだ管理者がいません",
+    "addMemberFailed": "メンバーの追加に失敗しました",
+    "updateFailed": "更新に失敗しました",
+    "deleteFailed": "削除に失敗しました",
+    "removeFailed": "削除に失敗しました",
+    "managerAdded": "{{name}}が管理者になりました",
+    "managerRemoved": "{{name}}を削除しました",
+    "managersLabel": "管理者",
+    "searchManagerPlaceholder": "追加するAtlasユーザーを検索...",
+    "transferTitle": "所有権の譲渡",
+    "transferSuccess": "{{name}}に所有権を譲渡しました"
   },
   "eventCoordinator": {
     "pageTitle": "同盟イベントコーディネーター",

@@ -25,8 +25,10 @@
     "wins": "Victorias",
     "losses": "Derrotas",
     "clear": "Limpiar",
-    "allTools": "← Todas las herramientas",
-    "copied": "¡Copiado!"
+    "allTools": "← Todas las Herramientas",
+    "copied": "¡Copiado!",
+    "failed": "Error",
+    "remove": "Eliminar"
   },
   "quickAction": {
     "transferHub_1": "Centro de",
@@ -3247,7 +3249,15 @@
     "shareNotFound": "Diseño compartido no encontrado.",
     "shareNotFoundDesc": "Este enlace puede haber expirado o sido eliminado.",
     "backToDesigner": "Volver al Diseñador",
-    "openDesigner": "Abrir Diseñador"
+    "openDesigner": "Abrir Diseñador",
+    "btnUndo": "Deshacer",
+    "btnRedo": "Rehacer",
+    "btnSave": "Guardar",
+    "btnLoad": "Cargar",
+    "btnLabel": "Etiqueta",
+    "btnShare": "Compartir",
+    "btnClear": "Limpiar",
+    "backToAlliance": "Centro de Alianza"
   },
   "toolDelegates": {
     "title": "Delegados de Herramientas",
@@ -3540,7 +3550,18 @@
     "chartsLangDist": "Idiomas Hablados",
     "chartsInfantry": "Infantería",
     "chartsCavalry": "Caballería",
-    "chartsArchers": "Arqueros"
+    "chartsArchers": "Arqueros",
+    "noManagersYet": "Aún no hay administradores",
+    "addMemberFailed": "Error al agregar miembro",
+    "updateFailed": "Error al actualizar",
+    "deleteFailed": "Error al eliminar",
+    "removeFailed": "Error al eliminar",
+    "managerAdded": "{{name}} ahora es administrador",
+    "managerRemoved": "{{name}} eliminado",
+    "managersLabel": "Administradores",
+    "searchManagerPlaceholder": "Buscar usuarios de Atlas para agregar...",
+    "transferTitle": "Transferir Propiedad",
+    "transferSuccess": "Propiedad transferida a {{name}}"
   },
   "eventCoordinator": {
     "pageTitle": "Coordinador de Eventos de Alianza",

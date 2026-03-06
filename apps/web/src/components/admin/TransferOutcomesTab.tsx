@@ -58,7 +58,7 @@ const TransferOutcomesTab: React.FC = () => {
 
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, username')
+        .select('id, username, linked_username')
         .in('id', (apps || []).map(a => a.applicant_user_id));
 
       const appMap = new Map((apps || []).map(a => [a.id, a]));
@@ -70,7 +70,7 @@ const TransferOutcomesTab: React.FC = () => {
         return {
           ...o,
           kingdom_number: app?.kingdom_number,
-          applicant_username: profile?.username || 'Unknown',
+          applicant_username: profile?.linked_username || profile?.username || 'Unknown',
         };
       });
 

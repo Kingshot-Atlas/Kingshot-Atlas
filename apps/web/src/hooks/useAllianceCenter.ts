@@ -486,12 +486,12 @@ export function useAllianceCenter(): UseAllianceCenterResult {
       const userIds = mgrs.map(m => m.user_id);
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, username, display_name')
+        .select('id, username, display_name, linked_username')
         .in('id', userIds);
 
       const profileMap = new Map<string, string>();
-      (profiles || []).forEach((p: { id: string; username: string | null; display_name: string | null }) => {
-        profileMap.set(p.id, p.display_name || p.username || 'Unknown');
+      (profiles || []).forEach((p: { id: string; username: string | null; display_name: string | null; linked_username: string | null }) => {
+        profileMap.set(p.id, p.linked_username || p.display_name || p.username || 'Unknown');
       });
 
       return mgrs.map(m => ({ ...m, username: profileMap.get(m.user_id) || 'Unknown' }));
@@ -512,7 +512,7 @@ export function useAllianceCenter(): UseAllianceCenterResult {
 
     return (data || []).map((p: { id: string; username: string | null; linked_player_id: string | null; linked_username: string | null }) => ({
       id: p.id,
-      username: p.username || 'Unknown',
+      username: p.linked_username || p.username || 'Unknown',
       linked_player_id: p.linked_player_id,
       linked_username: p.linked_username,
     }));

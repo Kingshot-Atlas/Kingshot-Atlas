@@ -266,7 +266,7 @@ const TransferBoard: React.FC = () => {
           status: claim.status,
           endorsement_count: claim.endorsement_count,
           required_endorsements: claim.required_endorsements,
-          nominee_username: nomineeProfile?.username || 'Unknown',
+          nominee_username: nomineeProfile?.linked_username || nomineeProfile?.username || 'Unknown',
           nominee_linked_username: nomineeProfile?.linked_username || null,
         });
       } catch (err) {

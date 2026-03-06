@@ -26,7 +26,9 @@
     "losses": "Losses",
     "clear": "Clear",
     "allTools": "← All Tools",
-    "copied": "Copied!"
+    "copied": "Copied!",
+    "failed": "Failed",
+    "remove": "Remove"
   },
   "quickAction": {
     "transferHub_1": "Transfer",
@@ -3654,7 +3656,25 @@
     "chartsLangDist": "Languages Spoken",
     "chartsInfantry": "Infantry",
     "chartsCavalry": "Cavalry",
-    "chartsArchers": "Archers"
+    "chartsArchers": "Archers",
+    "noManagersYet": "No managers yet",
+    "addMemberFailed": "Failed to add member",
+    "updateFailed": "Failed to update",
+    "deleteFailed": "Failed to delete",
+    "removeFailed": "Failed to remove",
+    "managerAdded": "{{name}} is now a manager",
+    "managerRemoved": "{{name}} removed",
+    "managersLabel": "Managers",
+    "managersDesc": "Managers can add/remove members and edit info, but cannot delete the alliance, transfer ownership, or manage other managers.",
+    "searchManagerPlaceholder": "Search Atlas users to add...",
+    "transferTitle": "Transfer Ownership",
+    "transferWarning": "This will make another Atlas user the owner. You will lose owner privileges. This cannot be undone by you.",
+    "searchTransferTarget": "Search for the new owner...",
+    "selectBtn": "Select",
+    "confirmTransfer": "Transfer ownership to {{name}}?",
+    "confirmTransferDesc": "You will no longer be the owner. The new owner will have full control.",
+    "transferBtn": "Transfer",
+    "transferSuccess": "Ownership transferred to {{name}}"
   },
   "eventCoordinator": {
     "pageTitle": "Alliance Event Coordinator",

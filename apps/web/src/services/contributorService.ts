@@ -88,7 +88,7 @@ class ContributorService {
       // Get profile for username and join date
       const { data: profile } = await supabase
         .from('profiles')
-        .select('username, created_at')
+        .select('username, linked_username, created_at')
         .eq('id', userId)
         .single();
 
@@ -140,7 +140,7 @@ class ContributorService {
 
       return {
         userId,
-        username: profile?.username || 'Unknown',
+        username: profile?.linked_username || profile?.username || 'Unknown',
         statusSubmissions,
         kvkCorrections,
         kvkSubmissions,

@@ -77,7 +77,7 @@ export const TransferHubAdminTab: React.FC = () => {
 
     setEditors(data.map(e => ({
       ...e,
-      username: profileMap.get(e.user_id)?.username || 'Unknown',
+      username: profileMap.get(e.user_id)?.linked_username || profileMap.get(e.user_id)?.username || 'Unknown',
       linked_username: profileMap.get(e.user_id)?.linked_username || null,
       linked_kingdom: profileMap.get(e.user_id)?.linked_kingdom,
       linked_tc_level: profileMap.get(e.user_id)?.linked_tc_level,

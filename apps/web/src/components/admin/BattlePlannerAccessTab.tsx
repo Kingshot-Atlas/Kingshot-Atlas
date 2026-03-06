@@ -64,7 +64,7 @@ export const BattlePlannerAccessTab: React.FC = () => {
             linked_kingdom: p?.linked_kingdom || null,
             linked_tc_level: p?.linked_tc_level || null,
             linked_avatar_url: p?.linked_avatar_url || null,
-            username: p?.username || 'Unknown',
+            username: p?.linked_username || p?.username || 'Unknown',
           };
         });
         setAccessList(entries);

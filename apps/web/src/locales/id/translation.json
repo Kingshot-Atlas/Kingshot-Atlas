@@ -26,7 +26,9 @@
     "losses": "Kalah",
     "clear": "Hapus",
     "allTools": "← Semua Alat",
-    "copied": "Tersalin!"
+    "copied": "Tersalin!",
+    "failed": "Gagal",
+    "remove": "Hapus"
   },
   "quickAction": {
     "transferHub_1": "Transfer",
@@ -3548,7 +3550,18 @@
     "refreshData": "Segarkan",
     "notInAtlasResolved": "Bukan pengguna Atlas — terverifikasi dari server game",
     "unknownPlayer": "Pemain tidak dikenal — tidak ditemukan di Atlas atau server game",
-    "unresolvedHint": "{{count}} anggota belum terselesaikan. Klik 🔄 Segarkan untuk mengambil data dari server game."
+    "unresolvedHint": "{{count}} anggota belum terselesaikan. Klik 🔄 Segarkan untuk mengambil data dari server game.",
+    "noManagersYet": "Belum ada manajer",
+    "addMemberFailed": "Gagal menambahkan anggota",
+    "updateFailed": "Gagal memperbarui",
+    "deleteFailed": "Gagal menghapus",
+    "removeFailed": "Gagal menghapus",
+    "managerAdded": "{{name}} sekarang menjadi manajer",
+    "managerRemoved": "{{name}} dihapus",
+    "managersLabel": "Manajer",
+    "searchManagerPlaceholder": "Cari pengguna Atlas untuk ditambahkan...",
+    "transferTitle": "Transfer Kepemilikan",
+    "transferSuccess": "Kepemilikan ditransfer ke {{name}}"
   },
   "eventCoordinator": {
     "pageTitle": "Koordinator Acara Aliansi",

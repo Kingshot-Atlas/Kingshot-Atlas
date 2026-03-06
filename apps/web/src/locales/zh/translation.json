@@ -26,7 +26,9 @@
     "losses": "负",
     "clear": "清除",
     "allTools": "← 所有工具",
-    "copied": "已复制！"
+    "copied": "已复制！",
+    "failed": "失败",
+    "remove": "移除"
   },
   "quickAction": {
     "transferHub_1": "转服",
@@ -3549,7 +3551,18 @@
     "chartsLangDist": "使用语言",
     "chartsInfantry": "步兵",
     "chartsCavalry": "骑兵",
-    "chartsArchers": "弓箭手"
+    "chartsArchers": "弓箭手",
+    "noManagersYet": "暂无管理员",
+    "addMemberFailed": "添加成员失败",
+    "updateFailed": "更新失败",
+    "deleteFailed": "删除失败",
+    "removeFailed": "移除失败",
+    "managerAdded": "{{name}} 现已成为管理员",
+    "managerRemoved": "{{name}} 已移除",
+    "managersLabel": "管理员",
+    "searchManagerPlaceholder": "搜索要添加的Atlas用户...",
+    "transferTitle": "转让所有权",
+    "transferSuccess": "所有权已转让给 {{name}}"
   },
   "eventCoordinator": {
     "pageTitle": "联盟活动协调员",
