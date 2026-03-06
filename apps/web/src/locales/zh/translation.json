@@ -3164,7 +3164,15 @@
     "shareNotFound": "未找到共享设计。",
     "shareNotFoundDesc": "此链接可能已过期或已被删除。",
     "backToDesigner": "返回设计器",
-    "openDesigner": "打开设计器"
+    "openDesigner": "打开设计器",
+    "btnUndo": "撤销",
+    "btnRedo": "重做",
+    "btnSave": "保存",
+    "btnLoad": "加载",
+    "btnLabel": "标签",
+    "btnShare": "分享",
+    "btnClear": "清除",
+    "backToAlliance": "联盟中心"
   },
   "welcome": {
     "favoritesDesc": "追踪您关注的王国并在评分变化时收到通知",

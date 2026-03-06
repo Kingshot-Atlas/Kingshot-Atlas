@@ -3321,7 +3321,15 @@
     "shareNotFound": "Shared design not found.",
     "shareNotFoundDesc": "This link may have expired or been removed.",
     "backToDesigner": "Back to Base Designer",
-    "openDesigner": "Open Designer"
+    "openDesigner": "Open Designer",
+    "btnUndo": "Undo",
+    "btnRedo": "Redo",
+    "btnSave": "Save",
+    "btnLoad": "Load",
+    "btnLabel": "Label",
+    "btnShare": "Share",
+    "btnClear": "Clear",
+    "backToAlliance": "Alliance Center"
   },
   "toolDelegates": {
     "title": "Tool Delegates",

@@ -3248,7 +3248,15 @@
     "shareNotFound": "Design partagé introuvable.",
     "shareNotFoundDesc": "Ce lien a peut-être expiré ou été supprimé.",
     "backToDesigner": "Retour au Concepteur",
-    "openDesigner": "Ouvrir le Concepteur"
+    "openDesigner": "Ouvrir le Concepteur",
+    "btnUndo": "Annuler",
+    "btnRedo": "Rétablir",
+    "btnSave": "Sauver",
+    "btnLoad": "Charger",
+    "btnLabel": "Étiquette",
+    "btnShare": "Partager",
+    "btnClear": "Effacer",
+    "backToAlliance": "Centre d'Alliance"
   },
   "toolDelegates": {
     "title": "Délégués d'outils",

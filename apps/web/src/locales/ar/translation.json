@@ -3248,7 +3248,15 @@
     "shareNotFound": "لم يتم العثور على التصميم المشارك.",
     "shareNotFoundDesc": "ربما انتهت صلاحية هذا الرابط أو تمت إزالته.",
     "backToDesigner": "العودة إلى المصمم",
-    "openDesigner": "فتح المصمم"
+    "openDesigner": "فتح المصمم",
+    "btnUndo": "تراجع",
+    "btnRedo": "إعادة",
+    "btnSave": "حفظ",
+    "btnLoad": "تحميل",
+    "btnLabel": "تسمية",
+    "btnShare": "مشاركة",
+    "btnClear": "مسح",
+    "backToAlliance": "مركز التحالف"
   },
   "toolDelegates": {
     "title": "مفوّضو الأدوات",

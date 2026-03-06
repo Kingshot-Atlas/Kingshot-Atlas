@@ -3248,7 +3248,15 @@
     "shareNotFound": "Paylaşılan tasarım bulunamadı.",
     "shareNotFoundDesc": "Bu bağlantının süresi dolmuş veya kaldırılmış olabilir.",
     "backToDesigner": "Tasarımcıya Dön",
-    "openDesigner": "Tasarımcıyı Aç"
+    "openDesigner": "Tasarımcıyı Aç",
+    "btnUndo": "Geri Al",
+    "btnRedo": "Yinele",
+    "btnSave": "Kaydet",
+    "btnLoad": "Yükle",
+    "btnLabel": "Etiket",
+    "btnShare": "Paylaş",
+    "btnClear": "Temizle",
+    "backToAlliance": "İttifak Merkezi"
   },
   "toolDelegates": {
     "title": "Araç Temsilcileri",

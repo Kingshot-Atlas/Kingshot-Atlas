@@ -435,11 +435,19 @@ export function useBaseDesigner(readOnlyDesign?: BaseDesign | null, targetUserId
             const localTime = localSession ? JSON.parse(localSession).savedAt : null;
             // Use cloud if newer or no local session
             if (!localTime || new Date(data.updated_at) >= new Date(localTime)) {
-              setBuildings(data.buildings as PlacedBuilding[]);
+              const loadedBuildings = data.buildings as PlacedBuilding[];
+              setBuildings(loadedBuildings);
               setDesignName(data.name);
               if (data.grid_size) setZoom(data.grid_size as number);
-              historyRef.current = [data.buildings as PlacedBuilding[]];
+              historyRef.current = [loadedBuildings];
               historyIndexRef.current = 0;
+              // Auto-center viewport on buildings
+              if (loadedBuildings.length > 0) {
+                const xs = loadedBuildings.map(b => b.x);
+                const ys = loadedBuildings.map(b => b.y);
+                setCenterX((Math.min(...xs) + Math.max(...xs)) / 2);
+                setCenterY((Math.min(...ys) + Math.max(...ys)) / 2);
+              }
               isRestoredRef.current = true;
               return;
             }

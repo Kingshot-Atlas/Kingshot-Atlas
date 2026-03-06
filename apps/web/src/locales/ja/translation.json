@@ -3248,7 +3248,15 @@
     "shareNotFound": "共有デザインが見つかりません。",
     "shareNotFoundDesc": "このリンクは期限切れまたは削除された可能性があります。",
     "backToDesigner": "デザイナーに戻る",
-    "openDesigner": "デザイナーを開く"
+    "openDesigner": "デザイナーを開く",
+    "btnUndo": "元に戻す",
+    "btnRedo": "やり直す",
+    "btnSave": "保存",
+    "btnLoad": "読込",
+    "btnLabel": "ラベル",
+    "btnShare": "共有",
+    "btnClear": "クリア",
+    "backToAlliance": "同盟センター"
   },
   "toolDelegates": {
     "title": "ツール委任",

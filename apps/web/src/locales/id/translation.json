@@ -3315,7 +3315,15 @@
     "shareNotFound": "Desain bersama tidak ditemukan.",
     "shareNotFoundDesc": "Tautan ini mungkin telah kadaluarsa atau dihapus.",
     "backToDesigner": "Kembali ke Desainer Base",
-    "openDesigner": "Buka Desainer"
+    "openDesigner": "Buka Desainer",
+    "btnUndo": "Undo",
+    "btnRedo": "Redo",
+    "btnSave": "Simpan",
+    "btnLoad": "Muat",
+    "btnLabel": "Label",
+    "btnShare": "Bagikan",
+    "btnClear": "Hapus",
+    "backToAlliance": "Pusat Aliansi"
   },
   "toolDelegates": {
     "title": "Delegasi Alat",

@@ -3247,7 +3247,15 @@
     "shareNotFound": "Diseño compartido no encontrado.",
     "shareNotFoundDesc": "Este enlace puede haber expirado o sido eliminado.",
     "backToDesigner": "Volver al Diseñador",
-    "openDesigner": "Abrir Diseñador"
+    "openDesigner": "Abrir Diseñador",
+    "btnUndo": "Deshacer",
+    "btnRedo": "Rehacer",
+    "btnSave": "Guardar",
+    "btnLoad": "Cargar",
+    "btnLabel": "Etiqueta",
+    "btnShare": "Compartir",
+    "btnClear": "Limpiar",
+    "backToAlliance": "Centro de Alianza"
   },
   "toolDelegates": {
     "title": "Delegados de Herramientas",

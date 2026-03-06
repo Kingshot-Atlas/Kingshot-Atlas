@@ -3248,7 +3248,15 @@
     "shareNotFound": "Geteiltes Design nicht gefunden.",
     "shareNotFoundDesc": "Dieser Link ist möglicherweise abgelaufen oder wurde entfernt.",
     "backToDesigner": "Zurück zum Designer",
-    "openDesigner": "Designer öffnen"
+    "openDesigner": "Designer öffnen",
+    "btnUndo": "Rückgängig",
+    "btnRedo": "Wiederholen",
+    "btnSave": "Speichern",
+    "btnLoad": "Laden",
+    "btnLabel": "Beschriftung",
+    "btnShare": "Teilen",
+    "btnClear": "Löschen",
+    "backToAlliance": "Allianz-Zentrum"
   },
   "toolDelegates": {
     "title": "Tool-Delegierte",

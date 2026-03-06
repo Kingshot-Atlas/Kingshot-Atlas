@@ -235,24 +235,24 @@ const AllianceBaseDesigner: React.FC = () => {
             }}>
               {/* Action bar */}
               <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid #1e2a35', display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
-                {canEdit && <><button style={sidebarBtnStyle} onClick={designer.undo} disabled={!designer.canUndo} title="Undo (Ctrl+Z)">↩</button>
-                <button style={sidebarBtnStyle} onClick={designer.redo} disabled={!designer.canRedo} title="Redo (Ctrl+Y)">↪</button>
+                {canEdit && <><button style={sidebarBtnStyle} onClick={designer.undo} disabled={!designer.canUndo} title="Undo (Ctrl+Z)">↩ {t('baseDesigner.btnUndo', 'Undo')}</button>
+                <button style={sidebarBtnStyle} onClick={designer.redo} disabled={!designer.canRedo} title="Redo (Ctrl+Y)">↪ {t('baseDesigner.btnRedo', 'Redo')}</button>
                 <div style={{ width: '1px', height: '20px', backgroundColor: '#1e2a35' }} />
-                <button style={sidebarBtnStyle} onClick={() => setModalMode('save')} title="Save">💾</button></>}
-                <button style={sidebarBtnStyle} onClick={() => setModalMode('load')} title="Load">📂</button>
+                <button style={sidebarBtnStyle} onClick={() => setModalMode('save')} title="Save">💾 {t('baseDesigner.btnSave', 'Save')}</button></>}
+                <button style={sidebarBtnStyle} onClick={() => setModalMode('load')} title="Load">📂 {t('baseDesigner.btnLoad', 'Load')}</button>
                 <div style={{ width: '1px', height: '20px', backgroundColor: '#1e2a35' }} />
                 <button
                   style={{ ...sidebarBtnStyle, ...(designer.showLabels ? { backgroundColor: '#3b82f615', borderColor: '#3b82f640', color: '#3b82f6' } : {}) }}
                   onClick={() => designer.setShowLabels(!designer.showLabels)} title="Toggle Labels"
-                >🏷️</button>
+                >🏷️ {t('baseDesigner.btnLabel', 'Label')}</button>
                 {canEdit && <><button
                   style={{ ...sidebarBtnStyle, position: 'relative' }}
                   onClick={() => setShareMenu(!shareMenu)} title="Share"
-                >📤</button>
+                >📤 {t('baseDesigner.btnShare', 'Share')}</button>
                 <button
                   style={{ ...sidebarBtnStyle, borderColor: '#ef444440', color: '#ef4444' }}
                   onClick={() => setShowClearConfirm(true)} title="Clear All"
-                >🗑️</button></>}
+                >🗑️ {t('baseDesigner.btnClear', 'Clear')}</button></>}
               </div>
 
               {/* Read-only banner */}
@@ -675,16 +675,16 @@ const AllianceBaseDesigner: React.FC = () => {
           backdropFilter: 'blur(10px)', border: '1px solid #1e2a35',
         }}>
           {canEdit && <>
-            <button style={sidebarBtnStyle} onClick={designer.undo} disabled={!designer.canUndo}>↩</button>
-            <button style={sidebarBtnStyle} onClick={designer.redo} disabled={!designer.canRedo}>↪</button>
-            <button style={sidebarBtnStyle} onClick={() => setModalMode('save')}>💾</button>
+            <button style={sidebarBtnStyle} onClick={designer.undo} disabled={!designer.canUndo}>↩ {t('baseDesigner.btnUndo', 'Undo')}</button>
+            <button style={sidebarBtnStyle} onClick={designer.redo} disabled={!designer.canRedo}>↪ {t('baseDesigner.btnRedo', 'Redo')}</button>
+            <button style={sidebarBtnStyle} onClick={() => setModalMode('save')}>💾 {t('baseDesigner.btnSave', 'Save')}</button>
           </>}
-          <button style={sidebarBtnStyle} onClick={() => setModalMode('load')}>📂</button>
+          <button style={sidebarBtnStyle} onClick={() => setModalMode('load')}>📂 {t('baseDesigner.btnLoad', 'Load')}</button>
           <button
             style={{ ...sidebarBtnStyle, ...(designer.showLabels ? { backgroundColor: '#3b82f615', borderColor: '#3b82f640', color: '#3b82f6' } : {}) }}
             onClick={() => designer.setShowLabels(!designer.showLabels)}
-          >🏷️</button>
-          {canEdit && <button style={sidebarBtnStyle} onClick={() => setShareMenu(!shareMenu)}>📤</button>}
+          >🏷️ {t('baseDesigner.btnLabel', 'Label')}</button>
+          {canEdit && <button style={sidebarBtnStyle} onClick={() => setShareMenu(!shareMenu)}>📤 {t('baseDesigner.btnShare', 'Share')}</button>}
           <div style={{ flex: 1 }} />
           {!canEdit && <span style={{ fontSize: '0.55rem', color: '#f59e0b', fontWeight: '600' }}>👁️ {t('baseDesigner.readOnly', 'View Only')}</span>}
           <span style={{ fontSize: '0.55rem', color: '#4b5563' }}>{designer.buildings.length} bldgs</span>

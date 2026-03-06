@@ -7,6 +7,7 @@ import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { useToolAccess } from '../hooks/useToolAccess';
+import { useAllianceCenter } from '../hooks/useAllianceCenter';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
@@ -40,10 +41,13 @@ const inputBase: React.CSSProperties = {
 // ─── Access Gate ───
 const EventCoordinatorGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { hasAccess, loading } = useToolAccess();
+  const { accessRole, allianceLoading } = useAllianceCenter();
   const { t } = useTranslation();
   const isMobile = useIsMobile();
 
-  if (loading) {
+  const isAllianceMember = accessRole === 'member' || accessRole === 'owner' || accessRole === 'manager' || accessRole === 'delegate';
+
+  if (loading || allianceLoading) {
     return (
       <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>{t('common.loading', 'Loading...')}</div>
@@ -51,7 +55,7 @@ const EventCoordinatorGate: React.FC<{ children: React.ReactNode }> = ({ childre
     );
   }
 
-  if (!hasAccess) {
+  if (!hasAccess && !isAllianceMember) {
     return (
       <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', textAlign: 'center' }}>
         <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📅</div>
