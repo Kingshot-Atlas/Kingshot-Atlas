@@ -3514,7 +3514,7 @@
     "allTools": "← Alle Werkzeuge"
   },
   "allianceCenter": {
-    "eventCoordinatorLink": "Event-Koordinator",
+    "eventCoordinatorLink": "Allianz Event-Koordinator",
     "baseDesignerLink": "Basis-Designer",
     "availYes": "Ja",
     "availNo": "Nein",
@@ -3544,7 +3544,7 @@
     "gateTitle": "Allianz Event-Koordinator",
     "gateDesc": "Verfügbar für Atlas-Supporter, Botschafter, Discord-Server-Booster und Admins. Koordiniere die besten Zeiten für deine Allianz-Events.",
     "noAlliance": "Kein Allianzzentrum Gefunden",
-    "noAllianceDesc": "Erstelle oder tritt zuerst einem Allianzzentrum bei, um den Event-Koordinator zu nutzen.",
+    "noAllianceDesc": "Erstelle oder tritt zuerst einem Allianzzentrum bei, um den Allianz Event-Koordinator zu nutzen.",
     "goToAllianceCenter": "Zum Allianzzentrum",
     "backToAlliance": "Allianzzentrum",
     "myAvailTab": "📅 Meine Verfügbarkeit",

@@ -435,7 +435,7 @@ const Tools: React.FC = () => {
   };
 
   const eventCoordinatorCard: ToolCardProps = {
-    title: t('tools.eventCoordinatorTitle', 'Event Coordinator'),
+    title: t('tools.eventCoordinatorTitle', 'Alliance Event Coordinator'),
     description: t('tools.eventCoordinatorDesc', 'Find the best times for alliance events. Members submit their available play times — managers see the most active 30-minute time slots at a glance.'),
     tagline: t('tools.eventCoordinatorTagline', 'Right time. Full attendance.'),
     icon: (

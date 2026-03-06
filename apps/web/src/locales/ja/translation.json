@@ -3514,7 +3514,7 @@
     "allTools": "← 全ツール"
   },
   "allianceCenter": {
-    "eventCoordinatorLink": "イベントコーディネーター",
+    "eventCoordinatorLink": "同盟イベントコーディネーター",
     "baseDesignerLink": "基地デザイナー",
     "availYes": "はい",
     "availNo": "いいえ",
@@ -3544,7 +3544,7 @@
     "gateTitle": "同盟イベントコーディネーター",
     "gateDesc": "Atlasサポーター、アンバサダー、Discordサーバーブースター、管理者が利用可能です。同盟イベントの最適な時間を調整しましょう。",
     "noAlliance": "同盟センターが見つかりません",
-    "noAllianceDesc": "イベントコーディネーターを使用するには、まず同盟センターを作成または参加してください。",
+    "noAllianceDesc": "同盟イベントコーディネーターを使用するには、まず同盟センターを作成または参加してください。",
     "goToAllianceCenter": "同盟センターへ",
     "backToAlliance": "同盟センター",
     "myAvailTab": "📅 自分の空き時間",

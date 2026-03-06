@@ -7,9 +7,9 @@ import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 import { useToolAccess } from '../hooks/useToolAccess';
 
-const ACCENT = '#f97316';
-const ACCENT_DIM = '#f9731615';
-const ACCENT_BORDER = '#f9731630';
+const ACCENT = '#3b82f6';
+const ACCENT_DIM = '#3b82f615';
+const ACCENT_BORDER = '#3b82f630';
 
 const BaseDesignerLanding: React.FC = () => {
   const { t } = useTranslation();
@@ -88,7 +88,7 @@ const BaseDesignerLanding: React.FC = () => {
             border: `2px solid ${ACCENT_BORDER}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             margin: '0 auto 1.25rem',
-            boxShadow: `0 0 30px rgba(249, 115, 22, 0.15), 0 0 60px rgba(249, 115, 22, 0.08)`,
+            boxShadow: `0 0 30px rgba(59, 130, 246, 0.15), 0 0 60px rgba(59, 130, 246, 0.08)`,
           }}>
             <span style={{ fontSize: isMobile ? '1.75rem' : '2.25rem' }}>🏰</span>
           </div>
@@ -121,7 +121,7 @@ const BaseDesignerLanding: React.FC = () => {
                 color: '#fff', fontWeight: 700,
                 fontSize: isMobile ? '0.95rem' : '1rem', textDecoration: 'none',
                 transition: 'all 0.2s ease',
-                boxShadow: `0 4px 20px rgba(249, 115, 22, 0.35)`,
+                boxShadow: `0 4px 20px rgba(59, 130, 246, 0.35)`,
               }}
             >
               🏰 {t('baseDesigner.launchDesigner', 'Launch the Designer')}
@@ -322,7 +322,7 @@ const BaseDesignerLanding: React.FC = () => {
                     border: 'none', borderRadius: '8px', color: '#fff',
                     fontWeight: 600, fontSize: isMobile ? '0.9rem' : '0.95rem',
                     textDecoration: 'none', transition: 'all 0.2s ease',
-                    boxShadow: `0 4px 15px rgba(249, 115, 22, 0.3)`,
+                    boxShadow: `0 4px 15px rgba(59, 130, 246, 0.3)`,
                   }}
                 >
                   {t('baseDesigner.becomeSupporter', 'Become a Supporter')}

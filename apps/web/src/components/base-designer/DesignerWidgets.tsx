@@ -61,7 +61,7 @@ export const MapControls: React.FC<{ designer: ReturnType<typeof useBaseDesigner
         <button style={btn} onClick={designer.panUp} title="Pan Up">▲</button>
         <div />
         <button style={btn} onClick={designer.panLeft} title="Pan Left">◀</button>
-        <button style={{ ...btn, fontSize: '0.55rem', color: '#22d3ee60' }} onClick={() => { designer.setCenterX(600); designer.setCenterY(600); }} title="Center">⊙</button>
+        <button style={{ ...btn, fontSize: '0.55rem', color: '#3b82f660' }} onClick={() => { designer.setCenterX(600); designer.setCenterY(600); }} title="Center">⊙</button>
         <button style={btn} onClick={designer.panRight} title="Pan Right">▶</button>
         <div />
         <button style={btn} onClick={designer.panDown} title="Pan Down">▼</button>
@@ -133,9 +133,9 @@ export const CoordinateSearch: React.FC<CoordinateSearchProps> = ({ onGo, onFocu
         <button
           onClick={() => onGo(parse(cx), parse(cy))}
           style={{
-            padding: '0.25rem 0.5rem', backgroundColor: '#22d3ee15',
-            border: '1px solid #22d3ee40', borderRadius: '4px',
-            color: '#22d3ee', cursor: 'pointer', fontSize: '0.65rem', fontWeight: '600',
+            padding: '0.25rem 0.5rem', backgroundColor: '#3b82f615',
+            border: '1px solid #3b82f640', borderRadius: '4px',
+            color: '#3b82f6', cursor: 'pointer', fontSize: '0.65rem', fontWeight: '600',
             whiteSpace: 'nowrap', height: 'fit-content',
           }}
         >{t('baseDesigner.go', 'Go')}</button>

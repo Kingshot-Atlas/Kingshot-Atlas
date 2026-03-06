@@ -3514,7 +3514,7 @@
     "allTools": "← Tüm Araçlar"
   },
   "allianceCenter": {
-    "eventCoordinatorLink": "Etkinlik Koordinatörü",
+    "eventCoordinatorLink": "İttifak Etkinlik Koordinatörü",
     "baseDesignerLink": "Üs Tasarımcısı",
     "availYes": "Evet",
     "availNo": "Hayır",
@@ -3544,7 +3544,7 @@
     "gateTitle": "İttifak Etkinlik Koordinatörü",
     "gateDesc": "Atlas Destekçileri, Elçiler, Discord Sunucu Destekçileri ve Yöneticiler için kullanılabilir. İttifak etkinlikleriniz için en iyi zamanları koordine edin.",
     "noAlliance": "İttifak Merkezi Bulunamadı",
-    "noAllianceDesc": "Etkinlik Koordinatörünü kullanmak için önce bir İttifak Merkezi oluşturun veya katılın.",
+    "noAllianceDesc": "İttifak Etkinlik Koordinatörünü kullanmak için önce bir İttifak Merkezi oluşturun veya katılın.",
     "goToAllianceCenter": "İttifak Merkezine Git",
     "backToAlliance": "İttifak Merkezi",
     "myAvailTab": "📅 Müsaitliğim",

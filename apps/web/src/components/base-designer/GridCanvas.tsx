@@ -134,13 +134,13 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
     ctx.lineTo(bBottom.x, bBottom.y);
     ctx.lineTo(bLeft.x, bLeft.y);
     ctx.closePath();
-    ctx.strokeStyle = '#22d3ee40';
+    ctx.strokeStyle = '#3b82f640';
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
     // Corner labels
     ctx.font = `${Math.max(9, hc * 0.8)}px monospace`;
-    ctx.fillStyle = '#22d3ee60';
+    ctx.fillStyle = '#3b82f660';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     if (hc > 4) {

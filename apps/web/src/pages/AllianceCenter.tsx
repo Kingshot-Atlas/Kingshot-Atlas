@@ -1150,7 +1150,7 @@ const AllianceDashboard: React.FC = () => {
           }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#3b82f6'; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#3b82f625'; }}>
-            📅 {t('allianceCenter.eventCoordinatorLink', 'Event Coordinator')}
+            📅 {t('allianceCenter.eventCoordinatorLink', 'Alliance Event Coordinator')}
           </Link>
           <Link to="/tools/base-designer/about" style={{
             textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.4rem',

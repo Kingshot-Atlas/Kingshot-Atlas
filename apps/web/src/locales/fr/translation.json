@@ -3514,7 +3514,7 @@
     "allTools": "← Tous les Outils"
   },
   "allianceCenter": {
-    "eventCoordinatorLink": "Coordinateur d'Événements",
+    "eventCoordinatorLink": "Coordinateur d'Événements d'Alliance",
     "baseDesignerLink": "Concepteur de Base",
     "availYes": "Oui",
     "availNo": "Non",
@@ -3544,7 +3544,7 @@
     "gateTitle": "Coordinateur d'Événements d'Alliance",
     "gateDesc": "Disponible pour les Supporters Atlas, Ambassadeurs, Boosters du Serveur Discord et Admins. Coordonnez les meilleurs horaires pour les événements de votre alliance.",
     "noAlliance": "Aucun Centre d'Alliance Trouvé",
-    "noAllianceDesc": "Créez ou rejoignez un Centre d'Alliance d'abord pour utiliser le Coordinateur d'Événements.",
+    "noAllianceDesc": "Créez ou rejoignez un Centre d'Alliance d'abord pour utiliser le Coordinateur d'Événements d'Alliance.",
     "goToAllianceCenter": "Aller au Centre d'Alliance",
     "backToAlliance": "Centre d'Alliance",
     "myAvailTab": "📅 Ma Disponibilité",

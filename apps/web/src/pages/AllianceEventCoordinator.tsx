@@ -18,8 +18,8 @@ import {
 } from '../hooks/useAllianceEventCoordinator';
 import type { DayTally } from '../hooks/useAllianceEventCoordinator';
 
-const ACCENT = '#10b981'; // emerald for event coordinator
-const ACCENT_BORDER = '#10b98130';
+const ACCENT = '#3b82f6'; // blue for alliance tools
+const ACCENT_BORDER = '#3b82f630';
 
 // Timezone helpers (same pattern as PrepScheduler)
 const USER_TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -382,7 +382,7 @@ const MyAvailabilityForm: React.FC<{
             const ranges = dayRanges[day.value] || [];
             const slotCount = rangesToSlots(ranges).length;
             return (
-              <div key={day.value} style={{ borderRadius: '8px', border: `1px solid ${isExpanded ? ACCENT_BORDER : '#1e1e24'}`, backgroundColor: isExpanded ? '#10b98108' : '#111116' }}>
+              <div key={day.value} style={{ borderRadius: '8px', border: `1px solid ${isExpanded ? ACCENT_BORDER : '#1e1e24'}`, backgroundColor: isExpanded ? '#3b82f608' : '#111116' }}>
                 <button onClick={() => toggleDay(day.value)} style={{
                   width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   padding: '0.6rem 0.75rem', border: 'none', borderRadius: '8px',
@@ -487,7 +487,7 @@ const HeatmapBar: React.FC<{
   const activeSlots = dayTally.slots.filter(s => s.count > 0);
 
   return (
-    <div style={{ borderRadius: '8px', border: `1px solid ${expanded ? ACCENT_BORDER : '#1e1e24'}`, backgroundColor: expanded ? '#10b98108' : '#111116' }}>
+    <div style={{ borderRadius: '8px', border: `1px solid ${expanded ? ACCENT_BORDER : '#1e1e24'}`, backgroundColor: expanded ? '#3b82f608' : '#111116' }}>
       <button onClick={onToggle} style={{
         width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0.5rem 0.75rem', border: 'none', borderRadius: '8px',
@@ -937,7 +937,7 @@ const EventCoordinatorContent: React.FC = () => {
           {t('eventCoordinator.noAlliance', 'No Alliance Center Found')}
         </h2>
         <p style={{ color: '#6b7280', fontSize: '0.85rem', maxWidth: '400px', marginBottom: '1rem' }}>
-          {t('eventCoordinator.noAllianceDesc', 'Create or join an Alliance Center first to use the Event Coordinator.')}
+          {t('eventCoordinator.noAllianceDesc', 'Create or join an Alliance Center first to use the Alliance Event Coordinator.')}
         </p>
         <Link to="/alliance-center" style={{ textDecoration: 'none' }}>
           <Button variant="primary">{t('eventCoordinator.goToAllianceCenter', 'Go to Alliance Center')}</Button>
@@ -1002,7 +1002,7 @@ const AllianceEventCoordinator: React.FC = () => {
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }}>
       <div style={{ padding: isMobile ? '1.25rem 1rem 1rem' : '1.5rem 2rem 1.25rem', textAlign: 'center', background: 'linear-gradient(180deg, #111111 0%, #0a0a0a 100%)' }}>
         <h1 style={{ fontSize: isMobile ? '1.3rem' : '1.75rem', fontWeight: 'bold', fontFamily: FONT_DISPLAY, letterSpacing: '0.05em', marginBottom: '0.25rem' }}>
-          <span style={{ color: '#fff' }}>EVENT </span>
+          <span style={{ color: '#fff' }}>ALLIANCE EVENT </span>
           <span style={neonGlow('#3b82f6')}>COORDINATOR</span>
         </h1>
         <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem', margin: 0, maxWidth: '500px', marginLeft: 'auto', marginRight: 'auto' }}>

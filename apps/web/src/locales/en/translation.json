@@ -3619,7 +3619,7 @@
     }
   },
   "allianceCenter": {
-    "eventCoordinatorLink": "Event Coordinator",
+    "eventCoordinatorLink": "Alliance Event Coordinator",
     "baseDesignerLink": "Base Designer",
     "availYes": "Yes",
     "availNo": "No",
@@ -3649,7 +3649,7 @@
     "gateTitle": "Alliance Event Coordinator",
     "gateDesc": "Available to Atlas Supporters, Ambassadors, Discord Server Boosters, and Admins. Coordinate the best times for your alliance events.",
     "noAlliance": "No Alliance Center Found",
-    "noAllianceDesc": "Create or join an Alliance Center first to use the Event Coordinator.",
+    "noAllianceDesc": "Create or join an Alliance Center first to use the Alliance Event Coordinator.",
     "goToAllianceCenter": "Go to Alliance Center",
     "backToAlliance": "Alliance Center",
     "myAvailTab": "📅 My Availability",

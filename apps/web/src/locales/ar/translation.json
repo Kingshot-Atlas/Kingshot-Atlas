@@ -3514,7 +3514,7 @@
     "allTools": "← جميع الأدوات"
   },
   "allianceCenter": {
-    "eventCoordinatorLink": "منسق الأحداث",
+    "eventCoordinatorLink": "منسق أحداث التحالف",
     "baseDesignerLink": "مصمم القاعدة",
     "availYes": "نعم",
     "availNo": "لا",
@@ -3544,7 +3544,7 @@
     "gateTitle": "منسق أحداث التحالف",
     "gateDesc": "متاح لداعمي Atlas والسفراء ومعززي خادم Discord والمشرفين. نسّق أفضل الأوقات لأحداث تحالفك.",
     "noAlliance": "لم يتم العثور على مركز التحالف",
-    "noAllianceDesc": "أنشئ أو انضم إلى مركز تحالف أولاً لاستخدام منسق الأحداث.",
+    "noAllianceDesc": "أنشئ أو انضم إلى مركز تحالف أولاً لاستخدام منسق أحداث التحالف.",
     "goToAllianceCenter": "الذهاب إلى مركز التحالف",
     "backToAlliance": "مركز التحالف",
     "myAvailTab": "📅 توفري",

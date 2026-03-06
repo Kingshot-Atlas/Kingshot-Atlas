@@ -3511,7 +3511,7 @@
     "allTools": "← 모든 도구"
   },
   "allianceCenter": {
-    "eventCoordinatorLink": "이벤트 코디네이터",
+    "eventCoordinatorLink": "동맹 이벤트 코디네이터",
     "baseDesignerLink": "기지 디자이너",
     "availYes": "예",
     "availNo": "아니오",
@@ -3541,7 +3541,7 @@
     "gateTitle": "동맹 이벤트 코디네이터",
     "gateDesc": "Atlas 서포터, 대사, Discord 서버 부스터 및 관리자에게 제공됩니다. 동맹 이벤트의 최적 시간을 조율하세요.",
     "noAlliance": "동맹 센터를 찾을 수 없습니다",
-    "noAllianceDesc": "이벤트 코디네이터를 사용하려면 먼저 동맹 센터를 만들거나 참여하세요.",
+    "noAllianceDesc": "동맹 이벤트 코디네이터를 사용하려면 먼저 동맹 센터를 만들거나 참여하세요.",
     "goToAllianceCenter": "동맹 센터로 이동",
     "backToAlliance": "동맹 센터",
     "myAvailTab": "📅 내 가용 시간",

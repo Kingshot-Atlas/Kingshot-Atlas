@@ -3514,7 +3514,7 @@
     "allTools": "← 所有工具"
   },
   "allianceCenter": {
-    "eventCoordinatorLink": "活动协调员",
+    "eventCoordinatorLink": "联盟活动协调员",
     "baseDesignerLink": "基地设计师",
     "availYes": "是",
     "availNo": "否",
@@ -3544,7 +3544,7 @@
     "gateTitle": "联盟活动协调员",
     "gateDesc": "适用于Atlas支持者、大使、Discord服务器助力者和管理员。协调联盟活动的最佳时间。",
     "noAlliance": "未找到联盟中心",
-    "noAllianceDesc": "请先创建或加入联盟中心以使用活动协调员。",
+    "noAllianceDesc": "请先创建或加入联盟中心以使用联盟活动协调员。",
     "goToAllianceCenter": "前往联盟中心",
     "backToAlliance": "联盟中心",
     "myAvailTab": "📅 我的可用时间",

@@ -208,7 +208,7 @@ const AllianceBaseDesigner: React.FC = () => {
         }}>
           <h1 style={{ fontSize: '1.3rem', fontWeight: 'bold', fontFamily: FONT_DISPLAY, letterSpacing: '0.05em', margin: 0 }}>
             <span style={{ color: '#fff' }}>ALLIANCE BASE </span>
-            <span style={neonGlow('#22d3ee')}>DESIGNER</span>
+            <span style={neonGlow('#3b82f6')}>DESIGNER</span>
           </h1>
           <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.2rem 0 0', letterSpacing: '0.02em' }}>
             Plan and coordinate your alliance fortress layout
@@ -238,7 +238,7 @@ const AllianceBaseDesigner: React.FC = () => {
                 <button style={sidebarBtnStyle} onClick={() => setModalMode('load')} title="Load">📂</button>
                 <div style={{ width: '1px', height: '20px', backgroundColor: '#1e2a35' }} />
                 <button
-                  style={{ ...sidebarBtnStyle, ...(designer.showLabels ? { backgroundColor: '#22d3ee15', borderColor: '#22d3ee40', color: '#22d3ee' } : {}) }}
+                  style={{ ...sidebarBtnStyle, ...(designer.showLabels ? { backgroundColor: '#3b82f615', borderColor: '#3b82f640', color: '#3b82f6' } : {}) }}
                   onClick={() => designer.setShowLabels(!designer.showLabels)} title="Toggle Labels"
                 >🏷️</button>
                 {canEdit && <><button
@@ -349,7 +349,7 @@ const AllianceBaseDesigner: React.FC = () => {
                       {labelSuggestions.length > 0 && (
                         <div style={{
                           position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30,
-                          backgroundColor: '#111827', border: '1px solid #22d3ee40', borderRadius: '4px',
+                          backgroundColor: '#111827', border: '1px solid #3b82f640', borderRadius: '4px',
                           boxShadow: '0 4px 16px rgba(0,0,0,0.5)', maxHeight: '140px', overflowY: 'auto',
                         }}>
                           {labelSuggestions.map((name, i) => (
@@ -357,11 +357,11 @@ const AllianceBaseDesigner: React.FC = () => {
                               onMouseDown={(e) => { e.preventDefault(); designer.updateBuildingLabel(selectedBuilding.id, name); setLabelSuggestions([]); }}
                               style={{
                                 width: '100%', padding: '0.3rem 0.5rem', border: 'none', textAlign: 'left',
-                                backgroundColor: i === selectedSuggestionIdx ? '#22d3ee20' : 'transparent',
+                                backgroundColor: i === selectedSuggestionIdx ? '#3b82f620' : 'transparent',
                                 color: '#e5e7eb', fontSize: '0.7rem', cursor: 'pointer', display: 'block',
                               }}
-                              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#22d3ee15'; }}
-                              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = i === selectedSuggestionIdx ? '#22d3ee20' : 'transparent'; }}
+                              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#3b82f615'; }}
+                              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = i === selectedSuggestionIdx ? '#3b82f620' : 'transparent'; }}
                             >
                               {name}
                             </button>
@@ -422,7 +422,7 @@ const AllianceBaseDesigner: React.FC = () => {
 
               {/* Back link */}
               <div style={{ padding: '0.5rem 0.75rem', marginTop: 'auto', borderTop: '1px solid #1e2a35' }}>
-                <Link to="/tools" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.65rem' }}>← Back to Tools</Link>
+                <Link to="/tools" style={{ color: '#3b82f6', textDecoration: 'none', fontSize: '0.65rem' }}>← Back to Tools</Link>
               </div>
             </div>
 
@@ -501,7 +501,7 @@ const AllianceBaseDesigner: React.FC = () => {
                         placeholder="Name..."
                         style={{
                           width: '140px', padding: '0.25rem 0.5rem',
-                          backgroundColor: '#111827', border: '1px solid #22d3ee',
+                          backgroundColor: '#111827', border: '1px solid #3b82f6',
                           borderRadius: '4px', color: '#fff', fontSize: '0.75rem',
                           outline: 'none', boxShadow: '0 2px 12px rgba(0,0,0,0.5)',
                           textAlign: 'center',
@@ -510,7 +510,7 @@ const AllianceBaseDesigner: React.FC = () => {
                       {inlineSuggestions.length > 0 && (
                         <div style={{
                           position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30,
-                          backgroundColor: '#111827', border: '1px solid #22d3ee40', borderRadius: '4px',
+                          backgroundColor: '#111827', border: '1px solid #3b82f640', borderRadius: '4px',
                           boxShadow: '0 4px 16px rgba(0,0,0,0.5)', maxHeight: '120px', overflowY: 'auto',
                         }}>
                           {inlineSuggestions.map((name) => (
@@ -525,7 +525,7 @@ const AllianceBaseDesigner: React.FC = () => {
                                 width: '100%', padding: '0.25rem 0.5rem', border: 'none', textAlign: 'left',
                                 backgroundColor: 'transparent', color: '#e5e7eb', fontSize: '0.7rem', cursor: 'pointer',
                               }}
-                              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#22d3ee15'; }}
+                              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#3b82f615'; }}
                               onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
                             >
                               {name}
@@ -580,8 +580,8 @@ const AllianceBaseDesigner: React.FC = () => {
         {shareToast && (
           <div style={{
             position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-            backgroundColor: '#111827', border: '1px solid #22d3ee40', borderRadius: '8px',
-            padding: '0.5rem 1rem', color: '#22d3ee', fontSize: '0.75rem', fontWeight: '600',
+            backgroundColor: '#111827', border: '1px solid #3b82f640', borderRadius: '8px',
+            padding: '0.5rem 1rem', color: '#3b82f6', fontSize: '0.75rem', fontWeight: '600',
             zIndex: 1001, boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
             animation: 'fadeIn 0.2s ease',
           }}>
@@ -623,7 +623,7 @@ const AllianceBaseDesigner: React.FC = () => {
       <div style={{ padding: '0.5rem 0.75rem', background: 'linear-gradient(180deg, #111827 0%, #0d1117 100%)', borderBottom: '1px solid #1e2a35', textAlign: 'center' }}>
         <h1 style={{ fontSize: '1rem', fontWeight: 'bold', fontFamily: FONT_DISPLAY, letterSpacing: '0.04em', margin: 0 }}>
           <span style={{ color: '#fff' }}>BASE </span>
-          <span style={neonGlow('#22d3ee')}>DESIGNER</span>
+          <span style={neonGlow('#3b82f6')}>DESIGNER</span>
         </h1>
       </div>
 
@@ -651,11 +651,11 @@ const AllianceBaseDesigner: React.FC = () => {
               onChange={(e) => { const val = e.target.value; setEditingLabel((prev) => prev ? { ...prev, value: val } : null); designer.updateBuildingLabel(editingLabel.buildingId, val); }}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); setEditingLabel(null); } }}
               onBlur={() => setTimeout(() => setEditingLabel(null), 150)} placeholder="Name..."
-              style={{ width: '140px', padding: '0.25rem 0.5rem', backgroundColor: '#111827', border: '1px solid #22d3ee', borderRadius: '4px', color: '#fff', fontSize: '0.75rem', outline: 'none', boxShadow: '0 2px 12px rgba(0,0,0,0.5)', textAlign: 'center', userSelect: 'text', WebkitUserSelect: 'text' } as React.CSSProperties} />
-            {mSugg.length > 0 && (<div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30, backgroundColor: '#111827', border: '1px solid #22d3ee40', borderRadius: '4px', boxShadow: '0 4px 16px rgba(0,0,0,0.5)', maxHeight: '120px', overflowY: 'auto' }}>
+              style={{ width: '140px', padding: '0.25rem 0.5rem', backgroundColor: '#111827', border: '1px solid #3b82f6', borderRadius: '4px', color: '#fff', fontSize: '0.75rem', outline: 'none', boxShadow: '0 2px 12px rgba(0,0,0,0.5)', textAlign: 'center', userSelect: 'text', WebkitUserSelect: 'text' } as React.CSSProperties} />
+            {mSugg.length > 0 && (<div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30, backgroundColor: '#111827', border: '1px solid #3b82f640', borderRadius: '4px', boxShadow: '0 4px 16px rgba(0,0,0,0.5)', maxHeight: '120px', overflowY: 'auto' }}>
               {mSugg.map((name) => (<button key={name} onMouseDown={(e) => { e.preventDefault(); designer.updateBuildingLabel(editingLabel.buildingId, name); setEditingLabel(prev => prev ? { ...prev, value: name } : null); setTimeout(() => setEditingLabel(null), 50); }}
                 style={{ width: '100%', padding: '0.25rem 0.5rem', border: 'none', textAlign: 'left', backgroundColor: 'transparent', color: '#e5e7eb', fontSize: '0.7rem', cursor: 'pointer' }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#22d3ee15'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}>{name}</button>))}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#3b82f615'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}>{name}</button>))}
             </div>)}
           </div>);
         })()}
@@ -674,7 +674,7 @@ const AllianceBaseDesigner: React.FC = () => {
           </>}
           <button style={sidebarBtnStyle} onClick={() => setModalMode('load')}>📂</button>
           <button
-            style={{ ...sidebarBtnStyle, ...(designer.showLabels ? { backgroundColor: '#22d3ee15', borderColor: '#22d3ee40', color: '#22d3ee' } : {}) }}
+            style={{ ...sidebarBtnStyle, ...(designer.showLabels ? { backgroundColor: '#3b82f615', borderColor: '#3b82f640', color: '#3b82f6' } : {}) }}
             onClick={() => designer.setShowLabels(!designer.showLabels)}
           >🏷️</button>
           {canEdit && <button style={sidebarBtnStyle} onClick={() => setShareMenu(!shareMenu)}>📤</button>}
@@ -726,8 +726,8 @@ const AllianceBaseDesigner: React.FC = () => {
                   }}
                   style={{
                     padding: '0.5rem 0.75rem', backgroundColor: '#0d1117ee',
-                    border: '1px solid #22d3ee40', borderRadius: '8px',
-                    color: '#22d3ee', cursor: 'pointer', fontSize: '0.7rem', fontWeight: '600',
+                    border: '1px solid #3b82f640', borderRadius: '8px',
+                    color: '#3b82f6', cursor: 'pointer', fontSize: '0.7rem', fontWeight: '600',
                     backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', gap: '0.25rem',
                     touchAction: 'manipulation',
                   }}
@@ -763,9 +763,9 @@ const AllianceBaseDesigner: React.FC = () => {
               onClick={() => setMobilePanelTab(tab)}
               style={{
                 flex: 1, padding: '0.5rem', backgroundColor: 'transparent', border: 'none',
-                color: mobilePanelTab === tab ? '#22d3ee' : '#6b7280', cursor: 'pointer',
+                color: mobilePanelTab === tab ? '#3b82f6' : '#6b7280', cursor: 'pointer',
                 fontSize: '0.7rem', fontWeight: mobilePanelTab === tab ? '700' : '400',
-                borderBottom: mobilePanelTab === tab ? '2px solid #22d3ee' : '2px solid transparent',
+                borderBottom: mobilePanelTab === tab ? '2px solid #3b82f6' : '2px solid transparent',
               }}
             >
               {tab === 'buildings' ? t('baseDesigner.buildTab', '🧱 Buildings') : t('baseDesigner.navTab', '🧭 Navigate')}

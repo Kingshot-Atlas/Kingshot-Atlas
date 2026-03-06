@@ -3513,7 +3513,7 @@
     "allTools": "← Todas las Herramientas"
   },
   "allianceCenter": {
-    "eventCoordinatorLink": "Coordinador de Eventos",
+    "eventCoordinatorLink": "Coordinador de Eventos de Alianza",
     "baseDesignerLink": "Diseñador de Base",
     "availYes": "Sí",
     "availNo": "No",
@@ -3543,7 +3543,7 @@
     "gateTitle": "Coordinador de Eventos de Alianza",
     "gateDesc": "Disponible para Supporters de Atlas, Embajadores, Boosters del Servidor de Discord y Admins. Coordina los mejores horarios para los eventos de tu alianza.",
     "noAlliance": "Centro de Alianza No Encontrado",
-    "noAllianceDesc": "Crea o únete a un Centro de Alianza primero para usar el Coordinador de Eventos.",
+    "noAllianceDesc": "Crea o únete a un Centro de Alianza primero para usar el Coordinador de Eventos de Alianza.",
     "goToAllianceCenter": "Ir al Centro de Alianza",
     "backToAlliance": "Centro de Alianza",
     "myAvailTab": "📅 Mi Disponibilidad",
