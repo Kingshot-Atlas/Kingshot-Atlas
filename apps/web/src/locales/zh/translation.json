@@ -3532,9 +3532,11 @@
     "unresolvedHint": "{{count}} 名成员尚未解析。点击 🔄 刷新 从游戏服务器获取数据。",
     "chartsTitle": "联盟分析",
     "chartsCount": "{{count}} 名成员",
-    "chartsTcDist": "TC / TrueGold 等级",
+    "chartsTcDist": "城镇中心等级",
     "chartsLangDist": "使用语言",
-    "chartsTroopDist": "兵种等级与TrueGold组合"
+    "chartsInfantry": "步兵",
+    "chartsCavalry": "骑兵",
+    "chartsArchers": "弓箭手"
   },
   "eventCoordinator": {
     "pageTitle": "联盟活动协调员",

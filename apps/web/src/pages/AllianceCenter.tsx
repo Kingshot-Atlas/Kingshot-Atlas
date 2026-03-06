@@ -660,7 +660,7 @@ const AllianceChartsSection: React.FC<{
 }> = ({ members, profilesMap, apiPlayerData, registryTroopData, isMobile, t }) => {
   const [expanded, setExpanded] = useState(false);
 
-  // ── TC Level / TG Distribution ──
+  // ── TC Level / TG Distribution (descending) ──
   const tgDist = useMemo(() => {
     const counts = new Map<string, number>();
     members.forEach(m => {
@@ -673,39 +673,42 @@ const AllianceChartsSection: React.FC<{
     return [...counts.entries()]
       .sort((a, b) => {
         const order = ['TC30', 'TG1', 'TG2', 'TG3', 'TG4', 'TG5', 'TG6', 'TG7', 'TG8'];
-        return order.indexOf(a[0]) - order.indexOf(b[0]);
+        return order.indexOf(b[0]) - order.indexOf(a[0]);
       });
   }, [members, profilesMap, apiPlayerData]);
 
-  // ── Troop Tier+TG Distribution (combined across all troop types) ──
-  const troopDist = useMemo(() => {
+  // ── Troop Tier Distribution — separate per troop type, sorted descending ──
+  const buildTroopDist = useCallback((getTier: (m: AllianceMember, reg?: { infantry_tier: number; infantry_tg: number; cavalry_tier: number; cavalry_tg: number; archers_tier: number; archers_tg: number }) => { tier: number | null | undefined; tg: number | null | undefined }): [string, number][] => {
     const counts = new Map<string, number>();
     members.forEach(m => {
       const reg = m.player_id ? registryTroopData.get(m.player_id) : undefined;
-      const types = [
-        { tier: m.infantry_tier ?? reg?.infantry_tier, tg: m.infantry_tier ? m.infantry_tg : reg?.infantry_tg },
-        { tier: m.cavalry_tier ?? reg?.cavalry_tier, tg: m.cavalry_tier ? m.cavalry_tg : reg?.cavalry_tg },
-        { tier: m.archers_tier ?? reg?.archers_tier, tg: m.archers_tier ? m.archers_tg : reg?.archers_tg },
-      ];
-      types.forEach(({ tier, tg }) => {
-        if (tier) {
-          const label = tg != null && tg > 0 ? `T${tier}/TG${tg}` : `T${tier}`;
-          counts.set(label, (counts.get(label) || 0) + 1);
-        }
-      });
+      const { tier, tg } = getTier(m, reg);
+      if (tier) {
+        const label = tg != null && tg > 0 ? `T${tier}/TG${tg}` : `T${tier}`;
+        counts.set(label, (counts.get(label) || 0) + 1);
+      }
     });
     return [...counts.entries()]
       .sort((a, b) => {
-        // Sort by tier then TG
         const parseLabel = (s: string): [number, number] => {
           const m = s.match(/T(\d+)(?:\/TG(\d+))?/);
           return m ? [Number(m[1]), Number(m[2] || 0)] : [0, 0];
         };
         const pa = parseLabel(a[0]);
         const pb = parseLabel(b[0]);
-        return pa[0] !== pb[0] ? pa[0] - pb[0] : pa[1] - pb[1];
+        return pb[0] !== pa[0] ? pb[0] - pa[0] : pb[1] - pa[1];
       });
   }, [members, registryTroopData]);
+
+  const infantryDist = useMemo(() => buildTroopDist((m, reg) => ({
+    tier: m.infantry_tier ?? reg?.infantry_tier, tg: m.infantry_tier ? m.infantry_tg : reg?.infantry_tg,
+  })), [buildTroopDist]);
+  const cavalryDist = useMemo(() => buildTroopDist((m, reg) => ({
+    tier: m.cavalry_tier ?? reg?.cavalry_tier, tg: m.cavalry_tier ? m.cavalry_tg : reg?.cavalry_tg,
+  })), [buildTroopDist]);
+  const archersDist = useMemo(() => buildTroopDist((m, reg) => ({
+    tier: m.archers_tier ?? reg?.archers_tier, tg: m.archers_tier ? m.archers_tg : reg?.archers_tg,
+  })), [buildTroopDist]);
 
   // ── Language Distribution ──
   const langDist = useMemo(() => {
@@ -718,7 +721,7 @@ const AllianceChartsSection: React.FC<{
     return [...counts.entries()].sort((a, b) => b[1] - a[1]);
   }, [members, profilesMap]);
 
-  const hasData = tgDist.length > 0 || troopDist.length > 0 || langDist.length > 0;
+  const hasData = tgDist.length > 0 || infantryDist.length > 0 || cavalryDist.length > 0 || archersDist.length > 0 || langDist.length > 0;
   if (!hasData) return null;
 
   const BarChart: React.FC<{ data: [string, number][]; color: string; maxVal?: number }> = ({ data, color, maxVal }) => {
@@ -765,11 +768,11 @@ const AllianceChartsSection: React.FC<{
       {expanded && (
         <div style={{ padding: isMobile ? '0 1rem 1rem' : '0 1.25rem 1.25rem' }}>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
-            {/* TC Level / TrueGold Distribution */}
+            {/* Town Center Level Distribution */}
             {tgDist.length > 0 && (
               <div style={{ backgroundColor: '#0d1117', borderRadius: '10px', border: '1px solid #1e1e24', padding: '0.75rem' }}>
                 <h4 style={{ color: '#e5e7eb', fontSize: '0.75rem', fontWeight: 700, margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                  🏰 {t('allianceCenter.chartsTcDist', 'TC / TrueGold Level')}
+                  🏰 {t('allianceCenter.chartsTcDist', 'Town Center Level')}
                 </h4>
                 <BarChart data={tgDist} color="#22d3ee" />
               </div>
@@ -785,13 +788,33 @@ const AllianceChartsSection: React.FC<{
               </div>
             )}
 
-            {/* Troop Tier + TG Combos */}
-            {troopDist.length > 0 && (
-              <div style={{ backgroundColor: '#0d1117', borderRadius: '10px', border: '1px solid #1e1e24', padding: '0.75rem', gridColumn: isMobile ? undefined : troopDist.length > 6 ? '1 / -1' : undefined }}>
-                <h4 style={{ color: '#e5e7eb', fontSize: '0.75rem', fontWeight: 700, margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                  ⚔️ {t('allianceCenter.chartsTroopDist', 'Troop Tier & TrueGold Combos')}
+            {/* Infantry Tier */}
+            {infantryDist.length > 0 && (
+              <div style={{ backgroundColor: '#0d1117', borderRadius: '10px', border: '1px solid #1e1e24', padding: '0.75rem' }}>
+                <h4 style={{ color: TROOP_COLORS.infantry, fontSize: '0.75rem', fontWeight: 700, margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  🗡️ {t('allianceCenter.chartsInfantry', 'Infantry')}
                 </h4>
-                <BarChart data={troopDist} color="#f97316" />
+                <BarChart data={infantryDist} color={TROOP_COLORS.infantry} />
+              </div>
+            )}
+
+            {/* Cavalry Tier */}
+            {cavalryDist.length > 0 && (
+              <div style={{ backgroundColor: '#0d1117', borderRadius: '10px', border: '1px solid #1e1e24', padding: '0.75rem' }}>
+                <h4 style={{ color: TROOP_COLORS.cavalry, fontSize: '0.75rem', fontWeight: 700, margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  🐎 {t('allianceCenter.chartsCavalry', 'Cavalry')}
+                </h4>
+                <BarChart data={cavalryDist} color={TROOP_COLORS.cavalry} />
+              </div>
+            )}
+
+            {/* Archers Tier */}
+            {archersDist.length > 0 && (
+              <div style={{ backgroundColor: '#0d1117', borderRadius: '10px', border: '1px solid #1e1e24', padding: '0.75rem' }}>
+                <h4 style={{ color: TROOP_COLORS.archers, fontSize: '0.75rem', fontWeight: 700, margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  🏹 {t('allianceCenter.chartsArchers', 'Archers')}
+                </h4>
+                <BarChart data={archersDist} color={TROOP_COLORS.archers} />
               </div>
             )}
           </div>

@@ -547,24 +547,32 @@ const HeatmapBar: React.FC<{
                   </span>
                 )}
               </div>
-              {/* Slot histogram */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
-                {activeSlots.map(slot => {
-                  const pct = maxGlobal > 0 ? (slot.count / maxGlobal) * 100 : 0;
-                  return (
-                    <div key={slot.slot} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.2rem 0' }}>
-                      <span style={{ color: '#9ca3af', fontSize: '0.7rem', fontWeight: 600, width: '40px', textAlign: 'right', flexShrink: 0 }}>{slot.slot}</span>
-                      <div style={{ flex: 1, height: '16px', backgroundColor: '#1a1a20', borderRadius: '3px', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${pct}%`, backgroundColor: ACCENT, borderRadius: '3px', opacity: 0.8, minWidth: slot.count > 0 ? '2px' : '0', transition: 'width 0.3s' }} />
+              {/* Vertical slot histogram */}
+              <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', paddingBottom: '0.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1px', minWidth: `${activeSlots.length * (isMobile ? 14 : 18)}px`, height: isMobile ? '100px' : '120px' }}>
+                  {activeSlots.map(slot => {
+                    const pct = maxGlobal > 0 ? (slot.count / maxGlobal) * 100 : 0;
+                    const isHour = slot.slot.endsWith(':00');
+                    return (
+                      <div key={slot.slot} title={`${slot.slot} — ${slot.count} member${slot.count !== 1 ? 's' : ''}: ${slot.members.join(', ')}`}
+                        style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '100%', minWidth: isMobile ? '12px' : '16px', position: 'relative' }}>
+                        <span style={{ color: ACCENT, fontSize: '0.5rem', fontWeight: 700, marginBottom: '2px', opacity: slot.count > 0 ? 1 : 0 }}>{slot.count}</span>
+                        <div style={{
+                          width: '100%', borderRadius: '2px 2px 0 0',
+                          backgroundColor: slot.count > 0 ? ACCENT : '#1a1a20',
+                          opacity: slot.count > 0 ? 0.4 + (pct / 100) * 0.6 : 0.3,
+                          height: `${Math.max(pct, slot.count > 0 ? 4 : 2)}%`,
+                          transition: 'height 0.3s ease',
+                        }} />
+                        {isHour && (
+                          <span style={{ color: '#6b7280', fontSize: '0.45rem', fontWeight: 600, marginTop: '2px', whiteSpace: 'nowrap' }}>
+                            {slot.slot.replace(':00', '')}
+                          </span>
+                        )}
                       </div>
-                      <span style={{ color: ACCENT, fontSize: '0.7rem', fontWeight: 600, width: '20px', textAlign: 'right', flexShrink: 0 }}>{slot.count}</span>
-                      <span style={{ color: '#4b5563', fontSize: '0.55rem', width: isMobile ? '60px' : '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 0 }}
-                        title={slot.members.join(', ')}>
-                        {slot.members.join(', ')}
-                      </span>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </>
           )}
@@ -995,7 +1003,7 @@ const AllianceEventCoordinator: React.FC = () => {
       <div style={{ padding: isMobile ? '1.25rem 1rem 1rem' : '1.5rem 2rem 1.25rem', textAlign: 'center', background: 'linear-gradient(180deg, #111111 0%, #0a0a0a 100%)' }}>
         <h1 style={{ fontSize: isMobile ? '1.3rem' : '1.75rem', fontWeight: 'bold', fontFamily: FONT_DISPLAY, letterSpacing: '0.05em', marginBottom: '0.25rem' }}>
           <span style={{ color: '#fff' }}>EVENT </span>
-          <span style={neonGlow(ACCENT)}>COORDINATOR</span>
+          <span style={neonGlow('#3b82f6')}>COORDINATOR</span>
         </h1>
         <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem', margin: 0, maxWidth: '500px', marginLeft: 'auto', marginRight: 'auto' }}>
           {t('eventCoordinator.subtitle', 'Find the best times for your alliance events by collecting member availability.')}

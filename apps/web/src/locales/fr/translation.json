@@ -3532,9 +3532,11 @@
     "unresolvedHint": "{{count}} membre(s) non résolu(s). Cliquez sur 🔄 Actualiser pour récupérer les données du serveur de jeu.",
     "chartsTitle": "Statistiques d'Alliance",
     "chartsCount": "{{count}} membres",
-    "chartsTcDist": "Niveau TC / TrueGold",
+    "chartsTcDist": "Niveau du Centre-Ville",
     "chartsLangDist": "Langues Parlées",
-    "chartsTroopDist": "Combinaisons Niveau de Troupe & TrueGold"
+    "chartsInfantry": "Infanterie",
+    "chartsCavalry": "Cavalerie",
+    "chartsArchers": "Archers"
   },
   "eventCoordinator": {
     "pageTitle": "Coordinateur d'Événements d'Alliance",

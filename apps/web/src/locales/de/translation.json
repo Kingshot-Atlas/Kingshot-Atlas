@@ -3532,9 +3532,11 @@
     "unresolvedHint": "{{count}} Mitglied(er) noch nicht aufgelöst. Klicke auf 🔄 Aktualisieren, um Daten vom Spielserver abzurufen.",
     "chartsTitle": "Allianz-Analyse",
     "chartsCount": "{{count}} Mitglieder",
-    "chartsTcDist": "TC / TrueGold-Stufe",
+    "chartsTcDist": "Stadtzentrum-Stufe",
     "chartsLangDist": "Gesprochene Sprachen",
-    "chartsTroopDist": "Truppenstufe & TrueGold-Kombinationen"
+    "chartsInfantry": "Infanterie",
+    "chartsCavalry": "Kavallerie",
+    "chartsArchers": "Bogenschützen"
   },
   "eventCoordinator": {
     "pageTitle": "Allianz Event-Koordinator",

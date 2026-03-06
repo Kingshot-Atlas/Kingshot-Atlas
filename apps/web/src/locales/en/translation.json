@@ -3637,9 +3637,11 @@
     "unresolvedHint": "{{count}} member(s) not yet resolved. Click 🔄 Refresh to fetch data from game server.",
     "chartsTitle": "Alliance Analytics",
     "chartsCount": "{{count}} members",
-    "chartsTcDist": "TC / TrueGold Level",
+    "chartsTcDist": "Town Center Level",
     "chartsLangDist": "Languages Spoken",
-    "chartsTroopDist": "Troop Tier & TrueGold Combos"
+    "chartsInfantry": "Infantry",
+    "chartsCavalry": "Cavalry",
+    "chartsArchers": "Archers"
   },
   "eventCoordinator": {
     "pageTitle": "Alliance Event Coordinator",

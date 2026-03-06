@@ -3532,9 +3532,11 @@
     "unresolvedHint": "{{count}}人のメンバーが未解決です。🔄 更新をクリックしてゲームサーバーからデータを取得してください。",
     "chartsTitle": "同盟分析",
     "chartsCount": "{{count}}人のメンバー",
-    "chartsTcDist": "TC / TrueGoldレベル",
+    "chartsTcDist": "タウンセンターレベル",
     "chartsLangDist": "使用言語",
-    "chartsTroopDist": "兵種レベル & TrueGold組み合わせ"
+    "chartsInfantry": "歩兵",
+    "chartsCavalry": "騎兵",
+    "chartsArchers": "弓兵"
   },
   "eventCoordinator": {
     "pageTitle": "同盟イベントコーディネーター",

@@ -3532,9 +3532,11 @@
     "unresolvedHint": "{{count}} üye henüz çözülmedi. Oyun sunucusundan veri almak için 🔄 Yenile'ye tıklayın.",
     "chartsTitle": "İttifak Analizi",
     "chartsCount": "{{count}} üye",
-    "chartsTcDist": "TC / TrueGold Seviyesi",
+    "chartsTcDist": "Şehir Merkezi Seviyesi",
     "chartsLangDist": "Konuşulan Diller",
-    "chartsTroopDist": "Asker Seviyesi & TrueGold Kombinasyonları"
+    "chartsInfantry": "Piyade",
+    "chartsCavalry": "Süvari",
+    "chartsArchers": "Okçular"
   },
   "eventCoordinator": {
     "pageTitle": "İttifak Etkinlik Koordinatörü",

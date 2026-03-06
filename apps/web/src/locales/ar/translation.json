@@ -3532,9 +3532,11 @@
     "unresolvedHint": "{{count}} عضو(أعضاء) لم يتم حلهم بعد. انقر على 🔄 تحديث لجلب البيانات من خادم اللعبة.",
     "chartsTitle": "تحليلات التحالف",
     "chartsCount": "{{count}} أعضاء",
-    "chartsTcDist": "مستوى TC / TrueGold",
+    "chartsTcDist": "مستوى مركز المدينة",
     "chartsLangDist": "اللغات المستخدمة",
-    "chartsTroopDist": "تركيبات مستوى القوات و TrueGold"
+    "chartsInfantry": "مشاة",
+    "chartsCavalry": "فرسان",
+    "chartsArchers": "رماة"
   },
   "eventCoordinator": {
     "pageTitle": "منسق أحداث التحالف",

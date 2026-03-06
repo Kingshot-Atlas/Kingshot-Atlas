@@ -3531,9 +3531,11 @@
     "unresolvedHint": "{{count}} miembro(s) sin resolver. Haz clic en 🔄 Actualizar para obtener datos del servidor del juego.",
     "chartsTitle": "Análisis de Alianza",
     "chartsCount": "{{count}} miembros",
-    "chartsTcDist": "Nivel TC / TrueGold",
+    "chartsTcDist": "Nivel del Centro de la Ciudad",
     "chartsLangDist": "Idiomas Hablados",
-    "chartsTroopDist": "Combinaciones de Nivel de Tropa y TrueGold"
+    "chartsInfantry": "Infantería",
+    "chartsCavalry": "Caballería",
+    "chartsArchers": "Arqueros"
   },
   "eventCoordinator": {
     "pageTitle": "Coordinador de Eventos de Alianza",
