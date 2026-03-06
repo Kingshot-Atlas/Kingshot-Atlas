@@ -422,7 +422,7 @@ const AllianceBaseDesigner: React.FC = () => {
 
               {/* Back link */}
               <div style={{ padding: '0.5rem 0.75rem', marginTop: 'auto', borderTop: '1px solid #1e2a35' }}>
-                <Link to="/tools" style={{ color: '#3b82f6', textDecoration: 'none', fontSize: '0.65rem' }}>← Back to Tools</Link>
+                <Link to="/alliance-center" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '0.65rem' }}>← {t('baseDesigner.backToAlliance', 'Alliance Center')}</Link>
               </div>
             </div>
 
@@ -620,11 +620,14 @@ const AllianceBaseDesigner: React.FC = () => {
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#0a0a0a', overflow: 'hidden', userSelect: 'none', WebkitUserSelect: 'none' } as React.CSSProperties}>
       {/* Mobile header */}
-      <div style={{ padding: '0.5rem 0.75rem', background: 'linear-gradient(180deg, #111827 0%, #0d1117 100%)', borderBottom: '1px solid #1e2a35', textAlign: 'center' }}>
+      <div style={{ padding: '0.5rem 0.75rem', background: 'linear-gradient(180deg, #111827 0%, #0d1117 100%)', borderBottom: '1px solid #1e2a35', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
         <h1 style={{ fontSize: '1rem', fontWeight: 'bold', fontFamily: FONT_DISPLAY, letterSpacing: '0.04em', margin: 0 }}>
           <span style={{ color: '#fff' }}>BASE </span>
           <span style={neonGlow('#3b82f6')}>DESIGNER</span>
         </h1>
+        <Link to="/alliance-center" style={{ position: 'absolute', right: '0.75rem', color: '#6b7280', fontSize: '0.6rem', textDecoration: 'none' }}>
+          ← {t('baseDesigner.backToAlliance', 'Alliance Center')}
+        </Link>
       </div>
 
       {/* Canvas fills most of the screen — minHeight prevents bottom panel from compressing it */}

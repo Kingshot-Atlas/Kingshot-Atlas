@@ -3624,7 +3624,7 @@
     }
   },
   "allianceCenter": {
-    "eventCoordinatorLink": "Alliance Event Coordinator",
+    "eventCoordinatorLink": "Event Coordinator",
     "baseDesignerLink": "Base Designer",
     "availYes": "Yes",
     "availNo": "No",

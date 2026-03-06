@@ -768,55 +768,61 @@ const AllianceChartsSection: React.FC<{
       {expanded && (
         <div style={{ padding: isMobile ? '0 1rem 1rem' : '0 1.25rem 1.25rem' }}>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
-            {/* Town Center Level Distribution */}
-            {tgDist.length > 0 && (
-              <div style={{ backgroundColor: '#0d1117', borderRadius: '10px', border: '1px solid #1e1e24', padding: '0.75rem' }}>
-                <h4 style={{ color: '#e5e7eb', fontSize: '0.75rem', fontWeight: 700, margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                  🏰 {t('allianceCenter.chartsTcDist', 'Town Center Level')}
-                </h4>
-                <BarChart data={tgDist} color="#22d3ee" />
-              </div>
-            )}
+            {/* ── Left Column: Troop Stats ── */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {/* Infantry Tier */}
+              {infantryDist.length > 0 && (
+                <div style={{ backgroundColor: '#0d1117', borderRadius: '10px', border: '1px solid #1e1e24', padding: '0.75rem' }}>
+                  <h4 style={{ color: TROOP_COLORS.infantry, fontSize: '0.75rem', fontWeight: 700, margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    🗡️ {t('allianceCenter.chartsInfantry', 'Infantry')}
+                  </h4>
+                  <BarChart data={infantryDist} color={TROOP_COLORS.infantry} />
+                </div>
+              )}
 
-            {/* Language Distribution */}
-            {langDist.length > 0 && (
-              <div style={{ backgroundColor: '#0d1117', borderRadius: '10px', border: '1px solid #1e1e24', padding: '0.75rem' }}>
-                <h4 style={{ color: '#e5e7eb', fontSize: '0.75rem', fontWeight: 700, margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                  🌐 {t('allianceCenter.chartsLangDist', 'Languages Spoken')}
-                </h4>
-                <BarChart data={langDist} color="#a855f7" />
-              </div>
-            )}
+              {/* Cavalry Tier */}
+              {cavalryDist.length > 0 && (
+                <div style={{ backgroundColor: '#0d1117', borderRadius: '10px', border: '1px solid #1e1e24', padding: '0.75rem' }}>
+                  <h4 style={{ color: TROOP_COLORS.cavalry, fontSize: '0.75rem', fontWeight: 700, margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    🐎 {t('allianceCenter.chartsCavalry', 'Cavalry')}
+                  </h4>
+                  <BarChart data={cavalryDist} color={TROOP_COLORS.cavalry} />
+                </div>
+              )}
 
-            {/* Infantry Tier */}
-            {infantryDist.length > 0 && (
-              <div style={{ backgroundColor: '#0d1117', borderRadius: '10px', border: '1px solid #1e1e24', padding: '0.75rem' }}>
-                <h4 style={{ color: TROOP_COLORS.infantry, fontSize: '0.75rem', fontWeight: 700, margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                  🗡️ {t('allianceCenter.chartsInfantry', 'Infantry')}
-                </h4>
-                <BarChart data={infantryDist} color={TROOP_COLORS.infantry} />
-              </div>
-            )}
+              {/* Archers Tier */}
+              {archersDist.length > 0 && (
+                <div style={{ backgroundColor: '#0d1117', borderRadius: '10px', border: '1px solid #1e1e24', padding: '0.75rem' }}>
+                  <h4 style={{ color: TROOP_COLORS.archers, fontSize: '0.75rem', fontWeight: 700, margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    🏹 {t('allianceCenter.chartsArchers', 'Archers')}
+                  </h4>
+                  <BarChart data={archersDist} color={TROOP_COLORS.archers} />
+                </div>
+              )}
+            </div>
 
-            {/* Cavalry Tier */}
-            {cavalryDist.length > 0 && (
-              <div style={{ backgroundColor: '#0d1117', borderRadius: '10px', border: '1px solid #1e1e24', padding: '0.75rem' }}>
-                <h4 style={{ color: TROOP_COLORS.cavalry, fontSize: '0.75rem', fontWeight: 700, margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                  🐎 {t('allianceCenter.chartsCavalry', 'Cavalry')}
-                </h4>
-                <BarChart data={cavalryDist} color={TROOP_COLORS.cavalry} />
-              </div>
-            )}
+            {/* ── Right Column: TC Level & Languages ── */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {/* Town Center Level Distribution */}
+              {tgDist.length > 0 && (
+                <div style={{ backgroundColor: '#0d1117', borderRadius: '10px', border: '1px solid #1e1e24', padding: '0.75rem' }}>
+                  <h4 style={{ color: '#e5e7eb', fontSize: '0.75rem', fontWeight: 700, margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    🏰 {t('allianceCenter.chartsTcDist', 'Town Center Level')}
+                  </h4>
+                  <BarChart data={tgDist} color="#22d3ee" />
+                </div>
+              )}
 
-            {/* Archers Tier */}
-            {archersDist.length > 0 && (
-              <div style={{ backgroundColor: '#0d1117', borderRadius: '10px', border: '1px solid #1e1e24', padding: '0.75rem' }}>
-                <h4 style={{ color: TROOP_COLORS.archers, fontSize: '0.75rem', fontWeight: 700, margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                  🏹 {t('allianceCenter.chartsArchers', 'Archers')}
-                </h4>
-                <BarChart data={archersDist} color={TROOP_COLORS.archers} />
-              </div>
-            )}
+              {/* Language Distribution */}
+              {langDist.length > 0 && (
+                <div style={{ backgroundColor: '#0d1117', borderRadius: '10px', border: '1px solid #1e1e24', padding: '0.75rem' }}>
+                  <h4 style={{ color: '#e5e7eb', fontSize: '0.75rem', fontWeight: 700, margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    🌐 {t('allianceCenter.chartsLangDist', 'Languages Spoken')}
+                  </h4>
+                  <BarChart data={langDist} color="#a855f7" />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -1150,7 +1156,7 @@ const AllianceDashboard: React.FC = () => {
           }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#3b82f6'; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#3b82f625'; }}>
-            📅 {t('allianceCenter.eventCoordinatorLink', 'Alliance Event Coordinator')}
+            📅 {t('allianceCenter.eventCoordinatorLink', 'Event Coordinator')}
           </Link>
           <Link to="/tools/base-designer/about" style={{
             textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
