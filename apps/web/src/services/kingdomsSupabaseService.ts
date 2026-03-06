@@ -128,8 +128,38 @@ class KingdomsSupabaseService {
       // Fetch KvK history for recent_kvks
       const kvkData = await kvkHistoryService.getAllRecords();
       
-      // Get status overrides from Supabase (source of truth)
+      // Get status overrides from status_submissions (user-submitted updates)
       const statusOverrides = await statusService.getAllApprovedStatusOverridesAsync();
+
+      // Fetch current transfer status from transfer_status_history (source of truth)
+      // This table has the official per-event status for each kingdom
+      const transferStatusMap = new Map<number, string>();
+      try {
+        // Find the current event number
+        const { data: currentEvent } = await supabase
+          .from('transfer_events')
+          .select('event_number')
+          .eq('is_current', true)
+          .maybeSingle();
+
+        if (currentEvent) {
+          // Fetch all statuses for the current event
+          const { data: statusRows } = await supabase
+            .from('transfer_status_history')
+            .select('kingdom_number, group_number, status')
+            .eq('event_number', currentEvent.event_number);
+
+          if (statusRows) {
+            for (const row of statusRows) {
+              // Use the status directly: 'Leading' or 'Ordinary'
+              transferStatusMap.set(row.kingdom_number, row.status);
+            }
+            logger.info(`Loaded ${transferStatusMap.size} transfer statuses from current event #${currentEvent.event_number}`);
+          }
+        }
+      } catch (err) {
+        logger.error('Error fetching transfer status history:', err);
+      }
 
       // Transform to Kingdom objects
       const kingdoms: Kingdom[] = kingdomsData.map((k: SupabaseKingdom) => {
@@ -149,7 +179,8 @@ class KingdomsSupabaseService {
         // Sort by kvk_number descending (most recent first)
         recentKvks.sort((a, b) => b.kvk_number - a.kvk_number);
 
-        // Use status override if available
+        // Resolve transfer status: transfer_status_history > status_submissions > kingdoms column
+        const historyStatus = transferStatusMap.get(k.kingdom_number);
         const approvedStatus = statusOverrides.get(k.kingdom_number);
 
         return {
@@ -172,7 +203,7 @@ class KingdomsSupabaseService {
           comebacks: k.comebacks ?? 0,
           invasions: k.invasions ?? 0,
           overall_score: Number(k.atlas_score ?? k.overall_score ?? 0),
-          most_recent_status: approvedStatus || k.most_recent_status || 'Unannounced',
+          most_recent_status: historyStatus || approvedStatus || k.most_recent_status || 'Unannounced',
           power_tier: getPowerTier(Number(k.atlas_score ?? k.overall_score ?? 0)),
           last_updated: k.last_updated,
           recent_kvks: recentKvks

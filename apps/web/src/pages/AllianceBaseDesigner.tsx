@@ -29,7 +29,16 @@ const AllianceBaseDesigner: React.FC = () => {
   });
   const isMobile = useIsMobile();
   const { t } = useTranslation();
-  const designer = useBaseDesigner();
+  const { user } = useAuth();
+
+  // Alliance roster names for city label autocomplete
+  const ac = useAllianceCenter();
+  const { hasAccess } = useToolAccess();
+
+  // Load the alliance owner's design so all members see the same base
+  // For the owner, this equals their own ID; for delegates/members, it loads the owner's design
+  const designOwnerId = ac.alliance?.owner_id || null;
+  const designer = useBaseDesigner(undefined, designOwnerId);
   const containerRef = useRef<HTMLDivElement>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 600, height: 600 });
   const [modalMode, setModalMode] = useState<'save' | 'load' | null>(null);
@@ -42,11 +51,6 @@ const AllianceBaseDesigner: React.FC = () => {
   const editInputRef = useRef<HTMLInputElement>(null);
   const [shareMenu, setShareMenu] = useState(false);
   const [shareToast, setShareToast] = useState<string | null>(null);
-  const { user } = useAuth();
-
-  // Alliance roster names for city label autocomplete
-  const ac = useAllianceCenter();
-  const { hasAccess } = useToolAccess();
 
   // Determine edit permission: owner/manager/delegate with tool access can edit; members get read-only
   const canEdit = hasAccess && (ac.accessRole === 'owner' || ac.accessRole === 'manager' || ac.accessRole === 'delegate');

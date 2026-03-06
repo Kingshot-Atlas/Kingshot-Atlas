@@ -28,9 +28,9 @@ const DEFAULT_ZOOM = 12;
 let nextBuildingId = 1;
 const generateId = () => `b_${Date.now()}_${nextBuildingId++}`;
 
-export function useBaseDesigner(readOnlyDesign?: BaseDesign | null) {
+export function useBaseDesigner(readOnlyDesign?: BaseDesign | null, targetUserId?: string | null) {
   const { user } = useAuth();
-  const userId = user?.id ?? null;
+  const userId = targetUserId || user?.id || null;
 
   // Isometric viewport: center point in grid coords + zoom (half-cell px size)
   const [centerX, setCenterX] = useState(600);
@@ -308,11 +308,11 @@ export function useBaseDesigner(readOnlyDesign?: BaseDesign | null) {
     saveToLocal(designs);
     setIsDirty(false);
     return { id: design.id, overwrote: false };
-  }, [buildings, designName, zoom, userId, getLocalDesigns, saveToLocal]);
+  }, [buildings, designName, zoom, userId, user?.id, getLocalDesigns, saveToLocal]);
 
   const loadDesign = useCallback(async (designId: string): Promise<boolean> => {
     // Cloud load
-    if (supabase && userId) {
+    if (supabase && (userId || user?.id)) {
       const { data } = await supabase
         .from('base_designs')
         .select('*')
@@ -335,7 +335,7 @@ export function useBaseDesigner(readOnlyDesign?: BaseDesign | null) {
     pushHistory(design.buildings);
     setIsDirty(false);
     return true;
-  }, [pushHistory, userId, getLocalDesigns]);
+  }, [pushHistory, userId, user?.id, getLocalDesigns]);
 
   const getSavedDesigns = useCallback(async (): Promise<BaseDesign[]> => {
     if (supabase && userId) {
