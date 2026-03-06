@@ -200,7 +200,12 @@
     "chipInToFund": "Contribuer au Fonds",
     "fundActivity": "Activité du Fonds",
     "fundMoreTransactions": "+ {{count}} transactions supplémentaires",
-    "gracePeriodWarning": "Période de grâce active — contribuez pour maintenir le niveau actuel avant le {{date}}"
+    "gracePeriodWarning": "Période de grâce active — contribuez pour maintenir le niveau actuel avant le {{date}}",
+    "transferHistory": "Historique des Transferts",
+    "transferEvent": "Transfert #{{num}}",
+    "transferGroup": "Groupe",
+    "unofficial": "Non officiel",
+    "current": "Actuel"
   },
   "rankings": {
     "subtitle": "Qui domine ? Les données ne mentent pas.",
@@ -2936,6 +2941,9 @@
     "beOnline": "Soyez en ligne pendant votre créneau assigné",
     "changeScreenshot": "Changer la capture",
     "copyFrom": "Copier depuis",
+    "topPeakSlots": "Créneaux de Pointe",
+    "uniqueMembers": "Membres",
+    "activeSlots": "Créneaux Actifs",
     "createScheduleBtn": "Créer un planning",
     "day": "Jour",
     "deadlineHintUTC": "La date limite est en UTC",
@@ -3511,7 +3519,7 @@
     "allTools": "← Tous les Outils"
   },
   "allianceCenter": {
-    "eventCoordinatorLink": "Coordinateur d'Événements",
+    "eventCoordinatorLink": "Coordinateur d'Événements d'Alliance",
     "baseDesignerLink": "Concepteur de Base",
     "availYes": "Oui",
     "availNo": "Non",
@@ -3526,7 +3534,14 @@
     "refreshData": "Actualiser",
     "notInAtlasResolved": "Pas un utilisateur Atlas — résolu depuis le serveur de jeu",
     "unknownPlayer": "Joueur inconnu — introuvable sur Atlas ou le serveur de jeu",
-    "unresolvedHint": "{{count}} membre(s) non résolu(s). Cliquez sur 🔄 Actualiser pour récupérer les données du serveur de jeu."
+    "unresolvedHint": "{{count}} membre(s) non résolu(s). Cliquez sur 🔄 Actualiser pour récupérer les données du serveur de jeu.",
+    "chartsTitle": "Statistiques d'Alliance",
+    "chartsCount": "{{count}} membres",
+    "chartsTcDist": "Niveau du Centre-Ville",
+    "chartsLangDist": "Langues Parlées",
+    "chartsInfantry": "Infanterie",
+    "chartsCavalry": "Cavalerie",
+    "chartsArchers": "Archers"
   },
   "eventCoordinator": {
     "pageTitle": "Coordinateur d'Événements d'Alliance",
@@ -3534,7 +3549,7 @@
     "gateTitle": "Coordinateur d'Événements d'Alliance",
     "gateDesc": "Disponible pour les Supporters Atlas, Ambassadeurs, Boosters du Serveur Discord et Admins. Coordonnez les meilleurs horaires pour les événements de votre alliance.",
     "noAlliance": "Aucun Centre d'Alliance Trouvé",
-    "noAllianceDesc": "Créez ou rejoignez un Centre d'Alliance d'abord pour utiliser le Coordinateur d'Événements.",
+    "noAllianceDesc": "Créez ou rejoignez un Centre d'Alliance d'abord pour utiliser le Coordinateur d'Événements d'Alliance.",
     "goToAllianceCenter": "Aller au Centre d'Alliance",
     "backToAlliance": "Centre d'Alliance",
     "myAvailTab": "📅 Ma Disponibilité",

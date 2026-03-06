@@ -200,7 +200,12 @@
     "chipInToFund": "المساهمة في الصندوق",
     "fundActivity": "نشاط الصندوق",
     "fundMoreTransactions": "+ {{count}} معاملات إضافية",
-    "gracePeriodWarning": "فترة السماح للمستوى نشطة — ساهم قبل {{date}} للحفاظ على المستوى الحالي"
+    "gracePeriodWarning": "فترة السماح للمستوى نشطة — ساهم قبل {{date}} للحفاظ على المستوى الحالي",
+    "transferHistory": "سجل الانتقالات",
+    "transferEvent": "انتقال #{{num}}",
+    "transferGroup": "مجموعة",
+    "unofficial": "غير رسمي",
+    "current": "الحالي"
   },
   "rankings": {
     "subtitle": "من يتصدر؟ البيانات لا تكذب.",
@@ -2936,6 +2941,9 @@
     "beOnline": "كن متصلاً خلال فترتك المخصصة",
     "changeScreenshot": "تغيير لقطة الشاشة",
     "copyFrom": "نسخ من",
+    "topPeakSlots": "أوقات الذروة الرئيسية",
+    "uniqueMembers": "الأعضاء",
+    "activeSlots": "الفترات النشطة",
     "createScheduleBtn": "إنشاء جدول",
     "day": "يوم",
     "deadlineHintUTC": "الموعد النهائي بتوقيت UTC",
@@ -3511,7 +3519,7 @@
     "allTools": "← جميع الأدوات"
   },
   "allianceCenter": {
-    "eventCoordinatorLink": "منسق الأحداث",
+    "eventCoordinatorLink": "منسق أحداث التحالف",
     "baseDesignerLink": "مصمم القاعدة",
     "availYes": "نعم",
     "availNo": "لا",
@@ -3526,7 +3534,14 @@
     "refreshData": "تحديث",
     "notInAtlasResolved": "ليس مستخدم Atlas — تم التحقق من خادم اللعبة",
     "unknownPlayer": "لاعب غير معروف — لم يُعثر عليه في Atlas أو خادم اللعبة",
-    "unresolvedHint": "{{count}} عضو(أعضاء) لم يتم حلهم بعد. انقر على 🔄 تحديث لجلب البيانات من خادم اللعبة."
+    "unresolvedHint": "{{count}} عضو(أعضاء) لم يتم حلهم بعد. انقر على 🔄 تحديث لجلب البيانات من خادم اللعبة.",
+    "chartsTitle": "تحليلات التحالف",
+    "chartsCount": "{{count}} أعضاء",
+    "chartsTcDist": "مستوى مركز المدينة",
+    "chartsLangDist": "اللغات المستخدمة",
+    "chartsInfantry": "مشاة",
+    "chartsCavalry": "فرسان",
+    "chartsArchers": "رماة"
   },
   "eventCoordinator": {
     "pageTitle": "منسق أحداث التحالف",
@@ -3534,7 +3549,7 @@
     "gateTitle": "منسق أحداث التحالف",
     "gateDesc": "متاح لداعمي Atlas والسفراء ومعززي خادم Discord والمشرفين. نسّق أفضل الأوقات لأحداث تحالفك.",
     "noAlliance": "لم يتم العثور على مركز التحالف",
-    "noAllianceDesc": "أنشئ أو انضم إلى مركز تحالف أولاً لاستخدام منسق الأحداث.",
+    "noAllianceDesc": "أنشئ أو انضم إلى مركز تحالف أولاً لاستخدام منسق أحداث التحالف.",
     "goToAllianceCenter": "الذهاب إلى مركز التحالف",
     "backToAlliance": "مركز التحالف",
     "myAvailTab": "📅 توفري",

@@ -215,7 +215,12 @@
     "chipInToFund": "Chip In to Fund",
     "fundActivity": "Fund Activity",
     "fundMoreTransactions": "+ {{count}} more transactions",
-    "gracePeriodWarning": "Tier grace period active — contribute to maintain the current tier before {{date}}"
+    "gracePeriodWarning": "Tier grace period active — contribute to maintain the current tier before {{date}}",
+    "transferHistory": "Transfer History",
+    "transferEvent": "Transfer #{{num}}",
+    "transferGroup": "Group",
+    "unofficial": "Unofficial",
+    "current": "Current"
   },
   "rankings": {
     "subtitle": "Who's dominating? The data doesn't lie.",
@@ -3619,7 +3624,7 @@
     }
   },
   "allianceCenter": {
-    "eventCoordinatorLink": "Event Coordinator",
+    "eventCoordinatorLink": "Alliance Event Coordinator",
     "baseDesignerLink": "Base Designer",
     "availYes": "Yes",
     "availNo": "No",
@@ -3634,7 +3639,14 @@
     "refreshData": "Refresh",
     "notInAtlasResolved": "Not an Atlas user — resolved from game server",
     "unknownPlayer": "Unknown player — not found in Atlas or game server",
-    "unresolvedHint": "{{count}} member(s) not yet resolved. Click 🔄 Refresh to fetch data from game server."
+    "unresolvedHint": "{{count}} member(s) not yet resolved. Click 🔄 Refresh to fetch data from game server.",
+    "chartsTitle": "Alliance Analytics",
+    "chartsCount": "{{count}} members",
+    "chartsTcDist": "Town Center Level",
+    "chartsLangDist": "Languages Spoken",
+    "chartsInfantry": "Infantry",
+    "chartsCavalry": "Cavalry",
+    "chartsArchers": "Archers"
   },
   "eventCoordinator": {
     "pageTitle": "Alliance Event Coordinator",
@@ -3642,7 +3654,7 @@
     "gateTitle": "Alliance Event Coordinator",
     "gateDesc": "Available to Atlas Supporters, Ambassadors, Discord Server Boosters, and Admins. Coordinate the best times for your alliance events.",
     "noAlliance": "No Alliance Center Found",
-    "noAllianceDesc": "Create or join an Alliance Center first to use the Event Coordinator.",
+    "noAllianceDesc": "Create or join an Alliance Center first to use the Alliance Event Coordinator.",
     "goToAllianceCenter": "Go to Alliance Center",
     "backToAlliance": "Alliance Center",
     "myAvailTab": "📅 My Availability",
@@ -3675,6 +3687,9 @@
     "memberNameLabel": "Member Name",
     "manualSaved": "Availability saved for {{name}}",
     "memberDeleted": "{{name}} availability removed",
-    "copyFrom": "Copy from..."
+    "copyFrom": "Copy from...",
+    "topPeakSlots": "Top Peak Slots",
+    "uniqueMembers": "Members",
+    "activeSlots": "Active Slots"
   }
 }

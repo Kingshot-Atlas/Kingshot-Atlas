@@ -200,7 +200,12 @@
     "chipInToFund": "Zum Fonds beitragen",
     "fundActivity": "Fondsaktivität",
     "fundMoreTransactions": "+ {{count}} weitere Transaktionen",
-    "gracePeriodWarning": "Stufen-Schonfrist aktiv — trage bei, um die aktuelle Stufe vor dem {{date}} zu erhalten"
+    "gracePeriodWarning": "Stufen-Schonfrist aktiv — trage bei, um die aktuelle Stufe vor dem {{date}} zu erhalten",
+    "transferHistory": "Transfer-Verlauf",
+    "transferEvent": "Transfer #{{num}}",
+    "transferGroup": "Gruppe",
+    "unofficial": "Inoffiziell",
+    "current": "Aktuell"
   },
   "rankings": {
     "subtitle": "Wer dominiert? Die Daten lügen nicht.",

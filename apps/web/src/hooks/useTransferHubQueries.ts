@@ -17,7 +17,7 @@ export const transferHubKeys = {
   transferGroups: () => [...transferHubKeys.all, 'transferGroups'] as const,
 };
 
-// ─── Transfer Groups (from Supabase — single source of truth) ─
+// ─── Transfer Groups (from Supabase view — single source of truth) ─
 export interface TransferGroupRow {
   id: number;
   min_kingdom: number;
@@ -25,15 +25,15 @@ export interface TransferGroupRow {
   label: string;
   event_number: number;
   is_active: boolean;
+  is_unofficial: boolean;
   updated_at: string;
 }
 
 async function fetchTransferGroupsFromDB(): Promise<TransferGroupRow[]> {
   if (!supabase) return [];
   const { data, error } = await supabase
-    .from('transfer_groups')
-    .select('id, min_kingdom, max_kingdom, label, event_number, is_active, updated_at')
-    .eq('is_active', true)
+    .from('current_transfer_groups')
+    .select('id, min_kingdom, max_kingdom, label, event_number, is_active, is_unofficial, updated_at')
     .order('min_kingdom', { ascending: true });
   if (error) {
     logger.error('Error fetching transfer groups from DB:', error);
@@ -345,6 +345,69 @@ export function useAtlasPlayerCount() {
     queryKey: transferHubKeys.atlasPlayerCount(),
     queryFn: fetchAtlasPlayerCount,
     staleTime: 10 * 60 * 1000, // 10 minutes — doesn't change frequently
+    retry: 1,
+  });
+}
+
+// ─── Transfer Status History (per kingdom) ────────────────────
+export interface TransferStatusHistoryRow {
+  kingdom_number: number;
+  event_number: number;
+  group_number: number;
+  status: string;
+  is_unofficial: boolean;
+}
+
+async function fetchTransferStatusHistory(kingdomNumber: number): Promise<TransferStatusHistoryRow[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('transfer_status_history')
+    .select('kingdom_number, event_number, group_number, status, is_unofficial')
+    .eq('kingdom_number', kingdomNumber)
+    .order('event_number', { ascending: true });
+  if (error) {
+    logger.error('Error fetching transfer status history:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export function useTransferStatusHistory(kingdomNumber: number | undefined) {
+  return useQuery({
+    queryKey: [...transferHubKeys.all, 'statusHistory', kingdomNumber] as const,
+    queryFn: () => fetchTransferStatusHistory(kingdomNumber!),
+    enabled: !!kingdomNumber,
+    staleTime: 10 * 60 * 1000,
+    retry: 1,
+  });
+}
+
+// ─── Transfer Events metadata ─────────────────────────────────
+export interface TransferEventRow {
+  event_number: number;
+  event_date: string;
+  total_groups: number;
+  is_current: boolean;
+}
+
+async function fetchTransferEvents(): Promise<TransferEventRow[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('transfer_events')
+    .select('event_number, event_date, total_groups, is_current')
+    .order('event_number', { ascending: true });
+  if (error) {
+    logger.error('Error fetching transfer events:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export function useTransferEvents() {
+  return useQuery({
+    queryKey: [...transferHubKeys.all, 'events'] as const,
+    queryFn: fetchTransferEvents,
+    staleTime: 30 * 60 * 1000,
     retry: 1,
   });
 }

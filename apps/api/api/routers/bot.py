@@ -1465,9 +1465,9 @@ async def get_transfer_groups():
         return {"groups": [], "total": 0, "error": "Supabase not configured"}
 
     try:
-        result = sb.table("transfer_groups").select(
-            "id, min_kingdom, max_kingdom, label, event_number, is_active, updated_at"
-        ).eq("is_active", True).order("min_kingdom").execute()
+        result = sb.table("current_transfer_groups").select(
+            "id, min_kingdom, max_kingdom, label, event_number, is_active, is_unofficial, updated_at"
+        ).order("min_kingdom").execute()
 
         groups = result.data or []
         updated_at = groups[0]["updated_at"] if groups else None
@@ -1493,8 +1493,8 @@ async def get_transfer_groups_with_counts(_: bool = Depends(require_bot_admin)):
         raise HTTPException(status_code=500, detail="Supabase not configured")
 
     try:
-        # Get ALL groups (not just active) for admin view
-        result = sb.table("transfer_groups").select("*").order("min_kingdom").execute()
+        # Get current groups from view (derived from transfer_status_history)
+        result = sb.table("current_transfer_groups").select("*").order("min_kingdom").execute()
         groups = result.data or []
 
         # Count linked users per group
@@ -1626,7 +1626,7 @@ async def add_transfer_group(
     if not event_number:
         # Infer from existing active groups
         try:
-            active = sb.table("transfer_groups").select("event_number").eq("is_active", True).limit(1).execute()
+            active = sb.table("current_transfer_groups").select("event_number").limit(1).execute()
             if active.data:
                 event_number = active.data[0]["event_number"]
             else:
@@ -1709,9 +1709,9 @@ async def create_transfer_channels(_: bool = Depends(require_bot_admin)):
 
     # 1. Fetch active transfer groups
     try:
-        result = sb.table("transfer_groups").select(
+        result = sb.table("current_transfer_groups").select(
             "id, min_kingdom, max_kingdom, label, event_number"
-        ).eq("is_active", True).order("min_kingdom").execute()
+        ).order("min_kingdom").execute()
         groups = result.data or []
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch transfer groups: {e}")
@@ -2349,10 +2349,10 @@ async def backfill_transfer_group_roles(_: bool = Depends(require_bot_admin)):
         return {"success": False, "message": "Supabase not configured", "total": 0, "assigned": 0, "skipped": 0, "failed": 0}
 
     try:
-        # Get active transfer groups
-        groups_result = sb.table("transfer_groups").select(
+        # Get active transfer groups from view
+        groups_result = sb.table("current_transfer_groups").select(
             "id, min_kingdom, max_kingdom, label"
-        ).eq("is_active", True).order("min_kingdom").execute()
+        ).order("min_kingdom").execute()
         groups = groups_result.data or []
 
         if not groups:

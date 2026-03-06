@@ -215,7 +215,12 @@
     "chipInToFund": "Kontribusi ke Dana",
     "fundActivity": "Aktivitas Dana",
     "fundMoreTransactions": "+ {{count}} transaksi lagi",
-    "gracePeriodWarning": "Masa tenggang tier aktif — kontribusi untuk mempertahankan tier saat ini sebelum {{date}}"
+    "gracePeriodWarning": "Masa tenggang tier aktif — kontribusi untuk mempertahankan tier saat ini sebelum {{date}}",
+    "transferHistory": "Riwayat Transfer",
+    "transferEvent": "Transfer #{{num}}",
+    "transferGroup": "Grup",
+    "unofficial": "Tidak Resmi",
+    "current": "Saat Ini"
   },
   "rankings": {
     "subtitle": "Siapa yang mendominasi? Data tidak berbohong.",

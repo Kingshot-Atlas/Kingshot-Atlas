@@ -200,7 +200,12 @@
     "chipInToFund": "المساهمة في الصندوق",
     "fundActivity": "نشاط الصندوق",
     "fundMoreTransactions": "+ {{count}} معاملات إضافية",
-    "gracePeriodWarning": "فترة السماح للمستوى نشطة — ساهم قبل {{date}} للحفاظ على المستوى الحالي"
+    "gracePeriodWarning": "فترة السماح للمستوى نشطة — ساهم قبل {{date}} للحفاظ على المستوى الحالي",
+    "transferHistory": "سجل الانتقالات",
+    "transferEvent": "انتقال #{{num}}",
+    "transferGroup": "مجموعة",
+    "unofficial": "غير رسمي",
+    "current": "الحالي"
   },
   "rankings": {
     "subtitle": "من يتصدر؟ البيانات لا تكذب.",

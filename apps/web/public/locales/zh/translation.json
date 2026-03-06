@@ -200,7 +200,12 @@
     "chipInToFund": "为基金贡献",
     "fundActivity": "基金活动",
     "fundMoreTransactions": "+ {{count}} 笔更多交易",
-    "gracePeriodWarning": "等级宽限期生效中 — 在 {{date}} 前贡献以维持当前等级"
+    "gracePeriodWarning": "等级宽限期生效中 — 在 {{date}} 前贡献以维持当前等级",
+    "transferHistory": "迁移历史",
+    "transferEvent": "迁移 #{{num}}",
+    "transferGroup": "组",
+    "unofficial": "非官方",
+    "current": "当前"
   },
   "rankings": {
     "subtitle": "谁在称霸？数据不会说谎。",
@@ -2936,6 +2941,9 @@
     "beOnline": "在分配的时段内在线",
     "changeScreenshot": "更换截图",
     "copyFrom": "复制自",
+    "topPeakSlots": "热门高峰时段",
+    "uniqueMembers": "成员",
+    "activeSlots": "活跃时段",
     "createScheduleBtn": "创建计划",
     "day": "天",
     "deadlineHintUTC": "截止时间为UTC",
@@ -3511,7 +3519,7 @@
     "allTools": "← 所有工具"
   },
   "allianceCenter": {
-    "eventCoordinatorLink": "活动协调员",
+    "eventCoordinatorLink": "联盟活动协调员",
     "baseDesignerLink": "基地设计师",
     "availYes": "是",
     "availNo": "否",
@@ -3526,7 +3534,14 @@
     "refreshData": "刷新",
     "notInAtlasResolved": "非Atlas用户 — 已从游戏服务器解析",
     "unknownPlayer": "未知玩家 — 在Atlas和游戏服务器中均未找到",
-    "unresolvedHint": "{{count}} 名成员尚未解析。点击 🔄 刷新 从游戏服务器获取数据。"
+    "unresolvedHint": "{{count}} 名成员尚未解析。点击 🔄 刷新 从游戏服务器获取数据。",
+    "chartsTitle": "联盟分析",
+    "chartsCount": "{{count}} 名成员",
+    "chartsTcDist": "城镇中心等级",
+    "chartsLangDist": "使用语言",
+    "chartsInfantry": "步兵",
+    "chartsCavalry": "骑兵",
+    "chartsArchers": "弓箭手"
   },
   "eventCoordinator": {
     "pageTitle": "联盟活动协调员",
@@ -3534,7 +3549,7 @@
     "gateTitle": "联盟活动协调员",
     "gateDesc": "适用于Atlas支持者、大使、Discord服务器助力者和管理员。协调联盟活动的最佳时间。",
     "noAlliance": "未找到联盟中心",
-    "noAllianceDesc": "请先创建或加入联盟中心以使用活动协调员。",
+    "noAllianceDesc": "请先创建或加入联盟中心以使用联盟活动协调员。",
     "goToAllianceCenter": "前往联盟中心",
     "backToAlliance": "联盟中心",
     "myAvailTab": "📅 我的可用时间",

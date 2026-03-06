@@ -3,3 +3,4 @@ export { default as QuickStats } from './QuickStats';
 export { default as PhaseCards } from './PhaseCards';
 export { default as KvKHistoryTable } from './KvKHistoryTable';
 export { default as LoginGatedSection } from './LoginGatedSection';
+export { default as TransferStatusHistory } from './TransferStatusHistory';

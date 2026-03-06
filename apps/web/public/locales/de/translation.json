@@ -200,7 +200,12 @@
     "chipInToFund": "Zum Fonds beitragen",
     "fundActivity": "Fondsaktivität",
     "fundMoreTransactions": "+ {{count}} weitere Transaktionen",
-    "gracePeriodWarning": "Stufen-Schonfrist aktiv — trage bei, um die aktuelle Stufe vor dem {{date}} zu erhalten"
+    "gracePeriodWarning": "Stufen-Schonfrist aktiv — trage bei, um die aktuelle Stufe vor dem {{date}} zu erhalten",
+    "transferHistory": "Transfer-Verlauf",
+    "transferEvent": "Transfer #{{num}}",
+    "transferGroup": "Gruppe",
+    "unofficial": "Inoffiziell",
+    "current": "Aktuell"
   },
   "rankings": {
     "subtitle": "Wer dominiert? Die Daten lügen nicht.",
@@ -2936,6 +2941,9 @@
     "beOnline": "Während Ihres zugewiesenen Slots online sein",
     "changeScreenshot": "Screenshot ändern",
     "copyFrom": "Kopieren von",
+    "topPeakSlots": "Top-Spitzenzeiten",
+    "uniqueMembers": "Mitglieder",
+    "activeSlots": "Aktive Zeitfenster",
     "createScheduleBtn": "Zeitplan erstellen",
     "day": "Tag",
     "deadlineHintUTC": "Frist ist in UTC",
@@ -3511,7 +3519,7 @@
     "allTools": "← Alle Werkzeuge"
   },
   "allianceCenter": {
-    "eventCoordinatorLink": "Event-Koordinator",
+    "eventCoordinatorLink": "Allianz Event-Koordinator",
     "baseDesignerLink": "Basis-Designer",
     "availYes": "Ja",
     "availNo": "Nein",
@@ -3526,7 +3534,14 @@
     "refreshData": "Aktualisieren",
     "notInAtlasResolved": "Kein Atlas-Benutzer — vom Spielserver aufgelöst",
     "unknownPlayer": "Unbekannter Spieler — weder in Atlas noch auf dem Spielserver gefunden",
-    "unresolvedHint": "{{count}} Mitglied(er) noch nicht aufgelöst. Klicke auf 🔄 Aktualisieren, um Daten vom Spielserver abzurufen."
+    "unresolvedHint": "{{count}} Mitglied(er) noch nicht aufgelöst. Klicke auf 🔄 Aktualisieren, um Daten vom Spielserver abzurufen.",
+    "chartsTitle": "Allianz-Analyse",
+    "chartsCount": "{{count}} Mitglieder",
+    "chartsTcDist": "Stadtzentrum-Stufe",
+    "chartsLangDist": "Gesprochene Sprachen",
+    "chartsInfantry": "Infanterie",
+    "chartsCavalry": "Kavallerie",
+    "chartsArchers": "Bogenschützen"
   },
   "eventCoordinator": {
     "pageTitle": "Allianz Event-Koordinator",
@@ -3534,7 +3549,7 @@
     "gateTitle": "Allianz Event-Koordinator",
     "gateDesc": "Verfügbar für Atlas-Supporter, Botschafter, Discord-Server-Booster und Admins. Koordiniere die besten Zeiten für deine Allianz-Events.",
     "noAlliance": "Kein Allianzzentrum Gefunden",
-    "noAllianceDesc": "Erstelle oder tritt zuerst einem Allianzzentrum bei, um den Event-Koordinator zu nutzen.",
+    "noAllianceDesc": "Erstelle oder tritt zuerst einem Allianzzentrum bei, um den Allianz Event-Koordinator zu nutzen.",
     "goToAllianceCenter": "Zum Allianzzentrum",
     "backToAlliance": "Allianzzentrum",
     "myAvailTab": "📅 Meine Verfügbarkeit",

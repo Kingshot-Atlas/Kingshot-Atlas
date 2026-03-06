@@ -199,7 +199,12 @@
     "chipInToFund": "Contribuir al Fondo",
     "fundActivity": "Actividad del Fondo",
     "fundMoreTransactions": "+ {{count}} transacciones más",
-    "gracePeriodWarning": "Período de gracia activo — contribuye para mantener el nivel actual antes del {{date}}"
+    "gracePeriodWarning": "Período de gracia activo — contribuye para mantener el nivel actual antes del {{date}}",
+    "transferHistory": "Historial de Transferencias",
+    "transferEvent": "Transferencia #{{num}}",
+    "transferGroup": "Grupo",
+    "unofficial": "No oficial",
+    "current": "Actual"
   },
   "rankings": {
     "subtitle": "¿Quién domina? Los datos no mienten.",

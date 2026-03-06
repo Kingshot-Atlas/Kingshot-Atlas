@@ -215,7 +215,12 @@
     "chipInToFund": "Chip In to Fund",
     "fundActivity": "Fund Activity",
     "fundMoreTransactions": "+ {{count}} more transactions",
-    "gracePeriodWarning": "Tier grace period active — contribute to maintain the current tier before {{date}}"
+    "gracePeriodWarning": "Tier grace period active — contribute to maintain the current tier before {{date}}",
+    "transferHistory": "Transfer History",
+    "transferEvent": "Transfer #{{num}}",
+    "transferGroup": "Group",
+    "unofficial": "Unofficial",
+    "current": "Current"
   },
   "rankings": {
     "subtitle": "Who's dominating? The data doesn't lie.",

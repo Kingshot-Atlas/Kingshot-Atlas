@@ -200,7 +200,12 @@
     "chipInToFund": "기금에 기여",
     "fundActivity": "기금 활동",
     "fundMoreTransactions": "+ {{count}}건의 거래 더 보기",
-    "gracePeriodWarning": "등급 유예 기간 활성 — {{date}} 전에 기여하여 현재 등급을 유지하세요"
+    "gracePeriodWarning": "등급 유예 기간 활성 — {{date}} 전에 기여하여 현재 등급을 유지하세요",
+    "transferHistory": "이주 기록",
+    "transferEvent": "이주 #{{num}}",
+    "transferGroup": "그룹",
+    "unofficial": "비공식",
+    "current": "현재"
   },
   "rankings": {
     "subtitle": "누가 지배하고 있나? 데이터는 거짓말하지 않습니다.",

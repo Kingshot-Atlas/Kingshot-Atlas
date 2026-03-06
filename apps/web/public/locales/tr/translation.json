@@ -200,7 +200,12 @@
     "chipInToFund": "Fona Katkıda Bulun",
     "fundActivity": "Fon Aktivitesi",
     "fundMoreTransactions": "+ {{count}} daha fazla işlem",
-    "gracePeriodWarning": "Seviye tolerans süresi aktif — mevcut seviyeyi korumak için {{date}} tarihinden önce katkıda bulunun"
+    "gracePeriodWarning": "Seviye tolerans süresi aktif — mevcut seviyeyi korumak için {{date}} tarihinden önce katkıda bulunun",
+    "transferHistory": "Transfer Geçmişi",
+    "transferEvent": "Transfer #{{num}}",
+    "transferGroup": "Grup",
+    "unofficial": "Gayri Resmi",
+    "current": "Güncel"
   },
   "rankings": {
     "subtitle": "Kim hükmünü sürüyor? Veriler yalan söylemez.",
@@ -2936,6 +2941,9 @@
     "beOnline": "Atanan slotunuzda çevrimiçi olun",
     "changeScreenshot": "Ekran Görüntüsünü Değiştir",
     "copyFrom": "Şuradan Kopyala",
+    "topPeakSlots": "En Yoğun Zaman Dilimleri",
+    "uniqueMembers": "Üyeler",
+    "activeSlots": "Aktif Dilimler",
     "createScheduleBtn": "Program Oluştur",
     "day": "Gün",
     "deadlineHintUTC": "Son tarih UTC'dedir",
@@ -3511,7 +3519,7 @@
     "allTools": "← Tüm Araçlar"
   },
   "allianceCenter": {
-    "eventCoordinatorLink": "Etkinlik Koordinatörü",
+    "eventCoordinatorLink": "İttifak Etkinlik Koordinatörü",
     "baseDesignerLink": "Üs Tasarımcısı",
     "availYes": "Evet",
     "availNo": "Hayır",
@@ -3526,7 +3534,14 @@
     "refreshData": "Yenile",
     "notInAtlasResolved": "Atlas kullanıcısı değil — oyun sunucusundan çözümlendi",
     "unknownPlayer": "Bilinmeyen oyuncu — Atlas veya oyun sunucusunda bulunamadı",
-    "unresolvedHint": "{{count}} üye henüz çözülmedi. Oyun sunucusundan veri almak için 🔄 Yenile'ye tıklayın."
+    "unresolvedHint": "{{count}} üye henüz çözülmedi. Oyun sunucusundan veri almak için 🔄 Yenile'ye tıklayın.",
+    "chartsTitle": "İttifak Analizi",
+    "chartsCount": "{{count}} üye",
+    "chartsTcDist": "Şehir Merkezi Seviyesi",
+    "chartsLangDist": "Konuşulan Diller",
+    "chartsInfantry": "Piyade",
+    "chartsCavalry": "Süvari",
+    "chartsArchers": "Okçular"
   },
   "eventCoordinator": {
     "pageTitle": "İttifak Etkinlik Koordinatörü",
@@ -3534,7 +3549,7 @@
     "gateTitle": "İttifak Etkinlik Koordinatörü",
     "gateDesc": "Atlas Destekçileri, Elçiler, Discord Sunucu Destekçileri ve Yöneticiler için kullanılabilir. İttifak etkinlikleriniz için en iyi zamanları koordine edin.",
     "noAlliance": "İttifak Merkezi Bulunamadı",
-    "noAllianceDesc": "Etkinlik Koordinatörünü kullanmak için önce bir İttifak Merkezi oluşturun veya katılın.",
+    "noAllianceDesc": "İttifak Etkinlik Koordinatörünü kullanmak için önce bir İttifak Merkezi oluşturun veya katılın.",
     "goToAllianceCenter": "İttifak Merkezine Git",
     "backToAlliance": "İttifak Merkezi",
     "myAvailTab": "📅 Müsaitliğim",

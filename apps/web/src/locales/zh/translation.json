@@ -200,7 +200,12 @@
     "chipInToFund": "为基金贡献",
     "fundActivity": "基金活动",
     "fundMoreTransactions": "+ {{count}} 笔更多交易",
-    "gracePeriodWarning": "等级宽限期生效中 — 在 {{date}} 前贡献以维持当前等级"
+    "gracePeriodWarning": "等级宽限期生效中 — 在 {{date}} 前贡献以维持当前等级",
+    "transferHistory": "迁移历史",
+    "transferEvent": "迁移 #{{num}}",
+    "transferGroup": "组",
+    "unofficial": "非官方",
+    "current": "当前"
   },
   "rankings": {
     "subtitle": "谁在称霸？数据不会说谎。",

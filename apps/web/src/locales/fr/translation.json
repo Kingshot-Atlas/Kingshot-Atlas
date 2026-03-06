@@ -200,7 +200,12 @@
     "chipInToFund": "Contribuer au Fonds",
     "fundActivity": "Activité du Fonds",
     "fundMoreTransactions": "+ {{count}} transactions supplémentaires",
-    "gracePeriodWarning": "Période de grâce active — contribuez pour maintenir le niveau actuel avant le {{date}}"
+    "gracePeriodWarning": "Période de grâce active — contribuez pour maintenir le niveau actuel avant le {{date}}",
+    "transferHistory": "Historique des Transferts",
+    "transferEvent": "Transfert #{{num}}",
+    "transferGroup": "Groupe",
+    "unofficial": "Non officiel",
+    "current": "Actuel"
   },
   "rankings": {
     "subtitle": "Qui domine ? Les données ne mentent pas.",

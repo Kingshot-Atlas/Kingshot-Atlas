@@ -25,7 +25,7 @@ const KingdomPlayers = lazy(() => import('../components/KingdomPlayers'));
 const AtlasScoreBreakdown = lazy(() => import('../components/AtlasScoreBreakdown'));
 const PathToNextTier = lazy(() => import('../components/PathToNextTier'));
 const ScoreSimulator = lazy(() => import('../components/ScoreSimulator').then(m => ({ default: m.ScoreSimulator })));
-import { KingdomHeader, QuickStats, PhaseCards, KvKHistoryTable, LoginGatedSection } from '../components/kingdom-profile';
+import { KingdomHeader, QuickStats, PhaseCards, KvKHistoryTable, LoginGatedSection, TransferStatusHistory } from '../components/kingdom-profile';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useAuth } from '../contexts/AuthContext';
 // FavoritesContext is used by child components directly
@@ -400,6 +400,12 @@ const KingdomProfile: React.FC = () => {
             setShowMatchupModal(true);
           }}
           onLockedClick={(message) => showToast(message, 'info')}
+        />
+
+        {/* Transfer Status History */}
+        <TransferStatusHistory
+          kingdomNumber={kingdom.kingdom_number}
+          isMobile={isMobile}
         />
 
         {/* Expand/Collapse All Button */}
