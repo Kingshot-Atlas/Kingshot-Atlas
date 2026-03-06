@@ -199,6 +199,13 @@ const AllianceBaseDesigner: React.FC = () => {
     fontWeight: '500', display: 'flex', alignItems: 'center', gap: '0.2rem', whiteSpace: 'nowrap',
   };
 
+  const mobileBtnStyle: React.CSSProperties = {
+    padding: '0.35rem 0.45rem', backgroundColor: '#0d1117', border: '1px solid #1e2a35',
+    borderRadius: '6px', color: '#9ca3af', cursor: 'pointer', fontSize: '0.85rem',
+    fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    minWidth: '36px', minHeight: '36px',
+  };
+
   // ─── Desktop Layout ───
   if (!isMobile) {
     return (
@@ -667,24 +674,24 @@ const AllianceBaseDesigner: React.FC = () => {
           </div>);
         })()}
 
-        {/* Mobile floating toolbar */}
+        {/* Mobile floating toolbar — icon-only compact buttons */}
         <div style={{
           position: 'absolute', top: 8, left: 8, right: 8, zIndex: 10,
-          display: 'flex', gap: '0.25rem', alignItems: 'center',
-          backgroundColor: '#0d1117dd', padding: '0.3rem 0.5rem', borderRadius: '8px',
+          display: 'flex', gap: '0.3rem', alignItems: 'center',
+          backgroundColor: '#0d1117dd', padding: '0.3rem 0.4rem', borderRadius: '10px',
           backdropFilter: 'blur(10px)', border: '1px solid #1e2a35',
         }}>
           {canEdit && <>
-            <button style={sidebarBtnStyle} onClick={designer.undo} disabled={!designer.canUndo}>↩ {t('baseDesigner.btnUndo', 'Undo')}</button>
-            <button style={sidebarBtnStyle} onClick={designer.redo} disabled={!designer.canRedo}>↪ {t('baseDesigner.btnRedo', 'Redo')}</button>
-            <button style={sidebarBtnStyle} onClick={() => setModalMode('save')}>💾 {t('baseDesigner.btnSave', 'Save')}</button>
+            <button style={mobileBtnStyle} onClick={designer.undo} disabled={!designer.canUndo} title={t('baseDesigner.btnUndo', 'Undo')}>↩</button>
+            <button style={mobileBtnStyle} onClick={designer.redo} disabled={!designer.canRedo} title={t('baseDesigner.btnRedo', 'Redo')}>↪</button>
+            <button style={mobileBtnStyle} onClick={() => setModalMode('save')} title={t('baseDesigner.btnSave', 'Save')}>💾</button>
           </>}
-          <button style={sidebarBtnStyle} onClick={() => setModalMode('load')}>📂 {t('baseDesigner.btnLoad', 'Load')}</button>
+          <button style={mobileBtnStyle} onClick={() => setModalMode('load')} title={t('baseDesigner.btnLoad', 'Load')}>📂</button>
           <button
-            style={{ ...sidebarBtnStyle, ...(designer.showLabels ? { backgroundColor: '#3b82f615', borderColor: '#3b82f640', color: '#3b82f6' } : {}) }}
-            onClick={() => designer.setShowLabels(!designer.showLabels)}
-          >🏷️ {t('baseDesigner.btnLabel', 'Label')}</button>
-          {canEdit && <button style={sidebarBtnStyle} onClick={() => setShareMenu(!shareMenu)}>📤 {t('baseDesigner.btnShare', 'Share')}</button>}
+            style={{ ...mobileBtnStyle, ...(designer.showLabels ? { backgroundColor: '#3b82f615', borderColor: '#3b82f640', color: '#3b82f6' } : {}) }}
+            onClick={() => designer.setShowLabels(!designer.showLabels)} title={t('baseDesigner.btnLabel', 'Label')}
+          >🏷️</button>
+          {canEdit && <button style={mobileBtnStyle} onClick={() => setShareMenu(!shareMenu)} title={t('baseDesigner.btnShare', 'Share')}>📤</button>}
           <div style={{ flex: 1 }} />
           {!canEdit && <span style={{ fontSize: '0.55rem', color: '#f59e0b', fontWeight: '600' }}>👁️ {t('baseDesigner.readOnly', 'View Only')}</span>}
           <span style={{ fontSize: '0.55rem', color: '#4b5563' }}>{designer.buildings.length} bldgs</span>
