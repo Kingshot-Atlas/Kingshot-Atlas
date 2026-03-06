@@ -409,11 +409,31 @@ const MyAvailabilityForm: React.FC<{
                       <span style={{ color: '#6b7280', fontSize: '0.6rem' }}>
                         {t('eventCoordinator.selectTimeRange', 'Select time ranges for {{day}}', { day: day.label })}
                       </span>
-                      {slotCount > 0 && (
-                        <button onClick={() => clearDay(day.value)} style={{ padding: '0.15rem 0.3rem', border: 'none', backgroundColor: 'transparent', color: '#ef4444', fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer' }}>
-                          Clear
-                        </button>
-                      )}
+                      <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+                        {/* Copy from another day */}
+                        {DAYS_OF_WEEK.some(d => d.value !== day.value && (dayRanges[d.value] || []).length > 0) && (
+                          <select
+                            value=""
+                            onChange={e => {
+                              const srcDay = Number(e.target.value);
+                              if (srcDay && dayRanges[srcDay]) {
+                                setDayRanges(prev => ({ ...prev, [day.value]: [...(prev[srcDay] || []).map(r => ({ ...r }))] }));
+                              }
+                            }}
+                            style={{ padding: '0.1rem 0.2rem', border: '1px solid #2a2a2a', backgroundColor: '#1a1a20', color: '#6b7280', fontSize: '0.6rem', fontWeight: 600, borderRadius: '4px', cursor: 'pointer' }}
+                          >
+                            <option value="">{t('eventCoordinator.copyFrom', 'Copy from...')}</option>
+                            {DAYS_OF_WEEK.filter(d => d.value !== day.value && (dayRanges[d.value] || []).length > 0).map(d => (
+                              <option key={d.value} value={d.value}>{d.short}</option>
+                            ))}
+                          </select>
+                        )}
+                        {slotCount > 0 && (
+                          <button onClick={() => clearDay(day.value)} style={{ padding: '0.15rem 0.3rem', border: 'none', backgroundColor: 'transparent', color: '#ef4444', fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer' }}>
+                            Clear
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                       {ranges.map((range, idx) => (
@@ -512,24 +532,41 @@ const HeatmapBar: React.FC<{
               {t('eventCoordinator.noActivity', 'No availability submitted for this day.')}
             </p>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
-              {activeSlots.map(slot => {
-                const pct = maxGlobal > 0 ? (slot.count / maxGlobal) * 100 : 0;
-                return (
-                  <div key={slot.slot} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.2rem 0' }}>
-                    <span style={{ color: '#9ca3af', fontSize: '0.7rem', fontWeight: 600, width: '40px', textAlign: 'right', flexShrink: 0 }}>{slot.slot}</span>
-                    <div style={{ flex: 1, height: '16px', backgroundColor: '#1a1a20', borderRadius: '3px', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${pct}%`, backgroundColor: ACCENT, borderRadius: '3px', opacity: 0.8, minWidth: slot.count > 0 ? '2px' : '0', transition: 'width 0.3s' }} />
+            <>
+              {/* Daily summary stats */}
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.6rem', color: '#6b7280', padding: '0.15rem 0.4rem', backgroundColor: '#1a1a20', borderRadius: '4px' }}>
+                  {t('eventCoordinator.uniqueMembers', 'Members')}: <strong style={{ color: ACCENT }}>{[...new Set(activeSlots.flatMap(s => s.members))].length}</strong>
+                </span>
+                <span style={{ fontSize: '0.6rem', color: '#6b7280', padding: '0.15rem 0.4rem', backgroundColor: '#1a1a20', borderRadius: '4px' }}>
+                  {t('eventCoordinator.activeSlots', 'Active Slots')}: <strong style={{ color: '#e5e7eb' }}>{activeSlots.length}</strong>/48
+                </span>
+                {dayTally.peakSlot && (
+                  <span style={{ fontSize: '0.6rem', color: '#fbbf24', padding: '0.15rem 0.4rem', backgroundColor: '#fbbf240c', borderRadius: '4px', border: '1px solid #fbbf2420' }}>
+                    🔥 {dayTally.peakSlot} ({dayTally.peakCount})
+                  </span>
+                )}
+              </div>
+              {/* Slot histogram */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                {activeSlots.map(slot => {
+                  const pct = maxGlobal > 0 ? (slot.count / maxGlobal) * 100 : 0;
+                  return (
+                    <div key={slot.slot} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.2rem 0' }}>
+                      <span style={{ color: '#9ca3af', fontSize: '0.7rem', fontWeight: 600, width: '40px', textAlign: 'right', flexShrink: 0 }}>{slot.slot}</span>
+                      <div style={{ flex: 1, height: '16px', backgroundColor: '#1a1a20', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${pct}%`, backgroundColor: ACCENT, borderRadius: '3px', opacity: 0.8, minWidth: slot.count > 0 ? '2px' : '0', transition: 'width 0.3s' }} />
+                      </div>
+                      <span style={{ color: ACCENT, fontSize: '0.7rem', fontWeight: 600, width: '20px', textAlign: 'right', flexShrink: 0 }}>{slot.count}</span>
+                      <span style={{ color: '#4b5563', fontSize: '0.55rem', width: isMobile ? '60px' : '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 0 }}
+                        title={slot.members.join(', ')}>
+                        {slot.members.join(', ')}
+                      </span>
                     </div>
-                    <span style={{ color: ACCENT, fontSize: '0.7rem', fontWeight: 600, width: '20px', textAlign: 'right', flexShrink: 0 }}>{slot.count}</span>
-                    <span style={{ color: '#4b5563', fontSize: '0.55rem', width: isMobile ? '60px' : '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 0 }}
-                      title={slot.members.join(', ')}>
-                      {slot.members.join(', ')}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
       )}
@@ -646,12 +683,31 @@ const ManualInputModal: React.FC<{
             <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>
               {t('eventCoordinator.selectTimeRange', 'Select time ranges for {{day}}', { day: DAYS_OF_WEEK[activeDayTab]?.label || '' })}
             </span>
-            {(dayRanges[activeDayTab] || []).length > 0 && (
-              <button onClick={() => setDayRanges(prev => ({ ...prev, [activeDayTab]: [] }))}
-                style={{ padding: '0.15rem 0.3rem', border: 'none', backgroundColor: 'transparent', color: '#ef4444', fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer' }}>
-                Clear
-              </button>
-            )}
+            <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+              {DAYS_OF_WEEK.some(d => d.value !== activeDayTab && (dayRanges[d.value] || []).length > 0) && (
+                <select
+                  value=""
+                  onChange={e => {
+                    const srcDay = Number(e.target.value);
+                    if (srcDay && dayRanges[srcDay]) {
+                      setDayRanges(prev => ({ ...prev, [activeDayTab]: [...(prev[srcDay] || []).map(r => ({ ...r }))] }));
+                    }
+                  }}
+                  style={{ padding: '0.1rem 0.2rem', border: '1px solid #2a2a2a', backgroundColor: '#1a1a20', color: '#6b7280', fontSize: '0.6rem', fontWeight: 600, borderRadius: '4px', cursor: 'pointer' }}
+                >
+                  <option value="">{t('eventCoordinator.copyFrom', 'Copy from...')}</option>
+                  {DAYS_OF_WEEK.filter(d => d.value !== activeDayTab && (dayRanges[d.value] || []).length > 0).map(d => (
+                    <option key={d.value} value={d.value}>{d.short}</option>
+                  ))}
+                </select>
+              )}
+              {(dayRanges[activeDayTab] || []).length > 0 && (
+                <button onClick={() => setDayRanges(prev => ({ ...prev, [activeDayTab]: [] }))}
+                  style={{ padding: '0.15rem 0.3rem', border: 'none', backgroundColor: 'transparent', color: '#ef4444', fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer' }}>
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {(dayRanges[activeDayTab] || []).map((range, idx) => (
@@ -730,21 +786,42 @@ const ManagerDashboard: React.FC<{
           <div style={{ color: '#6b7280', fontSize: '0.65rem', fontWeight: 600 }}>{t('eventCoordinator.members', 'Members')}</div>
           <div style={{ color: ACCENT, fontSize: '1.1rem', fontWeight: 700 }}>{ec.submittedMembers.length}</div>
         </div>
-        <div style={{ padding: '0.6rem 0.9rem', backgroundColor: '#111111', borderRadius: '10px', border: '1px solid #1e1e24', flex: 1, minWidth: '120px' }}>
-          <div style={{ color: '#6b7280', fontSize: '0.65rem', fontWeight: 600 }}>{t('eventCoordinator.totalEntries', 'Total Entries')}</div>
-          <div style={{ color: '#e5e7eb', fontSize: '1.1rem', fontWeight: 700 }}>{ec.allAvailability.length}</div>
-        </div>
-        <div style={{ padding: '0.6rem 0.9rem', backgroundColor: '#111111', borderRadius: '10px', border: '1px solid #1e1e24', flex: 1, minWidth: '120px' }}>
-          <div style={{ color: '#6b7280', fontSize: '0.65rem', fontWeight: 600 }}>{t('eventCoordinator.peakSlot', 'Peak Slot')}</div>
-          <div style={{ color: '#fbbf24', fontSize: '0.85rem', fontWeight: 700 }}>
+        <div style={{ padding: '0.6rem 0.9rem', backgroundColor: '#111111', borderRadius: '10px', border: '1px solid #1e1e24', flex: 'none', minWidth: isMobile ? '100%' : '320px' }}>
+          <div style={{ color: '#6b7280', fontSize: '0.65rem', fontWeight: 600, marginBottom: '0.3rem' }}>
+            {t('eventCoordinator.topPeakSlots', 'Top Peak Slots')}
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
             {(() => {
-              let peak = { day: '', slot: '', count: 0 };
+              // Collect all (day, slot, count) tuples, sort by count desc
+              const all: { day: string; slot: string; count: number; slotIdx: number; dayIdx: number }[] = [];
               ec.tallyByDay.forEach(d => {
-                if (d.peakCount > peak.count) {
-                  peak = { day: d.dayLabel, slot: d.peakSlot || '', count: d.peakCount };
-                }
+                d.slots.forEach((s, si) => {
+                  if (s.count > 0) all.push({ day: d.dayLabel, slot: s.slot, count: s.count, slotIdx: si, dayIdx: d.day });
+                });
               });
-              return peak.count > 0 ? `${peak.day.slice(0, 3)} ${peak.slot} (${peak.count})` : '—';
+              all.sort((a, b) => b.count - a.count);
+              // Pick top 4 that are well-separated (>= 4 slots = 2 hours apart, or different day)
+              const picked: typeof all = [];
+              for (const candidate of all) {
+                if (picked.length >= 4) break;
+                const tooClose = picked.some(p =>
+                  p.dayIdx === candidate.dayIdx && Math.abs(p.slotIdx - candidate.slotIdx) < 4
+                );
+                if (!tooClose) picked.push(candidate);
+              }
+              if (picked.length === 0) return <span style={{ color: '#4b5563', fontSize: '0.8rem' }}>—</span>;
+              return picked.map((p, i) => (
+                <span key={i} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.2rem',
+                  padding: '0.15rem 0.45rem', borderRadius: '5px', fontSize: '0.7rem', fontWeight: 700,
+                  backgroundColor: i === 0 ? '#fbbf2418' : '#fbbf240c',
+                  border: `1px solid ${i === 0 ? '#fbbf2440' : '#fbbf2420'}`,
+                  color: i === 0 ? '#fbbf24' : '#d4a520',
+                }}>
+                  {i === 0 && <span style={{ fontSize: '0.65rem' }}>🔥</span>}
+                  {p.day.slice(0, 3)} {p.slot} ({p.count})
+                </span>
+              ));
             })()}
           </div>
         </div>

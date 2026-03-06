@@ -3,37 +3,44 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useBaseDesigner } from '../../hooks/useBaseDesigner';
 import { useToolAccess } from '../../hooks/useToolAccess';
+import { useAllianceCenter } from '../../hooks/useAllianceCenter';
 import { FONT_DISPLAY } from '../../utils/styles';
 import { Button } from '../shared';
 
 // ─── Access Gate ───
+// Allows through: tool-access users (full edit) AND alliance members (read-only).
+// Blocks: users with no tool access AND no alliance membership.
 export const AccessGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { hasAccess } = useToolAccess();
+  const { accessRole } = useAllianceCenter();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  if (!hasAccess) {
-    return (
-      <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', textAlign: 'center' }}>
-        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔒</div>
-        <h2 style={{ color: '#fff', fontFamily: FONT_DISPLAY, fontSize: '1.5rem', marginBottom: '0.75rem' }}>{t('baseDesigner.pageTitle', 'Alliance Base Designer')}</h2>
-        <p style={{ color: '#9ca3af', maxWidth: '400px', marginBottom: '1.5rem', lineHeight: 1.6 }}>
-          {t('baseDesigner.gateDesc', 'This tool is available to Atlas Supporters, Ambassadors, Discord Server Boosters, and Admins. Support Atlas to unlock powerful alliance management tools.')}
-        </p>
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <Button variant="primary" onClick={() => navigate('/support')}>
-            {t('baseDesigner.becomeSupporter', 'Become a Supporter')}
-          </Button>
-          <Link to="/tools" style={{ textDecoration: 'none' }}>
-            <Button variant="ghost">
-              {t('baseDesigner.backToTools', 'Back to Tools')}
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
+  // Allow through if user has tool access OR is an alliance member
+  const isAllianceMember = accessRole === 'member' || accessRole === 'owner' || accessRole === 'manager' || accessRole === 'delegate';
+  if (hasAccess || isAllianceMember) {
+    return <>{children}</>;
   }
-  return <>{children}</>;
+
+  return (
+    <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', textAlign: 'center' }}>
+      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔒</div>
+      <h2 style={{ color: '#fff', fontFamily: FONT_DISPLAY, fontSize: '1.5rem', marginBottom: '0.75rem' }}>{t('baseDesigner.pageTitle', 'Alliance Base Designer')}</h2>
+      <p style={{ color: '#9ca3af', maxWidth: '400px', marginBottom: '1.5rem', lineHeight: 1.6 }}>
+        {t('baseDesigner.gateDesc', 'This tool is available to Atlas Supporters, Ambassadors, Discord Server Boosters, and Admins. Support Atlas to unlock powerful alliance management tools.')}
+      </p>
+      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <Button variant="primary" onClick={() => navigate('/support')}>
+          {t('baseDesigner.becomeSupporter', 'Become a Supporter')}
+        </Button>
+        <Link to="/tools" style={{ textDecoration: 'none' }}>
+          <Button variant="ghost">
+            {t('baseDesigner.backToTools', 'Back to Tools')}
+          </Button>
+        </Link>
+      </div>
+    </div>
+  );
 };
 
 // ─── Floating Map Controls (D-pad + Zoom) ───

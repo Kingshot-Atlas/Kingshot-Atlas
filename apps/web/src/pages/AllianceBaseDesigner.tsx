@@ -1,9 +1,11 @@
-import React, { useRef, useCallback, useEffect, useState } from 'react';
+import React, { useRef, useCallback, useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useBaseDesigner } from '../hooks/useBaseDesigner';
+import { useAllianceCenter } from '../hooks/useAllianceCenter';
+import { useToolAccess } from '../hooks/useToolAccess';
 import { getBuildingType } from '../config/allianceBuildings';
 import { useAuth } from '../contexts/AuthContext';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
@@ -41,6 +43,19 @@ const AllianceBaseDesigner: React.FC = () => {
   const [shareMenu, setShareMenu] = useState(false);
   const [shareToast, setShareToast] = useState<string | null>(null);
   const { user } = useAuth();
+
+  // Alliance roster names for city label autocomplete
+  const ac = useAllianceCenter();
+  const { hasAccess } = useToolAccess();
+
+  // Determine edit permission: owner/manager/delegate with tool access can edit; members get read-only
+  const canEdit = hasAccess && (ac.accessRole === 'owner' || ac.accessRole === 'manager' || ac.accessRole === 'delegate');
+  const rosterNames = useMemo(() => {
+    if (!ac.members || ac.members.length === 0) return [];
+    return ac.sortedMembers.map(m => m.player_name);
+  }, [ac.members, ac.sortedMembers]);
+  const [labelSuggestions, setLabelSuggestions] = useState<string[]>([]);
+  const [selectedSuggestionIdx, setSelectedSuggestionIdx] = useState(-1);
 
   // Swipe-to-dismiss refs for floating action chip
   const fabSwipeStart = useRef<number | null>(null);
@@ -92,6 +107,7 @@ const AllianceBaseDesigner: React.FC = () => {
     const handler = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       if (e.key !== 'Enter') return;
+      if (!canEdit) return; // Read-only mode
       if (editingLabel) return; // Already editing
       const sel = designer.selectedBuildingId
         ? designer.buildings.find(b => b.id === designer.selectedBuildingId)
@@ -215,38 +231,48 @@ const AllianceBaseDesigner: React.FC = () => {
             }}>
               {/* Action bar */}
               <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid #1e2a35', display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
-                <button style={sidebarBtnStyle} onClick={designer.undo} disabled={!designer.canUndo} title="Undo (Ctrl+Z)">↩</button>
+                {canEdit && <><button style={sidebarBtnStyle} onClick={designer.undo} disabled={!designer.canUndo} title="Undo (Ctrl+Z)">↩</button>
                 <button style={sidebarBtnStyle} onClick={designer.redo} disabled={!designer.canRedo} title="Redo (Ctrl+Y)">↪</button>
                 <div style={{ width: '1px', height: '20px', backgroundColor: '#1e2a35' }} />
-                <button style={sidebarBtnStyle} onClick={() => setModalMode('save')} title="Save">💾</button>
+                <button style={sidebarBtnStyle} onClick={() => setModalMode('save')} title="Save">💾</button></>}
                 <button style={sidebarBtnStyle} onClick={() => setModalMode('load')} title="Load">📂</button>
                 <div style={{ width: '1px', height: '20px', backgroundColor: '#1e2a35' }} />
                 <button
                   style={{ ...sidebarBtnStyle, ...(designer.showLabels ? { backgroundColor: '#22d3ee15', borderColor: '#22d3ee40', color: '#22d3ee' } : {}) }}
                   onClick={() => designer.setShowLabels(!designer.showLabels)} title="Toggle Labels"
                 >🏷️</button>
-                <button
+                {canEdit && <><button
                   style={{ ...sidebarBtnStyle, position: 'relative' }}
                   onClick={() => setShareMenu(!shareMenu)} title="Share"
                 >📤</button>
                 <button
                   style={{ ...sidebarBtnStyle, borderColor: '#ef444440', color: '#ef4444' }}
                   onClick={() => setShowClearConfirm(true)} title="Clear All"
-                >🗑️</button>
+                >🗑️</button></>}
               </div>
+
+              {/* Read-only banner */}
+              {!canEdit && (
+                <div style={{ padding: '0.4rem 0.75rem', backgroundColor: '#f59e0b12', borderBottom: '1px solid #f59e0b30', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <span style={{ fontSize: '0.7rem' }}>👁️</span>
+                  <span style={{ color: '#f59e0b', fontSize: '0.6rem', fontWeight: '600' }}>{t('baseDesigner.readOnly', 'View Only')}</span>
+                </div>
+              )}
 
               {/* Design name */}
               <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid #1e2a35' }}>
                 <div style={{ color: '#6b7280', fontSize: '0.6rem', marginBottom: '3px' }}>Design Name</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <input
-                    type="text" value={designer.designName} onChange={(e) => designer.setDesignName(e.target.value)}
+                    type="text" value={designer.designName} onChange={(e) => canEdit && designer.setDesignName(e.target.value)}
+                    readOnly={!canEdit}
                     placeholder="Untitled..." style={{
                       flex: 1, padding: '0.25rem 0.4rem', backgroundColor: '#0a0a0a', border: '1px solid #1e2a35',
                       borderRadius: '4px', color: '#e5e7eb', fontSize: '0.7rem', outline: 'none', boxSizing: 'border-box',
+                      ...(canEdit ? {} : { opacity: 0.6, cursor: 'default' }),
                     }}
                   />
-                  {designer.isDirty && <span style={{ fontSize: '0.55rem', color: '#f59e0b' }}>●</span>}
+                  {canEdit && designer.isDirty && <span style={{ fontSize: '0.55rem', color: '#f59e0b' }}>●</span>}
                 </div>
               </div>
 
@@ -256,17 +282,19 @@ const AllianceBaseDesigner: React.FC = () => {
               </SidebarSection>
 
               {/* Buildings */}
-              <SidebarSection title="Buildings" defaultOpen={true}>
-                <BuildingPalette
-                  selectedToolType={designer.selectedToolType}
-                  buildingCounts={designer.buildingCounts}
-                  onSelectTool={designer.setSelectedToolType}
-                  hasTerritory={hasTerritory}
-                />
-              </SidebarSection>
+              {canEdit && (
+                <SidebarSection title="Buildings" defaultOpen={true}>
+                  <BuildingPalette
+                    selectedToolType={designer.selectedToolType}
+                    buildingCounts={designer.buildingCounts}
+                    onSelectTool={designer.setSelectedToolType}
+                    hasTerritory={hasTerritory}
+                  />
+                </SidebarSection>
+              )}
 
               {/* Properties */}
-              {selectedBuilding && selectedBuildingType && (
+              {canEdit && selectedBuilding && selectedBuildingType && (
                 <SidebarSection title="Properties" defaultOpen={true}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
                     <span style={{ fontSize: '1rem' }}>{selectedBuildingType.icon}</span>
@@ -276,19 +304,70 @@ const AllianceBaseDesigner: React.FC = () => {
                     </div>
                   </div>
                   {selectedBuildingType.labelField && (
-                    <div style={{ marginBottom: '0.5rem' }}>
+                    <div style={{ marginBottom: '0.5rem', position: 'relative' }}>
                       <div style={{ color: '#6b7280', fontSize: '0.6rem', marginBottom: '2px' }}>
                         {selectedBuildingType.labelField === 'playerName' ? 'Player Name' : 'Time Slot (UTC)'}
                       </div>
                       <input type="text" value={selectedBuilding.label || ''}
-                        onChange={(e) => designer.updateBuildingLabel(selectedBuilding.id, e.target.value)}
-                        placeholder={selectedBuildingType.labelField === 'playerName' ? 'e.g. PlayerOne' : 'e.g. 14:00'}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          designer.updateBuildingLabel(selectedBuilding.id, val);
+                          if (selectedBuildingType.labelField === 'playerName' && rosterNames.length > 0 && val.trim()) {
+                            const filtered = rosterNames.filter(n => n.toLowerCase().includes(val.toLowerCase()) && n.toLowerCase() !== val.toLowerCase());
+                            setLabelSuggestions(filtered.slice(0, 6));
+                            setSelectedSuggestionIdx(-1);
+                          } else {
+                            setLabelSuggestions([]);
+                          }
+                        }}
+                        onFocus={() => {
+                          const val = selectedBuilding.label || '';
+                          if (selectedBuildingType.labelField === 'playerName' && rosterNames.length > 0 && val.trim()) {
+                            const filtered = rosterNames.filter(n => n.toLowerCase().includes(val.toLowerCase()) && n.toLowerCase() !== val.toLowerCase());
+                            setLabelSuggestions(filtered.slice(0, 6));
+                          }
+                        }}
+                        onBlur={() => setTimeout(() => setLabelSuggestions([]), 150)}
+                        onKeyDown={(e) => {
+                          if (labelSuggestions.length > 0) {
+                            if (e.key === 'ArrowDown') { e.preventDefault(); setSelectedSuggestionIdx(i => Math.min(i + 1, labelSuggestions.length - 1)); }
+                            else if (e.key === 'ArrowUp') { e.preventDefault(); setSelectedSuggestionIdx(i => Math.max(i - 1, -1)); }
+                            else if (e.key === 'Enter' && selectedSuggestionIdx >= 0) {
+                              e.preventDefault();
+                              const name = labelSuggestions[selectedSuggestionIdx];
+                              if (name) { designer.updateBuildingLabel(selectedBuilding.id, name); setLabelSuggestions([]); }
+                            }
+                          }
+                        }}
+                        placeholder={selectedBuildingType.labelField === 'playerName' ? (rosterNames.length > 0 ? 'Type or pick from roster...' : 'e.g. PlayerOne') : 'e.g. 14:00'}
                         style={{
                           width: '100%', padding: '0.25rem 0.4rem', backgroundColor: '#0a0a0a',
                           border: '1px solid #1e2a35', borderRadius: '4px', color: '#e5e7eb',
                           fontSize: '0.7rem', outline: 'none', boxSizing: 'border-box',
                         }}
                       />
+                      {labelSuggestions.length > 0 && (
+                        <div style={{
+                          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30,
+                          backgroundColor: '#111827', border: '1px solid #22d3ee40', borderRadius: '4px',
+                          boxShadow: '0 4px 16px rgba(0,0,0,0.5)', maxHeight: '140px', overflowY: 'auto',
+                        }}>
+                          {labelSuggestions.map((name, i) => (
+                            <button key={name}
+                              onMouseDown={(e) => { e.preventDefault(); designer.updateBuildingLabel(selectedBuilding.id, name); setLabelSuggestions([]); }}
+                              style={{
+                                width: '100%', padding: '0.3rem 0.5rem', border: 'none', textAlign: 'left',
+                                backgroundColor: i === selectedSuggestionIdx ? '#22d3ee20' : 'transparent',
+                                color: '#e5e7eb', fontSize: '0.7rem', cursor: 'pointer', display: 'block',
+                              }}
+                              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#22d3ee15'; }}
+                              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = i === selectedSuggestionIdx ? '#22d3ee20' : 'transparent'; }}
+                            >
+                              {name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                   <button onClick={() => designer.removeBuilding(selectedBuilding.id)} style={{
@@ -301,17 +380,22 @@ const AllianceBaseDesigner: React.FC = () => {
               )}
 
               {/* Delegates */}
-              <SidebarSection title={t('baseDesigner.delegates', 'Delegates')} defaultOpen={false}>
-                <ToolDelegates />
-              </SidebarSection>
+              {canEdit && (
+                <SidebarSection title={t('baseDesigner.delegates', 'Delegates')} defaultOpen={false}>
+                  <ToolDelegates />
+                </SidebarSection>
+              )}
 
               {/* Tips */}
               <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.55rem', color: '#4b5563', lineHeight: 1.6 }}>
-                <strong style={{ color: '#6b7280' }}>Shortcuts:</strong> Click to place · Drag to move · Delete to remove · Enter to edit name · Ctrl+Z undo · Ctrl+C/V copy/paste · Double-click to edit name · Scroll to pan · Pinch to zoom
+                {canEdit
+                  ? <><strong style={{ color: '#6b7280' }}>Shortcuts:</strong> Click to place · Drag to move · Delete to remove · Enter to edit name · Ctrl+Z undo · Ctrl+C/V copy/paste · Double-click to edit name · Scroll to pan · Pinch to zoom</>
+                  : <><strong style={{ color: '#6b7280' }}>Navigation:</strong> Scroll to pan · Pinch to zoom · Arrow keys to move</>
+                }
               </div>
 
               {/* Reset to Default */}
-              <div style={{ padding: '0.5rem 0.75rem' }}>
+              {canEdit && <div style={{ padding: '0.5rem 0.75rem' }}>
                 <button
                   onClick={() => {
                     if (confirm('Reset everything? This clears all buildings, viewport, and design name from local storage.')) {
@@ -334,7 +418,7 @@ const AllianceBaseDesigner: React.FC = () => {
                 >
                   ↺ Reset to Default
                 </button>
-              </div>
+              </div>}
 
               {/* Back link */}
               <div style={{ padding: '0.5rem 0.75rem', marginTop: 'auto', borderTop: '1px solid #1e2a35' }}>
@@ -377,47 +461,81 @@ const AllianceBaseDesigner: React.FC = () => {
                   designer={designer}
                   canvasWidth={canvasSize.width}
                   canvasHeight={canvasSize.height}
-                  onEditBuilding={(building, sx, sy) => {
+                  readOnly={!canEdit}
+                  onEditBuilding={canEdit ? (building, sx, sy) => {
                     setEditingLabel({ buildingId: building.id, screenX: sx, screenY: sy, value: building.label || '' });
                     designer.setSelectedBuildingId(building.id);
                     setTimeout(() => editInputRef.current?.focus(), 50);
-                  }}
+                  } : undefined}
                 />
-                {/* Inline label editor overlay */}
-                {editingLabel && (
-                  <div style={{
-                    position: 'absolute',
-                    left: editingLabel.screenX - 70,
-                    top: editingLabel.screenY - 14,
-                    zIndex: 20,
-                  }}>
-                    <input
-                      ref={editInputRef}
-                      type="text"
-                      value={editingLabel.value}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setEditingLabel((prev) => prev ? { ...prev, value: val } : null);
-                        designer.updateBuildingLabel(editingLabel.buildingId, val);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === 'Escape') {
-                          e.preventDefault();
-                          setEditingLabel(null);
-                        }
-                      }}
-                      onBlur={() => setEditingLabel(null)}
-                      placeholder="Name..."
-                      style={{
-                        width: '140px', padding: '0.25rem 0.5rem',
-                        backgroundColor: '#111827', border: '1px solid #22d3ee',
-                        borderRadius: '4px', color: '#fff', fontSize: '0.75rem',
-                        outline: 'none', boxShadow: '0 2px 12px rgba(0,0,0,0.5)',
-                        textAlign: 'center',
-                      }}
-                    />
-                  </div>
-                )}
+                {/* Inline label editor overlay with autocomplete */}
+                {editingLabel && (() => {
+                  const bld = designer.buildings.find(b => b.id === editingLabel.buildingId);
+                  const isCity = bld ? getBuildingType(bld.typeId)?.labelField === 'playerName' : false;
+                  const inlineSuggestions = isCity && editingLabel.value.trim() && rosterNames.length > 0
+                    ? rosterNames.filter(n => n.toLowerCase().includes(editingLabel.value.toLowerCase()) && n.toLowerCase() !== editingLabel.value.toLowerCase()).slice(0, 5)
+                    : [];
+                  return (
+                    <div style={{
+                      position: 'absolute',
+                      left: editingLabel.screenX - 70,
+                      top: editingLabel.screenY - 14,
+                      zIndex: 20,
+                    }}>
+                      <input
+                        ref={editInputRef}
+                        type="text"
+                        value={editingLabel.value}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setEditingLabel((prev) => prev ? { ...prev, value: val } : null);
+                          designer.updateBuildingLabel(editingLabel.buildingId, val);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === 'Escape') {
+                            e.preventDefault();
+                            setEditingLabel(null);
+                          }
+                        }}
+                        onBlur={() => setTimeout(() => setEditingLabel(null), 150)}
+                        placeholder="Name..."
+                        style={{
+                          width: '140px', padding: '0.25rem 0.5rem',
+                          backgroundColor: '#111827', border: '1px solid #22d3ee',
+                          borderRadius: '4px', color: '#fff', fontSize: '0.75rem',
+                          outline: 'none', boxShadow: '0 2px 12px rgba(0,0,0,0.5)',
+                          textAlign: 'center',
+                        }}
+                      />
+                      {inlineSuggestions.length > 0 && (
+                        <div style={{
+                          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30,
+                          backgroundColor: '#111827', border: '1px solid #22d3ee40', borderRadius: '4px',
+                          boxShadow: '0 4px 16px rgba(0,0,0,0.5)', maxHeight: '120px', overflowY: 'auto',
+                        }}>
+                          {inlineSuggestions.map((name) => (
+                            <button key={name}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                designer.updateBuildingLabel(editingLabel.buildingId, name);
+                                setEditingLabel(prev => prev ? { ...prev, value: name } : null);
+                                setTimeout(() => setEditingLabel(null), 50);
+                              }}
+                              style={{
+                                width: '100%', padding: '0.25rem 0.5rem', border: 'none', textAlign: 'left',
+                                backgroundColor: 'transparent', color: '#e5e7eb', fontSize: '0.7rem', cursor: 'pointer',
+                              }}
+                              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#22d3ee15'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                            >
+                              {name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
               <MapControls designer={designer} isMobile={false} />
             </div>
@@ -515,47 +633,32 @@ const AllianceBaseDesigner: React.FC = () => {
           designer={designer}
           canvasWidth={canvasSize.width}
           canvasHeight={canvasSize.height}
-          onEditBuilding={(building, sx, sy) => {
+          readOnly={!canEdit}
+          onEditBuilding={canEdit ? (building, sx, sy) => {
             setEditingLabel({ buildingId: building.id, screenX: sx, screenY: sy, value: building.label || '' });
             designer.setSelectedBuildingId(building.id);
             setTimeout(() => editInputRef.current?.focus(), 50);
-          }}
+          } : undefined}
         />
-        {/* Inline label editor overlay (mobile) */}
-        {editingLabel && (
-          <div style={{
-            position: 'absolute',
-            left: Math.max(8, Math.min(editingLabel.screenX - 70, canvasSize.width - 156)),
-            top: editingLabel.screenY - 14,
-            zIndex: 20,
-          }}>
-            <input
-              ref={editInputRef}
-              type="text"
-              value={editingLabel.value}
-              onChange={(e) => {
-                const val = e.target.value;
-                setEditingLabel((prev) => prev ? { ...prev, value: val } : null);
-                designer.updateBuildingLabel(editingLabel.buildingId, val);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === 'Escape') {
-                  e.preventDefault();
-                  setEditingLabel(null);
-                }
-              }}
-              onBlur={() => setEditingLabel(null)}
-              placeholder="Name..."
-              style={{
-                width: '140px', padding: '0.25rem 0.5rem',
-                backgroundColor: '#111827', border: '1px solid #22d3ee',
-                borderRadius: '4px', color: '#fff', fontSize: '0.75rem',
-                outline: 'none', boxShadow: '0 2px 12px rgba(0,0,0,0.5)',
-                textAlign: 'center', userSelect: 'text', WebkitUserSelect: 'text',
-              } as React.CSSProperties}
-            />
-          </div>
-        )}
+        {/* Inline label editor overlay (mobile) with autocomplete */}
+        {editingLabel && (() => {
+          const bld = designer.buildings.find(b => b.id === editingLabel.buildingId);
+          const isCity = bld ? getBuildingType(bld.typeId)?.labelField === 'playerName' : false;
+          const mSugg = isCity && editingLabel.value.trim() && rosterNames.length > 0
+            ? rosterNames.filter(n => n.toLowerCase().includes(editingLabel.value.toLowerCase()) && n.toLowerCase() !== editingLabel.value.toLowerCase()).slice(0, 5) : [];
+          return (<div style={{ position: 'absolute', left: Math.max(8, Math.min(editingLabel.screenX - 70, canvasSize.width - 156)), top: editingLabel.screenY - 14, zIndex: 20 }}>
+            <input ref={editInputRef} type="text" value={editingLabel.value}
+              onChange={(e) => { const val = e.target.value; setEditingLabel((prev) => prev ? { ...prev, value: val } : null); designer.updateBuildingLabel(editingLabel.buildingId, val); }}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); setEditingLabel(null); } }}
+              onBlur={() => setTimeout(() => setEditingLabel(null), 150)} placeholder="Name..."
+              style={{ width: '140px', padding: '0.25rem 0.5rem', backgroundColor: '#111827', border: '1px solid #22d3ee', borderRadius: '4px', color: '#fff', fontSize: '0.75rem', outline: 'none', boxShadow: '0 2px 12px rgba(0,0,0,0.5)', textAlign: 'center', userSelect: 'text', WebkitUserSelect: 'text' } as React.CSSProperties} />
+            {mSugg.length > 0 && (<div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30, backgroundColor: '#111827', border: '1px solid #22d3ee40', borderRadius: '4px', boxShadow: '0 4px 16px rgba(0,0,0,0.5)', maxHeight: '120px', overflowY: 'auto' }}>
+              {mSugg.map((name) => (<button key={name} onMouseDown={(e) => { e.preventDefault(); designer.updateBuildingLabel(editingLabel.buildingId, name); setEditingLabel(prev => prev ? { ...prev, value: name } : null); setTimeout(() => setEditingLabel(null), 50); }}
+                style={{ width: '100%', padding: '0.25rem 0.5rem', border: 'none', textAlign: 'left', backgroundColor: 'transparent', color: '#e5e7eb', fontSize: '0.7rem', cursor: 'pointer' }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#22d3ee15'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}>{name}</button>))}
+            </div>)}
+          </div>);
+        })()}
 
         {/* Mobile floating toolbar */}
         <div style={{
@@ -564,21 +667,24 @@ const AllianceBaseDesigner: React.FC = () => {
           backgroundColor: '#0d1117dd', padding: '0.3rem 0.5rem', borderRadius: '8px',
           backdropFilter: 'blur(10px)', border: '1px solid #1e2a35',
         }}>
-          <button style={sidebarBtnStyle} onClick={designer.undo} disabled={!designer.canUndo}>↩</button>
-          <button style={sidebarBtnStyle} onClick={designer.redo} disabled={!designer.canRedo}>↪</button>
-          <button style={sidebarBtnStyle} onClick={() => setModalMode('save')}>💾</button>
+          {canEdit && <>
+            <button style={sidebarBtnStyle} onClick={designer.undo} disabled={!designer.canUndo}>↩</button>
+            <button style={sidebarBtnStyle} onClick={designer.redo} disabled={!designer.canRedo}>↪</button>
+            <button style={sidebarBtnStyle} onClick={() => setModalMode('save')}>💾</button>
+          </>}
           <button style={sidebarBtnStyle} onClick={() => setModalMode('load')}>📂</button>
           <button
             style={{ ...sidebarBtnStyle, ...(designer.showLabels ? { backgroundColor: '#22d3ee15', borderColor: '#22d3ee40', color: '#22d3ee' } : {}) }}
             onClick={() => designer.setShowLabels(!designer.showLabels)}
           >🏷️</button>
-          <button style={sidebarBtnStyle} onClick={() => setShareMenu(!shareMenu)}>📤</button>
+          {canEdit && <button style={sidebarBtnStyle} onClick={() => setShareMenu(!shareMenu)}>📤</button>}
           <div style={{ flex: 1 }} />
+          {!canEdit && <span style={{ fontSize: '0.55rem', color: '#f59e0b', fontWeight: '600' }}>👁️ {t('baseDesigner.readOnly', 'View Only')}</span>}
           <span style={{ fontSize: '0.55rem', color: '#4b5563' }}>{designer.buildings.length} bldgs</span>
         </div>
 
-        {/* Floating action buttons for selected building (bottom-right) */}
-        {selectedBuilding && selectedBuildingType && (
+        {/* Floating action buttons for selected building (bottom-right) — edit mode only */}
+        {canEdit && selectedBuilding && selectedBuildingType && (
           <div style={{
             position: 'absolute', bottom: 12, right: 12, zIndex: 10,
             display: 'flex', flexDirection: 'column', gap: '0.4rem', alignItems: 'flex-end',
@@ -651,7 +757,7 @@ const AllianceBaseDesigner: React.FC = () => {
       <div style={{ borderTop: '1px solid #1e2a35', backgroundColor: '#0d1117', maxHeight: '40vh', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
         {/* Tab bar */}
         <div style={{ display: 'flex', borderBottom: '1px solid #1e2a35' }}>
-          {(['buildings', 'nav'] as const).map((tab) => (
+          {(canEdit ? ['buildings', 'nav'] as const : ['nav'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setMobilePanelTab(tab)}
@@ -669,7 +775,7 @@ const AllianceBaseDesigner: React.FC = () => {
 
         {/* Tab content — scrollable within constrained panel height */}
         <div style={{ padding: '0.5rem 0.75rem', paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))', overflowY: 'auto', flex: 1, minHeight: 0 }}>
-          {mobilePanelTab === 'buildings' && (
+          {canEdit && mobilePanelTab === 'buildings' && (
             <BuildingPalette
               selectedToolType={designer.selectedToolType}
               buildingCounts={designer.buildingCounts}
@@ -684,16 +790,17 @@ const AllianceBaseDesigner: React.FC = () => {
               <CoordinateSearch onGo={goToCoords} onFocusBase={focusOnBase} hasBuildings={designer.buildings.length > 0} />
               <div style={{ marginTop: '0.5rem' }}>
                 <div style={{ color: '#6b7280', fontSize: '0.6rem', marginBottom: '3px' }}>{t('baseDesigner.designName', 'Design Name')}</div>
-                <input type="text" value={designer.designName} onChange={(e) => designer.setDesignName(e.target.value)}
-                  style={{ width: '100%', padding: '0.25rem 0.4rem', backgroundColor: '#0a0a0a', border: '1px solid #1e2a35', borderRadius: '4px', color: '#e5e7eb', fontSize: '0.7rem', outline: 'none', boxSizing: 'border-box', userSelect: 'text', WebkitUserSelect: 'text' } as React.CSSProperties}
+                <input type="text" value={designer.designName} onChange={(e) => canEdit && designer.setDesignName(e.target.value)}
+                  readOnly={!canEdit}
+                  style={{ width: '100%', padding: '0.25rem 0.4rem', backgroundColor: '#0a0a0a', border: '1px solid #1e2a35', borderRadius: '4px', color: '#e5e7eb', fontSize: '0.7rem', outline: 'none', boxSizing: 'border-box', userSelect: 'text', WebkitUserSelect: 'text', ...(canEdit ? {} : { opacity: 0.6, cursor: 'default' }) } as React.CSSProperties}
                 />
               </div>
-              <div style={{ marginTop: '0.75rem', borderTop: '1px solid #1e2a35', paddingTop: '0.5rem' }}>
+              {canEdit && <div style={{ marginTop: '0.75rem', borderTop: '1px solid #1e2a35', paddingTop: '0.5rem' }}>
                 <div style={{ color: '#6b7280', fontSize: '0.6rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.4rem' }}>
                   {t('baseDesigner.delegates', 'Delegates')}
                 </div>
                 <ToolDelegates />
-              </div>
+              </div>}
             </div>
           )}
         </div>

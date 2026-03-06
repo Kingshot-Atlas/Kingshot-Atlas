@@ -20,9 +20,10 @@ interface GridCanvasProps {
   canvasWidth: number;
   canvasHeight: number;
   onEditBuilding?: (building: PlacedBuilding, screenX: number, screenY: number) => void;
+  readOnly?: boolean;
 }
 
-const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHeight, onEditBuilding }) => {
+const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHeight, onEditBuilding, readOnly }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
@@ -354,6 +355,13 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
       setPanStart({ x: e.clientX, y: e.clientY });
       return;
     }
+    if (readOnly) {
+      // Read-only: allow panning only, no placing or dragging
+      setSelectedBuildingId(null);
+      setIsPanning(true);
+      setPanStart({ x: e.clientX, y: e.clientY });
+      return;
+    }
     if (selectedToolType) {
       const placed = placeBuilding(selectedToolType, cell.x, cell.y);
       if (placed) setSelectedBuildingId(placed);
@@ -371,7 +379,7 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
       setIsPanning(true);
       setPanStart({ x: e.clientX, y: e.clientY });
     }
-  }, [getCellFromMouse, selectedToolType, placeBuilding, getBuildingAtCell, setSelectedBuildingId, setDragBuilding, setDragOffset]);
+  }, [getCellFromMouse, selectedToolType, placeBuilding, getBuildingAtCell, setSelectedBuildingId, setDragBuilding, setDragOffset, readOnly]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     const cell = getCellFromMouse(e);
@@ -447,7 +455,7 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
       const cell = getCellFromTouch(touch);
       const building = getBuildingAtCell(cell.x, cell.y);
 
-      if (building && !selectedToolType) {
+      if (building && !selectedToolType && !readOnly) {
         // Show pulsing highlight immediately
         const bType = getBuildingType(building.typeId);
         setLongPressHighlight({ x: building.x, y: building.y, size: bType?.size || 1 });
@@ -576,7 +584,10 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
           const sx = (tap.x - rect.left) * (canvasWidth / rect.width);
           const sy = (tap.y - rect.top) * (canvasHeight / rect.height);
           const cell = s2g(sx, sy, centerX, centerY, hc, canvasWidth, canvasHeight);
-          if (selectedToolType) {
+          if (readOnly) {
+            // Read-only: no placing or selecting for edit
+            setSelectedBuildingId(null);
+          } else if (selectedToolType) {
             const placed = placeBuilding(selectedToolType, cell.x, cell.y);
             if (placed) { setSelectedBuildingId(placed); if (navigator.vibrate) navigator.vibrate(15); }
           } else {
@@ -603,7 +614,7 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
       style={{
         borderRadius: '8px',
         border: '1px solid #1e2a35',
-        cursor: isPanning ? 'grabbing' : selectedToolType ? 'crosshair' : dragBuilding ? 'grabbing' : 'grab',
+        cursor: isPanning ? 'grabbing' : readOnly ? 'grab' : selectedToolType ? 'crosshair' : dragBuilding ? 'grabbing' : 'grab',
         display: 'block',
         width: '100%',
         height: '100%',
@@ -614,7 +625,7 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
       onMouseUp={handleMouseUp}
       onMouseLeave={() => { setHoveredCell(null); setIsPanning(false); setPanStart(null); if (dragBuilding) { setDragBuilding(null); setDragPreview(null); } }}
       onDoubleClick={(e) => {
-        if (!onEditBuilding) return;
+        if (!onEditBuilding || readOnly) return;
         const cell = getCellFromMouse(e);
         const building = getBuildingAtCell(cell.x, cell.y);
         if (building && getBuildingType(building.typeId)?.labelField) {
