@@ -341,12 +341,14 @@ function createHelpEmbed() {
           '`/history <number>` - KvK season history',
           '`/predict <k1> <k2>` - Matchup prediction',
           '`/tier <S|A|B|C|D>` - List kingdoms by tier',
+          '`/sharecard <number>` - Share a kingdom card',
         ].join('\n'),
       },
       {
         name: '📊 Rankings & Events',
         value: [
-          '`/rankings` - Top 10 kingdoms by Atlas Score',
+          '`/rankings [group] [min_kvks]` - Top 10 by Atlas Score',
+          '`/transferstatus <number>` - Transfer group & status',
           '`/countdownkvk` - Time until next KvK',
           '`/countdowntransfer` - Time until next Transfer Event',
         ].join('\n'),
@@ -1044,6 +1046,147 @@ function getCodeAge(createdAt) {
   return 'just now';
 }
 
+// ─── Transfer Groups (mirrored from apps/web/src/config/transferGroups.ts) ──
+const TRANSFER_GROUPS = [
+  [1, 25],
+  [26, 175],
+  [176, 417],
+  [418, 758],
+  [759, 927],
+  [928, 1007],
+  [1008, 1159],
+  [1160, 99999],
+];
+const TRANSFER_GROUPS_UPDATED_AT = '2026-02-25';
+
+function getTransferGroup(kingdomNumber) {
+  return TRANSFER_GROUPS.find(([min, max]) => kingdomNumber >= min && kingdomNumber <= max) || null;
+}
+
+function getTransferGroupLabel(group) {
+  if (!group) return 'Unknown';
+  if (group[1] >= 99999) return `K${group[0]}+`;
+  return `K${group[0]}\u2013K${group[1]}`;
+}
+
+/**
+ * Create a shareable kingdom card embed (non-ephemeral, designed for channel sharing)
+ */
+function createShareCardEmbed(kingdom) {
+  const tier = getTier(kingdom.overall_score);
+  const tierEmoji = getTierEmoji(tier);
+  const dominations = calculateDominations(kingdom.recent_kvks);
+  const invasions = calculateInvasions(kingdom.recent_kvks);
+  const group = getTransferGroup(kingdom.kingdom_number);
+  const groupLabel = group ? getTransferGroupLabel(group) : 'N/A';
+  const rankDisplay = kingdom.rank ? `#${kingdom.rank}` : 'Unranked';
+
+  const embed = new EmbedBuilder()
+    .setColor(getTierColor(tier))
+    .setTitle(`\ud83c\udff0 Kingdom ${kingdom.kingdom_number} \u2022 ${tierEmoji} ${tier}-Tier`)
+    .setURL(config.urls.kingdom(kingdom.kingdom_number))
+    .setDescription([
+      `\ud83c\udfc6 **Rank:** ${rankDisplay} \u2022 \ud83d\udc8e **Atlas Score:** ${kingdom.overall_score.toFixed(1)}`,
+      `\ud83d\udcca **Transfer Group:** ${groupLabel}`,
+    ].join('\n'))
+    .addFields(
+      {
+        name: '\ud83d\udee1\ufe0f Prep Phase',
+        value: [
+          `**${formatWinRate(kingdom.prep_win_rate)}** win rate`,
+          `${formatRecord(kingdom.prep_wins, kingdom.prep_losses)}`,
+          `${createProgressBar(kingdom.prep_win_rate * 100)}`,
+        ].join('\n'),
+        inline: true,
+      },
+      {
+        name: '\u2694\ufe0f Battle Phase',
+        value: [
+          `**${formatWinRate(kingdom.battle_win_rate)}** win rate`,
+          `${formatRecord(kingdom.battle_wins, kingdom.battle_losses)}`,
+          `${createProgressBar(kingdom.battle_win_rate * 100)}`,
+        ].join('\n'),
+        inline: true,
+      },
+      {
+        name: '\u200b',
+        value: [
+          `\u2694\ufe0f **KvKs:** ${kingdom.total_kvks} \u2022 \ud83d\udc51 **Dominations:** ${dominations} \u2022 \ud83d\udc80 **Invasions:** ${invasions}`,
+        ].join('\n'),
+        inline: false,
+      }
+    )
+    .addFields({
+      name: '\u200b',
+      value: `[\ud83d\udcca Full stats on ks-atlas.com](${config.urls.kingdom(kingdom.kingdom_number)})`,
+    })
+    .setFooter({ text: `${config.bot.footerText} \u2022 /sharecard ${kingdom.kingdom_number}` })
+    .setTimestamp();
+
+  return embed;
+}
+
+/**
+ * Create transfer status embed for a kingdom
+ */
+function createTransferStatusEmbed(kingdom) {
+  const group = getTransferGroup(kingdom.kingdom_number);
+  const groupLabel = group ? getTransferGroupLabel(group) : null;
+  const transferStatus = kingdom.transfer_status || kingdom.most_recent_status || 'Unknown';
+  const statusEmoji = transferStatus === 'Leading' ? '\ud83d\udc51' : transferStatus === 'Ordinary' ? '\ud83d\udfe2' : '\u2753';
+
+  // Build the list of all transfer groups with highlight
+  const groupsList = TRANSFER_GROUPS.map(([min, max]) => {
+    const label = getTransferGroupLabel([min, max]);
+    const isCurrentGroup = group && min === group[0] && max === group[1];
+    return isCurrentGroup
+      ? `\u25b6\ufe0f **${label}** \u2190 K${kingdom.kingdom_number} is here`
+      : `\u2003\u2003${label}`;
+  }).join('\n');
+
+  const embed = new EmbedBuilder()
+    .setColor(0xa855f7) // Purple for transfers
+    .setTitle(`\ud83d\udd04 Transfer Status \u2014 Kingdom ${kingdom.kingdom_number}`)
+    .setURL(config.urls.kingdom(kingdom.kingdom_number));
+
+  if (groupLabel) {
+    embed.setDescription([
+      `**Transfer Group:** ${groupLabel}`,
+      `**Status:** ${statusEmoji} ${transferStatus}`,
+      '',
+      '*Kingdoms can only transfer within their group during Transfer Events.*',
+    ].join('\n'));
+  } else {
+    embed.setDescription([
+      '**Transfer Group:** Not assigned',
+      '',
+      '*This kingdom is not currently part of any transfer group.*',
+    ].join('\n'));
+  }
+
+  embed.addFields(
+    {
+      name: '\ud83d\udccc All Transfer Groups',
+      value: groupsList,
+    }
+  );
+
+  // Outdated disclaimer
+  const updatedAt = new Date(TRANSFER_GROUPS_UPDATED_AT);
+  const daysSinceUpdate = Math.floor((Date.now() - updatedAt.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysSinceUpdate >= 49) {
+    embed.addFields({
+      name: '\u26a0\ufe0f Note',
+      value: 'Transfer groups may have changed since our last update. Check in-game for the latest.',
+    });
+  }
+
+  embed.setFooter({ text: `${config.bot.footerText} \u2022 Updated ${TRANSFER_GROUPS_UPDATED_AT}` })
+    .setTimestamp();
+
+  return embed;
+}
+
 module.exports = {
   getTier,
   getTierColor,
@@ -1073,4 +1216,6 @@ module.exports = {
   createMultirallyHelpEmbed,
   createGiftCodesEmbed,
   createNewGiftCodeEmbed,
+  createShareCardEmbed,
+  createTransferStatusEmbed,
 };

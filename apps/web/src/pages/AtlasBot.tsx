@@ -114,7 +114,8 @@ const AtlasBot: React.FC = () => {
     },
     {
       command: 'rankings',
-      description: 'The top 10 kingdoms by Atlas Score, ranked and tiered. One glance tells you who\'s running the game right now.',
+      description: 'Top 10 kingdoms by Atlas Score. Filter by transfer group or minimum KvK experience to find the best in your bracket.',
+      example: '/rankings transfer_group:K418–K758 min_kvks:3',
       icon: '\ud83c\udfc6',
       accentColor: '#eab308'
     },
@@ -138,8 +139,22 @@ const AtlasBot: React.FC = () => {
       accentColor: '#a855f7'
     },
     {
+      command: 'sharecard',
+      description: 'Drop a beautiful kingdom stats card right into the channel. Non-ephemeral — everyone sees it. Perfect for showing off or scouting opponents publicly.',
+      example: '/sharecard 172',
+      icon: '\ud83c\udff0',
+      accentColor: '#22c55e'
+    },
+    {
+      command: 'transferstatus',
+      description: 'Check which transfer group a kingdom belongs to, its current status, and see all groups at a glance. Essential for planning moves.',
+      example: '/transferstatus 172',
+      icon: '\ud83d\udd04',
+      accentColor: '#a855f7'
+    },
+    {
       command: 'multirally',
-      description: 'Coordinate multiple rallies to hit a building at the same time. Enter players and march times, get the exact call order. No more guessing.',
+      description: 'Coordinate multiple rallies to hit a building at the same time. Enter players and march times, get the exact call order. Free for everyone.',
       example: '/multirally target:King\'s Castle players:PlayerA:15,PlayerB:18',
       icon: '\u2694\ufe0f',
       accentColor: '#ef4444'
@@ -390,163 +405,56 @@ const AtlasBot: React.FC = () => {
           </div>
         </div>
 
-        {/* Premium Slash Commands */}
+        {/* Support Atlas */}
         <div style={{ marginBottom: isMobile ? '2rem' : '3rem' }}>
-          <h2 style={{
-            fontSize: isMobile ? '1.1rem' : '1.35rem',
-            fontWeight: 'bold',
-            color: '#fff',
-            marginBottom: '0.4rem',
-            fontFamily: FONT_DISPLAY,
-            textAlign: 'center'
-          }}>
-            <span style={{ color: '#fff' }}>PREMIUM</span>
-            <span style={{ ...neonGlow('#FF6B8A'), marginLeft: '0.4rem' }}>COMMANDS</span>
-          </h2>
-          <p style={{
-            color: '#6b7280',
-            fontSize: isMobile ? '0.8rem' : '0.85rem',
-            textAlign: 'center',
-            marginBottom: '1.5rem'
-          }}>
-            {t('atlasBot.tacticalTools', 'Tactical tools built for players who coordinate to win.')}
-          </p>
-
           <div
             style={{
               backgroundColor: '#111111',
               borderRadius: '16px',
               border: '1px solid #FF6B8A40',
               padding: isMobile ? '1.25rem' : '1.75rem',
-              background: 'linear-gradient(135deg, #111111 0%, #FF6B8A08 100%)'
+              background: 'linear-gradient(135deg, #111111 0%, #FF6B8A08 100%)',
+              textAlign: 'center'
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '1rem' }}>
-              <span style={{ fontSize: isMobile ? '1.5rem' : '1.75rem', lineHeight: 1 }}>⚔️</span>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
-                  <code style={{
-                    color: '#FF6B8A',
-                    fontSize: isMobile ? '1rem' : '1.1rem',
-                    fontWeight: '700',
-                    fontFamily: "'Orbitron', monospace"
-                  }}>
-                    /multirally
-                  </code>
-                  <span style={{
-                    fontSize: '0.65rem',
-                    fontWeight: '700',
-                    color: '#FF6B8A',
-                    backgroundColor: '#FF6B8A18',
-                    border: '1px solid #FF6B8A30',
-                    padding: '0.15rem 0.5rem',
-                    borderRadius: '4px',
-                    letterSpacing: '0.05em',
-                    textTransform: 'uppercase'
-                  }}>
-                    Supporter
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <p style={{
-              color: '#d1d5db',
-              fontSize: isMobile ? '0.85rem' : '0.9rem',
-              lineHeight: 1.7,
-              marginBottom: '1rem'
+            <span style={{ fontSize: '1.5rem', display: 'block', marginBottom: '0.5rem' }}>💖</span>
+            <h3 style={{
+              fontSize: isMobile ? '1rem' : '1.15rem',
+              fontWeight: '700',
+              color: '#fff',
+              marginBottom: '0.5rem',
+              fontFamily: FONT_DISPLAY
             }}>
-              The difference between a coordinated castle hit and a wasted march is <strong style={{ color: '#fff' }}>timing</strong>. /multirally calculates the exact second each rally caller should start so that every rally lands on the same building within your desired gap — no spreadsheets, no guesswork.
-            </p>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-              gap: '0.75rem',
-              marginBottom: '1.25rem'
-            }}>
-              {[
-                { title: 'Pick Your Target', desc: "King's Castle or any Turret.", icon: '🏰' },
-                { title: 'Enter March Times', desc: 'Each player\'s time to the target in minutes.', icon: '⏱️' },
-                { title: 'Get the Call Order', desc: 'Exact delays so all rallies hit within seconds.', icon: '📋' }
-              ].map((step) => (
-                <div key={step.title} style={{
-                  backgroundColor: '#0a0a0a',
-                  borderRadius: '8px',
-                  border: '1px solid #1f1f1f',
-                  padding: '0.75rem',
-                  textAlign: 'center'
-                }}>
-                  <span style={{ fontSize: '1.1rem', display: 'block', marginBottom: '0.35rem' }}>{step.icon}</span>
-                  <h4 style={{ color: '#fff', fontSize: '0.8rem', fontWeight: '600', marginBottom: '0.2rem' }}>{step.title}</h4>
-                  <p style={{ color: '#6b7280', fontSize: '0.72rem', lineHeight: 1.4 }}>{step.desc}</p>
-                </div>
-              ))}
-            </div>
-
-            <div style={{
-              padding: '0.6rem 0.8rem',
-              backgroundColor: '#0a0a0a',
-              borderRadius: '8px',
-              border: '1px solid #1f1f1f',
-              fontSize: isMobile ? '0.7rem' : '0.75rem',
-              color: '#6b7280',
-              fontFamily: "'JetBrains Mono', monospace",
-              marginBottom: '1.25rem'
-            }}>
-              /multirally target:Turret 1 players:PlayerB:18,PlayerA:15,PlayerC:22
-            </div>
-
+              {t('atlasBot.supportTitle', 'Support Atlas')}
+            </h3>
             <p style={{
               color: '#9ca3af',
               fontSize: isMobile ? '0.8rem' : '0.85rem',
               lineHeight: 1.6,
-              marginBottom: '1rem'
+              maxWidth: '500px',
+              margin: '0 auto 1rem'
             }}>
-              The bot accounts for the 5-minute rally fill time plus each player&apos;s individual march time, then tells you <strong style={{ color: '#fff' }}>who calls first</strong> and the <strong style={{ color: '#fff' }}>exact delay</strong> between each subsequent call. Your rallies connect within a 1-second window. The enemy can&apos;t reinforce fast enough.
+              {t('atlasBot.supportDesc', 'Every command is free, forever. Atlas Supporters help keep the servers running and unlock premium web features — multi-compare, ad-free experience, and early access to new tools.')}
             </p>
-
-            <div style={{
-              display: 'flex',
-              flexDirection: isMobile ? 'column' : 'row',
-              alignItems: isMobile ? 'flex-start' : 'center',
-              justifyContent: 'space-between',
-              gap: '0.75rem',
-              padding: '0.85rem 1rem',
-              backgroundColor: '#FF6B8A10',
-              borderRadius: '10px',
-              border: '1px solid #FF6B8A25'
-            }}>
-              <div>
-                <p style={{ color: '#d1d5db', fontSize: isMobile ? '0.8rem' : '0.85rem', fontWeight: '600', marginBottom: '0.15rem' }}>
-                  {t('atlasBot.freeUsesPerDay', '5 free uses per day')}
-                </p>
-                <p style={{ color: '#6b7280', fontSize: isMobile ? '0.7rem' : '0.75rem' }}>
-                  {t('atlasBot.supportersUnlimited', 'Atlas Supporters get unlimited access — every rally, every KvK.')}
-                </p>
-              </div>
-              <Link
-                to="/support"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  padding: '0.5rem 1rem',
-                  backgroundColor: '#FF6B8A',
-                  border: 'none',
-                  borderRadius: '8px',
-                  color: '#fff',
-                  fontWeight: '600',
-                  fontSize: isMobile ? '0.8rem' : '0.85rem',
-                  textDecoration: 'none',
-                  transition: 'all 0.2s ease',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0
-                }}
-              >
-                {t('atlasBot.becomeSupporter', 'Become a Supporter')}
-              </Link>
-            </div>
+            <Link
+              to="/support"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                padding: '0.5rem 1.25rem',
+                backgroundColor: '#FF6B8A',
+                border: 'none',
+                borderRadius: '8px',
+                color: '#fff',
+                fontWeight: '600',
+                fontSize: isMobile ? '0.8rem' : '0.85rem',
+                textDecoration: 'none',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {t('atlasBot.becomeSupporter', 'Become a Supporter')}
+            </Link>
           </div>
         </div>
 

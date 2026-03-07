@@ -41,10 +41,34 @@ const commands = [
         .setMaxValue(9999)
     ),
 
-  // /rankings
+  // /rankings [transfer_group] [min_kvks]
   new SlashCommandBuilder()
     .setName('rankings')
-    .setDescription('Show top 10 kingdoms by Atlas Score'),
+    .setDescription('Show top 10 kingdoms by Atlas Score')
+    .addStringOption(option =>
+      option
+        .setName('transfer_group')
+        .setDescription('Filter by transfer group')
+        .setRequired(false)
+        .addChoices(
+          { name: 'K1–K25', value: '1-25' },
+          { name: 'K26–K175', value: '26-175' },
+          { name: 'K176–K417', value: '176-417' },
+          { name: 'K418–K758', value: '418-758' },
+          { name: 'K759–K927', value: '759-927' },
+          { name: 'K928–K1007', value: '928-1007' },
+          { name: 'K1008–K1159', value: '1008-1159' },
+          { name: 'K1160+', value: '1160-99999' }
+        )
+    )
+    .addIntegerOption(option =>
+      option
+        .setName('min_kvks')
+        .setDescription('Minimum KvK experience (e.g. 3)')
+        .setRequired(false)
+        .setMinValue(1)
+        .setMaxValue(20)
+    ),
 
   // /tier <tier>
   new SlashCommandBuilder()
@@ -139,6 +163,34 @@ const commands = [
         .setRequired(false)
         .setMinValue(0)
         .setMaxValue(10)
+    ),
+
+  // /sharecard <number>
+  new SlashCommandBuilder()
+    .setName('sharecard')
+    .setDescription('Share a kingdom stats card in the channel')
+    .addIntegerOption(option =>
+      option
+        .setName('number')
+        .setDescription('Kingdom number (e.g., 172, 1001)')
+        .setRequired(true)
+        .setMinValue(1)
+        .setMaxValue(9999)
+        .setAutocomplete(true)
+    ),
+
+  // /transferstatus <number>
+  new SlashCommandBuilder()
+    .setName('transferstatus')
+    .setDescription('Check a kingdom\'s transfer group and status')
+    .addIntegerOption(option =>
+      option
+        .setName('number')
+        .setDescription('Kingdom number (e.g., 172, 1001)')
+        .setRequired(true)
+        .setMinValue(1)
+        .setMaxValue(9999)
+        .setAutocomplete(true)
     ),
 
   // /codes

@@ -32,68 +32,9 @@ function checkCooldown(commandName, userId, cooldownSeconds) {
 
 const RALLY_FILL_TIME = 300; // 5 minutes in seconds
 
-// Supporter role — users with this Discord role bypass /multirally credit limits
+// Supporter role — used for analytics tracking
 const SUPPORTER_ROLE_ID = process.env.DISCORD_SUPPORTER_ROLE_ID || '';
 
-// Daily usage credits for /multirally (non-Supporters)
-const MULTIRALLY_DAILY_LIMIT = 5;
-const multirallyCredits = new Map(); // userId -> { uses: number, date: string }
-
-/**
- * Check if a user has remaining /multirally credits.
- * Supporters always return true. Free users get MULTIRALLY_DAILY_LIMIT per day.
- * Returns { allowed: boolean, remaining: number }.
- * Uses API-backed persistent tracking; falls back to in-memory on API failure.
- */
-async function checkMultirallyCredits(userId, isSupporter) {
-  // Try API-backed check first (persistent across restarts)
-  const apiResult = await api.checkMultirallyCredits(userId, isSupporter);
-  if (apiResult) {
-    return {
-      allowed: apiResult.allowed,
-      remaining: apiResult.is_supporter ? Infinity : apiResult.remaining,
-    };
-  }
-
-  // Fallback to in-memory tracking if API is unavailable
-  console.warn('[multirally] API credit check failed, using in-memory fallback');
-  if (isSupporter) return { allowed: true, remaining: Infinity };
-
-  const today = new Date().toISOString().split('T')[0];
-  const entry = multirallyCredits.get(userId);
-
-  if (!entry || entry.date !== today) {
-    return { allowed: true, remaining: MULTIRALLY_DAILY_LIMIT - 1 };
-  }
-
-  if (entry.uses >= MULTIRALLY_DAILY_LIMIT) {
-    return { allowed: false, remaining: 0 };
-  }
-
-  return { allowed: true, remaining: MULTIRALLY_DAILY_LIMIT - entry.uses };
-}
-
-/**
- * Increment /multirally usage after successful execution.
- * Writes to API (persistent) and updates in-memory fallback.
- */
-async function incrementMultirallyCredits(userId, isSupporter) {
-  // Always update in-memory fallback
-  const today = new Date().toISOString().split('T')[0];
-  const entry = multirallyCredits.get(userId);
-  if (!entry || entry.date !== today) {
-    multirallyCredits.set(userId, { uses: 1, date: today });
-  } else {
-    entry.uses++;
-  }
-
-  // Write to API for persistence
-  const apiResult = await api.incrementMultirallyCredits(userId, isSupporter);
-  if (!apiResult) {
-    console.warn('[multirally] API increment failed, in-memory fallback used');
-  }
-  return apiResult;
-}
 
 /**
  * /kingdom <number>
@@ -151,15 +92,20 @@ async function handleCompare(interaction) {
 }
 
 /**
- * /rankings
+ * /rankings [transfer_group] [min_kvks]
  */
 async function handleRankings(interaction) {
   await interaction.deferReply();
 
-  const result = await api.fetchLeaderboard(10);
+  const transferGroup = interaction.options.getString('transfer_group');
+  const minKvks = interaction.options.getInteger('min_kvks');
+
+  // Fetch more kingdoms when filtering so we can still show top 10 after filters
+  const fetchLimit = (transferGroup || minKvks) ? 100 : 10;
+  const result = await api.fetchLeaderboard(fetchLimit);
   
   // Handle new structured response format
-  const kingdoms = result.data || result;
+  let kingdoms = result.data || result;
   const error = result.error || null;
 
   if (!kingdoms || kingdoms.length === 0) {
@@ -173,7 +119,41 @@ async function handleRankings(interaction) {
     return interaction.editReply({ embeds: [errorEmbed] });
   }
 
-  const embed = embeds.createRankingsEmbed(kingdoms);
+  // Apply transfer group filter
+  if (transferGroup) {
+    const [min, max] = transferGroup.split('-').map(Number);
+    kingdoms = kingdoms.filter(k => k.kingdom_number >= min && k.kingdom_number <= max);
+  }
+
+  // Apply min KvK experience filter
+  if (minKvks) {
+    kingdoms = kingdoms.filter(k => (k.total_kvks || 0) >= minKvks);
+  }
+
+  // Limit to top 10 after filtering
+  kingdoms = kingdoms.slice(0, 10);
+
+  if (kingdoms.length === 0) {
+    const errorEmbed = embeds.createErrorEmbed(
+      'No kingdoms match your filters.',
+      'Try adjusting the transfer group or minimum KvK experience.'
+    );
+    return interaction.editReply({ embeds: [errorEmbed] });
+  }
+
+  // Build title with active filters
+  const filters = [];
+  if (transferGroup) {
+    const [min, max] = transferGroup.split('-').map(Number);
+    const label = max >= 99999 ? `K${min}+` : `K${min}\u2013K${max}`;
+    filters.push(label);
+  }
+  if (minKvks) filters.push(`${minKvks}+ KvKs`);
+  const title = filters.length > 0
+    ? `\ud83c\udfc6 Atlas Rankings \u2022 ${filters.join(' \u2022 ')}`
+    : '\ud83c\udfc6 Atlas Rankings';
+
+  const embed = embeds.createRankingsEmbed(kingdoms, title);
   return interaction.editReply({ embeds: [embed] });
 }
 
@@ -358,7 +338,6 @@ async function handleMultirally(interaction) {
     });
   }
 
-  // Credits check: Supporters get unlimited, free users get 5/day
   const isSupporter = SUPPORTER_ROLE_ID && interaction.member?.roles?.cache?.has(SUPPORTER_ROLE_ID);
 
   const target = interaction.options.getString('target');
@@ -369,15 +348,6 @@ async function handleMultirally(interaction) {
   if (playersRaw.trim().toLowerCase() === 'help') {
     const helpEmbed = embeds.createMultirallyHelpEmbed();
     return interaction.reply({ embeds: [helpEmbed], ephemeral: true });
-  }
-
-  // Check credits AFTER help (help doesn't cost a credit)
-  const credits = await checkMultirallyCredits(interaction.user.id, isSupporter);
-  if (!credits.allowed) {
-    logger.logMultirallyUpsell(interaction.user.id, interaction.guildId || 'DM');
-    logger.syncToApi('multirally_upsell', interaction.guildId || 'DM', interaction.user.id);
-    const upsellEmbed = embeds.createMultirallyUpsellEmbed();
-    return interaction.reply({ embeds: [upsellEmbed], ephemeral: true });
   }
 
   // Parse "PlayerName:MarchTimeInSeconds" pairs
@@ -468,12 +438,6 @@ async function handleMultirally(interaction) {
     ...copyLines,
   ].join('\n');
 
-  // Credits remaining footer (subtract 1 since this use will be incremented after)
-  const remainingAfter = isSupporter ? Infinity : Math.max(0, credits.remaining - 1);
-  const creditsText = isSupporter
-    ? 'Atlas Supporter \u2022 Unlimited'
-    : `${remainingAfter} use${remainingAfter !== 1 ? 's' : ''} remaining today`;
-
   const embed = embeds.createBaseEmbed()
     .setTitle(`\ud83c\udff0 Multi-Rally Coordination \u2014 ${target}`)
     .setDescription(`Target gap: **${gap}s** between hits${marchWarning}\n\u200b`)
@@ -485,10 +449,7 @@ async function handleMultirally(interaction) {
       name: '\ud83d\udccb Copy for Alliance Chat',
       value: `\`\`\`\n${copyText}\n\`\`\``,
     })
-    .setFooter({ text: `Kingshot Atlas \u2022 ks-atlas.com \u2022 ${creditsText}` });
-
-  // Increment usage AFTER successful execution
-  await incrementMultirallyCredits(interaction.user.id, isSupporter);
+    .setFooter({ text: `Kingshot Atlas \u2022 ks-atlas.com` });
 
   // Track multirally analytics (target building, player count, gap)
   logger.syncToApi('multirally', interaction.guildId || 'DM', interaction.user.id);
@@ -630,6 +591,48 @@ async function handleLink(interaction) {
   return interaction.editReply({ embeds: [embed], components: [row] });
 }
 
+/**
+ * /sharecard <number> — Share a kingdom stats card (non-ephemeral)
+ */
+async function handleShareCard(interaction) {
+  const number = interaction.options.getInteger('number');
+  await interaction.deferReply(); // NOT ephemeral — visible to everyone
+
+  const kingdom = await api.fetchKingdom(number);
+
+  if (!kingdom) {
+    const errorEmbed = embeds.createErrorEmbed(
+      `Kingdom ${number} not found.`,
+      'Make sure the kingdom number is correct and try again.'
+    );
+    return interaction.editReply({ embeds: [errorEmbed] });
+  }
+
+  const embed = embeds.createShareCardEmbed(kingdom);
+  return interaction.editReply({ embeds: [embed] });
+}
+
+/**
+ * /transferstatus <number> — Check a kingdom's transfer group and status
+ */
+async function handleTransferStatus(interaction) {
+  const number = interaction.options.getInteger('number');
+  await interaction.deferReply();
+
+  const kingdom = await api.fetchKingdom(number);
+
+  if (!kingdom) {
+    const errorEmbed = embeds.createErrorEmbed(
+      `Kingdom ${number} not found.`,
+      'Make sure the kingdom number is correct and try again.'
+    );
+    return interaction.editReply({ embeds: [errorEmbed] });
+  }
+
+  const embed = embeds.createTransferStatusEmbed(kingdom);
+  return interaction.editReply({ embeds: [embed] });
+}
+
 module.exports = {
   handleKingdom,
   handleCompare,
@@ -644,4 +647,6 @@ module.exports = {
   handleMultirally,
   handleCodes,
   handleLink,
+  handleShareCard,
+  handleTransferStatus,
 };
