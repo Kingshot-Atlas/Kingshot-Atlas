@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { useToast } from '../Toast';
@@ -11,6 +12,7 @@ interface DbPlayer {
   name: string;
   team: 'ally' | 'enemy';
   march_times: MarchTimes;
+  alliance?: string | null;
   created_by: string;
   created_at: string;
 }
@@ -33,12 +35,14 @@ function dbToRallyPlayer(row: DbPlayer): RallyPlayer {
     name: row.name,
     team: row.team,
     marchTimes: row.march_times ?? DEFAULT_MARCH,
+    ...(row.alliance ? { alliance: row.alliance } : {}),
   };
 }
 
 export function useBattlePlannerPlayers(sessionId: string | null): UseBattlePlannerPlayersReturn {
   const { user } = useAuth();
   const { showToast } = useToast();
+  const { t } = useTranslation();
   const [players, setPlayers] = useState<RallyPlayer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const channelRef = useRef<ReturnType<NonNullable<typeof supabase>['channel']> | null>(null);
@@ -133,6 +137,7 @@ export function useBattlePlannerPlayers(sessionId: string | null): UseBattlePlan
           name: player.name,
           team: player.team,
           march_times: player.marchTimes,
+          alliance: player.alliance || null,
           created_by: user.id,
         })
         .select()
@@ -142,7 +147,7 @@ export function useBattlePlannerPlayers(sessionId: string | null): UseBattlePlan
       return dbToRallyPlayer(data as DbPlayer);
     } catch (err) {
       console.error('Failed to add player:', err);
-      showToast('Failed to add player', 'error');
+      showToast(t('battlePlanner.addPlayerFailed', 'Failed to add player'), 'error');
       return null;
     }
   }, [user?.id, sessionId, showToast]);
@@ -157,6 +162,7 @@ export function useBattlePlannerPlayers(sessionId: string | null): UseBattlePlan
           name: player.name,
           team: player.team,
           march_times: player.marchTimes,
+          alliance: player.alliance || null,
         })
         .eq('id', player.id)
         .eq('session_id', sessionId);
@@ -164,7 +170,7 @@ export function useBattlePlannerPlayers(sessionId: string | null): UseBattlePlan
       if (error) throw error;
     } catch (err) {
       console.error('Failed to update player:', err);
-      showToast('Failed to update player', 'error');
+      showToast(t('battlePlanner.updatePlayerFailed', 'Failed to update player'), 'error');
     }
   }, [sessionId, showToast]);
 
@@ -185,7 +191,7 @@ export function useBattlePlannerPlayers(sessionId: string | null): UseBattlePlan
       if (error) throw error;
 
       if (deletedPlayer) {
-        showToast(`${deletedPlayer.name} deleted`, 'info');
+        showToast(t('battlePlanner.playerDeleted', '{{name}} deleted', { name: deletedPlayer.name }), 'info');
       }
     } catch (err) {
       console.error('Failed to delete player:', err);
@@ -193,7 +199,7 @@ export function useBattlePlannerPlayers(sessionId: string | null): UseBattlePlan
       if (deletedPlayer) {
         setPlayers(prev => [...prev, deletedPlayer]);
       }
-      showToast('Failed to delete player', 'error');
+      showToast(t('battlePlanner.deletePlayerFailed', 'Failed to delete player'), 'error');
     }
   }, [sessionId, players, showToast]);
 
@@ -208,7 +214,7 @@ export function useBattlePlannerPlayers(sessionId: string | null): UseBattlePlan
     });
 
     if (copy) {
-      showToast(`📋 ${copy.name} created`, 'success');
+      showToast(t('battlePlanner.playerCopied', '📋 {{name}} created', { name: copy.name }), 'success');
     }
   }, [players, addPlayer, showToast]);
 
@@ -226,7 +232,7 @@ export function useBattlePlannerPlayers(sessionId: string | null): UseBattlePlan
       );
 
       if (valid.length === 0) {
-        showToast('No valid players found in file', 'error');
+        showToast(t('battlePlanner.noValidPlayers', 'No valid players found in file'), 'error');
         return;
       }
 
@@ -235,7 +241,7 @@ export function useBattlePlannerPlayers(sessionId: string | null): UseBattlePlan
       const newPlayers = valid.filter(p => !existingKeys.has(`${p.name.toLowerCase()}-${p.team}`));
 
       if (newPlayers.length === 0) {
-        showToast('All players already exist in this session', 'info');
+        showToast(t('battlePlanner.allPlayersExist', 'All players already exist in this session'), 'info');
         return;
       }
 
@@ -254,11 +260,11 @@ export function useBattlePlannerPlayers(sessionId: string | null): UseBattlePlan
       if (error) throw error;
 
       showToast(
-        `Imported ${newPlayers.length} player(s) (${valid.length - newPlayers.length} duplicates skipped)`,
+        t('battlePlanner.importSuccess', 'Imported {{count}} player(s) ({{dupes}} duplicates skipped)', { count: newPlayers.length, dupes: valid.length - newPlayers.length }),
         'success'
       );
     } catch {
-      showToast('Failed to import — invalid JSON file', 'error');
+      showToast(t('battlePlanner.importFailed', 'Failed to import — invalid JSON file'), 'error');
     }
   }, [user?.id, sessionId, players, showToast]);
 
@@ -271,7 +277,7 @@ export function useBattlePlannerPlayers(sessionId: string | null): UseBattlePlan
     a.download = `battle-planner-players-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('Player database exported', 'success');
+    showToast(t('battlePlanner.exportSuccess', 'Player database exported'), 'success');
   }, [players, showToast]);
 
   // Migrate from localStorage to Supabase (one-time import)

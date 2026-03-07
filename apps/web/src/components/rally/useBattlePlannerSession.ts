@@ -304,21 +304,29 @@ export function useBattlePlannerSession(): UseBattlePlannerSessionReturn {
   const deleteSession = useCallback(async (id: string) => {
     if (!supabase) return;
     try {
-      const { error } = await supabase
+      // FK constraints use ON DELETE CASCADE — dependents are auto-removed
+      const { data, error } = await supabase
         .from('battle_planner_sessions')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .select();
       if (error) throw error;
+
+      if (!data || data.length === 0) {
+        showToast(t('battlePlanner.deleteSessionDenied', 'Cannot delete — you don\'t have permission'), 'error');
+        return;
+      }
+
       setSessions(prev => prev.filter(s => s.id !== id));
       if (session?.id === id) {
         setSession(null);
       }
-      showToast(t('battlePlanner.sessionDelete', 'Session deleted'), 'info');
+      showToast(t('battlePlanner.sessionDeleted', 'Session deleted'), 'info');
     } catch (err) {
       console.error('Failed to delete session:', err);
-      showToast(t('battlePlanner.captainAddFailed', 'Failed to delete session'), 'error');
+      showToast(t('battlePlanner.deleteSessionFailed', 'Failed to delete session'), 'error');
     }
-  }, [session?.id, showToast]);
+  }, [session?.id, showToast, t]);
 
   const updateLeaderAssignment = useCallback(async (leaderId: string, building: BuildingKey | null) => {
     if (!supabase) return;

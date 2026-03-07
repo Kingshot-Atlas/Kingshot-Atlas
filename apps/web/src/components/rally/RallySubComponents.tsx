@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FONT_DISPLAY } from '../../utils/styles';
 import type {
@@ -8,8 +8,9 @@ import {
   BUILDING_COLORS, DEFAULT_MARCH,
   ALLY_COLOR, ENEMY_COLOR,
   arrowBtnStyle, menuItemStyle, inputStyle, cancelBtnStyle, saveBtnStyle, cardHeader,
-  formatTime, formatCountdown, estimateBuffed, estimateRegular,
+  formatTime, formatCountdown,
   getBuildingLabel, getBuildingShort,
+  getAllianceColor,
 } from './types';
 
 // --- Building Selector ---
@@ -74,22 +75,23 @@ export const BuildingSelector: React.FC<{
   );
 };
 
-// --- Player Pill (Ally=blue, Enemy=red) ---
+// --- Player Pill (colored by alliance, with queue-membership badges) ---
 export const PlayerPill: React.FC<{
   player: RallyPlayer;
   marchTime: number;
-  isInQueue: boolean;
+  inRallyQueue: boolean;
+  inCounterQueue: boolean;
   onAdd: () => void;
   onEdit: () => void;
   onRemoveFromDb: () => void;
   onDuplicate?: () => void;
   isMobile: boolean;
   hasActiveBuffTimer?: boolean;
-}> = ({ player, marchTime, isInQueue, onAdd, onEdit, onRemoveFromDb, onDuplicate, isMobile, hasActiveBuffTimer }) => {
+}> = ({ player, marchTime, inRallyQueue, inCounterQueue, onAdd, onEdit, onRemoveFromDb, onDuplicate, isMobile, hasActiveBuffTimer }) => {
   const { t } = useTranslation();
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const teamColor = player.team === 'ally' ? ALLY_COLOR : ENEMY_COLOR;
+  const pillColor = getAllianceColor(player.team, player.alliance);
   const noMarchTime = marchTime <= 0;
 
   // Close menu on click outside
@@ -108,36 +110,36 @@ export const PlayerPill: React.FC<{
     <div ref={menuRef} style={{ position: 'relative' }}>
       <div
         role="button"
-        tabIndex={isInQueue || noMarchTime ? -1 : 0}
-        aria-label={`${player.name}${noMarchTime ? ' — no march time set' : ` — ${marchTime}s march`}${isInQueue ? ' (in queue)' : noMarchTime ? '' : '. Click to add to queue'}`}
-        aria-disabled={isInQueue || noMarchTime}
-        draggable={!isInQueue}
+        tabIndex={noMarchTime ? -1 : 0}
+        aria-label={`${player.name}${noMarchTime ? ' — no march time set' : ` — ${marchTime}s march`}${inRallyQueue ? ` (${t('battlePlanner.inRally', 'in rally')})` : ''}${inCounterQueue ? ` (${t('battlePlanner.inCounter', 'in counter')})` : ''}${noMarchTime ? '' : '. Click to add to queue'}`}
+        aria-disabled={noMarchTime}
+        draggable={!noMarchTime}
         onDragStart={(e) => {
-          if (!isInQueue) {
+          if (!noMarchTime) {
             e.dataTransfer.setData('text/plain', player.id);
             e.dataTransfer.effectAllowed = 'copy';
           }
         }}
-        onClick={() => !isInQueue && onAdd()}
+        onClick={() => onAdd()}
         title={noMarchTime ? t('battlePlanner.noMarchTimeHint', 'No march time — right-click to edit') : undefined}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!isInQueue) onAdd(); }
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onAdd(); }
           if (e.key === 'Escape') setShowMenu(false);
         }}
         onContextMenu={(e) => { e.preventDefault(); setShowMenu(!showMenu); }}
         style={{
           display: 'inline-flex',
           alignItems: 'center',
-          gap: '0.35rem',
+          gap: '0.3rem',
           padding: isMobile ? '0.3rem 0.55rem' : '0.35rem 0.65rem',
-          backgroundColor: isInQueue || noMarchTime ? '#1a1a1a' : `${teamColor}12`,
-          border: `1px solid ${hasActiveBuffTimer ? '#f59e0b80' : (isInQueue || noMarchTime) ? '#2a2a2a' : `${teamColor}40`}`,
+          backgroundColor: noMarchTime ? '#1a1a1a' : `${pillColor}12`,
+          border: `1px solid ${hasActiveBuffTimer ? '#f59e0b80' : noMarchTime ? '#2a2a2a' : `${pillColor}40`}`,
           borderRadius: '20px',
-          cursor: isInQueue ? 'not-allowed' : noMarchTime ? 'pointer' : 'grab',
-          opacity: (isInQueue || noMarchTime) ? 0.4 : 1,
+          cursor: noMarchTime ? 'pointer' : 'grab',
+          opacity: noMarchTime ? 0.4 : 1,
           transition: 'all 0.2s',
           fontSize: isMobile ? '0.68rem' : '0.8rem',
-          color: isInQueue ? '#6b7280' : '#fff',
+          color: '#fff',
           userSelect: 'none',
           minHeight: '34px',
           ...(hasActiveBuffTimer ? {
@@ -149,15 +151,42 @@ export const PlayerPill: React.FC<{
       >
         <span style={{
           width: '6px', height: '6px', borderRadius: '50%',
-          backgroundColor: teamColor, flexShrink: 0,
+          backgroundColor: pillColor, flexShrink: 0,
         }} />
         <span style={{ fontWeight: '600' }}>{player.name}</span>
+        {player.alliance && (
+          <span style={{
+            fontSize: '0.5rem', padding: '0 0.2rem', borderRadius: '3px',
+            backgroundColor: `${pillColor}20`, color: pillColor,
+            border: `1px solid ${pillColor}30`, fontWeight: '700', letterSpacing: '0.02em',
+          }}>
+            {player.alliance}
+          </span>
+        )}
         {marchTime > 0 ? (
           <span style={{ color: '#9ca3af', fontSize: '0.65rem' }}>
             {marchTime}s
           </span>
         ) : (
           <span style={{ color: '#ef4444', fontSize: '0.55rem', fontWeight: '600' }}>⚠</span>
+        )}
+        {(inRallyQueue || inCounterQueue) && (
+          <span style={{
+            display: 'inline-flex', gap: '2px', marginLeft: '1px',
+          }}>
+            {inRallyQueue && (
+              <span title={t('battlePlanner.inRally', 'In rally queue')} style={{
+                fontSize: '0.5rem', padding: '0 0.15rem', borderRadius: '3px',
+                backgroundColor: '#ef444425', color: '#ef4444', fontWeight: '700',
+              }}>⚔️</span>
+            )}
+            {inCounterQueue && (
+              <span title={t('battlePlanner.inCounter', 'In counter queue')} style={{
+                fontSize: '0.5rem', padding: '0 0.15rem', borderRadius: '3px',
+                backgroundColor: '#a855f725', color: '#a855f7', fontWeight: '700',
+              }}>🛡</span>
+            )}
+          </span>
         )}
       </div>
       {showMenu && (
@@ -446,12 +475,24 @@ export const RallyQueueSlot: React.FC<{
   onTouchDragMove?: (e: React.TouchEvent) => void;
   onTouchDragEnd?: () => void;
 }> = ({ slot, index, total, onRemove, onMoveUp, onMoveDown, onToggleBuff, color, isMobile, buffTimeRemaining, isDragOver, isBeingDragged, onTouchDragStart, onTouchDragMove, onTouchDragEnd }) => {
-  const teamColor = slot.team === 'ally' ? ALLY_COLOR : ENEMY_COLOR;
+  const slotAllianceColor = getAllianceColor(slot.team, slot.alliance);
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.altKey && e.key === 'ArrowUp' && index > 0) { e.preventDefault(); onMoveUp(); }
     else if (e.altKey && e.key === 'ArrowDown' && index < total - 1) { e.preventDefault(); onMoveDown(); }
     else if (e.key === 'Delete') { e.preventDefault(); onRemove(); }
   };
+  const buffBtnStyle: React.CSSProperties = {
+    padding: isMobile ? '0.15rem 0.4rem' : '0.2rem 0.5rem',
+    minHeight: isMobile ? '32px' : '26px',
+    backgroundColor: slot.useBuffed ? '#22c55e20' : '#1a1a1a',
+    border: `1px solid ${slot.useBuffed ? '#22c55e50' : '#2a2a2a'}`,
+    borderRadius: '14px', cursor: 'pointer',
+    color: slot.useBuffed ? '#22c55e' : '#9ca3af',
+    fontSize: '0.6rem', fontWeight: '600',
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.2rem',
+    transition: 'all 0.15s', whiteSpace: 'nowrap',
+  };
+
   return (
     <div
       data-queue-item
@@ -468,12 +509,16 @@ export const RallyQueueSlot: React.FC<{
       onTouchMove={onTouchDragMove}
       onTouchEnd={onTouchDragEnd}
       style={{
-        display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center',
-        gap: isMobile ? '0.25rem' : '0.5rem',
-        padding: isMobile ? '0.45rem 0.5rem' : '0.45rem 0.65rem',
+        display: 'grid',
+        gridTemplateColumns: isMobile
+          ? '1fr auto auto auto auto auto'
+          : 'auto 1fr auto auto minmax(90px, auto) auto auto auto',
+        alignItems: 'center',
+        gap: isMobile ? '0.25rem' : '0.4rem',
+        padding: isMobile ? '0.4rem 0.4rem' : '0.4rem 0.6rem',
         backgroundColor: isDragOver ? `${color}20` : `${color}08`,
         border: `1px solid ${isDragOver ? `${color}70` : `${color}30`}`,
-        borderLeft: `3px solid ${teamColor}`,
+        borderLeft: `3px solid ${slotAllianceColor}`,
         borderRadius: '10px',
         transition: isBeingDragged ? 'none' : 'all 0.15s',
         cursor: 'grab',
@@ -481,118 +526,90 @@ export const RallyQueueSlot: React.FC<{
         transform: isDragOver ? 'scale(1.02)' : 'none',
       }}
     >
-      {/* Row 1: badge + name + time (+ grip handle on desktop) */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.35rem' : '0.5rem', minWidth: 0 }}>
-        {/* Desktop grip handle */}
-        {!isMobile && (
-          <span style={{
-            display: 'flex', flexShrink: 0, cursor: 'grab',
-            color: '#4b5563', fontSize: '0.85rem', letterSpacing: '0.05em',
-            userSelect: 'none', padding: '0 0.15rem',
-          }} aria-hidden="true">⠇</span>
-        )}
+      {/* Col 1 (desktop only): grip handle */}
+      {!isMobile && (
         <span style={{
-          width: '20px', height: '20px', borderRadius: '50%',
+          display: 'flex', cursor: 'grab',
+          color: '#4b5563', fontSize: '0.85rem', letterSpacing: '0.05em',
+          userSelect: 'none',
+        }} aria-hidden="true">⠇</span>
+      )}
+
+      {/* Col: Player Name (with badge) */}
+      <span style={{
+        display: 'flex', alignItems: 'center', gap: '0.35rem',
+        overflow: 'hidden', minWidth: 0,
+      }}>
+        <span style={{
+          width: '18px', height: '18px', borderRadius: '50%',
           backgroundColor: `${color}25`, color: color,
-          fontSize: '0.6rem', fontWeight: '700',
+          fontSize: '0.55rem', fontWeight: '700',
           display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
         }}>
           {index + 1}
         </span>
-        <span style={{ color: '#fff', fontSize: isMobile ? '0.8rem' : '1rem', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span style={{
+          color: '#fff', fontSize: isMobile ? '0.75rem' : '0.85rem', fontWeight: '600',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
           {slot.playerName}
         </span>
-        <span style={{ color: '#9ca3af', fontSize: '0.7rem', flexShrink: 0 }}>
-          {slot.marchTime}s
-        </span>
-        {/* Desktop: buff + arrows inline */}
-        {!isMobile && (
-          <>
-            <div style={{ flex: 1 }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', flexShrink: 0 }}>
-              <button
-                onClick={onToggleBuff}
-                className="rally-focusable"
-                aria-label={slot.useBuffed ? 'Using buffed march speed. Click to switch to regular' : 'Using regular march speed. Click to switch to buffed'}
-                aria-pressed={slot.useBuffed}
-                style={{
-                  padding: '0.2rem 0.5rem', minWidth: '36px', minHeight: '26px',
-                  backgroundColor: slot.useBuffed ? '#22c55e20' : '#1a1a1a',
-                  border: `1px solid ${slot.useBuffed ? '#22c55e50' : '#2a2a2a'}`,
-                  borderRadius: '14px', cursor: 'pointer',
-                  color: slot.useBuffed ? '#22c55e' : '#9ca3af',
-                  fontSize: '0.6rem', fontWeight: '600',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.2rem',
-                  transition: 'all 0.15s',
-                }}
-              >
-                {slot.useBuffed ? '⚡' : '🏃'}
-                <span style={{ fontSize: '0.55rem' }}>{slot.useBuffed ? 'Buff' : 'Reg'}</span>
-              </button>
-              {buffTimeRemaining != null && buffTimeRemaining > 0 && (
-                <span style={{
-                  color: '#f59e0b', fontSize: '0.55rem', fontWeight: '600',
-                  padding: '0.1rem 0.25rem', backgroundColor: '#f59e0b15',
-                  border: '1px solid #f59e0b30', borderRadius: '3px',
-                  whiteSpace: 'nowrap', display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.3,
-                }}>
-                  <span>⏱ {formatCountdown(buffTimeRemaining)}</span>
-                  <span style={{ fontSize: '0.5rem', color: '#f59e0b80' }}>
-                    {new Date(Date.now() + buffTimeRemaining).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </span>
-              )}
-            </div>
-            <div style={{ display: 'flex', gap: '1px', flexShrink: 0 }}>
-              <button onClick={onMoveUp} disabled={index === 0} className="rally-focusable" aria-label={`Move ${slot.playerName} up`} style={arrowBtnStyle(index > 0, false)}>▲</button>
-              <button onClick={onMoveDown} disabled={index === total - 1} className="rally-focusable" aria-label={`Move ${slot.playerName} down`} style={arrowBtnStyle(index < total - 1, false)}>▼</button>
-              <button onClick={onRemove} className="rally-focusable" aria-label={`Remove ${slot.playerName} from queue`} style={{ ...arrowBtnStyle(true, false), color: '#ef4444' }}>✕</button>
-            </div>
-          </>
-        )}
-      </div>
+      </span>
 
-      {/* Row 2 (mobile only): buff toggle + move arrows + remove */}
-      {isMobile && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-            <button
-              onClick={onToggleBuff}
-              className="rally-focusable"
-              aria-label={slot.useBuffed ? 'Using buffed march speed. Click to switch to regular' : 'Using regular march speed. Click to switch to buffed'}
-              aria-pressed={slot.useBuffed}
-              style={{
-                padding: '0.15rem 0.45rem', minWidth: '52px', minHeight: '32px',
-                backgroundColor: slot.useBuffed ? '#22c55e20' : '#1a1a1a',
-                border: `1px solid ${slot.useBuffed ? '#22c55e50' : '#2a2a2a'}`,
-                borderRadius: '14px', cursor: 'pointer',
-                color: slot.useBuffed ? '#22c55e' : '#9ca3af',
-                fontSize: '0.6rem', fontWeight: '600',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.2rem',
-                transition: 'all 0.15s',
-              }}
-            >
-              {slot.useBuffed ? '⚡' : '🏃'}
-              <span style={{ fontSize: '0.55rem' }}>{slot.useBuffed ? 'Buff' : 'Reg'}</span>
-            </button>
-            {buffTimeRemaining != null && buffTimeRemaining > 0 && (
-              <span style={{
-                color: '#f59e0b', fontSize: '0.5rem', fontWeight: '600',
-                padding: '0.1rem 0.2rem', backgroundColor: '#f59e0b15',
-                border: '1px solid #f59e0b30', borderRadius: '3px',
-                whiteSpace: 'nowrap', lineHeight: 1.3,
-              }}>
-                ⏱ {formatCountdown(buffTimeRemaining)}
-              </span>
-            )}
-          </div>
-          <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
-            <button onClick={onMoveUp} disabled={index === 0} className="rally-focusable" aria-label={`Move ${slot.playerName} up`} style={arrowBtnStyle(index > 0, true)}>▲</button>
-            <button onClick={onMoveDown} disabled={index === total - 1} className="rally-focusable" aria-label={`Move ${slot.playerName} down`} style={arrowBtnStyle(index < total - 1, true)}>▼</button>
-            <button onClick={onRemove} className="rally-focusable" aria-label={`Remove ${slot.playerName} from queue`} style={{ ...arrowBtnStyle(true, true), color: '#ef4444' }}>✕</button>
-          </div>
-        </div>
-      )}
+      {/* Col: Alliance Tag */}
+      <span style={{
+        padding: slot.alliance ? '0.05rem 0.3rem' : 0,
+        borderRadius: '4px',
+        fontSize: '0.55rem', fontWeight: '700', letterSpacing: '0.03em',
+        backgroundColor: slot.alliance ? `${slotAllianceColor}20` : 'transparent',
+        color: slotAllianceColor,
+        border: slot.alliance ? `1px solid ${slotAllianceColor}40` : 'none',
+        whiteSpace: 'nowrap', textAlign: 'center',
+        minWidth: slot.alliance ? undefined : '20px',
+      }}>
+        {slot.alliance || ''}
+      </span>
+
+      {/* Col: March time */}
+      <span style={{
+        color: '#9ca3af', fontSize: '0.7rem', fontWeight: '600',
+        whiteSpace: 'nowrap', textAlign: 'center',
+      }}>
+        {slot.marchTime}s
+      </span>
+
+      {/* Col: Buff/Reg toggle + timer */}
+      <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', justifyContent: 'center' }}>
+        <button
+          onClick={onToggleBuff}
+          className="rally-focusable"
+          aria-label={slot.useBuffed ? 'Using buffed march speed. Click to switch to regular' : 'Using regular march speed. Click to switch to buffed'}
+          aria-pressed={slot.useBuffed}
+          style={buffBtnStyle}
+        >
+          {slot.useBuffed ? '⚡' : '🏃'}
+          <span style={{ fontSize: '0.55rem' }}>{slot.useBuffed ? 'Buff' : 'Reg'}</span>
+        </button>
+        {buffTimeRemaining != null && buffTimeRemaining > 0 && (
+          <span style={{
+            color: '#f59e0b', fontSize: '0.5rem', fontWeight: '600',
+            padding: '0.1rem 0.2rem', backgroundColor: '#f59e0b15',
+            border: '1px solid #f59e0b30', borderRadius: '3px',
+            whiteSpace: 'nowrap', lineHeight: 1.3,
+          }}>
+            {formatCountdown(buffTimeRemaining)}
+          </span>
+        )}
+      </span>
+
+      {/* Col: Up */}
+      <button onClick={onMoveUp} disabled={index === 0} className="rally-focusable" aria-label={`Move ${slot.playerName} up`} style={arrowBtnStyle(index > 0, isMobile)}>▲</button>
+
+      {/* Col: Down */}
+      <button onClick={onMoveDown} disabled={index === total - 1} className="rally-focusable" aria-label={`Move ${slot.playerName} down`} style={arrowBtnStyle(index < total - 1, isMobile)}>▼</button>
+
+      {/* Col: Remove */}
+      <button onClick={onRemove} className="rally-focusable" aria-label={`Remove ${slot.playerName} from queue`} style={{ ...arrowBtnStyle(true, isMobile), color: '#ef4444' }}>✕</button>
     </div>
   );
 };
@@ -714,30 +731,21 @@ export const PlayerModal: React.FC<{
   const { t } = useTranslation();
   const [name, setName] = useState('');
   const [team, setTeam] = useState<'ally' | 'enemy'>(defaultTeam);
+  const [alliance, setAlliance] = useState('');
   const [marchTimes, setMarchTimes] = useState<MarchTimes>(DEFAULT_MARCH);
-  // Track which fields were manually entered (not estimated)
-  const [manualFields, setManualFields] = useState<Record<string, Set<string>>>({});
   const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (editingPlayer) {
       setName(editingPlayer.name);
       setTeam(editingPlayer.team);
+      setAlliance(editingPlayer.alliance || '');
       setMarchTimes(editingPlayer.marchTimes);
-      // Mark all non-zero fields as manual on edit
-      const manual: Record<string, Set<string>> = {};
-      for (const [bKey, times] of Object.entries(editingPlayer.marchTimes)) {
-        const s = new Set<string>();
-        if (times.regular > 0) s.add('regular');
-        if (times.buffed > 0) s.add('buffed');
-        manual[bKey] = s;
-      }
-      setManualFields(manual);
     } else {
       setName('');
       setTeam(defaultTeam);
+      setAlliance('');
       setMarchTimes(DEFAULT_MARCH);
-      setManualFields({});
     }
   }, [editingPlayer, isOpen, defaultTeam]);
 
@@ -780,54 +788,20 @@ export const PlayerModal: React.FC<{
       name: name.trim(),
       team,
       marchTimes,
+      alliance: alliance.trim() || undefined,
     });
     onClose();
   };
 
   const updateMarch = (building: BuildingKey, type: MarchType, value: string) => {
     const num = parseInt(value) || 0;
-    const clamped = Math.max(0, Math.min(120, num));
-    const otherType: MarchType = type === 'regular' ? 'buffed' : 'regular';
-
-    // Track this field as manually entered
-    setManualFields(prev => {
-      const s = new Set(prev[building] || []);
-      if (clamped > 0) {
-        s.add(type);
-      } else {
-        s.delete(type);
-      }
-      return { ...prev, [building]: s };
-    });
+    const clamped = Math.max(0, Math.min(999, num));
 
     setMarchTimes(prev => {
       const current = prev[building];
-      const otherManual = manualFields[building]?.has(otherType);
       const updated = { ...current, [type]: clamped };
-
-      // Auto-estimate counterpart only if not manually entered
-      if (clamped > 0 && !otherManual) {
-        if (type === 'regular') {
-          updated.buffed = estimateBuffed(clamped);
-        } else {
-          updated.regular = estimateRegular(clamped);
-        }
-      }
-      // If cleared, also clear the estimated counterpart
-      if (clamped === 0 && !otherManual) {
-        updated[otherType] = 0;
-      }
-
       return { ...prev, [building]: updated };
     });
-  };
-
-  const isEstimated = (building: BuildingKey, type: MarchType): boolean => {
-    const manual = manualFields[building];
-    if (!manual) return false;
-    // It's estimated if the value is > 0, this field wasn't manually set, but the other was
-    const otherType: MarchType = type === 'regular' ? 'buffed' : 'regular';
-    return !manual.has(type) && manual.has(otherType) && marchTimes[building][type] > 0;
   };
 
   const buildings: BuildingKey[] = ['castle', 'turret1', 'turret2', 'turret3', 'turret4'];
@@ -891,11 +865,24 @@ export const PlayerModal: React.FC<{
           />
         </div>
 
-        <p style={{ color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
-          {t('rallyCoordinator.marchTimesHelp', 'March times in seconds (0–120). Enter one — the other is estimated automatically.')}
-        </p>
-        <p style={{ color: '#f59e0b', fontSize: '0.65rem', marginBottom: '0.75rem' }}>
-          {t('rallyCoordinator.marchTimesEstimate', '≈ = estimated (×1.55 ratio). Enter both to use exact values.')}
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ color: '#9ca3af', fontSize: '0.8rem', fontWeight: '600', display: 'block', marginBottom: '0.3rem' }}>
+            {t('rallyCoordinator.allianceLabel', 'Alliance')}
+          </label>
+          <input
+            value={alliance}
+            onChange={e => setAlliance(e.target.value)}
+            placeholder={t('rallyCoordinator.alliancePlaceholder', 'e.g. ABC1')}
+            maxLength={10}
+            style={{ ...inputStyle, borderColor: `${teamColor}30`, maxWidth: '160px' }}
+          />
+          <span style={{ color: '#6b7280', fontSize: '0.6rem', marginLeft: '0.5rem' }}>
+            {t('rallyCoordinator.allianceHint', 'Shown as a tag in queue & call order')}
+          </span>
+        </div>
+
+        <p style={{ color: '#9ca3af', fontSize: '0.75rem', marginBottom: '0.75rem' }}>
+          {t('rallyCoordinator.marchTimesHelp', 'March times in seconds. Enter regular and/or buffed values for each building.')}
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -910,33 +897,31 @@ export const PlayerModal: React.FC<{
               </span>
               <div style={{ position: 'relative' }}>
                 <input
-                  type="number" min="0" max="120"
+                  type="number" min="0" max="999"
                   value={marchTimes[b].regular || ''}
                   onChange={e => updateMarch(b, 'regular', e.target.value)}
-                  placeholder="Regular"
+                  placeholder={t('rallyCoordinator.regular', 'Regular')}
                   style={{
                     ...inputStyle, fontSize: '1rem', padding: '0.4rem 1.5rem 0.4rem 0.5rem',
-                    ...(isEstimated(b, 'regular') ? { borderColor: '#f59e0b40', color: '#f59e0b' } : {}),
                   }}
                 />
-                <span style={{ position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', color: isEstimated(b, 'regular') ? '#f59e0b' : '#6b7280', fontSize: '0.65rem' }}>
-                  {isEstimated(b, 'regular') ? '≈' : 's'}
+                <span style={{ position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', color: '#6b7280', fontSize: '0.65rem' }}>
+                  s
                 </span>
               </div>
               <div style={{ position: 'relative' }}>
                 <input
-                  type="number" min="0" max="120"
+                  type="number" min="0" max="999"
                   value={marchTimes[b].buffed || ''}
                   onChange={e => updateMarch(b, 'buffed', e.target.value)}
-                  placeholder="Buffed ⚡"
+                  placeholder={t('rallyCoordinator.buffedPlaceholder', 'Buffed ⚡')}
                   style={{
                     ...inputStyle, fontSize: '1rem', padding: '0.4rem 1.5rem 0.4rem 0.5rem',
-                    borderColor: isEstimated(b, 'buffed') ? '#f59e0b40' : '#22c55e30',
-                    ...(isEstimated(b, 'buffed') ? { color: '#f59e0b' } : {}),
+                    borderColor: '#22c55e30',
                   }}
                 />
-                <span style={{ position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', color: isEstimated(b, 'buffed') ? '#f59e0b' : '#22c55e', fontSize: '0.65rem' }}>
-                  {isEstimated(b, 'buffed') ? '≈' : '⚡'}
+                <span style={{ position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)', color: '#22c55e', fontSize: '0.65rem' }}>
+                  ⚡
                 </span>
               </div>
             </div>
@@ -954,6 +939,236 @@ export const PlayerModal: React.FC<{
           </button>
         </div>
       </div>
+    </div>
+  );
+};
+
+// --- Live Call Timer (real-time voice call ticker) ---
+export const LiveCallTimer: React.FC<{
+  rallies: CalculatedRally[];
+  isMobile: boolean;
+  colors: string[];
+  accentColor: string;
+}> = ({ rallies, isMobile, colors, accentColor }) => {
+  const { t } = useTranslation();
+  const [running, setRunning] = useState(false);
+  const [elapsed, setElapsed] = useState(-1); // -1 = not started, 0+ = seconds elapsed
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Build a timeline: for each second, which leaders start
+  const maxDelay = Math.max(0, ...rallies.map(r => r.startDelay));
+  type TimelineLeader = { name: string; color: string; index: number; alliance?: string; team: 'ally' | 'enemy' };
+  const timeline = useMemo(() => {
+    const map = new Map<number, TimelineLeader[]>();
+    rallies.forEach((r, i) => {
+      const sec = r.startDelay;
+      if (!map.has(sec)) map.set(sec, []);
+      map.get(sec)!.push({ name: r.name, color: colors[i % colors.length] ?? '#3b82f6', index: i, alliance: r.alliance, team: r.team });
+    });
+    const result: { second: number; leaders: TimelineLeader[] }[] = [];
+    for (let s = 0; s <= maxDelay; s++) {
+      result.push({ second: s, leaders: map.get(s) || [] });
+    }
+    return result;
+  }, [rallies, colors, maxDelay]);
+
+  const start = useCallback(() => {
+    setElapsed(0);
+    setRunning(true);
+  }, []);
+
+  const stop = useCallback(() => {
+    setRunning(false);
+    if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+  }, []);
+
+  const reset = useCallback(() => {
+    stop();
+    setElapsed(-1);
+  }, [stop]);
+
+  useEffect(() => {
+    if (!running) return;
+    intervalRef.current = setInterval(() => {
+      setElapsed(prev => {
+        const next = prev + 1;
+        if (next > maxDelay + 2) { // Give 2 extra seconds after last leader
+          setRunning(false);
+          return prev;
+        }
+        return next;
+      });
+    }, 1000);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [running, maxDelay]);
+
+  // Auto-scroll to current second
+  useEffect(() => {
+    if (elapsed < 0 || !scrollRef.current) return;
+    const el = scrollRef.current.querySelector(`[data-sec="${elapsed}"]`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [elapsed]);
+
+  const finished = elapsed > maxDelay;
+
+  return (
+    <div style={{
+      backgroundColor: '#0a0a0a', borderRadius: '10px',
+      border: `1px solid ${running ? `${accentColor}50` : '#2a2a2a'}`,
+      padding: isMobile ? '0.6rem' : '0.75rem',
+      transition: 'border-color 0.3s',
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+        <h4 style={cardHeader()}>🎙️ {t('rallyCoordinator.liveCallTimer', 'LIVE CALL TIMER')}</h4>
+        <div style={{ display: 'flex', gap: '0.3rem' }}>
+          {!running && elapsed < 0 && (
+            <button onClick={start} style={{
+              padding: isMobile ? '0.4rem 0.75rem' : '0.25rem 0.6rem',
+              minHeight: isMobile ? '44px' : 'auto',
+              backgroundColor: '#22c55e20', border: '1px solid #22c55e50',
+              borderRadius: '6px', color: '#22c55e',
+              fontSize: '0.7rem', fontWeight: '700', cursor: 'pointer',
+            }}>
+              ▶ {t('rallyCoordinator.startTimer', 'START')}
+            </button>
+          )}
+          {running && (
+            <button onClick={stop} style={{
+              padding: isMobile ? '0.4rem 0.75rem' : '0.25rem 0.6rem',
+              minHeight: isMobile ? '44px' : 'auto',
+              backgroundColor: '#ef444420', border: '1px solid #ef444450',
+              borderRadius: '6px', color: '#ef4444',
+              fontSize: '0.7rem', fontWeight: '700', cursor: 'pointer',
+            }}>
+              ⏸ {t('rallyCoordinator.stopTimer', 'STOP')}
+            </button>
+          )}
+          {!running && elapsed >= 0 && (
+            <>
+              <button onClick={start} style={{
+                padding: isMobile ? '0.4rem 0.75rem' : '0.25rem 0.6rem',
+                minHeight: isMobile ? '44px' : 'auto',
+                backgroundColor: '#22c55e20', border: '1px solid #22c55e50',
+                borderRadius: '6px', color: '#22c55e',
+                fontSize: '0.7rem', fontWeight: '700', cursor: 'pointer',
+              }}>
+                ▶ {t('rallyCoordinator.resumeTimer', 'RESUME')}
+              </button>
+              <button onClick={reset} style={{
+                padding: isMobile ? '0.4rem 0.75rem' : '0.25rem 0.6rem',
+                minHeight: isMobile ? '44px' : 'auto',
+                backgroundColor: '#ffffff08', border: '1px solid #2a2a2a',
+                borderRadius: '6px', color: '#9ca3af',
+                fontSize: '0.7rem', fontWeight: '600', cursor: 'pointer',
+              }}>
+                ↺ {t('rallyCoordinator.resetTimer', 'RESET')}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Not started */}
+      {elapsed < 0 && (
+        <p style={{ color: '#6b7280', fontSize: '0.7rem', textAlign: 'center', padding: '0.5rem 0' }}>
+          {t('rallyCoordinator.liveTimerHint', 'Press START when you begin the voice call. The timer will guide you through each leader second by second.')}
+        </p>
+      )}
+
+      {/* Timer display */}
+      {elapsed >= 0 && (
+        <div ref={scrollRef} style={{
+          display: 'flex', flexDirection: 'column', gap: '2px',
+          maxHeight: isMobile ? '280px' : '340px', overflowY: 'auto',
+        }}>
+          {timeline.map(({ second, leaders }: { second: number; leaders: TimelineLeader[] }) => {
+            const isCurrent = second === elapsed;
+            const isPast = second < elapsed;
+            const isFuture = second > elapsed;
+            const hasLeaders = leaders.length > 0;
+
+            return (
+              <div
+                key={second}
+                data-sec={second}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '0.5rem',
+                  padding: isCurrent ? '0.5rem 0.6rem' : '0.25rem 0.6rem',
+                  borderRadius: '8px',
+                  backgroundColor: isCurrent
+                    ? hasLeaders ? `${accentColor}20` : '#ffffff08'
+                    : 'transparent',
+                  border: isCurrent
+                    ? `2px solid ${hasLeaders ? accentColor : '#4b5563'}`
+                    : '2px solid transparent',
+                  opacity: isPast ? 0.35 : isFuture ? 0.6 : 1,
+                  transition: 'all 0.2s',
+                  transform: isCurrent ? 'scale(1.02)' : 'none',
+                }}
+              >
+                {/* Second counter */}
+                <span style={{
+                  minWidth: '32px', textAlign: 'right',
+                  color: isCurrent ? '#fff' : '#6b7280',
+                  fontSize: isCurrent ? '0.9rem' : '0.7rem',
+                  fontWeight: isCurrent ? '800' : '600',
+                  fontFamily: 'monospace',
+                }}>
+                  {second}s
+                </span>
+
+                {/* Leaders or empty marker */}
+                {hasLeaders ? (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', flex: 1 }}>
+                    {leaders.map((l) => (
+                      <span key={l.index} style={{
+                        padding: isCurrent ? '0.25rem 0.6rem' : '0.15rem 0.4rem',
+                        borderRadius: '14px',
+                        backgroundColor: isCurrent ? l.color : `${l.color}30`,
+                        color: isCurrent ? '#000' : l.color,
+                        fontSize: isCurrent ? '0.85rem' : '0.7rem',
+                        fontWeight: '700',
+                        whiteSpace: 'nowrap',
+                        display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                      }}>
+                        📢 {l.name}
+                        {l.alliance && (
+                          <span style={{
+                            fontSize: '0.55rem', padding: '0 0.2rem',
+                            borderRadius: '3px', fontWeight: '700',
+                            backgroundColor: isCurrent ? 'rgba(0,0,0,0.15)' : (l.team === 'enemy' ? '#ef444430' : `${l.color}20`),
+                            color: isCurrent ? '#000' : (l.team === 'enemy' ? '#ef4444' : l.color),
+                          }}>
+                            {l.alliance}
+                          </span>
+                        )}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span style={{
+                    color: isCurrent ? '#4b5563' : '#2a2a2a',
+                    fontSize: '0.65rem', fontStyle: 'italic',
+                  }}>
+                    —
+                  </span>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Finished indicator */}
+          {finished && (
+            <div style={{
+              textAlign: 'center', padding: '0.75rem',
+              color: '#22c55e', fontSize: '0.85rem', fontWeight: '700',
+            }}>
+              ✅ {t('rallyCoordinator.allRalliesCalled', 'All rallies called!')}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -1022,30 +1237,48 @@ export const CallOrderOutput: React.FC<{
         </button>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-        {rallies.map((r, i) => (
-          <div key={i} style={{
-            display: 'flex', alignItems: 'center', gap: '0.4rem',
-            padding: '0.35rem 0.5rem', backgroundColor: `${colors[i % colors.length]}08`,
-            borderRadius: '8px', borderLeft: `3px solid ${colors[i % colors.length]}`,
-          }}>
-            <span style={{
-              color: colors[i % colors.length],
-              fontWeight: '700', fontSize: '0.8rem', minWidth: '18px',
+        {rallies.map((r, i) => {
+          const prevDelay = i > 0 ? rallies[i - 1]!.startDelay : 0;
+          const diff = r.startDelay - prevDelay;
+          return (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', gap: '0.4rem',
+              padding: '0.35rem 0.5rem', backgroundColor: `${colors[i % colors.length]}08`,
+              borderRadius: '8px', borderLeft: `3px solid ${colors[i % colors.length]}`,
             }}>
-              {i + 1}.
-            </span>
-            <span style={{ color: '#fff', fontWeight: '600', fontSize: '0.82rem', flex: 1 }}>
-              {r.name}
-            </span>
-            <span style={{ color: '#d1d5db', fontSize: '0.75rem' }}>
-              {r.startDelay === 0 ? (
-                <span style={{ color: '#22c55e', fontWeight: '700' }}>{t('rallyCoordinator.callNow')}</span>
-              ) : (
-                <>T+<span style={{ color: accentColor, fontWeight: '700' }}>{r.startDelay}s</span></>
-              )}
-            </span>
-          </div>
-        ))}
+              <span style={{
+                color: colors[i % colors.length],
+                fontWeight: '700', fontSize: '0.8rem', minWidth: '18px',
+              }}>
+                {i + 1}.
+              </span>
+              <span style={{ color: '#fff', fontWeight: '600', fontSize: '0.82rem', flex: 1, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                {r.name}
+                {r.alliance && (() => {
+                  const ac = getAllianceColor(r.team, r.alliance);
+                  return (
+                    <span style={{
+                      fontSize: '0.55rem', padding: '0.05rem 0.25rem', borderRadius: '4px',
+                      fontWeight: '700', letterSpacing: '0.03em',
+                      backgroundColor: `${ac}20`, color: ac, border: `1px solid ${ac}40`,
+                    }}>
+                      {r.alliance}
+                    </span>
+                  );
+                })()}
+              </span>
+              <span style={{ color: '#d1d5db', fontSize: '0.75rem' }}>
+                {i === 0 ? (
+                  <span style={{ color: '#22c55e', fontWeight: '700' }}>{t('rallyCoordinator.callNow')}</span>
+                ) : diff === 0 ? (
+                  <span style={{ color: '#f59e0b', fontWeight: '700' }}>{t('rallyCoordinator.sameSec', 'same sec')}</span>
+                ) : (
+                  <>+<span style={{ color: accentColor, fontWeight: '700' }}>{diff}s</span>{' '}<span style={{ color: '#6b7280', fontSize: '0.6rem' }}>{t('rallyCoordinator.afterPrev', 'after prev')}</span></>
+                )}
+              </span>
+            </div>
+          );
+        })}
       </div>
 
       {/* Copy format preview */}
@@ -1060,7 +1293,12 @@ export const CallOrderOutput: React.FC<{
           fontSize: '0.6rem', color: '#9ca3af', margin: 0,
           whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: 'monospace', lineHeight: 1.5,
         }}>
-          {`📢 RALLY ORDER: ${getBuildingLabel(building, t)}\n\n${rallies.map(r => `${r.name} — T+${r.startDelay}s`).join('\n')}`}
+          {`📢 RALLY ORDER: ${getBuildingLabel(building, t)}\n\n${rallies.map((r, i) => {
+            const prevDelay = i > 0 ? rallies[i - 1]!.startDelay : 0;
+            const diff = r.startDelay - prevDelay;
+            const label = i === 0 ? 'CALL NOW' : diff === 0 ? 'same sec' : `+${diff}s`;
+            return `${r.name} — ${label}`;
+          }).join('\n')}`}
         </pre>
       </div>
     </div>

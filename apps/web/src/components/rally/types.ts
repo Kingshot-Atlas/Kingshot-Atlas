@@ -18,6 +18,7 @@ export interface RallyPlayer {
   name: string;
   team: 'ally' | 'enemy';
   marchTimes: MarchTimes;
+  alliance?: string;
 }
 
 export type BuildingKey = 'castle' | 'turret1' | 'turret2' | 'turret3' | 'turret4';
@@ -30,6 +31,7 @@ export interface RallySlot {
   marchTime: number;
   team: 'ally' | 'enemy';
   useBuffed: boolean;
+  alliance?: string;
 }
 
 export interface CalculatedRally {
@@ -39,6 +41,7 @@ export interface CalculatedRally {
   hitOrder: number;
   arrivalTime: number;
   team: 'ally' | 'enemy';
+  alliance?: string;
 }
 
 export interface RallyPreset {
@@ -66,7 +69,7 @@ export const BUILDING_LABELS: Record<BuildingKey, string> = {
 };
 
 export const BUILDING_SHORT: Record<BuildingKey, string> = {
-  castle: 'KC',
+  castle: 'Castle',
   turret1: 'South',
   turret2: 'West',
   turret3: 'East',
@@ -88,7 +91,7 @@ export const getBuildingLabel = (key: BuildingKey, t: (k: string, fallback: stri
 
 export const getBuildingShort = (key: BuildingKey, t: (k: string, fallback: string) => string): string => {
   const map: Record<BuildingKey, [string, string]> = {
-    castle: ['building.castleShort', 'KC'],
+    castle: ['building.castleShort', 'Castle'],
     turret1: ['building.turret1Short', 'South'],
     turret2: ['building.turret2Short', 'West'],
     turret3: ['building.turret3Short', 'East'],
@@ -116,6 +119,27 @@ export const DEFAULT_MARCH: MarchTimes = {
 
 export const ALLY_COLOR = '#3b82f6';
 export const ENEMY_COLOR = '#ef4444';
+
+// Alliance color palette for ally pills — deterministic by alliance tag
+const ALLIANCE_COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#a855f7', '#14b8a6', '#ec4899', '#6366f1', '#84cc16'];
+const NO_ALLIANCE_COLOR = '#6b7280'; // gray for players without an alliance tag
+
+/**
+ * Returns a consistent color for a player based on team + alliance.
+ * - Enemies always get ENEMY_COLOR (red).
+ * - Allies with no alliance get gray.
+ * - Allies with an alliance get a deterministic color from the palette.
+ */
+export function getAllianceColor(team: 'ally' | 'enemy', alliance?: string): string {
+  if (team === 'enemy') return ENEMY_COLOR;
+  if (!alliance) return NO_ALLIANCE_COLOR;
+  // Simple deterministic hash → palette index
+  let hash = 0;
+  for (let i = 0; i < alliance.length; i++) {
+    hash = ((hash << 5) - hash + alliance.charCodeAt(i)) | 0;
+  }
+  return ALLIANCE_COLORS[Math.abs(hash) % ALLIANCE_COLORS.length]!;
+}
 
 export const RALLY_COLORS = [
   '#3b82f6', '#22c55e', '#f59e0b', '#a855f7',
@@ -299,7 +323,7 @@ export function calculateRallyTimings(
   if (slots.length === 0) return [];
   if (slots.length === 1) {
     const s = slots[0]!;
-    return [{ name: s.playerName, marchTime: s.marchTime, startDelay: 0, hitOrder: 1, arrivalTime: s.marchTime, team: s.team }];
+    return [{ name: s.playerName, marchTime: s.marchTime, startDelay: 0, hitOrder: 1, arrivalTime: s.marchTime, team: s.team, alliance: s.alliance }];
   }
 
   // Timeline does NOT include fill time — only march-to-hit
@@ -318,8 +342,56 @@ export function calculateRallyTimings(
       hitOrder: i + 1,
       arrivalTime: delay + s.marchTime,
       team: s.team,
+      alliance: s.alliance,
     };
   });
 
   return results.sort((a, b) => a.startDelay - b.startDelay);
+}
+
+/**
+ * Counter-specific timing: enemies hit first (in queue order), then allies
+ * hit starting after the last enemy arrival + gap.
+ */
+export function calculateCounterTimings(
+  slots: RallySlot[],
+  gap: number
+): CalculatedRally[] {
+  if (slots.length === 0) return [];
+
+  const enemies = slots.filter(s => s.team === 'enemy');
+  const allies  = slots.filter(s => s.team === 'ally');
+
+  // If only one team exists, fall back to normal calculation
+  if (enemies.length === 0 || allies.length === 0) {
+    return calculateRallyTimings(slots, gap);
+  }
+
+  // 1. Calculate enemy timings normally
+  const enemyResults = calculateRallyTimings(enemies, gap);
+
+  // 2. Find the latest enemy arrival time
+  const lastEnemyArrival = Math.max(...enemyResults.map(r => r.arrivalTime));
+
+  // 3. Calculate ally timings: first ally hits at lastEnemyArrival + gap
+  const allyBaseHit = lastEnemyArrival + gap;
+  const allyTimings = calculateRallyTimings(allies, gap);
+
+  // Shift ally timings so the first ally arrives at allyBaseHit
+  const firstAllyArrival = allies.length > 0
+    ? Math.min(...allyTimings.map(r => r.arrivalTime))
+    : 0;
+  const allyShift = allyBaseHit - firstAllyArrival;
+
+  const shiftedAllies: CalculatedRally[] = allyTimings.map((r, i) => ({
+    ...r,
+    startDelay: r.startDelay + allyShift,
+    arrivalTime: r.arrivalTime + allyShift,
+    hitOrder: enemies.length + i + 1,
+  }));
+
+  // Re-number enemy hit orders
+  const numberedEnemies = enemyResults.map((r, i) => ({ ...r, hitOrder: i + 1 }));
+
+  return [...numberedEnemies, ...shiftedAllies].sort((a, b) => a.startDelay - b.startDelay);
 }

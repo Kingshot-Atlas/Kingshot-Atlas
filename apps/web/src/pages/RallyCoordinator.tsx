@@ -9,7 +9,8 @@ import {
   RALLY_COLORS, COUNTER_COLORS,
   CARD, cardHeader, focusRingStyle,
   getBuildingLabel, STORAGE_KEY_PLAYERS, loadFromStorage,
-  IntervalSlider, GanttChart, PlayerModal, CallOrderOutput,
+  getAllianceColor,
+  IntervalSlider, GanttChart, PlayerModal, CallOrderOutput, LiveCallTimer,
   QueueDropZone,
   RallyPlayersColumn, BuffConfirmPopup,
   useBattlePlanner,
@@ -399,8 +400,6 @@ const RallyCoordinator: React.FC = () => {
             onSavePreset={rc.savePreset}
             onLoadPreset={rc.loadPreset}
             onDeletePreset={rc.deletePreset}
-            onExportPlayers={rc.exportPlayers}
-            onImportPlayers={rc.importPlayers}
             onDuplicatePlayer={rc.duplicatePlayer}
           />}
 
@@ -417,7 +416,8 @@ const RallyCoordinator: React.FC = () => {
                   {t('battlePlanner.quickAddToRally', 'Tap to add to rally')}
                 </span>
                 {rc.allies.map(p => {
-                  const inQueue = rc.queuedPlayerIds.has(p.id) || rc.counterQueuedIds.has(p.id);
+                  const inQueue = rc.queuedPlayerIds.has(p.id);
+                  const pColor = getAllianceColor(p.team, p.alliance);
                   return (
                     <button
                       key={p.id}
@@ -425,15 +425,15 @@ const RallyCoordinator: React.FC = () => {
                       onClick={() => rc.addToQueue(p, rc.marchType === 'buffed')}
                       style={{
                         padding: '0.2rem 0.5rem', borderRadius: '14px',
-                        backgroundColor: inQueue ? '#1a1a1a' : `${ALLY_COLOR}12`,
-                        border: `1px solid ${inQueue ? '#2a2a2a' : `${ALLY_COLOR}40`}`,
+                        backgroundColor: inQueue ? '#1a1a1a' : `${pColor}12`,
+                        border: `1px solid ${inQueue ? '#2a2a2a' : `${pColor}40`}`,
                         color: inQueue ? '#6b7280' : '#fff',
                         fontSize: '0.65rem', fontWeight: '600', cursor: inQueue ? 'not-allowed' : 'pointer',
                         opacity: inQueue ? 0.4 : 1, minHeight: '30px',
                         display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
                       }}
                     >
-                      <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: ALLY_COLOR }} />
+                      <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: pColor }} />
                       {p.name}
                       {p.marchTimes[rc.selectedBuilding]?.[rc.marchType] > 0 && (
                         <span style={{ color: '#9ca3af', fontSize: '0.55rem' }}>
@@ -479,14 +479,22 @@ const RallyCoordinator: React.FC = () => {
 
             {/* 📢 RALLY CALL ORDER */}
             {rc.calculatedRallies.length >= 2 ? (
-              <CallOrderOutput
-                rallies={rc.calculatedRallies}
-                building={rc.selectedBuilding}
-                isMobile={isMobile}
-                title="📢 RALLY ORDER"
-                colors={RALLY_COLORS}
-                accentColor={ALLY_COLOR}
-              />
+              <>
+                <CallOrderOutput
+                  rallies={rc.calculatedRallies}
+                  building={rc.selectedBuilding}
+                  isMobile={isMobile}
+                  title="📢 RALLY ORDER"
+                  colors={RALLY_COLORS}
+                  accentColor={ALLY_COLOR}
+                />
+                <LiveCallTimer
+                  rallies={rc.calculatedRallies}
+                  isMobile={isMobile}
+                  colors={RALLY_COLORS}
+                  accentColor={ALLY_COLOR}
+                />
+              </>
             ) : (
               <div style={{ ...CARD, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100px' }}>
                 <p style={{ color: '#9ca3af', fontSize: '0.75rem', textAlign: 'center' }}>
@@ -578,8 +586,8 @@ const RallyCoordinator: React.FC = () => {
                   {t('battlePlanner.quickAddToCounter', 'Tap to add to counter')}
                 </span>
                 {rc.players.map(p => {
-                  const inQueue = rc.queuedPlayerIds.has(p.id) || rc.counterQueuedIds.has(p.id);
-                  const pillColor = p.team === 'ally' ? ALLY_COLOR : ENEMY_COLOR;
+                  const inQueue = rc.counterQueuedIds.has(p.id);
+                  const pColor = getAllianceColor(p.team, p.alliance);
                   return (
                     <button
                       key={p.id}
@@ -587,15 +595,15 @@ const RallyCoordinator: React.FC = () => {
                       onClick={() => rc.addToCounterQueue(p, rc.marchType === 'buffed')}
                       style={{
                         padding: '0.2rem 0.5rem', borderRadius: '14px',
-                        backgroundColor: inQueue ? '#1a1a1a' : `${pillColor}12`,
-                        border: `1px solid ${inQueue ? '#2a2a2a' : `${pillColor}40`}`,
+                        backgroundColor: inQueue ? '#1a1a1a' : `${pColor}12`,
+                        border: `1px solid ${inQueue ? '#2a2a2a' : `${pColor}40`}`,
                         color: inQueue ? '#6b7280' : '#fff',
                         fontSize: '0.65rem', fontWeight: '600', cursor: inQueue ? 'not-allowed' : 'pointer',
                         opacity: inQueue ? 0.4 : 1, minHeight: '30px',
                         display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
                       }}
                     >
-                      <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: pillColor }} />
+                      <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: pColor }} />
                       {p.name}
                       {p.marchTimes[rc.selectedBuilding]?.[rc.marchType] > 0 && (
                         <span style={{ color: '#9ca3af', fontSize: '0.55rem' }}>
@@ -652,14 +660,22 @@ const RallyCoordinator: React.FC = () => {
 
             {/* 📢 COUNTER CALL ORDER */}
             {rc.calculatedCounters.length >= 1 ? (
-              <CallOrderOutput
-                rallies={rc.calculatedCounters}
-                building={rc.selectedBuilding}
-                isMobile={isMobile}
-                title="📢 COUNTER ORDER"
-                colors={COUNTER_COLORS}
-                accentColor={ENEMY_COLOR}
-              />
+              <>
+                <CallOrderOutput
+                  rallies={rc.calculatedCounters}
+                  building={rc.selectedBuilding}
+                  isMobile={isMobile}
+                  title="📢 COUNTER ORDER"
+                  colors={COUNTER_COLORS}
+                  accentColor={ENEMY_COLOR}
+                />
+                <LiveCallTimer
+                  rallies={rc.calculatedCounters}
+                  isMobile={isMobile}
+                  colors={COUNTER_COLORS}
+                  accentColor={ENEMY_COLOR}
+                />
+              </>
             ) : (
               <div style={{ ...CARD, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100px' }}>
                 <p style={{ color: '#9ca3af', fontSize: '0.75rem', textAlign: 'center' }}>

@@ -65,7 +65,7 @@ const SessionManager: React.FC<SessionManagerProps> = ({
   if (isSessionLoading) {
     return (
       <div style={{ ...CARD, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-        <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>Loading sessions...</span>
+        <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>{t('battlePlanner.loadingSessions', 'Loading sessions...')}</span>
       </div>
     );
   }
@@ -98,8 +98,8 @@ const SessionManager: React.FC<SessionManagerProps> = ({
                   {session!.name}
                 </div>
                 <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>
-                  K{session!.kingdom_number} · {isReadOnly ? 'Archived' : 'Active'}
-                  {leaders.length > 0 && ` · ${leaders.length} captain${leaders.length !== 1 ? 's' : ''}`}
+                  K{session!.kingdom_number} · {isReadOnly ? t('battlePlanner.archived', 'Archived') : t('battlePlanner.active', 'Active')}
+                  {leaders.length > 0 && ` · ${t('battlePlanner.captainCount', '{{count}} captain(s)', { count: leaders.length })}`}
                 </div>
               </div>
             </div>
@@ -113,7 +113,7 @@ const SessionManager: React.FC<SessionManagerProps> = ({
                   fontWeight: '600', cursor: 'pointer',
                 }}
               >
-                {showSessionList ? 'Hide' : 'Sessions'}
+                {showSessionList ? t('battlePlanner.hide', 'Hide') : t('battlePlanner.sessions', 'Sessions')}
               </button>
               {!isReadOnly && (
                 <button
@@ -125,7 +125,7 @@ const SessionManager: React.FC<SessionManagerProps> = ({
                     fontWeight: '600', cursor: 'pointer',
                   }}
                 >
-                  Archive
+                  {t('battlePlanner.archive', 'Archive')}
                 </button>
               )}
             </div>
@@ -139,10 +139,10 @@ const SessionManager: React.FC<SessionManagerProps> = ({
           }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#d1d5db', marginBottom: '0.15rem' }}>
-                No active session
+                {t('battlePlanner.noActiveSession', 'No active session')}
               </div>
               <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>
-                Create a session to enable collaborative planning with your kingdom
+                {t('battlePlanner.createSessionHint', 'Create a session to enable collaborative planning with your kingdom')}
               </div>
             </div>
             <div style={{ display: 'flex', gap: '0.3rem' }}>
@@ -155,7 +155,7 @@ const SessionManager: React.FC<SessionManagerProps> = ({
                   fontWeight: '700', cursor: 'pointer',
                 }}
               >
-                + New Session
+                {t('battlePlanner.newSession', '+ New Session')}
               </button>
               {sessions.length > 0 && (
                 <button
@@ -167,7 +167,7 @@ const SessionManager: React.FC<SessionManagerProps> = ({
                     fontWeight: '600', cursor: 'pointer',
                   }}
                 >
-                  Past Sessions ({sessions.length})
+                  {t('battlePlanner.pastSessions', 'Past Sessions ({{count}})', { count: sessions.length })}
                 </button>
               )}
             </div>
@@ -182,7 +182,7 @@ const SessionManager: React.FC<SessionManagerProps> = ({
           border: '1px solid #22c55e30',
         }}>
           <h4 style={{ ...cardHeader('#22c55e'), margin: 0, fontSize: '0.75rem' }}>
-            Create Battle Session
+            {t('battlePlanner.createBattleSession', 'Create Battle Session')}
           </h4>
           <div style={{ display: 'flex', gap: '0.3rem' }}>
             <input
@@ -204,12 +204,12 @@ const SessionManager: React.FC<SessionManagerProps> = ({
                 cursor: newName.trim() && kingdomNumber ? 'pointer' : 'not-allowed',
               }}
             >
-              Create
+              {t('battlePlanner.create', 'Create')}
             </button>
           </div>
           {!kingdomNumber && (
             <p style={{ color: '#f59e0b', fontSize: '0.65rem', margin: 0 }}>
-              Link your Kingshot account first to create a session
+              {t('battlePlanner.linkAccountFirst', 'Link your Kingshot account first to create a session')}
             </p>
           )}
         </div>
@@ -219,7 +219,7 @@ const SessionManager: React.FC<SessionManagerProps> = ({
       {showSessionList && sessions.length > 0 && (
         <div style={{ ...CARD, display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
           <h4 style={{ ...cardHeader(), margin: 0, fontSize: '0.75rem' }}>
-            All Sessions
+            {t('battlePlanner.allSessions', 'All Sessions')}
           </h4>
           {sessions.map(s => (
             <div key={s.id} style={{
@@ -256,7 +256,7 @@ const SessionManager: React.FC<SessionManagerProps> = ({
                       fontWeight: '600', cursor: 'pointer',
                     }}
                   >
-                    Switch
+                    {t('battlePlanner.switch', 'Switch')}
                   </button>
                 )}
                 {s.status === 'archived' && (
@@ -269,7 +269,7 @@ const SessionManager: React.FC<SessionManagerProps> = ({
                       fontWeight: '600', cursor: 'pointer',
                     }}
                   >
-                    Reactivate
+                    {t('battlePlanner.reactivate', 'Reactivate')}
                   </button>
                 )}
                 <button
@@ -281,7 +281,7 @@ const SessionManager: React.FC<SessionManagerProps> = ({
                     fontWeight: '600', cursor: 'pointer',
                   }}
                 >
-                  Delete
+                  {t('battlePlanner.delete', 'Delete')}
                 </button>
               </div>
             </div>
@@ -300,10 +300,10 @@ const SessionManager: React.FC<SessionManagerProps> = ({
             <span style={{ fontSize: '1.1rem' }}>📦</span>
             <div>
               <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#d1d5db' }}>
-                Import existing players?
+                {t('battlePlanner.importExistingPlayers', 'Import existing players?')}
               </div>
               <div style={{ fontSize: '0.6rem', color: '#9ca3af' }}>
-                Found {localPlayerCount} player(s) in local storage
+                {t('battlePlanner.foundLocalPlayers', 'Found {{count}} player(s) in local storage', { count: localPlayerCount })}
               </div>
             </div>
           </div>
@@ -316,7 +316,7 @@ const SessionManager: React.FC<SessionManagerProps> = ({
                 color: '#fff', fontSize: '0.7rem', fontWeight: '700', cursor: 'pointer',
               }}
             >
-              Import Players
+              {t('battlePlanner.importPlayersBtn', 'Import Players')}
             </button>
             <button
               onClick={() => setShowMigratePrompt(false)}
@@ -327,7 +327,7 @@ const SessionManager: React.FC<SessionManagerProps> = ({
                 fontWeight: '600', cursor: 'pointer',
               }}
             >
-              Skip
+              {t('battlePlanner.skip', 'Skip')}
             </button>
           </div>
         </div>

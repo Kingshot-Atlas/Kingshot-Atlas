@@ -14,7 +14,7 @@ import {
   BUFF_DURATION_MS, STORAGE_KEY_PLAYERS, STORAGE_KEY_PRESETS, STORAGE_KEY_BUFF_TIMERS,
   loadFromStorage, saveToStorage,
   playEnemyBuffExpireSound, playAllyBuffExpireSound,
-  calculateRallyTimings, getBuildingLabel,
+  calculateRallyTimings, calculateCounterTimings, getBuildingLabel,
 } from './types';
 import { useTouchDragReorder } from './RallySubComponents';
 import { useBattlePlannerSession } from './useBattlePlannerSession';
@@ -156,7 +156,7 @@ export function useBattlePlanner() {
     playerList: RallyPlayer[]
   ): RallySlot[] => {
     return rawSlots
-      .map(s => {
+      .map((s): RallySlot | null => {
         const player = playerList.find(p => p.id === s.playerId);
         if (!player) return null;
         const mt = player.marchTimes[building][s.useBuffed ? 'buffed' : 'regular'];
@@ -167,6 +167,7 @@ export function useBattlePlanner() {
           marchTime: mt,
           team: player.team,
           useBuffed: s.useBuffed,
+          alliance: player.alliance,
         };
       })
       .filter((s): s is RallySlot => s !== null);
@@ -202,7 +203,7 @@ export function useBattlePlanner() {
   const gap = hitMode === 'simultaneous' ? 0 : interval;
   const cGap = counterHitMode === 'simultaneous' ? 0 : counterInterval;
   const calculatedRallies = useMemo(() => calculateRallyTimings(rallyQueue, gap), [rallyQueue, gap]);
-  const calculatedCounters = useMemo(() => calculateRallyTimings(counterQueue, cGap), [counterQueue, cGap]);
+  const calculatedCounters = useMemo(() => calculateCounterTimings(counterQueue, cGap), [counterQueue, cGap]);
   const queuedPlayerIds = useMemo(() => new Set(rallyQueue.map(s => s.playerId)), [rallyQueue]);
   const counterQueuedIds = useMemo(() => new Set(counterQueue.map(s => s.playerId)), [counterQueue]);
 
@@ -240,6 +241,25 @@ export function useBattlePlanner() {
     }
   }, [inSession, selectedBuilding, supabaseQueues]);
 
+  // Sync local queue slots when player data changes (name, team, alliance, march times)
+  useEffect(() => {
+    if (inSession) return; // session mode re-resolves via resolveSlots each render
+    const syncQueue = (prev: RallySlot[]) => prev.map(slot => {
+      const player = players.find(p => p.id === slot.playerId);
+      if (!player) return slot;
+      const mt = player.marchTimes[selectedBuilding][slot.useBuffed ? 'buffed' : 'regular'];
+      return {
+        ...slot,
+        playerName: player.name,
+        team: player.team,
+        alliance: player.alliance,
+        marchTime: mt > 0 ? mt : player.marchTimes[selectedBuilding].regular,
+      };
+    }).filter(slot => slot.marchTime > 0);
+    setLocalRallyQueue(syncQueue);
+    setLocalCounterQueue(syncQueue);
+  }, [selectedBuilding, players, inSession]);
+
   // ─── Actions ───
   const addToQueue = useCallback((player: RallyPlayer, useBuffed: boolean = false) => {
     if (queuedPlayerIds.has(player.id)) return;
@@ -248,7 +268,7 @@ export function useBattlePlanner() {
       showToast(t('battlePlanner.noMarchTime', 'Set march times for {{building}} first', { building: getBuildingLabel(selectedBuilding, t) }), 'info');
       return;
     }
-    const newSlot: RallySlot = { playerId: player.id, playerName: player.name, marchTime: mt, team: player.team, useBuffed };
+    const newSlot: RallySlot = { playerId: player.id, playerName: player.name, marchTime: mt, team: player.team, useBuffed, alliance: player.alliance };
     persistRallySlots([...rallyQueue, newSlot]);
     if ('vibrate' in navigator) navigator.vibrate(30);
     setLastAnnouncement(`${player.name} added to rally queue`);
@@ -262,7 +282,7 @@ export function useBattlePlanner() {
       showToast(t('battlePlanner.noMarchTime', 'Set march times for {{building}} first', { building: getBuildingLabel(selectedBuilding, t) }), 'info');
       return;
     }
-    const newSlot: RallySlot = { playerId: player.id, playerName: player.name, marchTime: mt, team: player.team, useBuffed };
+    const newSlot: RallySlot = { playerId: player.id, playerName: player.name, marchTime: mt, team: player.team, useBuffed, alliance: player.alliance };
     persistCounterSlots([...counterQueue, newSlot]);
     if ('vibrate' in navigator) navigator.vibrate(30);
     setLastAnnouncement(`${player.name} added to counter queue`);
@@ -394,8 +414,8 @@ export function useBattlePlanner() {
     expiredPlayers.forEach(({ name, team }) => {
       showToast(
         team === 'enemy'
-          ? `⚔️ ${name}'s buff expired — switched to regular march time`
-          : `🏃 ${name}'s buff expired — switched to regular march time`,
+          ? t('battlePlanner.enemyBuffExpired', '⚔️ {{name}}\'s buff expired — switched to regular march time', { name })
+          : t('battlePlanner.allyBuffExpired', '🏃 {{name}}\'s buff expired — switched to regular march time', { name }),
         'info'
       );
     });
@@ -422,7 +442,7 @@ export function useBattlePlanner() {
       if (editingPlayer) {
         await supabasePlayers.updatePlayer(player);
       } else {
-        await supabasePlayers.addPlayer({ name: player.name, team: player.team, marchTimes: player.marchTimes });
+        await supabasePlayers.addPlayer({ name: player.name, team: player.team, marchTimes: player.marchTimes, alliance: player.alliance });
       }
     } else {
       setLocalPlayers(prev => {
@@ -443,7 +463,7 @@ export function useBattlePlanner() {
       setLocalPlayers(prev => prev.filter(p => p.id !== id));
       setLocalRallyQueue(prev => prev.filter(s => s.playerId !== id));
       setLocalCounterQueue(prev => prev.filter(s => s.playerId !== id));
-      showToast(`${deletedPlayer.name} deleted`, 'info');
+      showToast(t('battlePlanner.playerDeleted', '{{name}} deleted', { name: deletedPlayer.name }), 'info');
     }
   }, [inSession, localPlayers, supabasePlayers, showToast]);
 
@@ -457,7 +477,7 @@ export function useBattlePlanner() {
       const a = document.createElement('a');
       a.href = url; a.download = `battle-planner-players-${new Date().toISOString().slice(0, 10)}.json`; a.click();
       URL.revokeObjectURL(url);
-      showToast('Player database exported', 'success');
+      showToast(t('battlePlanner.exportSuccess', 'Player database exported'), 'success');
     }
   }, [inSession, localPlayers, supabasePlayers, showToast]);
 
@@ -472,14 +492,14 @@ export function useBattlePlanner() {
           (p: unknown): p is RallyPlayer =>
             typeof p === 'object' && p !== null && 'name' in p && 'team' in p && 'marchTimes' in p
         );
-        if (valid.length === 0) { showToast('No valid players found', 'error'); return; }
+        if (valid.length === 0) { showToast(t('battlePlanner.noValidPlayers', 'No valid players found'), 'error'); return; }
         setLocalPlayers(prev => {
           const existingIds = new Set(prev.map(p => p.id));
           const newP = valid.filter(p => !existingIds.has(p.id));
-          showToast(`Imported ${newP.length} player(s)`, 'success');
+          showToast(t('battlePlanner.importSuccess', 'Imported {{count}} player(s)', { count: newP.length }), 'success');
           return [...prev, ...newP];
         });
-      } catch { showToast('Failed to import', 'error'); }
+      } catch { showToast(t('battlePlanner.importFailed', 'Failed to import'), 'error'); }
     }
   }, [inSession, supabasePlayers, showToast]);
 
@@ -495,7 +515,7 @@ export function useBattlePlanner() {
         name: `${original.name} (copy)`,
       };
       setLocalPlayers(prev => [...prev, copy]);
-      showToast(`📋 ${copy.name} created`, 'success');
+      showToast(t('battlePlanner.playerCopied', '📋 {{name}} created', { name: copy.name }), 'success');
     }
   }, [inSession, localPlayers, supabasePlayers, showToast]);
 
@@ -556,14 +576,14 @@ export function useBattlePlanner() {
     if (rallyQueue.length === 0) return;
     persistRallySlots([]);
     setLastAnnouncement('Rally queue cleared');
-    showToast(`Rally queue cleared (${rallyQueue.length} players)`, 'info');
+    showToast(t('battlePlanner.rallyQueueClearedCount', 'Rally queue cleared ({{count}} players)', { count: rallyQueue.length }), 'info');
   }, [rallyQueue, persistRallySlots, showToast]);
 
   const clearCounterQueue = useCallback(() => {
     if (counterQueue.length === 0) return;
     persistCounterSlots([]);
     setLastAnnouncement('Counter queue cleared');
-    showToast(`Counter queue cleared (${counterQueue.length} players)`, 'info');
+    showToast(t('battlePlanner.counterQueueClearedCount', 'Counter queue cleared ({{count}} players)', { count: counterQueue.length }), 'info');
   }, [counterQueue, persistCounterSlots, showToast]);
 
   // ─── Touch Drag ───
@@ -602,7 +622,7 @@ export function useBattlePlanner() {
     if (!inSession || localPlayers.length === 0) return;
     const migrated = await supabasePlayers.migrateFromLocalStorage(localPlayers);
     if (migrated > 0) {
-      showToast(`Migrated ${migrated} player(s) from local storage`, 'success');
+      showToast(t('battlePlanner.importSuccess', 'Imported {{count}} player(s) ({{dupes}} duplicates skipped)', { count: migrated, dupes: 0 }), 'success');
     }
   }, [inSession, localPlayers, supabasePlayers, showToast]);
 

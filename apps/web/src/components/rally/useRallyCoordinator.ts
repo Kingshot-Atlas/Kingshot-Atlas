@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePremium } from '../../contexts/PremiumContext';
 import { useGoldKingdoms } from '../../hooks/useGoldKingdoms';
@@ -13,7 +14,7 @@ import {
   BUFF_DURATION_MS, STORAGE_KEY_PLAYERS, STORAGE_KEY_PRESETS, STORAGE_KEY_BUFF_TIMERS,
   loadFromStorage, saveToStorage,
   playEnemyBuffExpireSound, playAllyBuffExpireSound,
-  calculateRallyTimings,
+  calculateRallyTimings, calculateCounterTimings,
 } from './types';
 import { useTouchDragReorder } from './RallySubComponents';
 
@@ -99,6 +100,7 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
   const goldKingdoms = useGoldKingdoms();
   const { hasPromoAccess } = useKvk11Promo();
   const { showToast } = useToast();
+  const { t } = useTranslation();
 
   // Admin gate
   const isAdmin = !!(profile?.username && ADMIN_USERNAMES.includes(profile.username.toLowerCase()));
@@ -331,12 +333,12 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
     expiredPlayers.forEach(({ name, team }) => {
       showToast(
         team === 'enemy'
-          ? `⚔️ ${name}'s buff expired — switched to regular march time`
-          : `🏃 ${name}'s buff expired — switched to regular march time`,
+          ? t('battlePlanner.enemyBuffExpired', '⚔️ {{name}}\'s buff expired — switched to regular march time', { name })
+          : t('battlePlanner.allyBuffExpired', '🏃 {{name}}\'s buff expired — switched to regular march time', { name }),
         'info'
       );
     });
-  }, [tickNow, showToast]);
+  }, [tickNow, showToast, t]);
 
   // Derived: allies and enemies
   const allies = useMemo(() => players.filter(p => p.team === 'ally'), [players]);
@@ -352,7 +354,7 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
     [rallyQueue, gap]
   );
   const calculatedCounters = useMemo(
-    () => calculateRallyTimings(counterQueue, cGap),
+    () => calculateCounterTimings(counterQueue, cGap),
     [counterQueue, cGap]
   );
 
@@ -384,6 +386,7 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
       marchTime: mt,
       team: player.team,
       useBuffed,
+      alliance: player.alliance,
     }]);
     if ('vibrate' in navigator) navigator.vibrate(30);
     setLastAnnouncement(`${player.name} added to rally queue`);
@@ -404,6 +407,7 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
       marchTime: mt,
       team: player.team,
       useBuffed,
+      alliance: player.alliance,
     }]);
     if ('vibrate' in navigator) navigator.vibrate(30);
     setLastAnnouncement(`${player.name} added to counter queue`);
@@ -500,13 +504,19 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
     if (player) addToCounterQueue(player, marchType === 'buffed');
   }, [players, addToCounterQueue, marchType]);
 
-  // Update queue march times when building changes
+  // Sync queue slots when building or player data changes (name, team, alliance, march times)
   useEffect(() => {
     const updateQueue = (prev: RallySlot[]) => prev.map(slot => {
       const player = players.find(p => p.id === slot.playerId);
       if (!player) return slot;
       const mt = player.marchTimes[selectedBuilding][slot.useBuffed ? 'buffed' : 'regular'];
-      return { ...slot, marchTime: mt > 0 ? mt : player.marchTimes[selectedBuilding].regular };
+      return {
+        ...slot,
+        playerName: player.name,
+        team: player.team,
+        alliance: player.alliance,
+        marchTime: mt > 0 ? mt : player.marchTimes[selectedBuilding].regular,
+      };
     }).filter(slot => slot.marchTime > 0);
     setRallyQueue(updateQueue);
     setCounterQueue(updateQueue);
@@ -522,8 +532,8 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
     a.download = `battle-planner-players-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('Player database exported', 'success');
-  }, [players, showToast]);
+    showToast(t('battlePlanner.exportSuccess', 'Player database exported'), 'success');
+  }, [players, showToast, t]);
 
   const importPlayers = useCallback((jsonStr: string) => {
     try {
@@ -535,20 +545,20 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
           'id' in p && 'name' in p && 'team' in p && 'marchTimes' in p
       );
       if (valid.length === 0) {
-        showToast('No valid players found in file', 'error');
+        showToast(t('battlePlanner.noValidPlayers', 'No valid players found in file'), 'error');
         return;
       }
       setPlayers(prev => {
         const existingIds = new Set(prev.map(p => p.id));
         const newPlayers = valid.filter(p => !existingIds.has(p.id));
         const merged = [...prev, ...newPlayers];
-        showToast(`Imported ${newPlayers.length} new player(s) (${valid.length - newPlayers.length} duplicates skipped)`, 'success');
+        showToast(t('battlePlanner.importSuccess', 'Imported {{count}} player(s) ({{dupes}} duplicates skipped)', { count: newPlayers.length, dupes: valid.length - newPlayers.length }), 'success');
         return merged;
       });
     } catch {
-      showToast('Failed to import — invalid JSON file', 'error');
+      showToast(t('battlePlanner.importFailed', 'Failed to import — invalid JSON file'), 'error');
     }
-  }, [showToast]);
+  }, [showToast, t]);
 
   // Duplicate player
   const duplicatePlayer = useCallback((id: string) => {
@@ -560,8 +570,8 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
       name: `${original.name} (copy)`,
     };
     setPlayers(prev => [...prev, copy]);
-    showToast(`📋 ${copy.name} created`, 'success');
-  }, [players, showToast]);
+    showToast(t('battlePlanner.playerCopied', '📋 {{name}} created', { name: copy.name }), 'success');
+  }, [players, showToast, t]);
 
   // Player DB handlers
   const handleSavePlayer = useCallback((player: RallyPlayer) => {
@@ -602,7 +612,7 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
 
     // Show undo toast with action button
     showToast(
-      `${deletedPlayer.name} deleted`,
+      t('battlePlanner.playerDeleted', '{{name}} deleted', { name: deletedPlayer.name }),
       'info',
       5000,
       () => {
@@ -611,12 +621,12 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
           clearTimeout(deleteUndoRef.current.timer);
           deleteUndoRef.current = null;
           setPlayers(prev => [...prev, deletedPlayer]);
-          showToast(`↩️ ${deletedPlayer.name} restored`, 'success');
+          showToast(t('battlePlanner.playerRestored', '↩️ {{name}} restored', { name: deletedPlayer.name }), 'success');
         }
       },
-      'Undo'
+      t('battlePlanner.undo', 'Undo')
     );
-  }, [players, showToast]);
+  }, [players, showToast, t]);
 
   // Preset handlers
   const savePreset = useCallback(() => {
@@ -642,21 +652,21 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
     setHitMode(preset.hitMode);
     setInterval(preset.interval);
     const resolveSlots = (slots: { playerId: string; useBuffed: boolean }[]): RallySlot[] =>
-      slots
-        .map(s => {
-          const player = players.find(p => p.id === s.playerId);
-          if (!player) return null;
-          const mt = player.marchTimes[preset.building][s.useBuffed ? 'buffed' : 'regular'];
-          if (mt <= 0) return null;
-          return {
-            playerId: player.id,
-            playerName: player.name,
-            marchTime: mt,
-            team: player.team,
-            useBuffed: s.useBuffed,
-          };
-        })
-        .filter((s): s is RallySlot => s !== null);
+      slots.reduce<RallySlot[]>((acc, s) => {
+        const player = players.find(p => p.id === s.playerId);
+        if (!player) return acc;
+        const mt = player.marchTimes[preset.building][s.useBuffed ? 'buffed' : 'regular'];
+        if (mt <= 0) return acc;
+        acc.push({
+          playerId: player.id,
+          playerName: player.name,
+          marchTime: mt,
+          team: player.team,
+          useBuffed: s.useBuffed,
+          alliance: player.alliance,
+        });
+        return acc;
+      }, []);
     setRallyQueue(resolveSlots(preset.slots));
     // Restore counter queue if saved
     if (preset.counterSlots && preset.counterSlots.length > 0) {
@@ -676,37 +686,37 @@ export function useRallyCoordinator(): RallyCoordinatorState & RallyCoordinatorA
     const snapshot = rallyQueue;
     if (snapshot.length === 0) return;
     setRallyQueue([]);
-    setLastAnnouncement('Rally queue cleared');
+    setLastAnnouncement(t('battlePlanner.rallyQueueCleared', 'Rally queue cleared'));
     if (clearUndoRef.current) clearTimeout(clearUndoRef.current.timer);
     const timer = setTimeout(() => { clearUndoRef.current = null; }, 5000);
     clearUndoRef.current = { timer, queue: snapshot, type: 'rally' };
-    showToast(`Rally queue cleared (${snapshot.length} players)`, 'info', 5000, () => {
+    showToast(t('battlePlanner.rallyQueueClearedCount', 'Rally queue cleared ({{count}} players)', { count: snapshot.length }), 'info', 5000, () => {
       if (clearUndoRef.current?.type === 'rally') {
         clearTimeout(clearUndoRef.current.timer);
         setRallyQueue(clearUndoRef.current.queue);
         clearUndoRef.current = null;
-        showToast('↩️ Rally queue restored', 'success');
+        showToast(t('battlePlanner.rallyQueueRestored', '↩️ Rally queue restored'), 'success');
       }
-    }, 'Undo');
-  }, [rallyQueue, showToast]);
+    }, t('battlePlanner.undo', 'Undo'));
+  }, [rallyQueue, showToast, t]);
 
   const clearCounterQueue = useCallback(() => {
     const snapshot = counterQueue;
     if (snapshot.length === 0) return;
     setCounterQueue([]);
-    setLastAnnouncement('Counter queue cleared');
+    setLastAnnouncement(t('battlePlanner.counterQueueCleared', 'Counter queue cleared'));
     if (clearUndoRef.current) clearTimeout(clearUndoRef.current.timer);
     const timer = setTimeout(() => { clearUndoRef.current = null; }, 5000);
     clearUndoRef.current = { timer, queue: snapshot, type: 'counter' };
-    showToast(`Counter queue cleared (${snapshot.length} players)`, 'info', 5000, () => {
+    showToast(t('battlePlanner.counterQueueClearedCount', 'Counter queue cleared ({{count}} players)', { count: snapshot.length }), 'info', 5000, () => {
       if (clearUndoRef.current?.type === 'counter') {
         clearTimeout(clearUndoRef.current.timer);
         setCounterQueue(clearUndoRef.current.queue);
         clearUndoRef.current = null;
-        showToast('↩️ Counter queue restored', 'success');
+        showToast(t('battlePlanner.counterQueueRestored', '↩️ Counter queue restored'), 'success');
       }
-    }, 'Undo');
-  }, [counterQueue, showToast]);
+    }, t('battlePlanner.undo', 'Undo'));
+  }, [counterQueue, showToast, t]);
 
   // Touch drag hooks — MUST be before conditional returns (Rules of Hooks)
   const rallyTouchDrag = useTouchDragReorder(moveInQueue);

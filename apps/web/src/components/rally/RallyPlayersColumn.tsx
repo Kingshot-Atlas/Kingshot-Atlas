@@ -37,8 +37,6 @@ interface RallyPlayersColumnProps {
   onSavePreset: () => void;
   onLoadPreset: (preset: RallyPreset) => void;
   onDeletePreset: (id: string) => void;
-  onExportPlayers: () => void;
-  onImportPlayers: (jsonStr: string) => void;
   onDuplicatePlayer: (id: string) => void;
 }
 
@@ -55,19 +53,19 @@ const RallyPlayersColumn: React.FC<RallyPlayersColumnProps> = ({
   onAddToQueue, onAddToCounterQueue,
   onEditPlayer, onDeletePlayer,
   onSavePreset, onLoadPreset, onDeletePreset,
-  onExportPlayers, onImportPlayers, onDuplicatePlayer,
+  onDuplicatePlayer,
 }) => {
   const { t } = useTranslation();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
 
-      {/* Rally Captains */}
-      <div role="region" aria-label="Rally captains" style={{ ...CARD, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      {/* Rally Leaders */}
+      <div role="region" aria-label="Rally leaders" style={{ ...CARD, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={cardHeader()}>👥 {t('rallyCoordinator.rallyCaptains', 'RALLY CAPTAINS')}</h3>
+          <h3 style={cardHeader()}>👥 {t('rallyCoordinator.rallyLeaders', 'RALLY LEADERS')}</h3>
           <div style={{ display: 'flex', gap: '4px' }}>
-            <button onClick={onAddAlly} className="rally-focusable" aria-label="Add an ally rally captain" style={{
+            <button onClick={onAddAlly} className="rally-focusable" aria-label="Add an ally rally leader" style={{
               padding: isMobile ? '0.4rem 0.6rem' : '0.3rem 0.5rem', minHeight: isMobile ? '44px' : '32px',
               backgroundColor: `${ALLY_COLOR}15`,
               border: `1px solid ${ALLY_COLOR}30`, borderRadius: '5px',
@@ -75,7 +73,7 @@ const RallyPlayersColumn: React.FC<RallyPlayersColumnProps> = ({
             }}>
               {t('rallyCoordinator.addAlly')}
             </button>
-            <button onClick={onAddEnemy} className="rally-focusable" aria-label="Add an enemy rally captain" style={{
+            <button onClick={onAddEnemy} className="rally-focusable" aria-label="Add an enemy rally leader" style={{
               padding: isMobile ? '0.4rem 0.6rem' : '0.3rem 0.5rem', minHeight: isMobile ? '44px' : '32px',
               backgroundColor: `${ENEMY_COLOR}15`,
               border: `1px solid ${ENEMY_COLOR}30`, borderRadius: '5px',
@@ -109,7 +107,8 @@ const RallyPlayersColumn: React.FC<RallyPlayersColumnProps> = ({
                 <PlayerPill
                   key={p.id} player={p}
                   marchTime={p.marchTimes[selectedBuilding][marchType]}
-                  isInQueue={queuedPlayerIds.has(p.id) || counterQueuedIds.has(p.id)}
+                  inRallyQueue={queuedPlayerIds.has(p.id)}
+                  inCounterQueue={counterQueuedIds.has(p.id)}
                   onAdd={() => onAddToQueue(p, marchType === 'buffed')}
                   onEdit={() => onEditPlayer(p, 'ally')}
                   onRemoveFromDb={() => onDeletePlayer(p.id)}
@@ -134,7 +133,8 @@ const RallyPlayersColumn: React.FC<RallyPlayersColumnProps> = ({
                 <PlayerPill
                   key={p.id} player={p}
                   marchTime={p.marchTimes[selectedBuilding][marchType]}
-                  isInQueue={queuedPlayerIds.has(p.id) || counterQueuedIds.has(p.id)}
+                  inRallyQueue={queuedPlayerIds.has(p.id)}
+                  inCounterQueue={counterQueuedIds.has(p.id)}
                   onAdd={() => onAddToCounterQueue(p, marchType === 'buffed')}
                   onEdit={() => onEditPlayer(p, 'enemy')}
                   onRemoveFromDb={() => onDeletePlayer(p.id)}
@@ -150,7 +150,7 @@ const RallyPlayersColumn: React.FC<RallyPlayersColumnProps> = ({
         {players.length === 0 && (
           <div style={{ textAlign: 'center', padding: '0.75rem 0.5rem' }}>
             <p style={{ color: '#d1d5db', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.4rem' }}>
-              {t('rallyCoordinator.emptyPlayersTitle', 'No rally captains yet')}
+              {t('rallyCoordinator.emptyPlayersTitle', 'No rally leaders yet')}
             </p>
             <p style={{ color: '#9ca3af', fontSize: '0.65rem', lineHeight: 1.5, marginBottom: '0.5rem' }}>
               {t('rallyCoordinator.emptyPlayersGuide', 'Start by adding allies and enemies with their march times. Then drag them into the Rally or Counter queue.')}
@@ -176,41 +176,6 @@ const RallyPlayersColumn: React.FC<RallyPlayersColumnProps> = ({
           </>
         )}
 
-        {/* Export/Import */}
-        {players.length > 0 && (
-          <div style={{ display: 'flex', gap: '0.3rem', borderTop: '1px solid #1a1a1a', paddingTop: '0.4rem' }}>
-            <button onClick={onExportPlayers} className="rally-focusable" aria-label="Export players as JSON file" style={{
-              flex: 1, padding: '0.3rem', minHeight: '36px', backgroundColor: 'transparent',
-              border: '1px solid #2a2a2a', borderRadius: '6px',
-              color: '#d1d5db', fontSize: '0.65rem', fontWeight: '600', cursor: 'pointer',
-            }}>
-              📤 {t('rallyCoordinator.exportPlayers', 'Export')}
-            </button>
-            <label style={{
-              flex: 1, padding: '0.3rem', minHeight: '36px', backgroundColor: 'transparent',
-              border: '1px solid #2a2a2a', borderRadius: '6px',
-              color: '#d1d5db', fontSize: '0.65rem', fontWeight: '600', cursor: 'pointer',
-              textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              📥 {t('rallyCoordinator.importPlayers', 'Import')}
-              <input
-                type="file"
-                accept=".json"
-                style={{ display: 'none' }}
-                onChange={e => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  const reader = new FileReader();
-                  reader.onload = () => {
-                    if (typeof reader.result === 'string') onImportPlayers(reader.result);
-                  };
-                  reader.readAsText(file);
-                  e.target.value = '';
-                }}
-              />
-            </label>
-          </div>
-        )}
       </div>
 
       {/* 🏰 TARGET BUILDING + PRESETS (2 columns) */}
@@ -222,7 +187,7 @@ const RallyPlayersColumn: React.FC<RallyPlayersColumnProps> = ({
         }}>
           {/* Left: Target Building */}
           <div>
-            <h3 style={{ ...cardHeader(), marginBottom: '0.4rem' }}>🏰 TARGET BUILDING</h3>
+            <h3 style={{ ...cardHeader(), marginBottom: '0.4rem' }}>🏰 {t('rallyCoordinator.targetBuilding', 'TARGET BUILDING')}</h3>
             <BuildingSelector selected={selectedBuilding} onSelect={setSelectedBuilding} isMobile={isMobile} />
           </div>
 
@@ -231,7 +196,7 @@ const RallyPlayersColumn: React.FC<RallyPlayersColumnProps> = ({
             ...(isMobile ? { borderTop: '1px solid #1a1a1a', paddingTop: '0.5rem' } : { borderLeft: '1px solid #1a1a1a', paddingLeft: '0.75rem' }),
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
-              <h3 style={{ ...cardHeader(), marginBottom: 0 }}>💾 PRESETS</h3>
+              <h3 style={{ ...cardHeader(), marginBottom: 0 }}>💾 {t('rallyCoordinator.presets', 'PRESETS')}</h3>
               {(rallyQueue.length >= 2 || allies.length > 0 || enemies.length > 0) && (
                 <button onClick={() => setShowPresetSave(!showPresetSave)} className="rally-focusable" aria-label="Save current configuration as preset" style={{
                   padding: '0.25rem 0.45rem', minHeight: '32px',
@@ -248,7 +213,7 @@ const RallyPlayersColumn: React.FC<RallyPlayersColumnProps> = ({
                 <input
                   value={presetName}
                   onChange={e => setPresetName(e.target.value)}
-                  placeholder="Preset name..."
+                  placeholder={t('rallyCoordinator.presetNamePlaceholder', 'Preset name...')}
                   style={{ ...inputStyle, fontSize: '0.7rem', padding: '0.25rem 0.4rem', minHeight: '28px', flex: 1 }}
                 />
                 <button onClick={onSavePreset} disabled={!presetName.trim()} style={{
@@ -279,7 +244,7 @@ const RallyPlayersColumn: React.FC<RallyPlayersColumnProps> = ({
                     }}>
                       {p.name}
                       <span style={{ color: '#6b7280', marginLeft: '0.3rem', fontSize: '0.6rem' }}>
-                        {getBuildingShort(p.building, t)} · {p.slots.length} players
+                        {getBuildingShort(p.building, t)} · {t('rallyCoordinator.playerCount', '{{count}} players', { count: p.slots.length })}
                       </span>
                     </button>
                     <button onClick={() => onDeletePreset(p.id)} className="rally-focusable" aria-label={`Delete preset ${p.name}`} style={{
@@ -305,7 +270,7 @@ const RallyPlayersColumn: React.FC<RallyPlayersColumnProps> = ({
             width: '100%', padding: 0,
           }}
         >
-          <h3 style={{ ...cardHeader(), marginBottom: 0 }}>📖 HOW TO USE</h3>
+          <h3 style={{ ...cardHeader(), marginBottom: 0 }}>📖 {t('rallyCoordinator.howToUse', 'HOW TO USE')}</h3>
           <span style={{ color: '#6b7280', fontSize: '0.7rem', transition: 'transform 0.2s', transform: howToOpen ? 'rotate(0deg)' : 'rotate(-90deg)' }}>▼</span>
         </button>
         {howToOpen && (
