@@ -899,7 +899,7 @@ client.on('interactionCreate', async (interaction) => {
   if (interaction.isAutocomplete()) {
     try {
       const focused = interaction.options.getFocused(true);
-      if ((interaction.commandName === 'kingdom' || interaction.commandName === 'history' || interaction.commandName === 'sharecard' || interaction.commandName === 'transferstatus') && focused.name === 'number') {
+      if ((interaction.commandName === 'kingdom' || interaction.commandName === 'history' || interaction.commandName === 'transferstatus') && focused.name === 'number') {
         const typed = String(focused.value);
         if (!kingdomCache || Date.now() - kingdomCacheTime > 300_000) {
           const result = await require('./utils/api').fetchLeaderboard(100);
@@ -1036,9 +1036,6 @@ client.on('interactionCreate', async (interaction) => {
         break;
       case 'stats':
         await handlers.handleStats(interaction);
-        break;
-      case 'sharecard':
-        await handlers.handleShareCard(interaction);
         break;
       case 'transferstatus':
         await handlers.handleTransferStatus(interaction);

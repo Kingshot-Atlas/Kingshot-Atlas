@@ -173,20 +173,6 @@ const commands = [
         .setMaxValue(10)
     ),
 
-  // /sharecard <number>
-  new SlashCommandBuilder()
-    .setName('sharecard')
-    .setDescription('Share a kingdom stats card in the channel')
-    .addIntegerOption(option =>
-      option
-        .setName('number')
-        .setDescription('Kingdom number (e.g., 172, 1001)')
-        .setRequired(true)
-        .setMinValue(1)
-        .setMaxValue(9999)
-        .setAutocomplete(true)
-    ),
-
   // /transferstatus <number>
   new SlashCommandBuilder()
     .setName('transferstatus')

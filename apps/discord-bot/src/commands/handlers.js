@@ -621,27 +621,6 @@ async function handleLink(interaction) {
 }
 
 /**
- * /sharecard <number> — Share a kingdom stats card (non-ephemeral)
- */
-async function handleShareCard(interaction) {
-  const number = interaction.options.getInteger('number');
-  await interaction.deferReply(); // NOT ephemeral — visible to everyone
-
-  const kingdom = await api.fetchKingdom(number);
-
-  if (!kingdom) {
-    const errorEmbed = embeds.createErrorEmbed(
-      `Kingdom ${number} not found.`,
-      'Make sure the kingdom number is correct and try again.'
-    );
-    return interaction.editReply({ embeds: [errorEmbed] });
-  }
-
-  const embed = embeds.createShareCardEmbed(kingdom);
-  return interaction.editReply({ embeds: [embed] });
-}
-
-/**
  * /transferstatus <number> — Show a kingdom's full transfer history
  */
 async function handleTransferStatus(interaction) {
@@ -680,6 +659,5 @@ module.exports = {
   handleMultirally,
   handleCodes,
   handleLink,
-  handleShareCard,
   handleTransferStatus,
 };

@@ -341,7 +341,6 @@ function createHelpEmbed() {
           '`/history <number>` - KvK season history',
           '`/predict <k1> <k2>` - Matchup prediction',
           '`/tier <S|A|B|C|D>` - List kingdoms by tier',
-          '`/sharecard <number>` - Share a kingdom card',
         ].join('\n'),
       },
       {
@@ -1069,64 +1068,6 @@ function getTransferGroupLabel(group) {
   return `K${group[0]}\u2013K${group[1]}`;
 }
 
-/**
- * Create a shareable kingdom card embed (non-ephemeral, designed for channel sharing)
- */
-function createShareCardEmbed(kingdom) {
-  const tier = getTier(kingdom.overall_score);
-  const tierEmoji = getTierEmoji(tier);
-  const dominations = calculateDominations(kingdom.recent_kvks);
-  const invasions = calculateInvasions(kingdom.recent_kvks);
-  const group = getTransferGroup(kingdom.kingdom_number);
-  const groupLabel = group ? getTransferGroupLabel(group) : 'N/A';
-  const rankDisplay = kingdom.rank ? `#${kingdom.rank}` : 'Unranked';
-  const transferStatusLabel = kingdom.transfer_status || kingdom.most_recent_status || 'Unknown';
-  const transferStatusEmoji = transferStatusLabel === 'Leading' ? '\ud83d\udc51' : transferStatusLabel === 'Ordinary' ? '\ud83d\udfe2' : '\u2753';
-
-  const embed = new EmbedBuilder()
-    .setColor(getTierColor(tier))
-    .setTitle(`\ud83c\udff0 Kingdom ${kingdom.kingdom_number} \u2022 ${tierEmoji} ${tier}-Tier`)
-    .setURL(config.urls.kingdom(kingdom.kingdom_number))
-    .setDescription([
-      `\ud83c\udfc6 **Rank:** ${rankDisplay} \u2022 \ud83d\udc8e **Atlas Score:** ${kingdom.overall_score.toFixed(1)}`,
-      `\ud83d\udcca **Transfer Group:** ${groupLabel} \u2022 ${transferStatusEmoji} ${transferStatusLabel}`,
-    ].join('\n'))
-    .addFields(
-      {
-        name: '\ud83d\udee1\ufe0f Prep Phase',
-        value: [
-          `**${formatWinRate(kingdom.prep_win_rate)}** win rate`,
-          `${formatRecord(kingdom.prep_wins, kingdom.prep_losses)}`,
-          `${createProgressBar(kingdom.prep_win_rate * 100)}`,
-        ].join('\n'),
-        inline: true,
-      },
-      {
-        name: '\u2694\ufe0f Battle Phase',
-        value: [
-          `**${formatWinRate(kingdom.battle_win_rate)}** win rate`,
-          `${formatRecord(kingdom.battle_wins, kingdom.battle_losses)}`,
-          `${createProgressBar(kingdom.battle_win_rate * 100)}`,
-        ].join('\n'),
-        inline: true,
-      },
-      {
-        name: '\u200b',
-        value: [
-          `\u2694\ufe0f **KvKs:** ${kingdom.total_kvks} \u2022 \ud83d\udc51 **Dominations:** ${dominations} \u2022 \ud83d\udc80 **Invasions:** ${invasions}`,
-        ].join('\n'),
-        inline: false,
-      }
-    )
-    .addFields({
-      name: '\u200b',
-      value: `[\ud83d\udcca Full stats on ks-atlas.com](${config.urls.kingdom(kingdom.kingdom_number)})`,
-    })
-    .setFooter({ text: `${config.bot.footerText} \u2022 /sharecard ${kingdom.kingdom_number}` })
-    .setTimestamp();
-
-  return embed;
-}
 
 /**
  * Create transfer status embed for a kingdom — shows full transfer history
@@ -1226,6 +1167,5 @@ module.exports = {
   createMultirallyHelpEmbed,
   createGiftCodesEmbed,
   createNewGiftCodeEmbed,
-  createShareCardEmbed,
   createTransferStatusEmbed,
 };

@@ -139,13 +139,6 @@ const AtlasBot: React.FC = () => {
       accentColor: '#a855f7'
     },
     {
-      command: 'sharecard',
-      description: 'Drop a beautiful kingdom stats card right into the channel. Non-ephemeral — everyone sees it. Perfect for showing off or scouting opponents publicly.',
-      example: '/sharecard 172',
-      icon: '\ud83c\udff0',
-      accentColor: '#22c55e'
-    },
-    {
       command: 'transferstatus',
       description: 'View a kingdom\'s full transfer history across every event — group changes, Leading/Ordinary status, and dates. Essential for scouting.',
       example: '/transferstatus 172',
