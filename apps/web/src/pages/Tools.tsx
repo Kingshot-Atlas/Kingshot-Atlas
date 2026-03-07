@@ -437,9 +437,9 @@ const Tools: React.FC = () => {
         <path d="M9 10h1M14 10h1"/>
       </svg>
     ),
-    href: '/alliance-center',
+    href: '/alliance-center/about',
     accentColor: '#3b82f6',
-    ctaLabel: t('tools.openDashboard', 'Open Dashboard'),
+    ctaLabel: t('tools.learnMore', 'Learn More'),
   };
 
   const eventCoordinatorCard: ToolCardProps = {
@@ -482,6 +482,7 @@ const Tools: React.FC = () => {
     href: '/tools/battle-layout/about',
     accentColor: '#f97316',
     ctaLabel: t('tools.learnMore', 'Learn More'),
+    goldTierBadge: true,
   };
 
   const allianceTools = [discordBotCard, allianceCenterCard, eventCoordinatorCard, baseDesignerCard];

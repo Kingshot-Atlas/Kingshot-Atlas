@@ -104,11 +104,11 @@ const BattleRegistryLanding: React.FC = () => {
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '700px', margin: '0 auto' }}>
           <div style={{
             width: isMobile ? '64px' : '80px', height: isMobile ? '64px' : '80px',
-            borderRadius: '50%', backgroundColor: '#ef444415',
-            border: '2px solid #ef444430',
+            borderRadius: '50%', backgroundColor: '#f9731615',
+            border: '2px solid #f9731630',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             margin: '0 auto 1.25rem',
-            boxShadow: '0 0 30px rgba(239, 68, 68, 0.15), 0 0 60px rgba(239, 68, 68, 0.08)',
+            boxShadow: '0 0 30px rgba(249, 115, 22, 0.15), 0 0 60px rgba(249, 115, 22, 0.08)',
           }}>
             <span style={{ fontSize: isMobile ? '1.75rem' : '2.25rem' }}>⚔️</span>
           </div>
@@ -118,7 +118,7 @@ const BattleRegistryLanding: React.FC = () => {
             marginBottom: '0.75rem', fontFamily: FONT_DISPLAY,
           }}>
             <span style={{ color: '#fff' }}>{t('battleRegistryLanding.heroTitle1', 'KvK BATTLE')}</span>
-            <span style={{ ...neonGlow('#ef4444'), marginLeft: '0.5rem' }}>{t('battleRegistryLanding.heroTitle2', 'REGISTRY')}</span>
+            <span style={{ ...neonGlow('#f97316'), marginLeft: '0.5rem' }}>{t('battleRegistryLanding.heroTitle2', 'REGISTRY')}</span>
           </h1>
           <p style={{
             color: '#9ca3af', fontSize: isMobile ? '0.95rem' : '1.1rem',
@@ -137,11 +137,11 @@ const BattleRegistryLanding: React.FC = () => {
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.6rem',
                 padding: isMobile ? '0.85rem 1.75rem' : '0.9rem 2rem',
-                backgroundColor: '#ef4444', border: 'none', borderRadius: '10px',
+                backgroundColor: '#f97316', border: 'none', borderRadius: '10px',
                 color: '#fff', fontWeight: 700,
                 fontSize: isMobile ? '0.95rem' : '1rem', textDecoration: 'none',
                 transition: 'all 0.2s ease',
-                boxShadow: '0 4px 20px rgba(239, 68, 68, 0.35)',
+                boxShadow: '0 4px 20px rgba(249, 115, 22, 0.35)',
               }}
             >
               ⚔️ {t('battleRegistryLanding.openRegistry', 'Open the Registry')}
@@ -169,9 +169,9 @@ const BattleRegistryLanding: React.FC = () => {
 
           {!isMobile && (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem' }}>
-              <div style={{ width: '50px', height: '2px', background: 'linear-gradient(90deg, transparent, #ef4444)' }} />
-              <div style={{ width: '6px', height: '6px', backgroundColor: '#ef4444', transform: 'rotate(45deg)', boxShadow: '0 0 8px #ef4444' }} />
-              <div style={{ width: '50px', height: '2px', background: 'linear-gradient(90deg, #ef4444, transparent)' }} />
+              <div style={{ width: '50px', height: '2px', background: 'linear-gradient(90deg, transparent, #f97316)' }} />
+              <div style={{ width: '6px', height: '6px', backgroundColor: '#f97316', transform: 'rotate(45deg)', boxShadow: '0 0 8px #f97316' }} />
+              <div style={{ width: '50px', height: '2px', background: 'linear-gradient(90deg, #f97316, transparent)' }} />
             </div>
           )}
         </div>
@@ -187,7 +187,7 @@ const BattleRegistryLanding: React.FC = () => {
             marginBottom: '0.4rem', fontFamily: FONT_DISPLAY, textAlign: 'center',
           }}>
             <span style={{ color: '#fff' }}>{t('battleRegistryLanding.howItWorks1', 'HOW IT')}</span>
-            <span style={{ ...neonGlow('#ef4444'), marginLeft: '0.4rem' }}>{t('battleRegistryLanding.howItWorks2', 'WORKS')}</span>
+            <span style={{ ...neonGlow('#f97316'), marginLeft: '0.4rem' }}>{t('battleRegistryLanding.howItWorks2', 'WORKS')}</span>
           </h2>
           <p style={{
             color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem',
@@ -206,7 +206,7 @@ const BattleRegistryLanding: React.FC = () => {
               }}>
                 <div style={{
                   width: '40px', height: '40px', borderRadius: '50%',
-                  backgroundColor: '#ef444415', border: '1px solid #ef444430',
+                  backgroundColor: '#f9731615', border: '1px solid #f9731630',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   margin: '0 auto 0.75rem', fontSize: '1.1rem',
                 }}>
@@ -230,7 +230,7 @@ const BattleRegistryLanding: React.FC = () => {
             marginBottom: '0.4rem', fontFamily: FONT_DISPLAY, textAlign: 'center',
           }}>
             <span style={{ color: '#fff' }}>{t('battleRegistryLanding.builtFor1', 'BUILT FOR')}</span>
-            <span style={{ ...neonGlow('#ef4444'), marginLeft: '0.4rem' }}>{t('battleRegistryLanding.builtFor2', 'KINGDOM LEADERS')}</span>
+            <span style={{ ...neonGlow('#f97316'), marginLeft: '0.4rem' }}>{t('battleRegistryLanding.builtFor2', 'KINGDOM LEADERS')}</span>
           </h2>
           <p style={{
             color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem',
@@ -267,8 +267,8 @@ const BattleRegistryLanding: React.FC = () => {
         <div style={{
           marginBottom: isMobile ? '2rem' : '3rem',
           backgroundColor: '#111111', borderRadius: '16px',
-          border: '1px solid #ef444430', padding: isMobile ? '1.25rem' : '1.75rem',
-          background: 'linear-gradient(135deg, #111111 0%, #ef444408 100%)',
+          border: '1px solid #f9731630', padding: isMobile ? '1.25rem' : '1.75rem',
+          background: 'linear-gradient(135deg, #111111 0%, #f9731608 100%)',
         }}>
           <h2 style={{
             fontSize: isMobile ? '1.05rem' : '1.2rem', fontWeight: 'bold', color: '#fff',
@@ -282,7 +282,7 @@ const BattleRegistryLanding: React.FC = () => {
           <p style={{ color: '#d1d5db', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.7, marginBottom: '1rem' }}>
             {t('battleRegistryLanding.solutionDesc', 'The Battle Registry collects every player\'s availability and troop levels in one place. You see exactly who can be online at 14:00 UTC, how many T11 cavalry your kingdom has, and which alliances are pulling their weight. Plan the battle with data — not hope.')}
           </p>
-          <p style={{ color: '#ef4444', fontSize: isMobile ? '0.8rem' : '0.85rem', fontWeight: 600, fontStyle: 'italic' }}>
+          <p style={{ color: '#f97316', fontSize: isMobile ? '0.8rem' : '0.85rem', fontWeight: 600, fontStyle: 'italic' }}>
             {t('battleRegistryLanding.punchline', 'Information wins wars. Guessing loses them.')}
           </p>
         </div>
@@ -364,8 +364,8 @@ const BattleRegistryLanding: React.FC = () => {
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
                     padding: '0.75rem 1.5rem', backgroundColor: 'transparent',
-                    border: '1px solid #ef444440', borderRadius: '8px',
-                    color: '#ef4444', fontWeight: 600,
+                    border: '1px solid #f9731640', borderRadius: '8px',
+                    color: '#f97316', fontWeight: 600,
                     fontSize: isMobile ? '0.9rem' : '0.95rem', textDecoration: 'none',
                   }}
                 >

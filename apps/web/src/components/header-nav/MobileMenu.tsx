@@ -296,7 +296,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
               <Link to="/atlas-bot" style={{ color: isActive('/atlas-bot') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ color: '#5865F2', fontSize: '0.7rem' }}>●</span> {t('nav.atlasBot')}
               </Link>
-              <Link to="/alliance-center" style={{ color: isActive('/alliance-center') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Link to="/alliance-center/about" style={{ color: isActive('/alliance-center') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ color: '#3b82f6', fontSize: '0.7rem' }}>●</span> {t('nav.allianceCenter', 'Alliance Center')}
               </Link>
               <Link to="/tools/event-coordinator" style={{ color: isActive('/tools/event-coordinator') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

@@ -307,6 +307,18 @@ export const PAGE_META_TAGS = {
     url: 'https://ks-atlas.com/tools/battle-registry-info',
     type: 'website'
   },
+  battleLayout: {
+    title: 'KvK Battle Layout - Plan Alliance Teleport Positions | Kingshot Atlas',
+    description: 'Plan your alliance positioning around the castle and turrets for KvK Castle Battle. Visual map tool for coordinating teleport positions.',
+    url: 'https://ks-atlas.com/tools/battle-layout/about',
+    type: 'website'
+  },
+  allianceCenter: {
+    title: 'Alliance Center - Your Alliance Command Hub | Kingshot Atlas',
+    description: 'One hub for your entire alliance. Design your base, coordinate events, and manage your team. Built for Supporters, Ambassadors, and Boosters.',
+    url: 'https://ks-atlas.com/alliance-center/about',
+    type: 'website'
+  },
   prepScheduler: {
     title: 'KvK Prep Scheduler - Automated Buff Slot Assignment | Kingshot Atlas',
     description: 'Stop losing Prep Phase points to disorganized scheduling. Auto-assign 30-minute buff slots based on speedups and availability. Free for Silver+ kingdoms.',

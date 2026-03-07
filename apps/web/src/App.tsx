@@ -67,6 +67,7 @@ const BattleRegistryLanding = lazy(() => import('./pages/BattleRegistryLanding')
 const Top100Leaderboard = lazy(() => import('./pages/Top100Leaderboard'));
 const KvKSpreadsheet = lazy(() => import('./pages/KvKSpreadsheet'));
 const AllianceCenter = lazy(() => import('./pages/AllianceCenter'));
+const AllianceCenterLanding = lazy(() => import('./pages/AllianceCenterLanding'));
 const AllianceEventCoordinator = lazy(() => import('./pages/AllianceEventCoordinator'));
 const KvKBattleLayout = lazy(() => import('./pages/KvKBattleLayout'));
 const KvKBattleLayoutLanding = lazy(() => import('./pages/KvKBattleLayoutLanding'));
@@ -185,6 +186,7 @@ function AppContent() {
               <Route path="/admin/campaign-draw" element={<ErrorBoundary><AdminCampaignDraw /></ErrorBoundary>} />
               <Route path="/tools/kvk-spreadsheet" element={<ErrorBoundary><KvKSpreadsheet /></ErrorBoundary>} />
               <Route path="/alliance-center" element={<ErrorBoundary><AllianceCenter /></ErrorBoundary>} />
+              <Route path="/alliance-center/about" element={<ErrorBoundary><AllianceCenterLanding /></ErrorBoundary>} />
               <Route path="/tools/event-coordinator" element={<ErrorBoundary><AllianceEventCoordinator /></ErrorBoundary>} />
               <Route path="/tools/battle-layout" element={<ErrorBoundary><KvKBattleLayout /></ErrorBoundary>} />
               <Route path="/tools/battle-layout/about" element={<ErrorBoundary><KvKBattleLayoutLanding /></ErrorBoundary>} />
