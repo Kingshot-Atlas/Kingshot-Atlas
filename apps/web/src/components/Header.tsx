@@ -12,6 +12,7 @@ import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { ADMIN_USERNAMES } from '../utils/constants';
 import { DesktopNav, MobileMenu, UserMenu } from './header-nav';
 import { useUnreadMessages } from '../hooks/useUnreadMessages';
+import { usePendingApplications } from '../hooks/usePendingApplications';
 
 // Discord invite link - configurable via environment variable
 const DISCORD_INVITE = import.meta.env.VITE_DISCORD_INVITE || 'https://discord.gg/cajcacDzGd';
@@ -33,6 +34,7 @@ const Header: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const isMobile = useIsMobile();
   const unreadMsgCount = useUnreadMessages();
+  const pendingAppCount = usePendingApplications();
 
 
   // Close mobile language menu on outside click
@@ -329,7 +331,7 @@ const Header: React.FC = () => {
 
         {/* Desktop Nav */}
         {!isMobile && (
-          <DesktopNav isActive={isActive} user={!!user} changeLanguage={changeLanguage}>
+          <DesktopNav isActive={isActive} user={!!user} changeLanguage={changeLanguage} pendingAppCount={pendingAppCount}>
             <UserMenu
               user={!!user}
               profile={profile}
@@ -353,6 +355,7 @@ const Header: React.FC = () => {
           onSignOut={signOut}
           onClose={() => setShowMobileMenu(false)}
           unreadMsgCount={unreadMsgCount}
+          pendingAppCount={pendingAppCount}
         />
       )}
       {showAuthModal && <Suspense fallback={null}><AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} /></Suspense>}

@@ -931,6 +931,7 @@ const EditMemberModal: React.FC<{
 };
 
 // ─── Applications Inbox (managers only) ───
+type AppRow = { id: string; applicant_username: string; applicant_player_id: string; status: string; created_at: string; resolved_at?: string };
 const ApplicationsInbox: React.FC<{
   allianceId: string;
   canManage: boolean;
@@ -939,24 +940,42 @@ const ApplicationsInbox: React.FC<{
 }> = ({ allianceId, canManage, isMobile, onApproved }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
-  const [apps, setApps] = useState<{ id: string; applicant_username: string; applicant_player_id: string; status: string; created_at: string }[]>([]);
+  const [apps, setApps] = useState<AppRow[]>([]);
+  const [history, setHistory] = useState<AppRow[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkProcessing, setBulkProcessing] = useState(false);
 
   const fetchApps = useCallback(async () => {
     if (!isSupabaseConfigured || !supabase) return;
     setLoading(true);
     const { data } = await supabase
       .from('alliance_applications')
-      .select('id, applicant_username, applicant_player_id, status, created_at')
+      .select('id, applicant_username, applicant_player_id, status, created_at, resolved_at')
       .eq('alliance_id', allianceId)
       .eq('status', 'pending')
       .order('created_at', { ascending: true });
     setApps(data || []);
+    setSelected(new Set());
     setLoading(false);
   }, [allianceId]);
 
+  const fetchHistory = useCallback(async () => {
+    if (!isSupabaseConfigured || !supabase) return;
+    const { data } = await supabase
+      .from('alliance_applications')
+      .select('id, applicant_username, applicant_player_id, status, created_at, resolved_at')
+      .eq('alliance_id', allianceId)
+      .in('status', ['approved', 'rejected'])
+      .order('resolved_at', { ascending: false })
+      .limit(50);
+    setHistory(data || []);
+  }, [allianceId]);
+
   useEffect(() => { fetchApps(); }, [fetchApps]);
+  useEffect(() => { if (showHistory) fetchHistory(); }, [showHistory, fetchHistory]);
 
   const handleAction = async (appId: string, status: 'approved' | 'rejected') => {
     if (!supabase) return;
@@ -977,17 +996,57 @@ const ApplicationsInbox: React.FC<{
       );
       if (status === 'approved') onApproved();
       fetchApps();
+      if (showHistory) fetchHistory();
     }
   };
 
-  if (!canManage || (apps.length === 0 && !loading)) return null;
+  const handleBulkAction = async (status: 'approved' | 'rejected') => {
+    if (!supabase || selected.size === 0) return;
+    setBulkProcessing(true);
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    const results = await Promise.all(
+      Array.from(selected).map(appId =>
+        supabase!.from('alliance_applications').update({ status, resolved_by: userId }).eq('id', appId)
+      )
+    );
+    setBulkProcessing(false);
+    const failures = results.filter(r => r.error);
+    if (failures.length > 0) {
+      showToast(t('allianceCenter.applicationActionFailed', 'Failed to process application'), 'error');
+    } else {
+      showToast(
+        status === 'approved'
+          ? t('allianceCenter.applicationApproved', 'Application approved — member added!')
+          : t('allianceCenter.applicationRejected', 'Application rejected'),
+        status === 'approved' ? 'success' : 'info'
+      );
+      if (status === 'approved') onApproved();
+    }
+    fetchApps();
+    if (showHistory) fetchHistory();
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const toggleSelectAll = () => {
+    if (selected.size === apps.length) setSelected(new Set());
+    else setSelected(new Set(apps.map(a => a.id)));
+  };
+
+  if (!canManage || (apps.length === 0 && history.length === 0 && !loading && !showHistory)) return null;
 
   return (
     <div style={{
       backgroundColor: '#111111', borderRadius: '12px', border: '1px solid #a855f720',
       padding: isMobile ? '0.75rem' : '1rem', marginBottom: '1rem',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem', flexWrap: 'wrap' }}>
         <span style={{ fontSize: '0.9rem' }}>📩</span>
         <h3 style={{ color: '#fff', fontSize: '0.85rem', fontWeight: 700, margin: 0, fontFamily: FONT_DISPLAY }}>
           {t('allianceCenter.applicationsTitle', 'Applications')}
@@ -998,7 +1057,66 @@ const ApplicationsInbox: React.FC<{
             backgroundColor: '#a855f720', color: '#a855f7', fontFamily: 'monospace',
           }}>{apps.length}</span>
         )}
+        <button
+          onClick={() => setShowHistory(!showHistory)}
+          style={{
+            marginLeft: 'auto', fontSize: '0.65rem', color: '#6b7280', background: 'none',
+            border: '1px solid #ffffff10', borderRadius: '6px', padding: '0.2rem 0.5rem',
+            cursor: 'pointer', transition: 'color 0.2s',
+          }}
+        >
+          {showHistory ? t('allianceCenter.hideHistory', 'Hide History') : t('allianceCenter.showHistory', 'History')}
+        </button>
       </div>
+
+      {/* Bulk actions bar */}
+      {apps.length > 1 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem',
+          padding: '0.35rem 0.5rem', backgroundColor: '#0d1117', borderRadius: '6px', border: '1px solid #1e1e24',
+          flexWrap: 'wrap',
+        }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', fontSize: '0.7rem', color: '#9ca3af' }}>
+            <input
+              type="checkbox"
+              checked={selected.size === apps.length && apps.length > 0}
+              onChange={toggleSelectAll}
+              style={{ accentColor: '#a855f7' }}
+            />
+            {t('allianceCenter.selectAll', 'Select All')} ({selected.size}/{apps.length})
+          </label>
+          {selected.size > 0 && (
+            <>
+              <button
+                onClick={() => handleBulkAction('approved')}
+                disabled={bulkProcessing}
+                style={{
+                  fontSize: '0.65rem', fontWeight: 600, padding: '0.25rem 0.5rem', borderRadius: '5px',
+                  backgroundColor: '#22c55e15', border: '1px solid #22c55e30', color: '#22c55e',
+                  cursor: bulkProcessing ? 'default' : 'pointer', minHeight: isMobile ? '36px' : 'auto',
+                  WebkitTapHighlightColor: 'transparent',
+                }}
+              >
+                {bulkProcessing ? '...' : `✅ ${t('allianceCenter.bulkApprove', 'Approve Selected')}`}
+              </button>
+              <button
+                onClick={() => handleBulkAction('rejected')}
+                disabled={bulkProcessing}
+                style={{
+                  fontSize: '0.65rem', fontWeight: 600, padding: '0.25rem 0.5rem', borderRadius: '5px',
+                  backgroundColor: '#ef444410', border: '1px solid #ef444425', color: '#ef4444',
+                  cursor: bulkProcessing ? 'default' : 'pointer', minHeight: isMobile ? '36px' : 'auto',
+                  WebkitTapHighlightColor: 'transparent',
+                }}
+              >
+                {bulkProcessing ? '...' : `❌ ${t('allianceCenter.bulkReject', 'Reject Selected')}`}
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Pending list */}
       {loading ? (
         <div style={{ color: '#6b7280', fontSize: '0.75rem', padding: '0.5rem 0' }}>{t('common.loading', 'Loading...')}</div>
       ) : apps.length === 0 ? (
@@ -1010,27 +1128,39 @@ const ApplicationsInbox: React.FC<{
               display: 'flex', alignItems: isMobile ? 'flex-start' : 'center',
               flexDirection: isMobile ? 'column' : 'row',
               justifyContent: 'space-between', gap: isMobile ? '0.4rem' : '0.5rem',
-              padding: '0.5rem 0.6rem', backgroundColor: '#0d1117', borderRadius: '8px', border: '1px solid #1e1e24',
+              padding: '0.5rem 0.6rem', backgroundColor: selected.has(app.id) ? '#a855f710' : '#0d1117',
+              borderRadius: '8px', border: `1px solid ${selected.has(app.id) ? '#a855f730' : '#1e1e24'}`,
+              transition: 'background-color 0.15s',
             }}>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ color: '#e5e7eb', fontSize: '0.85rem', fontWeight: 600 }}>{app.applicant_username}</div>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.15rem' }}>
-                  <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>ID: {app.applicant_player_id}</span>
-                  <span style={{ color: '#4b5563', fontSize: '0.6rem' }}>
-                    {new Date(app.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                  </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+                {apps.length > 1 && (
+                  <input
+                    type="checkbox"
+                    checked={selected.has(app.id)}
+                    onChange={() => toggleSelect(app.id)}
+                    style={{ accentColor: '#a855f7', flexShrink: 0 }}
+                  />
+                )}
+                <div>
+                  <div style={{ color: '#e5e7eb', fontSize: '0.85rem', fontWeight: 600 }}>{app.applicant_username}</div>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.15rem' }}>
+                    <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>ID: {app.applicant_player_id}</span>
+                    <span style={{ color: '#4b5563', fontSize: '0.6rem' }}>
+                      {new Date(app.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                    </span>
+                  </div>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '0.3rem', flexShrink: 0 }}>
                 <button
                   onClick={() => handleAction(app.id, 'approved')}
-                  disabled={!!processing}
+                  disabled={!!processing || bulkProcessing}
                   style={{
                     padding: isMobile ? '0.5rem 0.75rem' : '0.3rem 0.6rem',
                     minHeight: isMobile ? '44px' : 'auto',
                     fontSize: '0.7rem', fontWeight: 600,
                     backgroundColor: '#22c55e15', border: '1px solid #22c55e30', borderRadius: '6px',
-                    color: '#22c55e', cursor: processing ? 'default' : 'pointer',
+                    color: '#22c55e', cursor: processing || bulkProcessing ? 'default' : 'pointer',
                     transition: 'all 0.2s', WebkitTapHighlightColor: 'transparent',
                   }}
                 >
@@ -1038,13 +1168,13 @@ const ApplicationsInbox: React.FC<{
                 </button>
                 <button
                   onClick={() => handleAction(app.id, 'rejected')}
-                  disabled={!!processing}
+                  disabled={!!processing || bulkProcessing}
                   style={{
                     padding: isMobile ? '0.5rem 0.75rem' : '0.3rem 0.6rem',
                     minHeight: isMobile ? '44px' : 'auto',
                     fontSize: '0.7rem', fontWeight: 600,
                     backgroundColor: '#ef444410', border: '1px solid #ef444425', borderRadius: '6px',
-                    color: '#ef4444', cursor: processing ? 'default' : 'pointer',
+                    color: '#ef4444', cursor: processing || bulkProcessing ? 'default' : 'pointer',
                     transition: 'all 0.2s', WebkitTapHighlightColor: 'transparent',
                   }}
                 >
@@ -1053,6 +1183,37 @@ const ApplicationsInbox: React.FC<{
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* History section */}
+      {showHistory && (
+        <div style={{ marginTop: '0.75rem', borderTop: '1px solid #1e1e24', paddingTop: '0.6rem' }}>
+          <div style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+            {t('allianceCenter.historyTitle', 'History')}
+          </div>
+          {history.length === 0 ? (
+            <div style={{ color: '#4b5563', fontSize: '0.7rem' }}>{t('allianceCenter.noHistory', 'No resolved applications yet')}</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              {history.map(h => (
+                <div key={h.id} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '0.35rem 0.5rem', backgroundColor: '#0d1117', borderRadius: '6px',
+                  border: '1px solid #1e1e24', fontSize: '0.75rem',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', minWidth: 0 }}>
+                    <span style={{ fontSize: '0.7rem' }}>{h.status === 'approved' ? '✅' : '❌'}</span>
+                    <span style={{ color: '#e5e7eb', fontWeight: 600 }}>{h.applicant_username}</span>
+                    <span style={{ color: '#4b5563', fontSize: '0.6rem' }}>ID: {h.applicant_player_id}</span>
+                  </div>
+                  <span style={{ color: '#4b5563', fontSize: '0.6rem', flexShrink: 0 }}>
+                    {h.resolved_at ? new Date(h.resolved_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : ''}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

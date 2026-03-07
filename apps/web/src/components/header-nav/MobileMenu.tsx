@@ -19,9 +19,10 @@ interface MobileMenuProps {
   onSignOut: () => void;
   onClose: () => void;
   unreadMsgCount?: number;
+  pendingAppCount?: number;
 }
 
-const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmin, onSignIn, onSignOut, onClose, unreadMsgCount = 0 }) => {
+const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmin, onSignIn, onSignOut, onClose, unreadMsgCount = 0, pendingAppCount = 0 }) => {
   const { t } = useTranslation();
   const location = useLocation();
   const [showMobileToolsMenu, setShowMobileToolsMenu] = useState(false);
@@ -298,6 +299,11 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
               </Link>
               <Link to="/alliance-center/about" style={{ color: isActive('/alliance-center') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ color: '#3b82f6', fontSize: '0.7rem' }}>●</span> {t('nav.allianceCenter', 'Alliance Center')}
+                {pendingAppCount > 0 && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '16px', height: '16px', padding: '0 4px', borderRadius: '8px', backgroundColor: '#ef4444', color: '#fff', fontSize: '0.6rem', fontWeight: 700, lineHeight: 1 }}>
+                    {pendingAppCount > 99 ? '99+' : pendingAppCount}
+                  </span>
+                )}
               </Link>
               <Link to="/tools/event-coordinator" style={{ color: isActive('/tools/event-coordinator') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ color: '#3b82f6', fontSize: '0.7rem' }}>●</span> {t('nav.eventCoordinator', 'Alliance Event Coordinator')}

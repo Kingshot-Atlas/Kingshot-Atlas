@@ -18,9 +18,10 @@ interface DesktopNavProps {
   user: boolean;
   changeLanguage: (code: string) => void;
   children: React.ReactNode; // UserMenu slot
+  pendingAppCount?: number;
 }
 
-const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage, children }) => {
+const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage, children, pendingAppCount = 0 }) => {
   const { t, i18n } = useTranslation();
   const { trackButton } = useAnalytics();
   const [showToolsMenu, setShowToolsMenu] = useState(false);
@@ -285,9 +286,14 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage,
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: '#5865F2' }}><rect x="4" y="7" width="16" height="12" rx="3" stroke="currentColor" strokeWidth="2"/><circle cx="9" cy="13" r="1.5" fill="currentColor"/><circle cx="15" cy="13" r="1.5" fill="currentColor"/><path d="M10 16.5C10.5 17 11.2 17.25 12 17.25C12.8 17.25 13.5 17 14 16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M12 7V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><circle cx="12" cy="3" r="1" fill="currentColor"/><path d="M4 11H2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M22 11H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
                   {t('nav.atlasBot')}
                 </Link>
-                <Link to="/alliance-center/about" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.55rem 0.75rem', borderRadius: '8px', color: isActive('/alliance-center') ? '#22d3ee' : '#fff', textDecoration: 'none', fontSize: '0.82rem', transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                <Link to="/alliance-center/about" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.55rem 0.75rem', borderRadius: '8px', color: isActive('/alliance-center') ? '#22d3ee' : '#fff', textDecoration: 'none', fontSize: '0.82rem', transition: 'background-color 0.2s', position: 'relative' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#3b82f6' }}><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-4h6v4"/></svg>
                   {t('nav.allianceCenter', 'Alliance Center')}
+                  {pendingAppCount > 0 && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '16px', height: '16px', padding: '0 4px', borderRadius: '8px', backgroundColor: '#ef4444', color: '#fff', fontSize: '0.6rem', fontWeight: 700, lineHeight: 1 }}>
+                      {pendingAppCount > 99 ? '99+' : pendingAppCount}
+                    </span>
+                  )}
                 </Link>
                 <Link to="/tools/event-coordinator" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.55rem 0.75rem', borderRadius: '8px', color: isActive('/tools/event-coordinator') ? '#22d3ee' : '#fff', textDecoration: 'none', fontSize: '0.82rem', transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#3b82f6' }}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
