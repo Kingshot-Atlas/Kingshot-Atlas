@@ -477,6 +477,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setProfile(updatedProfile);
         localStorage.setItem(PROFILE_KEY, JSON.stringify(updatedProfile));
         logger.info('Profile loaded:', { hasAvatar: !!avatarUrl, hasLinkedPlayer: !!(updatedProfile.linked_username), hasDiscord: !!(updatedProfile.discord_id) });
+
+        // Auto-verify alliance tag: if user has a linked_player_id and tag is not yet verified,
+        // check if they're in an Alliance Center's member list and auto-sync
+        if (updatedProfile.linked_player_id && !updatedProfile.alliance_tag_verified && supabase) {
+          const sb = supabase;
+          (async () => {
+            try {
+              const { data: membership } = await sb.from('alliance_members')
+                .select('alliance_id, alliances!inner(tag)')
+                .eq('player_id', updatedProfile.linked_player_id!)
+                .limit(1)
+                .single();
+              if (membership && (membership as any).alliances?.tag) {
+                const verifiedTag = (membership as any).alliances.tag;
+                const verifyUpdate = { alliance_tag: verifiedTag, alliance_tag_verified: true };
+                const { error: vErr } = await sb.from('profiles').update(verifyUpdate).eq('id', user.id);
+                if (!vErr) {
+                  setProfile(prev => prev ? { ...prev, ...verifyUpdate } : prev);
+                  const cached = localStorage.getItem(PROFILE_KEY);
+                  if (cached) {
+                    localStorage.setItem(PROFILE_KEY, JSON.stringify({ ...JSON.parse(cached), ...verifyUpdate }));
+                  }
+                  logger.info('Auto-verified alliance tag:', verifiedTag);
+                }
+              }
+            } catch { /* silent — non-critical */ }
+          })();
+        }
       }
     } catch (err) {
       logger.error('Error fetching profile:', err);

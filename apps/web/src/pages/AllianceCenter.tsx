@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
@@ -930,12 +930,142 @@ const EditMemberModal: React.FC<{
   );
 };
 
+// ─── Applications Inbox (managers only) ───
+const ApplicationsInbox: React.FC<{
+  allianceId: string;
+  canManage: boolean;
+  isMobile: boolean;
+  onApproved: () => void;
+}> = ({ allianceId, canManage, isMobile, onApproved }) => {
+  const { t } = useTranslation();
+  const { showToast } = useToast();
+  const [apps, setApps] = useState<{ id: string; applicant_username: string; applicant_player_id: string; status: string; created_at: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState<string | null>(null);
+
+  const fetchApps = useCallback(async () => {
+    if (!isSupabaseConfigured || !supabase) return;
+    setLoading(true);
+    const { data } = await supabase
+      .from('alliance_applications')
+      .select('id, applicant_username, applicant_player_id, status, created_at')
+      .eq('alliance_id', allianceId)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true });
+    setApps(data || []);
+    setLoading(false);
+  }, [allianceId]);
+
+  useEffect(() => { fetchApps(); }, [fetchApps]);
+
+  const handleAction = async (appId: string, status: 'approved' | 'rejected') => {
+    if (!supabase) return;
+    setProcessing(appId);
+    const { error } = await supabase
+      .from('alliance_applications')
+      .update({ status, resolved_by: (await supabase.auth.getUser()).data.user?.id })
+      .eq('id', appId);
+    setProcessing(null);
+    if (error) {
+      showToast(t('allianceCenter.applicationActionFailed', 'Failed to process application'), 'error');
+    } else {
+      showToast(
+        status === 'approved'
+          ? t('allianceCenter.applicationApproved', 'Application approved — member added!')
+          : t('allianceCenter.applicationRejected', 'Application rejected'),
+        status === 'approved' ? 'success' : 'info'
+      );
+      if (status === 'approved') onApproved();
+      fetchApps();
+    }
+  };
+
+  if (!canManage || (apps.length === 0 && !loading)) return null;
+
+  return (
+    <div style={{
+      backgroundColor: '#111111', borderRadius: '12px', border: '1px solid #a855f720',
+      padding: isMobile ? '0.75rem' : '1rem', marginBottom: '1rem',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem' }}>
+        <span style={{ fontSize: '0.9rem' }}>📩</span>
+        <h3 style={{ color: '#fff', fontSize: '0.85rem', fontWeight: 700, margin: 0, fontFamily: FONT_DISPLAY }}>
+          {t('allianceCenter.applicationsTitle', 'Applications')}
+        </h3>
+        {apps.length > 0 && (
+          <span style={{
+            fontSize: '0.6rem', fontWeight: 700, padding: '0.1rem 0.4rem', borderRadius: '10px',
+            backgroundColor: '#a855f720', color: '#a855f7', fontFamily: 'monospace',
+          }}>{apps.length}</span>
+        )}
+      </div>
+      {loading ? (
+        <div style={{ color: '#6b7280', fontSize: '0.75rem', padding: '0.5rem 0' }}>{t('common.loading', 'Loading...')}</div>
+      ) : apps.length === 0 ? (
+        <div style={{ color: '#4b5563', fontSize: '0.75rem' }}>{t('allianceCenter.noApplications', 'No pending applications')}</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          {apps.map(app => (
+            <div key={app.id} style={{
+              display: 'flex', alignItems: isMobile ? 'flex-start' : 'center',
+              flexDirection: isMobile ? 'column' : 'row',
+              justifyContent: 'space-between', gap: isMobile ? '0.4rem' : '0.5rem',
+              padding: '0.5rem 0.6rem', backgroundColor: '#0d1117', borderRadius: '8px', border: '1px solid #1e1e24',
+            }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ color: '#e5e7eb', fontSize: '0.85rem', fontWeight: 600 }}>{app.applicant_username}</div>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.15rem' }}>
+                  <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>ID: {app.applicant_player_id}</span>
+                  <span style={{ color: '#4b5563', fontSize: '0.6rem' }}>
+                    {new Date(app.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                  </span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '0.3rem', flexShrink: 0 }}>
+                <button
+                  onClick={() => handleAction(app.id, 'approved')}
+                  disabled={!!processing}
+                  style={{
+                    padding: isMobile ? '0.5rem 0.75rem' : '0.3rem 0.6rem',
+                    minHeight: isMobile ? '44px' : 'auto',
+                    fontSize: '0.7rem', fontWeight: 600,
+                    backgroundColor: '#22c55e15', border: '1px solid #22c55e30', borderRadius: '6px',
+                    color: '#22c55e', cursor: processing ? 'default' : 'pointer',
+                    transition: 'all 0.2s', WebkitTapHighlightColor: 'transparent',
+                  }}
+                >
+                  {processing === app.id ? '...' : `✅ ${t('common.approve', 'Approve')}`}
+                </button>
+                <button
+                  onClick={() => handleAction(app.id, 'rejected')}
+                  disabled={!!processing}
+                  style={{
+                    padding: isMobile ? '0.5rem 0.75rem' : '0.3rem 0.6rem',
+                    minHeight: isMobile ? '44px' : 'auto',
+                    fontSize: '0.7rem', fontWeight: 600,
+                    backgroundColor: '#ef444410', border: '1px solid #ef444425', borderRadius: '6px',
+                    color: '#ef4444', cursor: processing ? 'default' : 'pointer',
+                    transition: 'all 0.2s', WebkitTapHighlightColor: 'transparent',
+                  }}
+                >
+                  {processing === app.id ? '...' : `❌ ${t('common.reject', 'Reject')}`}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ─── Alliance Dashboard ───
 const AllianceDashboard: React.FC = () => {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const { showToast } = useToast();
   const ac = useAllianceCenter();
+  const queryClient = useQueryClient();
   const { hasAccess, reason, grantedBy } = useToolAccess();
   const [showAddMember, setShowAddMember] = useState(false);
   const [showImport, setShowImport] = useState(false);
@@ -1169,6 +1299,16 @@ const AllianceDashboard: React.FC = () => {
           </Link>
         </div>
       </div>
+
+      {/* Applications Inbox (managers only — auto-hides when empty) */}
+      {ac.alliance && (
+        <ApplicationsInbox
+          allianceId={ac.alliance.id}
+          canManage={ac.canManage}
+          isMobile={isMobile}
+          onApproved={() => queryClient.invalidateQueries({ queryKey: ['alliance-members', ac.alliance?.id] })}
+        />
+      )}
 
       {/* Alliance Charts — Distribution Analytics */}
       {ac.memberCount >= 3 && (

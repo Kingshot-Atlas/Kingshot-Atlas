@@ -77,22 +77,36 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
   const isVerified = viewedProfile?.alliance_tag_verified === true;
 
   // Reverse lookup: when user types a 3-char tag, check if an Alliance Center exists
-  const [reverseLookup, setReverseLookup] = useState<{ tag: string; kingdom: number; name: string } | null>(null);
+  const [reverseLookup, setReverseLookup] = useState<{ id: string; tag: string; kingdom: number; name: string } | null>(null);
+  const [applyStatus, setApplyStatus] = useState<'idle' | 'sending' | 'sent' | 'error' | 'already'>('idle');
 
   useEffect(() => {
     const tag = editForm.alliance_tag.toUpperCase();
+    setApplyStatus('idle');
     if (tag.length === 3 && !isVerified && isSupabaseConfigured && supabase) {
       const sb = supabase;
       const timeout = setTimeout(async () => {
         try {
           const { data } = await sb
             .from('alliances')
-            .select('tag, kingdom_number, name')
+            .select('id, tag, kingdom_number, name')
             .eq('tag', tag)
             .limit(1)
             .single();
           if (data) {
-            setReverseLookup({ tag: data.tag, kingdom: data.kingdom_number, name: data.name });
+            setReverseLookup({ id: data.id, tag: data.tag, kingdom: data.kingdom_number, name: data.name });
+            // Check if user already applied
+            if (viewedProfile?.id) {
+              const { data: existing } = await sb
+                .from('alliance_applications')
+                .select('id, status')
+                .eq('alliance_id', data.id)
+                .eq('applicant_user_id', viewedProfile.id)
+                .eq('status', 'pending')
+                .limit(1)
+                .maybeSingle();
+              if (existing) setApplyStatus('already');
+            }
           } else {
             setReverseLookup(null);
           }
@@ -104,7 +118,27 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
     }
     setReverseLookup(null);
     return undefined;
-  }, [editForm.alliance_tag, isVerified]);
+  }, [editForm.alliance_tag, isVerified, viewedProfile?.id]);
+
+  const handleApplyToAlliance = async () => {
+    if (!reverseLookup || !viewedProfile?.linked_player_id || !supabase || applyStatus === 'sent') return;
+    setApplyStatus('sending');
+    try {
+      const { error } = await supabase.from('alliance_applications').insert({
+        alliance_id: reverseLookup.id,
+        applicant_user_id: viewedProfile.id,
+        applicant_player_id: viewedProfile.linked_player_id,
+        applicant_username: viewedProfile.linked_username || viewedProfile.username,
+      });
+      if (error) {
+        if (error.code === '23505') { setApplyStatus('already'); return; }
+        throw error;
+      }
+      setApplyStatus('sent');
+    } catch {
+      setApplyStatus('error');
+    }
+  };
 
   const handleAllianceTagChange = (value: string) => {
     const cleaned = value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 3);
@@ -164,22 +198,50 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
               </div>
             </div>
           )}
-          {/* Reverse lookup match */}
+          {/* Reverse lookup match + Apply button */}
           {reverseLookup && !isVerified && (
             <div style={{
               marginTop: '0.4rem',
-              padding: '0.5rem 0.6rem',
+              padding: '0.6rem',
               backgroundColor: '#a855f708',
               border: '1px solid #a855f720',
               borderRadius: '6px',
               fontSize: '0.7rem',
               color: '#c4b5fd',
-              lineHeight: 1.4,
+              lineHeight: 1.5,
             }}>
-              {t('profile.reverseLookupFound', 'We found an Alliance Center for')} <strong>[{reverseLookup.tag}]</strong> {t('profile.inKingdom', 'in Kingdom')} #{reverseLookup.kingdom} — <em>{reverseLookup.name}</em>.{' '}
-              <Link to="/alliance-center" style={{ color: '#a855f7', textDecoration: 'underline' }}>
-                {t('profile.joinAllianceCenter', 'Is this your alliance?')}
-              </Link>
+              <div style={{ marginBottom: '0.4rem' }}>
+                {t('profile.reverseLookupFound', 'We found an Alliance Center for')} <strong>[{reverseLookup.tag}]</strong> {t('profile.inKingdom', 'in Kingdom')} #{reverseLookup.kingdom} — <em>{reverseLookup.name}</em>
+              </div>
+              {viewedProfile?.linked_player_id ? (
+                <button
+                  onClick={handleApplyToAlliance}
+                  disabled={applyStatus === 'sending' || applyStatus === 'sent' || applyStatus === 'already'}
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem 0.75rem',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    color: applyStatus === 'sent' ? '#22c55e' : applyStatus === 'already' ? '#9ca3af' : '#fff',
+                    backgroundColor: applyStatus === 'sent' ? '#22c55e15' : applyStatus === 'already' ? '#1a1a1a' : '#a855f7',
+                    border: `1px solid ${applyStatus === 'sent' ? '#22c55e40' : applyStatus === 'already' ? '#3a3a3a' : '#a855f780'}`,
+                    borderRadius: '6px',
+                    cursor: applyStatus === 'sending' || applyStatus === 'sent' || applyStatus === 'already' ? 'default' : 'pointer',
+                    transition: 'all 0.2s',
+                    minHeight: '44px',
+                  }}
+                >
+                  {applyStatus === 'sending' ? t('common.sending', 'Sending...') :
+                   applyStatus === 'sent' ? `✅ ${t('profile.applicationSent', 'Application sent!')}` :
+                   applyStatus === 'already' ? t('profile.applicationPending', 'Application pending') :
+                   applyStatus === 'error' ? t('profile.applicationError', 'Failed — try again') :
+                   `📩 ${t('profile.applyToJoin', 'Apply to join this Alliance Center')}`}
+                </button>
+              ) : (
+                <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>
+                  {t('profile.linkToApply', 'Link your Kingshot account to apply')}
+                </span>
+              )}
             </div>
           )}
         </div>
