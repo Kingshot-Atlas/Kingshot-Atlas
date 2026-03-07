@@ -1080,6 +1080,8 @@ function createShareCardEmbed(kingdom) {
   const group = getTransferGroup(kingdom.kingdom_number);
   const groupLabel = group ? getTransferGroupLabel(group) : 'N/A';
   const rankDisplay = kingdom.rank ? `#${kingdom.rank}` : 'Unranked';
+  const transferStatusLabel = kingdom.transfer_status || kingdom.most_recent_status || 'Unknown';
+  const transferStatusEmoji = transferStatusLabel === 'Leading' ? '\ud83d\udc51' : transferStatusLabel === 'Ordinary' ? '\ud83d\udfe2' : '\u2753';
 
   const embed = new EmbedBuilder()
     .setColor(getTierColor(tier))
@@ -1087,7 +1089,7 @@ function createShareCardEmbed(kingdom) {
     .setURL(config.urls.kingdom(kingdom.kingdom_number))
     .setDescription([
       `\ud83c\udfc6 **Rank:** ${rankDisplay} \u2022 \ud83d\udc8e **Atlas Score:** ${kingdom.overall_score.toFixed(1)}`,
-      `\ud83d\udcca **Transfer Group:** ${groupLabel}`,
+      `\ud83d\udcca **Transfer Group:** ${groupLabel} \u2022 ${transferStatusEmoji} ${transferStatusLabel}`,
     ].join('\n'))
     .addFields(
       {
