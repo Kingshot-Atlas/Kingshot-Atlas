@@ -248,8 +248,8 @@ const CreateAllianceForm: React.FC<{
             <label style={{ color: '#9ca3af', fontSize: '0.75rem', fontWeight: '600', display: 'block', marginBottom: '0.3rem' }}>
               {t('allianceCenter.tagLabel', 'Alliance Tag')} *
             </label>
-            <input type="text" value={tag} onChange={e => setTag(e.target.value.replace(/[^A-Za-z0-9]/g, '').slice(0, 6))} placeholder="e.g. ACE" maxLength={6} style={lgInput} />
-            <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>2-6 alphanumeric characters</span>
+            <input type="text" value={tag} onChange={e => setTag(e.target.value.replace(/[^A-Za-z0-9]/g, '').slice(0, 3))} placeholder="e.g. ACE" maxLength={3} style={lgInput} />
+            <span style={{ color: '#4b5563', fontSize: '0.65rem' }}>Exactly 3 alphanumeric characters</span>
           </div>
           <div>
             <label style={{ color: '#9ca3af', fontSize: '0.75rem', fontWeight: '600', display: 'block', marginBottom: '0.3rem' }}>
@@ -275,7 +275,7 @@ const CreateAllianceForm: React.FC<{
               maxLength={200} rows={2} style={{ ...lgInput, resize: 'vertical', minHeight: '50px' }} />
           </div>
           <Button variant="primary" onClick={handleCreate}
-            disabled={creating || !tag.trim() || tag.trim().length < 2 || !name.trim() || !defaultKingdom}
+            disabled={creating || !tag.trim() || tag.trim().length !== 3 || !name.trim() || !defaultKingdom}
             loading={creating} style={{ width: '100%', marginTop: '0.5rem' }}>
             {t('allianceCenter.createBtn', 'Create Alliance Center')}
           </Button>

@@ -78,11 +78,11 @@ const PrepSchedulerLanding: React.FC = () => {
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '700px', margin: '0 auto' }}>
           <div style={{
             width: isMobile ? '64px' : '80px', height: isMobile ? '64px' : '80px',
-            borderRadius: '50%', backgroundColor: '#a855f715',
-            border: '2px solid #a855f730',
+            borderRadius: '50%', backgroundColor: '#eab30815',
+            border: '2px solid #eab30830',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             margin: '0 auto 1.25rem',
-            boxShadow: '0 0 30px rgba(168, 85, 247, 0.15), 0 0 60px rgba(168, 85, 247, 0.08)',
+            boxShadow: '0 0 30px rgba(234, 179, 8, 0.15), 0 0 60px rgba(234, 179, 8, 0.08)',
           }}>
             <span style={{ fontSize: isMobile ? '1.75rem' : '2.25rem' }}>📅</span>
           </div>
@@ -92,7 +92,7 @@ const PrepSchedulerLanding: React.FC = () => {
             marginBottom: '0.75rem', fontFamily: FONT_DISPLAY,
           }}>
             <span style={{ color: '#fff' }}>KvK PREP</span>
-            <span style={{ ...neonGlow('#a855f7'), marginLeft: '0.5rem' }}>SCHEDULER</span>
+            <span style={{ ...neonGlow('#eab308'), marginLeft: '0.5rem' }}>SCHEDULER</span>
           </h1>
           <p style={{
             color: '#9ca3af', fontSize: isMobile ? '0.95rem' : '1.1rem',
@@ -102,10 +102,10 @@ const PrepSchedulerLanding: React.FC = () => {
           </p>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-            padding: '0.25rem 0.75rem', backgroundColor: '#ffc30b15',
-            border: '1px solid #ffc30b30', borderRadius: '20px', marginBottom: '0.5rem',
+            padding: '0.25rem 0.75rem', backgroundColor: '#c0c0c015',
+            border: '1px solid #c0c0c030', borderRadius: '20px', marginBottom: '0.5rem',
           }}>
-            <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#ffc30b' }}>
+            <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#c0c0c0' }}>
               🥈 {t('prepLanding.silverPlusTierBadge', 'SILVER+ TIER KINGDOM FEATURE')}
             </span>
           </div>
@@ -123,11 +123,11 @@ const PrepSchedulerLanding: React.FC = () => {
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.6rem',
                 padding: isMobile ? '0.85rem 1.75rem' : '0.9rem 2rem',
-                backgroundColor: '#a855f7', border: 'none', borderRadius: '10px',
+                backgroundColor: '#eab308', border: 'none', borderRadius: '10px',
                 color: '#fff', fontWeight: 700,
                 fontSize: isMobile ? '0.95rem' : '1rem', textDecoration: 'none',
                 transition: 'all 0.2s ease',
-                boxShadow: '0 4px 20px rgba(168, 85, 247, 0.35)',
+                boxShadow: '0 4px 20px rgba(234, 179, 8, 0.35)',
               }}
             >
               📅 {t('prepLanding.openScheduler', 'Open the Scheduler')}
@@ -139,9 +139,9 @@ const PrepSchedulerLanding: React.FC = () => {
 
           {!isMobile && (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem' }}>
-              <div style={{ width: '50px', height: '2px', background: 'linear-gradient(90deg, transparent, #a855f7)' }} />
-              <div style={{ width: '6px', height: '6px', backgroundColor: '#a855f7', transform: 'rotate(45deg)', boxShadow: '0 0 8px #a855f7' }} />
-              <div style={{ width: '50px', height: '2px', background: 'linear-gradient(90deg, #a855f7, transparent)' }} />
+              <div style={{ width: '50px', height: '2px', background: 'linear-gradient(90deg, transparent, #eab308)' }} />
+              <div style={{ width: '6px', height: '6px', backgroundColor: '#eab308', transform: 'rotate(45deg)', boxShadow: '0 0 8px #eab308' }} />
+              <div style={{ width: '50px', height: '2px', background: 'linear-gradient(90deg, #eab308, transparent)' }} />
             </div>
           )}
         </div>
@@ -157,7 +157,7 @@ const PrepSchedulerLanding: React.FC = () => {
             marginBottom: '0.4rem', fontFamily: FONT_DISPLAY, textAlign: 'center',
           }}>
             <span style={{ color: '#fff' }}>HOW IT</span>
-            <span style={{ ...neonGlow('#a855f7'), marginLeft: '0.4rem' }}>WORKS</span>
+            <span style={{ ...neonGlow('#eab308'), marginLeft: '0.4rem' }}>WORKS</span>
           </h2>
           <p style={{
             color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem',
@@ -176,7 +176,7 @@ const PrepSchedulerLanding: React.FC = () => {
               }}>
                 <div style={{
                   width: '40px', height: '40px', borderRadius: '50%',
-                  backgroundColor: '#a855f715', border: '1px solid #a855f730',
+                  backgroundColor: '#eab30815', border: '1px solid #eab30830',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   margin: '0 auto 0.75rem', fontSize: '1.1rem',
                 }}>
@@ -200,7 +200,7 @@ const PrepSchedulerLanding: React.FC = () => {
             marginBottom: '0.4rem', fontFamily: FONT_DISPLAY, textAlign: 'center',
           }}>
             <span style={{ color: '#fff' }}>BUILT FOR</span>
-            <span style={{ ...neonGlow('#a855f7'), marginLeft: '0.4rem' }}>PREP MANAGERS</span>
+            <span style={{ ...neonGlow('#eab308'), marginLeft: '0.4rem' }}>PREP MANAGERS</span>
           </h2>
           <p style={{
             color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem',
@@ -237,8 +237,8 @@ const PrepSchedulerLanding: React.FC = () => {
         <div style={{
           marginBottom: isMobile ? '2rem' : '3rem',
           backgroundColor: '#111111', borderRadius: '16px',
-          border: '1px solid #a855f730', padding: isMobile ? '1.25rem' : '1.75rem',
-          background: 'linear-gradient(135deg, #111111 0%, #a855f708 100%)',
+          border: '1px solid #eab30830', padding: isMobile ? '1.25rem' : '1.75rem',
+          background: 'linear-gradient(135deg, #111111 0%, #eab30808 100%)',
         }}>
           <h2 style={{
             fontSize: isMobile ? '1.05rem' : '1.2rem', fontWeight: 'bold', color: '#fff',
@@ -255,7 +255,7 @@ const PrepSchedulerLanding: React.FC = () => {
           <p style={{ color: '#d1d5db', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.7, marginBottom: '1rem' }}>
             {t('prepLanding.problemP3', 'Unassigned players get flagged immediately. Empty time slots are highlighted. The manager sees exactly where the gaps are and can manually assign anyone into any slot with override.')}
           </p>
-          <p style={{ color: '#a855f7', fontSize: isMobile ? '0.8rem' : '0.85rem', fontWeight: 600, fontStyle: 'italic' }}>
+          <p style={{ color: '#eab308', fontSize: isMobile ? '0.8rem' : '0.85rem', fontWeight: 600, fontStyle: 'italic' }}>
             {t('prepLanding.punchline', 'That\'s not scheduling. That\'s strategic resource allocation.')}
           </p>
         </div>
@@ -302,14 +302,14 @@ const PrepSchedulerLanding: React.FC = () => {
           marginBottom: isMobile ? '2rem' : '3rem',
           padding: isMobile ? '1.5rem' : '2rem',
           backgroundColor: '#111111', borderRadius: '16px',
-          border: '1px solid #ffc30b30', textAlign: 'center',
-          background: 'linear-gradient(135deg, #111111 0%, #ffc30b08 100%)',
+          border: '1px solid #c0c0c030', textAlign: 'center',
+          background: 'linear-gradient(135deg, #111111 0%, #c0c0c008 100%)',
         }}>
           <span style={{
             fontSize: '0.65rem', fontWeight: 700,
-            color: '#ffc30b',
-            backgroundColor: '#ffc30b18',
-            border: '1px solid #ffc30b30',
+            color: '#c0c0c0',
+            backgroundColor: '#c0c0c018',
+            border: '1px solid #c0c0c030',
             padding: '0.2rem 0.6rem', borderRadius: '4px',
             letterSpacing: '0.05em', textTransform: 'uppercase',
             display: 'inline-block', marginBottom: '0.75rem',
@@ -336,11 +336,11 @@ const PrepSchedulerLanding: React.FC = () => {
               to="/tools/prep-scheduler"
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                padding: '0.75rem 1.5rem', backgroundColor: '#a855f7',
+                padding: '0.75rem 1.5rem', backgroundColor: '#eab308',
                 border: 'none', borderRadius: '8px', color: '#fff',
                 fontWeight: 600, fontSize: isMobile ? '0.9rem' : '0.95rem',
                 textDecoration: 'none', transition: 'all 0.2s ease',
-                boxShadow: '0 4px 15px rgba(168, 85, 247, 0.3)',
+                boxShadow: '0 4px 15px rgba(234, 179, 8, 0.3)',
               }}
             >
               📅 {t('prepLanding.getStarted', 'Get Started')}

@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import NotificationPreferences from '../NotificationPreferences';
 import { UserProfile } from '../../contexts/AuthContext';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 
 const LANGUAGES = [
   'English', 'Spanish', 'Portuguese', 'French', 'German', 'Italian', 
@@ -72,6 +74,38 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
     fontSize: '1rem'
   };
 
+  const isVerified = viewedProfile?.alliance_tag_verified === true;
+
+  // Reverse lookup: when user types a 3-char tag, check if an Alliance Center exists
+  const [reverseLookup, setReverseLookup] = useState<{ tag: string; kingdom: number; name: string } | null>(null);
+
+  useEffect(() => {
+    const tag = editForm.alliance_tag.toUpperCase();
+    if (tag.length === 3 && !isVerified && isSupabaseConfigured && supabase) {
+      const sb = supabase;
+      const timeout = setTimeout(async () => {
+        try {
+          const { data } = await sb
+            .from('alliances')
+            .select('tag, kingdom_number, name')
+            .eq('tag', tag)
+            .limit(1)
+            .single();
+          if (data) {
+            setReverseLookup({ tag: data.tag, kingdom: data.kingdom_number, name: data.name });
+          } else {
+            setReverseLookup(null);
+          }
+        } catch {
+          setReverseLookup(null);
+        }
+      }, 400);
+      return () => clearTimeout(timeout);
+    }
+    setReverseLookup(null);
+    return undefined;
+  }, [editForm.alliance_tag, isVerified]);
+
   const handleAllianceTagChange = (value: string) => {
     const cleaned = value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 3);
     setEditForm(prev => ({ ...prev, alliance_tag: cleaned }));
@@ -83,14 +117,71 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: isMobile ? '0.75rem' : '1rem' }}>
         <div>
           <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>{t('profile.allianceTagLabel', 'Alliance Tag (3 chars)')}</label>
-          <input
-            type="text"
-            value={editForm.alliance_tag}
-            onChange={(e) => handleAllianceTagChange(e.target.value)}
-            placeholder="e.g. TWs"
-            maxLength={3}
-            style={{ ...inputStyle, letterSpacing: '0.1em' }}
-          />
+          <div style={{ position: 'relative' }}>
+            <input
+              type="text"
+              value={editForm.alliance_tag}
+              onChange={(e) => handleAllianceTagChange(e.target.value)}
+              placeholder="e.g. TWs"
+              maxLength={3}
+              style={{
+                ...inputStyle,
+                letterSpacing: '0.1em',
+                ...(isVerified ? { borderColor: '#22c55e40', backgroundColor: '#22c55e08' } : {}),
+              }}
+              readOnly={isVerified}
+            />
+            {isVerified && (
+              <span style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.9rem' }}>✅</span>
+            )}
+          </div>
+          {/* Verified status */}
+          {isVerified && (
+            <span style={{ color: '#22c55e', fontSize: '0.65rem', marginTop: '0.25rem', display: 'block' }}>
+              {t('profile.allianceTagVerified', 'Verified via Alliance Center')}
+            </span>
+          )}
+          {/* Unverified hint + invitation flow */}
+          {!isVerified && editForm.alliance_tag && (
+            <div style={{ marginTop: '0.25rem' }}>
+              <span style={{ color: '#f59e0b', fontSize: '0.65rem', display: 'block' }}>
+                {t('profile.allianceTagUnverified', 'Unverified — manually entered')}
+              </span>
+              <div style={{
+                marginTop: '0.4rem',
+                padding: '0.5rem 0.6rem',
+                backgroundColor: '#22d3ee08',
+                border: '1px solid #22d3ee20',
+                borderRadius: '6px',
+                fontSize: '0.7rem',
+                color: '#9ca3af',
+                lineHeight: 1.4,
+              }}>
+                {t('profile.verifiedTagHint', 'Want a verified tag? Ask your R4/R5 to add you to your Alliance Center, or')}{' '}
+                <Link to="/alliance-center" style={{ color: '#22d3ee', textDecoration: 'underline' }}>
+                  {t('profile.createAllianceCenter', 'create one yourself')}
+                </Link>.
+              </div>
+            </div>
+          )}
+          {/* Reverse lookup match */}
+          {reverseLookup && !isVerified && (
+            <div style={{
+              marginTop: '0.4rem',
+              padding: '0.5rem 0.6rem',
+              backgroundColor: '#a855f708',
+              border: '1px solid #a855f720',
+              borderRadius: '6px',
+              fontSize: '0.7rem',
+              color: '#c4b5fd',
+              lineHeight: 1.4,
+            }}>
+              {t('profile.reverseLookupFound', 'We found an Alliance Center for')} <strong>[{reverseLookup.tag}]</strong> {t('profile.inKingdom', 'in Kingdom')} #{reverseLookup.kingdom} — <em>{reverseLookup.name}</em>.{' '}
+              <Link to="/alliance-center" style={{ color: '#a855f7', textDecoration: 'underline' }}>
+                {t('profile.joinAllianceCenter', 'Is this your alliance?')}
+              </Link>
+            </div>
+          )}
         </div>
         <div>
           <label style={{ color: '#9ca3af', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>{t('profile.mainLanguageLabel', 'Main Language')}</label>

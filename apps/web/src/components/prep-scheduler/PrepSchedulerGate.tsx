@@ -19,7 +19,7 @@ const PrepSchedulerGate: React.FC<PrepSchedulerGateProps> = ({ needsLogin, sched
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ maxWidth: '420px', textAlign: 'center', padding: '2rem' }}>
-        <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: '#a855f715', border: '2px solid #a855f730', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', fontSize: '1.75rem' }}>
+        <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: '#eab30815', border: '2px solid #eab30830', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', fontSize: '1.75rem' }}>
           {needsLogin ? '🔒' : '🔗'}
         </div>
         <h2 style={{ color: colors.text, fontFamily: FONT_DISPLAY, fontSize: '1.5rem', marginBottom: '0.75rem' }}>
@@ -35,8 +35,8 @@ const PrepSchedulerGate: React.FC<PrepSchedulerGateProps> = ({ needsLogin, sched
         {needsLogin ? (
           <Link to="/profile" style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.7rem 1.5rem',
-            backgroundColor: '#a855f720', border: '1px solid #a855f750', borderRadius: '8px',
-            color: '#a855f7', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none',
+            backgroundColor: '#eab30820', border: '1px solid #eab30850', borderRadius: '8px',
+            color: '#eab308', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none',
           }}>
             🔑 {t('prepScheduler.signInBtn', 'Sign In to Continue')}
           </Link>

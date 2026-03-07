@@ -115,7 +115,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
             <div>
               <h1 style={{ fontSize: isMobile ? '1.1rem' : '1.5rem', fontFamily: FONT_DISPLAY, margin: 0 }}>
                 <span style={{ color: '#fff' }}>K{schedule.kingdom_number}</span>
-                <span style={{ color: '#a855f7', marginLeft: '0.5rem' }}>{t('prepScheduler.prepManager', 'Prep Manager')}</span>
+                <span style={{ color: '#eab308', marginLeft: '0.5rem' }}>{t('prepScheduler.prepManager', 'Prep Manager')}</span>
                 {schedule.kvk_number && <span style={{ color: colors.textMuted, fontSize: '0.8rem', marginLeft: '0.5rem' }}>KvK #{schedule.kvk_number}</span>}
               </h1>
               <p style={{ color: colors.textMuted, fontSize: '0.75rem', margin: '0.25rem 0 0', display: 'flex', flexWrap: 'wrap', gap: '0.25rem', alignItems: 'center' }}>
@@ -123,7 +123,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                 <span>·</span>
                 <span>{assignedCount}/{maxSlots} {t('prepScheduler.slotsFor', 'slots for')} {getDayLabel(activeDay, t)}</span>
                 {(() => { const skipCount = submissions.filter(s => isSkippedDay(s, activeDay)).length; return skipCount > 0 ? <><span>·</span><span style={{ color: '#f59e0b' }}>{skipCount} {t('prepScheduler.skipped', 'skipped')} {getDayLabel(activeDay, t)}</span></> : null; })()}
-                {managerUsername && <><span>·</span><span>{t('prepScheduler.manager', 'Manager')}: <span style={{ color: '#a855f7' }}>{managerUsername}</span></span></>}
+                {managerUsername && <><span>·</span><span>{t('prepScheduler.manager', 'Manager')}: <span style={{ color: '#eab308' }}>{managerUsername}</span></span></>}
                 {schedule.status === 'archived' && <span style={{ padding: '0.1rem 0.4rem', backgroundColor: `${colors.textMuted}20`, borderRadius: '4px', fontSize: '0.65rem', color: colors.textMuted }}>{t('prepScheduler.archived', 'ARCHIVED')}</span>}
                 {schedule.status === 'closed' && <span style={{ padding: '0.1rem 0.4rem', backgroundColor: '#ef444420', borderRadius: '4px', fontSize: '0.65rem', color: '#ef4444', fontWeight: 600 }}>🔒 {t('prepScheduler.formClosedTag', 'FORM CLOSED')}</span>}
                 {schedule.is_locked && <span style={{ padding: '0.1rem 0.4rem', backgroundColor: '#22c55e20', borderRadius: '4px', fontSize: '0.65rem', color: '#22c55e', fontWeight: 600 }}>✅ {t('prepScheduler.lockedIn', 'LOCKED IN')}</span>}
@@ -131,7 +131,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                 {pendingRequests.length > 0 && <span style={{ padding: '0.1rem 0.4rem', backgroundColor: '#ef444420', borderRadius: '4px', fontSize: '0.65rem', color: '#ef4444', fontWeight: 600 }}>🔔 {pendingRequests.length} {t('prepScheduler.changeRequests', 'change requests')}</span>}
                 {(() => { const dl = getDeadlineCountdown(schedule.deadline, t); const utcLabel = formatDeadlineUTC(schedule.deadline); return dl ? <><span style={{ padding: '0.1rem 0.4rem', backgroundColor: dl.urgent ? '#ef444420' : '#f59e0b20', borderRadius: '4px', fontSize: '0.65rem', color: dl.urgent ? '#ef4444' : '#f59e0b', fontWeight: 600 }}>⏰ {dl.text}</span>{utcLabel && <span style={{ fontSize: '0.6rem', color: '#6b7280' }}>{utcLabel}</span>}</> : null; })()}
                 {(isEditorOrCoEditor || isManager) && updateDeadline && !editingDeadline && (
-                  <button onClick={() => setEditingDeadline(true)} style={{ background: 'none', border: 'none', color: '#a855f7', fontSize: '0.6rem', cursor: 'pointer', padding: '0.1rem 0.3rem', fontWeight: 600 }}>✏️ {schedule.deadline ? t('prepScheduler.editDeadline', 'Edit Deadline') : t('prepScheduler.setDeadline', 'Set Deadline')}</button>
+                  <button onClick={() => setEditingDeadline(true)} style={{ background: 'none', border: 'none', color: '#eab308', fontSize: '0.6rem', cursor: 'pointer', padding: '0.1rem 0.3rem', fontWeight: 600 }}>✏️ {schedule.deadline ? t('prepScheduler.editDeadline', 'Edit Deadline') : t('prepScheduler.setDeadline', 'Set Deadline')}</button>
                 )}
                 {editingDeadline && updateDeadline && (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
@@ -157,7 +157,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                       {[0, 15, 30, 45].map(m => <option key={m} value={m}>{String(m).padStart(2, '0')}</option>)}
                     </select>
                     <span style={{ color: colors.textMuted, fontSize: '0.55rem', fontWeight: 600 }}>UTC</span>
-                    <button onClick={async () => { await updateDeadline(deadlineInput); setEditingDeadline(false); }} disabled={saving} style={{ background: 'none', border: '1px solid #a855f730', borderRadius: '4px', color: '#a855f7', fontSize: '0.55rem', cursor: 'pointer', padding: '0.15rem 0.35rem', fontWeight: 600 }}>{saving ? '...' : '✓'}</button>
+                    <button onClick={async () => { await updateDeadline(deadlineInput); setEditingDeadline(false); }} disabled={saving} style={{ background: 'none', border: '1px solid #eab30830', borderRadius: '4px', color: '#eab308', fontSize: '0.55rem', cursor: 'pointer', padding: '0.15rem 0.35rem', fontWeight: 600 }}>{saving ? '...' : '✓'}</button>
                     <button onClick={() => setEditingDeadline(false)} style={{ background: 'none', border: 'none', color: colors.textMuted, fontSize: '0.55rem', cursor: 'pointer', padding: '0.15rem 0.2rem' }}>✗</button>
                   </span>
                 )}
@@ -169,7 +169,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                 {/* Primary actions always visible */}
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <button onClick={copyShareLink} style={{ flex: 1, padding: '0.55rem 0.75rem', backgroundColor: `${colors.primary}15`, border: `1px solid ${colors.primary}30`, borderRadius: '8px', color: colors.primary, fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', minHeight: '44px' }}>🔗 {t('prepScheduler.copyFormLink', 'Copy Form Link')}</button>
-                  <button onClick={() => setView('form')} style={{ flex: 1, padding: '0.55rem 0.75rem', backgroundColor: '#a855f715', border: '1px solid #a855f730', borderRadius: '8px', color: '#a855f7', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', minHeight: '44px' }}>� {t('prepScheduler.viewForm', 'View Form')}</button>
+                  <button onClick={() => setView('form')} style={{ flex: 1, padding: '0.55rem 0.75rem', backgroundColor: '#eab30815', border: '1px solid #eab30830', borderRadius: '8px', color: '#eab308', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', minHeight: '44px' }}>� {t('prepScheduler.viewForm', 'View Form')}</button>
                 </div>
                 {/* Toggle for more actions */}
                 <button onClick={() => setShowAllActions(prev => !prev)} style={{ padding: '0.4rem', backgroundColor: 'transparent', border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.textMuted, fontSize: '0.75rem', cursor: 'pointer', textAlign: 'center' }}>
@@ -221,7 +221,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <button onClick={copyShareLink} style={{ padding: '0.4rem 0.75rem', backgroundColor: `${colors.primary}15`, border: `1px solid ${colors.primary}30`, borderRadius: '6px', color: colors.primary, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>🔗 {t('prepScheduler.copyFormLink', 'Copy Form Link')}</button>
                 <button onClick={exportScheduleCSV} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#22c55e15', border: '1px solid #22c55e30', borderRadius: '6px', color: '#22c55e', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📊 {t('prepScheduler.exportCSV', 'Export CSV')}</button>
-                <button onClick={() => setView('form')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#a855f715', border: '1px solid #a855f730', borderRadius: '6px', color: '#a855f7', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📝 {t('prepScheduler.viewForm', 'View Form')}</button>
+                <button onClick={() => setView('form')} style={{ padding: '0.4rem 0.75rem', backgroundColor: '#eab30815', border: '1px solid #eab30830', borderRadius: '6px', color: '#eab308', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📝 {t('prepScheduler.viewForm', 'View Form')}</button>
                 {schedule.status !== 'archived' && (isEditorOrCoEditor || isManager) && (
                   <button onClick={closeOrReopenForm} style={{ padding: '0.4rem 0.75rem', backgroundColor: schedule.status === 'closed' ? '#22c55e15' : '#ef444415', border: `1px solid ${schedule.status === 'closed' ? '#22c55e30' : '#ef444430'}`, borderRadius: '6px', color: schedule.status === 'closed' ? '#22c55e' : '#ef4444', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>{schedule.status === 'closed' ? `🔓 ${t('prepScheduler.reopenForm', 'Reopen Form')}` : `🔒 ${t('prepScheduler.closeForm', 'Close Form')}`}</button>
                 )}
@@ -265,13 +265,13 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '0.75rem' : '1rem 2rem' }}>
         {/* Prep Manager Assignment */}
         {isEditorOrCoEditor && (
-          <div style={{ ...cardStyle, marginBottom: '1rem', borderColor: '#a855f730' }}>
-            <h4 style={{ color: '#a855f7', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>👤 {t('prepScheduler.prepManagers', 'Prep Managers')}</h4>
+          <div style={{ ...cardStyle, marginBottom: '1rem', borderColor: '#eab30830' }}>
+            <h4 style={{ color: '#eab308', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>👤 {t('prepScheduler.prepManagers', 'Prep Managers')}</h4>
             {managers.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.5rem' }}>
                 {managers.map(mgr => (
-                  <div key={mgr.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.2rem 0.5rem', backgroundColor: '#a855f715', border: '1px solid #a855f730', borderRadius: '20px' }}>
-                    <span style={{ color: '#a855f7', fontSize: '0.75rem', fontWeight: 600 }}>{mgr.username}</span>
+                  <div key={mgr.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.2rem 0.5rem', backgroundColor: '#eab30815', border: '1px solid #eab30830', borderRadius: '20px' }}>
+                    <span style={{ color: '#eab308', fontSize: '0.75rem', fontWeight: 600 }}>{mgr.username}</span>
                     <button onClick={() => removeManagerById(mgr.id, mgr.user_id)} style={{ background: 'none', border: 'none', color: colors.error, cursor: 'pointer', fontSize: '0.8rem', padding: '0 0.1rem', lineHeight: 1 }}>×</button>
                   </div>
                 ))}
@@ -310,7 +310,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                       >
                         <span style={{ fontWeight: 600 }}>{u.linked_username || u.username}</span>
                         {u.linked_player_id && <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>ID: {u.linked_player_id}</span>}
-                        {alreadyAdded && <span style={{ marginLeft: 'auto', color: '#a855f7', fontSize: '0.65rem' }}>✓</span>}
+                        {alreadyAdded && <span style={{ marginLeft: 'auto', color: '#eab308', fontSize: '0.65rem' }}>✓</span>}
                       </button>
                     );
                   })}
@@ -587,7 +587,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
         {/* All Submissions Panel — for editors/managers to view & edit any player's form */}
         {(isEditorOrCoEditor || isManager) && submissions.length > 0 && (
           <div style={{ ...cardStyle, marginTop: '1rem' }}>
-            <h3 style={{ color: '#a855f7', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.5rem' }}>📋 {t('prepScheduler.allSubmissions', 'All Submissions')} ({submissions.length})</h3>
+            <h3 style={{ color: '#eab308', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.5rem' }}>📋 {t('prepScheduler.allSubmissions', 'All Submissions')} ({submissions.length})</h3>
             <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.75rem' }}>{t('prepScheduler.allSubmissionsDesc', 'Click a player to view details. Editors can edit speedups and opt-outs.')}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
               {submissions.map(sub => {
@@ -595,13 +595,13 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                 const isEditing = editingSubId === sub.id;
                 const totalSpeedups = sub.general_speedups + sub.training_speedups + sub.construction_speedups + sub.research_speedups;
                 return (
-                  <div key={sub.id} style={{ borderRadius: '8px', border: `1px solid ${isExpanded ? '#a855f730' : colors.borderSubtle}`, backgroundColor: isExpanded ? '#a855f708' : 'transparent', overflow: 'hidden' }}>
+                  <div key={sub.id} style={{ borderRadius: '8px', border: `1px solid ${isExpanded ? '#eab30830' : colors.borderSubtle}`, backgroundColor: isExpanded ? '#eab30808' : 'transparent', overflow: 'hidden' }}>
                     {/* Summary row */}
                     <div
                       onClick={() => { setExpandedSubmissionId(isExpanded ? null : sub.id); setEditingSubId(null); }}
                       style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.6rem', cursor: 'pointer' }}
                     >
-                      <span style={{ color: isExpanded ? '#a855f7' : colors.text, fontWeight: 600, fontSize: '0.8rem', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub.username}</span>
+                      <span style={{ color: isExpanded ? '#eab308' : colors.text, fontWeight: 600, fontSize: '0.8rem', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub.username}</span>
                       {sub.alliance_tag && <span style={{ color: colors.textMuted, fontSize: '0.7rem' }}>[{sub.alliance_tag}]</span>}
                       <span style={{ color: colors.textMuted, fontSize: '0.7rem', fontFamily: 'monospace' }}>{formatMinutes(totalSpeedups)}</span>
                       {sub.screenshot_url && <a href={sub.screenshot_url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ color: '#22c55e', fontSize: '0.7rem' }}>📷</a>}
@@ -652,7 +652,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
                         {/* Edit speedups inline */}
                         {updateAnySubmission && !isEditing && (
                           <button onClick={(e) => { e.stopPropagation(); setEditingSubId(sub.id); setEditSpeedups({ general: sub.general_speedups, training: sub.training_speedups, construction: sub.construction_speedups, research: sub.research_speedups }); }}
-                            style={{ padding: '0.35rem 0.75rem', backgroundColor: '#a855f710', border: '1px solid #a855f730', borderRadius: '6px', color: '#a855f7', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer', alignSelf: 'flex-start' }}>
+                            style={{ padding: '0.35rem 0.75rem', backgroundColor: '#eab30810', border: '1px solid #eab30830', borderRadius: '6px', color: '#eab308', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer', alignSelf: 'flex-start' }}>
                             ✏️ {t('prepScheduler.editSpeedups', 'Edit Speedups')}
                           </button>
                         )}

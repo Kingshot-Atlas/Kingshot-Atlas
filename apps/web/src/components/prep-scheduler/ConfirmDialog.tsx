@@ -39,8 +39,8 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({ confirm, onDismiss }) => 
             borderRadius: '6px', color: colors.textSecondary, fontSize: '0.8rem', cursor: 'pointer',
           }}>{t('prepScheduler.cancel', 'Cancel')}</button>
           <button onClick={() => { confirm.onConfirm(); onDismiss(); }} style={{
-            padding: '0.5rem 1rem', backgroundColor: '#a855f720', border: '1px solid #a855f750',
-            borderRadius: '6px', color: '#a855f7', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
+            padding: '0.5rem 1rem', backgroundColor: '#eab30820', border: '1px solid #eab30850',
+            borderRadius: '6px', color: '#eab308', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
           }}>{t('prepScheduler.confirm', 'Confirm')}</button>
         </div>
       </div>

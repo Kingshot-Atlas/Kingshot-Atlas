@@ -6,6 +6,8 @@ import { CHART_WIDTH, CHART_PADDING, CHART_FONTS, CHART_COLORS, POINT_SIZES, X_A
 
 interface RankingHistoryChartProps {
   kingdomNumber: number;
+  currentRank?: number;
+  currentScore?: number;
   height?: number;
   isExpanded?: boolean;
   onToggle?: (expanded: boolean) => void;
@@ -21,6 +23,8 @@ interface ChartDataPoint {
 
 const RankingHistoryChart: React.FC<RankingHistoryChartProps> = ({ 
   kingdomNumber, 
+  currentRank,
+  currentScore,
   height = 300,
   isExpanded: externalExpanded,
   onToggle
@@ -60,19 +64,49 @@ const RankingHistoryChart: React.FC<RankingHistoryChartProps> = ({
   }, [kingdomNumber]);
 
   const chartData = useMemo((): ChartDataPoint[] => {
-    const filtered = history.filter((record) => record.rank_at_time !== null);
-    return filtered.map((record, index) => {
-      const prevRank = index > 0 ? (filtered[index - 1]?.rank_at_time ?? null) : null;
-      const currentRank = record.rank_at_time as number;
-      return {
+    if (history.length === 0) return [];
+
+    // Latest KvK in this kingdom's history
+    const latestKvk = Math.max(...history.map(h => h.kvk_number));
+
+    // Build data points:
+    // - Latest KvK: use currentRank/currentScore from kingdoms table (matches header)
+    // - Historical KvKs: use rank_at_time from score_history (best available historical data)
+    const points: ChartDataPoint[] = [];
+
+    for (let i = 0; i < history.length; i++) {
+      const record = history[i]!;
+      const isLatest = record.kvk_number === latestKvk;
+
+      let rank: number;
+      let score: number;
+
+      if (isLatest && currentRank && currentRank > 0) {
+        // Latest KvK: use current rank/score from kingdoms table (guarantees header consistency)
+        rank = currentRank;
+        score = currentScore ?? record.score;
+      } else if (record.rank_at_time !== null) {
+        // Historical: use rank_at_time from score_history
+        rank = record.rank_at_time;
+        score = record.score;
+      } else {
+        // Skip entries without rank data
+        continue;
+      }
+
+      const prevPoint = points.length > 0 ? points[points.length - 1]! : null;
+
+      points.push({
         kvk: record.kvk_number,
-        rank: currentRank,
-        score: record.score,
+        rank,
+        score,
         tier: record.tier,
-        rankDelta: prevRank !== null ? prevRank - currentRank : null
-      };
-    });
-  }, [history]);
+        rankDelta: prevPoint ? prevPoint.rank - rank : null
+      });
+    }
+
+    return points;
+  }, [history, currentRank, currentScore]);
 
   if (loading) {
     return (

@@ -282,9 +282,9 @@ const AllianceCenterLanding: React.FC = () => {
             maxWidth: '500px', margin: '0 auto 1.5rem',
           }}>
             {[
-              { label: t('allianceCenterLanding.roleSupporter', 'Supporters'), icon: '💎' },
-              { label: t('allianceCenterLanding.roleAmbassador', 'Ambassadors'), icon: '🌟' },
-              { label: t('allianceCenterLanding.roleBooster', 'Boosters'), icon: '🚀' },
+              { label: t('allianceCenterLanding.roleSupporter', 'Supporters'), icon: '�' },
+              { label: t('allianceCenterLanding.roleAmbassador', 'Ambassadors'), icon: '�️' },
+              { label: t('allianceCenterLanding.roleBooster', 'Boosters'), icon: '�' },
             ].map((role) => (
               <div key={role.label} style={{
                 backgroundColor: '#0a0a0a', borderRadius: '10px', border: '1px solid #2a2a2a',

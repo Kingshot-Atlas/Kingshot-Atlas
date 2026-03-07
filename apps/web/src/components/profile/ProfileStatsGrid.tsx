@@ -65,8 +65,17 @@ const ProfileStatsGrid: React.FC<ProfileStatsGridProps> = ({ viewedProfile, isMo
         )}
         <div style={cellStyle}>
           <div style={labelStyle}>{t('profile.alliance', 'Alliance')}</div>
-          <div style={valueStyle(!!viewedProfile?.alliance_tag)}>
-            {viewedProfile?.alliance_tag ? `[${viewedProfile.alliance_tag}]` : '—'}
+          <div style={{ ...valueStyle(!!viewedProfile?.alliance_tag), display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
+            {viewedProfile?.alliance_tag ? (
+              <>
+                <span>[{viewedProfile.alliance_tag}]</span>
+                {viewedProfile.alliance_tag_verified ? (
+                  <span title="Verified via Alliance Center" style={{ fontSize: isMobile ? '0.75rem' : '0.85rem', color: '#22c55e', flexShrink: 0 }}>✅</span>
+                ) : (
+                  <span title="Unverified — manually entered" style={{ fontSize: isMobile ? '0.6rem' : '0.65rem', color: '#6b7280', flexShrink: 0 }}>⚠️</span>
+                )}
+              </>
+            ) : '—'}
           </div>
         </div>
         <div style={cellStyle}>

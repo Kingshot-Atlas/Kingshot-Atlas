@@ -542,7 +542,7 @@ export function useAllianceCenter(): UseAllianceCenterResult {
           return { success: true };
         }
         if (error.message.includes('alliances_tag_format')) {
-          return { success: false, error: 'Tag must be 2-6 alphanumeric characters' };
+          return { success: false, error: 'Tag must be exactly 3 alphanumeric characters' };
         }
         logger.error('Failed to create alliance:', error);
         return { success: false, error: 'Failed to create alliance' };
@@ -577,7 +577,7 @@ export function useAllianceCenter(): UseAllianceCenterResult {
 
       if (error) {
         if (error.message.includes('alliances_tag_format')) {
-          return { success: false, error: 'Tag must be 2-6 alphanumeric characters' };
+          return { success: false, error: 'Tag must be exactly 3 alphanumeric characters' };
         }
         logger.error('Failed to update alliance:', error);
         return { success: false, error: 'Failed to update alliance' };

@@ -688,10 +688,10 @@ export function usePrepScheduler() {
         if (error) throw error;
       }
       showToast(existingSubmission ? t('prepScheduler.toastSubmissionUpdated', 'Submission updated!') : t('prepScheduler.toastSubmissionReceived', 'Submission received! Your Prep Manager will assign you a slot.'), 'success');
-      // Auto-update profile alliance_tag if it was empty and user provided one
+      // Auto-update profile alliance_tag if it was empty and user provided one (mark as unverified)
       if (formAlliance.trim() && profile && !profile.alliance_tag) {
         try {
-          await supabase.from('profiles').update({ alliance_tag: formAlliance.trim() }).eq('id', user.id);
+          await supabase.from('profiles').update({ alliance_tag: formAlliance.trim(), alliance_tag_verified: false }).eq('id', user.id);
         } catch { /* silent — non-critical */ }
       }
       await fetchSubmissions(scheduleId);

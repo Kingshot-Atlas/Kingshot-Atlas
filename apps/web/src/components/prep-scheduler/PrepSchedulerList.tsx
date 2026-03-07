@@ -72,13 +72,13 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
         <div style={{ maxWidth: '700px', margin: '0 auto' }}>
           <h1 style={{ fontSize: isMobile ? '1.5rem' : '2rem', fontFamily: FONT_DISPLAY, marginBottom: '0.5rem', letterSpacing: '0.04em' }}>
             <span style={{ color: '#fff' }}>KvK</span>
-            <span style={{ ...neonGlow('#a855f7'), marginLeft: '0.5rem' }}>PREP SCHEDULER</span>
+            <span style={{ ...neonGlow('#eab308'), marginLeft: '0.5rem' }}>PREP SCHEDULER</span>
           </h1>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.85rem' : '0.95rem', lineHeight: 1.6 }}>
             {t('prepScheduler.subtitle', 'Coordinate Castle Appointments for your kingdom\'s Prep Phase. Collect player availability and speedup data, then assign optimal buff slots.')}
           </p>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.5rem', padding: '0.2rem 0.6rem', backgroundColor: '#ffc30b15', border: '1px solid #ffc30b30', borderRadius: '20px' }}>
-            <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#ffc30b' }}>👑 {t('prepScheduler.goldAndSilverTier', 'GOLD & SILVER TIER KINGDOMS')}</span>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.5rem', padding: '0.2rem 0.6rem', backgroundColor: '#c0c0c015', border: '1px solid #c0c0c030', borderRadius: '20px' }}>
+            <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#c0c0c0' }}>👑 {t('prepScheduler.goldAndSilverTier', 'GOLD & SILVER TIER KINGDOMS')}</span>
           </div>
         </div>
       </div>
@@ -110,7 +110,7 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
                 })()}
               </p>
             </div>
-            <Link to="/transfer-hub" style={{ color: '#ffc30b', fontSize: '0.7rem', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', padding: '0.3rem 0.6rem', border: '1px solid #ffc30b30', borderRadius: '6px', backgroundColor: '#ffc30b08' }}>
+            <Link to="/transfer-hub" style={{ color: '#c0c0c0', fontSize: '0.7rem', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', padding: '0.3rem 0.6rem', border: '1px solid #c0c0c030', borderRadius: '6px', backgroundColor: '#c0c0c008' }}>
               {t('prepScheduler.reachSilver', 'Reach Silver')}
             </Link>
           </div>
@@ -123,15 +123,15 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
           return (
             <>
               {activeKS.length > 0 && (
-                <div style={{ ...cardStyle, marginBottom: '1.5rem', borderColor: '#a855f730', backgroundColor: '#a855f708' }}>
-                  <h3 style={{ color: '#a855f7', fontSize: '0.95rem', marginBottom: '0.5rem', fontWeight: 700 }}>📅 {t('prepScheduler.activeSchedule', 'Your Kingdom Has an Active Prep Schedule')}</h3>
+                <div style={{ ...cardStyle, marginBottom: '1.5rem', borderColor: '#eab30830', backgroundColor: '#eab30808' }}>
+                  <h3 style={{ color: '#eab308', fontSize: '0.95rem', marginBottom: '0.5rem', fontWeight: 700 }}>📅 {t('prepScheduler.activeSchedule', 'Your Kingdom Has an Active Prep Schedule')}</h3>
                   <p style={{ color: colors.textMuted, fontSize: '0.8rem', marginBottom: '0.75rem', lineHeight: 1.5 }}>
                     {t('prepScheduler.activeScheduleDesc', 'Kingdom {{kingdom}} has {{count}} active schedule(s). Submit your speedups and availability so your Prep Manager can assign you a slot.', { kingdom: profile.linked_kingdom, count: activeKS.length })}
                   </p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     {activeKS.map(ks => (
                       <button key={ks.id} onClick={() => navigate(`/tools/prep-scheduler/${ks.id}`)}
-                        style={{ padding: '0.6rem 1rem', backgroundColor: '#a855f720', border: '1px solid #a855f750', borderRadius: '8px', color: '#a855f7', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', width: 'fit-content', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        style={{ padding: '0.6rem 1rem', backgroundColor: '#eab30820', border: '1px solid #eab30850', borderRadius: '8px', color: '#eab308', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', width: 'fit-content', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         📝 {t('prepScheduler.fillForm', 'Fill The Form')}{ks.kvk_number ? ` — KvK #${ks.kvk_number}` : ''}
                       </button>
                     ))}
@@ -183,13 +183,13 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
 
         {/* Tier Required notice — mentions Silver promo when active */}
         {user && profile?.linked_kingdom && !hasQualifyingTier(profile.linked_kingdom) && !kingdomSchedules.length && mySchedules.length === 0 && (
-          <div style={{ ...cardStyle, marginBottom: '1.5rem', borderColor: '#ffc30b30', backgroundColor: '#ffc30b08' }}>
+          <div style={{ ...cardStyle, marginBottom: '1.5rem', borderColor: '#c0c0c030', backgroundColor: '#c0c0c008' }}>
             <h3 style={{ color: '#d1d5db', fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem' }}>🥈 {t('prepScheduler.silverTierRequired', 'Silver Tier Required')}</h3>
             <p style={{ color: colors.textMuted, fontSize: '0.8rem', lineHeight: 1.5 }}>
               {t('prepScheduler.silverTierRequiredDesc', 'The KvK Prep Scheduler is available for Silver Tier ($50+) and Gold Tier ($100+) kingdoms. Contribute to the Kingdom Fund to reach Silver and unlock this tool!')}
             </p>
             {isPromoActive && (
-              <Link to="/transfer-hub" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.5rem', padding: '0.4rem 0.8rem', backgroundColor: '#ffc30b10', border: '1px solid #ffc30b30', borderRadius: '6px', color: '#ffc30b', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>
+              <Link to="/transfer-hub" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.5rem', padding: '0.4rem 0.8rem', backgroundColor: '#c0c0c010', border: '1px solid #c0c0c030', borderRadius: '6px', color: '#c0c0c0', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none' }}>
                 💰 {t('prepScheduler.contributeNow', 'Contribute to Kingdom Fund')}
               </Link>
             )}
@@ -198,7 +198,7 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
 
         {/* Permission info banner for non-editors with Gold Tier kingdoms */}
         {user && profile?.linked_kingdom && hasQualifyingTier(profile.linked_kingdom) && !profile?.is_admin && !isEditorOrCoEditor && !isManager && (
-          <div style={{ ...cardStyle, marginBottom: '1.5rem', borderColor: '#a855f730', backgroundColor: '#a855f708', display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
+          <div style={{ ...cardStyle, marginBottom: '1.5rem', borderColor: '#eab30830', backgroundColor: '#eab30808', display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
             <span style={{ fontSize: '1rem', flexShrink: 0 }}>ℹ️</span>
             <p style={{ color: colors.textMuted, fontSize: '0.8rem', lineHeight: 1.5, margin: 0 }}>
               {t('prepScheduler.noPermissionBanner', 'Only Editors, Co-Editors, and Prep Managers can create schedules. Ask your kingdom leadership for access.')}
@@ -279,14 +279,14 @@ const PrepSchedulerList: React.FC<PrepSchedulerListProps> = ({
                   </div>
                 </div>
                 {createDeadline && (() => { const parts = createDeadline.split('T'); const dp = parts[0]; const tp = parts[1]; if (!dp || !tp) return null; const tParts = tp.split(':').map(Number); const hr = tParts[0] ?? 0; const mn = tParts[1] ?? 0; const dParts = dp.split('-'); const utc = new Date(Date.UTC(+(dParts[0] ?? '0'), +(dParts[1] ?? '1') - 1, +(dParts[2] ?? '1'), hr, mn)); if (isNaN(utc.getTime())) return null; const localH = String(utc.getHours()).padStart(2, '0'); const localM = String(utc.getMinutes()).padStart(2, '0'); return (
-                  <p style={{ color: '#a855f7', fontSize: '0.65rem', marginTop: '0.25rem', fontWeight: 600 }}>
+                  <p style={{ color: '#eab308', fontSize: '0.65rem', marginTop: '0.25rem', fontWeight: 600 }}>
                     → {dp} {String(hr).padStart(2, '0')}:{String(mn).padStart(2, '0')} UTC ({localH}:{localM} local)
                   </p>
                 ); })()}
                 <p style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.2rem' }}>{t('prepScheduler.deadlineHintUTC', 'Select the deadline date and time in 24-hour UTC format.')}</p>
               </div>
               <button onClick={createSchedule} disabled={saving || !createKingdom || !hasQualifyingTier(createKingdom)}
-                style={{ padding: '0.6rem 1.25rem', backgroundColor: createKingdom && hasQualifyingTier(createKingdom) ? '#a855f720' : `${colors.textMuted}10`, border: `1px solid ${createKingdom && hasQualifyingTier(createKingdom) ? '#a855f750' : colors.border}`, borderRadius: '8px', color: createKingdom && hasQualifyingTier(createKingdom) ? '#a855f7' : colors.textMuted, fontSize: '0.85rem', fontWeight: 600, cursor: createKingdom && hasQualifyingTier(createKingdom) ? 'pointer' : 'not-allowed', width: 'fit-content', opacity: saving ? 0.6 : 1 }}>
+                style={{ padding: '0.6rem 1.25rem', backgroundColor: createKingdom && hasQualifyingTier(createKingdom) ? '#eab30820' : `${colors.textMuted}10`, border: `1px solid ${createKingdom && hasQualifyingTier(createKingdom) ? '#eab30850' : colors.border}`, borderRadius: '8px', color: createKingdom && hasQualifyingTier(createKingdom) ? '#eab308' : colors.textMuted, fontSize: '0.85rem', fontWeight: 600, cursor: createKingdom && hasQualifyingTier(createKingdom) ? 'pointer' : 'not-allowed', width: 'fit-content', opacity: saving ? 0.6 : 1 }}>
                 {saving ? t('prepScheduler.creating', 'Creating...') : `✨ ${t('prepScheduler.createScheduleBtn', 'Create Schedule')}`}
               </button>
             </div>

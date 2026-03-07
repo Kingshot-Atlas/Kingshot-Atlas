@@ -134,8 +134,8 @@ const Profile: React.FC = () => {
           try {
             // Use auth-aware column selection — anon and authenticated have different column grants
             const profileColumns = user
-              ? 'id, username, display_name, avatar_url, home_kingdom, alliance_tag, language, region, bio, theme_color, badge_style, created_at, is_admin, linked_player_id, linked_username, linked_avatar_url, linked_kingdom, linked_tc_level, linked_last_synced, subscription_tier, discord_id, discord_username, discord_linked_at, referral_count, referral_tier, is_discord_booster, show_coordinates, coordinates, referred_by'
-              : 'id, username, display_name, avatar_url, home_kingdom, alliance_tag, language, region, bio, theme_color, badge_style, created_at, linked_player_id, linked_username, linked_avatar_url, linked_kingdom, linked_tc_level, subscription_tier, discord_username, referral_count, referral_tier, show_coordinates, is_discord_booster';
+              ? 'id, username, display_name, avatar_url, home_kingdom, alliance_tag, alliance_tag_verified, language, region, bio, theme_color, badge_style, created_at, is_admin, linked_player_id, linked_username, linked_avatar_url, linked_kingdom, linked_tc_level, linked_last_synced, subscription_tier, discord_id, discord_username, discord_linked_at, referral_count, referral_tier, is_discord_booster, show_coordinates, coordinates, referred_by'
+              : 'id, username, display_name, avatar_url, home_kingdom, alliance_tag, alliance_tag_verified, language, region, bio, theme_color, badge_style, created_at, linked_player_id, linked_username, linked_avatar_url, linked_kingdom, linked_tc_level, subscription_tier, discord_username, referral_count, referral_tier, show_coordinates, is_discord_booster';
             const { data, error } = await (supabase
               .from('profiles') as any)
               .select(profileColumns)

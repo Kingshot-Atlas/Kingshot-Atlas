@@ -108,6 +108,7 @@ export interface UserProfile {
   avatar_url: string;
   home_kingdom: number | null;
   alliance_tag: string;
+  alliance_tag_verified?: boolean;
   language: string;
   region: string;
   bio: string;

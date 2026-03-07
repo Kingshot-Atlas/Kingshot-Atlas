@@ -156,10 +156,10 @@ const GeneralTargetSection: React.FC<{
             onClick={handleToggleAdvanced}
             style={{
               display: 'flex', alignItems: 'center', gap: '0.3rem',
-              background: advancedMode ? '#a855f710' : 'none',
-              border: `1px solid ${advancedMode ? '#a855f740' : colors.border}`,
+              background: advancedMode ? '#eab30810' : 'none',
+              border: `1px solid ${advancedMode ? '#eab30840' : colors.border}`,
               borderRadius: '5px', padding: '0.2rem 0.5rem',
-              color: advancedMode ? '#a855f7' : colors.textMuted,
+              color: advancedMode ? '#eab308' : colors.textMuted,
               fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer',
               transition: 'all 0.2s',
             }}
@@ -302,10 +302,10 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
       <div style={{ padding: isMobile ? '1.5rem 1rem' : '2rem', textAlign: 'center', background: 'linear-gradient(180deg, #111111 0%, #0a0a0a 100%)' }}>
         <h1 style={{ fontSize: isMobile ? '1.25rem' : '1.75rem', fontFamily: FONT_DISPLAY, marginBottom: '0.25rem' }}>
           <span style={{ color: '#fff' }}>{t('prepScheduler.kingdom', 'Kingdom')} {schedule.kingdom_number}</span>
-          <span style={{ ...neonGlow('#a855f7'), marginLeft: '0.5rem' }}>{t('prepScheduler.prepForm', 'PREP FORM')}</span>
+          <span style={{ ...neonGlow('#eab308'), marginLeft: '0.5rem' }}>{t('prepScheduler.prepForm', 'PREP FORM')}</span>
         </h1>
         {schedule.kvk_number && <p style={{ color: '#9ca3af', fontSize: '0.85rem' }}>KvK #{schedule.kvk_number}</p>}
-        {schedule.notes && <p style={{ color: '#a855f7', fontSize: '0.8rem', fontStyle: 'italic', marginTop: '0.5rem', maxWidth: '500px', margin: '0.5rem auto 0' }}>{schedule.notes}</p>}
+        {schedule.notes && <p style={{ color: '#eab308', fontSize: '0.8rem', fontStyle: 'italic', marginTop: '0.5rem', maxWidth: '500px', margin: '0.5rem auto 0' }}>{schedule.notes}</p>}
         {(() => { const dl = getDeadlineCountdown(schedule.deadline, t); const utcLabel = formatDeadlineUTC(schedule.deadline); return dl && !dl.expired ? (
           <div style={{ marginTop: '0.5rem', display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '0.15rem' }}>
             <div style={{ padding: '0.3rem 0.8rem', backgroundColor: dl.urgent ? '#ef444415' : '#f59e0b15', border: `1px solid ${dl.urgent ? '#ef444430' : '#f59e0b30'}`, borderRadius: '20px' }}>
@@ -325,8 +325,8 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
           </div>
         )}
         {isAltMode && (
-          <div style={{ marginTop: '0.5rem', padding: '0.3rem 0.8rem', backgroundColor: '#a855f715', border: '1px solid #a855f730', borderRadius: '20px', display: 'inline-block' }}>
-            <span style={{ color: '#a855f7', fontSize: '0.75rem', fontWeight: 600 }}>👤 {t('prepScheduler.altAccountSubmission', 'Submitting for an alt account')}</span>
+          <div style={{ marginTop: '0.5rem', padding: '0.3rem 0.8rem', backgroundColor: '#eab30815', border: '1px solid #eab30830', borderRadius: '20px', display: 'inline-block' }}>
+            <span style={{ color: '#eab308', fontSize: '0.75rem', fontWeight: 600 }}>👤 {t('prepScheduler.altAccountSubmission', 'Submitting for an alt account')}</span>
           </div>
         )}
       </div>
@@ -339,7 +339,7 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
               <div style={{
                 width: `${(formProgress.completed / formProgress.total) * 100}%`,
                 height: '100%', borderRadius: '2px',
-                backgroundColor: formProgress.completed === formProgress.total ? '#22c55e' : '#a855f7',
+                backgroundColor: formProgress.completed === formProgress.total ? '#22c55e' : '#eab308',
                 transition: 'width 0.3s ease',
               }} />
             </div>
@@ -391,20 +391,20 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
                   : t('prepScheduler.pendingAssignmentDesc', 'Your Prep Manager has not assigned you a slot yet. Check back later or contact your Prep Manager.')}
               </p>
               {schedule.is_locked && (
-                <button onClick={() => setShowNonQualifyingPopup(true)} style={{ padding: '0.4rem 0.8rem', backgroundColor: '#a855f715', border: '1px solid #a855f730', borderRadius: '6px', color: '#a855f7', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📊 {t('prepScheduler.viewReport', 'View Report')}</button>
+                <button onClick={() => setShowNonQualifyingPopup(true)} style={{ padding: '0.4rem 0.8rem', backgroundColor: '#eab30815', border: '1px solid #eab30830', borderRadius: '6px', color: '#eab308', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>📊 {t('prepScheduler.viewReport', 'View Report')}</button>
               )}
             </div>
           )}
 
           {/* Multi-account submission switcher */}
           {mySubmissions.length > 0 && !isAltMode && (
-            <div style={{ ...cardStyle, borderColor: '#a855f730', backgroundColor: '#a855f708' }}>
+            <div style={{ ...cardStyle, borderColor: '#eab30830', backgroundColor: '#eab30808' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: mySubmissions.length > 1 ? '0.5rem' : 0 }}>
                 <span style={{ color: colors.textSecondary, fontSize: '0.75rem', fontWeight: 600 }}>
                   👤 {t('prepScheduler.yourSubmissions', 'Your Submissions')} ({mySubmissions.length})
                 </span>
                 {schedule.status !== 'closed' && (
-                  <button onClick={startAltSubmission} style={{ padding: '0.25rem 0.6rem', backgroundColor: '#a855f715', border: '1px solid #a855f730', borderRadius: '4px', color: '#a855f7', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer' }}>
+                  <button onClick={startAltSubmission} style={{ padding: '0.25rem 0.6rem', backgroundColor: '#eab30815', border: '1px solid #eab30830', borderRadius: '4px', color: '#eab308', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer' }}>
                     + {t('prepScheduler.addAltAccount', 'Alt Account')}
                   </button>
                 )}
@@ -414,9 +414,9 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
                   {mySubmissions.map(sub => (
                     <div key={sub.id} onClick={() => editSubmission(sub)}
                       style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.5rem', borderRadius: '6px', cursor: 'pointer',
-                        backgroundColor: existingSubmission?.id === sub.id ? '#a855f715' : 'transparent',
-                        border: `1px solid ${existingSubmission?.id === sub.id ? '#a855f730' : 'transparent'}` }}>
-                      <span style={{ color: existingSubmission?.id === sub.id ? '#a855f7' : colors.textMuted, fontSize: '0.8rem', fontWeight: existingSubmission?.id === sub.id ? 600 : 400 }}>{sub.username}</span>
+                        backgroundColor: existingSubmission?.id === sub.id ? '#eab30815' : 'transparent',
+                        border: `1px solid ${existingSubmission?.id === sub.id ? '#eab30830' : 'transparent'}` }}>
+                      <span style={{ color: existingSubmission?.id === sub.id ? '#eab308' : colors.textMuted, fontSize: '0.8rem', fontWeight: existingSubmission?.id === sub.id ? 600 : 400 }}>{sub.username}</span>
                       <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>{sub.alliance_tag || ''}</span>
                       {assignments.some(a => a.submission_id === sub.id) && (
                         <span style={{ marginLeft: 'auto', color: '#22c55e', fontSize: '0.65rem' }}>✅</span>
@@ -532,7 +532,7 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
               {setIsRefilling && schedule.status !== 'closed' && (
                 <div style={{ textAlign: 'center' }}>
                   <button onClick={() => setIsRefilling(true)}
-                    style={{ padding: '0.5rem 1.25rem', backgroundColor: '#a855f710', border: '1px solid #a855f730', borderRadius: '8px', color: '#a855f7', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
+                    style={{ padding: '0.5rem 1.25rem', backgroundColor: '#eab30810', border: '1px solid #eab30830', borderRadius: '8px', color: '#eab308', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
                     ✏️ {t('prepScheduler.refillForm', 'Update My Form')}
                   </button>
                   <p style={{ color: colors.textMuted, fontSize: '0.65rem', marginTop: '0.3rem' }}>{t('prepScheduler.refillDesc', 'Edit your speedups, availability, or other details.')}</p>
@@ -571,7 +571,7 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
                     {!isSkipped && (
                       <>
                         <p style={{ color: colors.textMuted, fontSize: '0.7rem', marginBottom: '0.5rem' }}>
-                          {t('prepScheduler.timezoneHint', 'Select up to 3 time ranges when you can play (UTC).')} <span style={{ color: '#a855f7' }}>{t('prepScheduler.yourTimezone', 'Your timezone')}: {TZ_ABBR} (UTC{UTC_OFFSET_HOURS >= 0 ? '+' : ''}{UTC_OFFSET_HOURS})</span>
+                          {t('prepScheduler.timezoneHint', 'Select up to 3 time ranges when you can play (UTC).')} <span style={{ color: '#eab308' }}>{t('prepScheduler.yourTimezone', 'Your timezone')}: {TZ_ABBR} (UTC{UTC_OFFSET_HOURS >= 0 ? '+' : ''}{UTC_OFFSET_HOURS})</span>
                         </p>
                         <TimeRangePicker
                           ranges={day === 'monday' ? mondayAvail : day === 'tuesday' ? tuesdayAvail : thursdayAvail}
@@ -632,7 +632,7 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
                 </div>
               ) : (
                 <button onClick={submitForm} disabled={saving || !formUsername.trim() || formAlliance.trim().length !== 3}
-                  style={{ padding: '0.75rem 1.5rem', backgroundColor: '#a855f720', border: '1px solid #a855f750', borderRadius: '10px', color: '#a855f7', fontSize: '0.9rem', fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving || formAlliance.trim().length !== 3 ? 0.6 : 1 }}>
+                  style={{ padding: '0.75rem 1.5rem', backgroundColor: '#eab30820', border: '1px solid #eab30850', borderRadius: '10px', color: '#eab308', fontSize: '0.9rem', fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving || formAlliance.trim().length !== 3 ? 0.6 : 1 }}>
                   {saving ? t('prepScheduler.submitting', 'Submitting...') : isAltMode ? `📤 ${t('prepScheduler.submitAlt', 'Submit Alt Account')}` : `📤 ${t('prepScheduler.submit', 'Submit')}`}
                 </button>
               )}
@@ -654,15 +654,15 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
           position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
           padding: '0.75rem 1rem',
           backgroundColor: 'rgba(10, 10, 10, 0.95)',
-          borderTop: '1px solid #a855f730',
+          borderTop: '1px solid #eab30830',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
         }}>
           <button onClick={submitForm} disabled={saving || !formUsername.trim() || formAlliance.trim().length !== 3}
             style={{
               width: '100%', padding: '0.85rem 1.5rem',
-              backgroundColor: '#a855f720', border: '1px solid #a855f750',
-              borderRadius: '10px', color: '#a855f7', fontSize: '1rem',
+              backgroundColor: '#eab30820', border: '1px solid #eab30850',
+              borderRadius: '10px', color: '#eab308', fontSize: '1rem',
               fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer',
               opacity: (saving || !formUsername.trim() || formAlliance.trim().length !== 3) ? 0.5 : 1,
               minHeight: '50px',
@@ -711,7 +711,7 @@ const PrepSchedulerForm: React.FC<PrepSchedulerFormProps> = (props) => {
             </div>
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
               <button onClick={() => setShowChangeRequestForm(false)} style={{ padding: '0.5rem 1rem', backgroundColor: colors.border, border: 'none', borderRadius: '6px', color: colors.textSecondary, fontSize: '0.8rem', cursor: 'pointer' }}>{t('prepScheduler.cancel', 'Cancel')}</button>
-              <button onClick={submitChangeRequest} disabled={saving} style={{ padding: '0.5rem 1rem', backgroundColor: '#a855f720', border: '1px solid #a855f750', borderRadius: '6px', color: '#a855f7', fontSize: '0.8rem', fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer' }}>{saving ? t('prepScheduler.sending', 'Sending...') : t('prepScheduler.submitRequest', 'Submit Request')}</button>
+              <button onClick={submitChangeRequest} disabled={saving} style={{ padding: '0.5rem 1rem', backgroundColor: '#eab30820', border: '1px solid #eab30850', borderRadius: '6px', color: '#eab308', fontSize: '0.8rem', fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer' }}>{saving ? t('prepScheduler.sending', 'Sending...') : t('prepScheduler.submitRequest', 'Submit Request')}</button>
             </div>
           </div>
         </div>

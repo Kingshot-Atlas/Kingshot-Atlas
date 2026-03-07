@@ -15,6 +15,7 @@ export interface UserProfile {
   avatar_url: string;
   home_kingdom: number | null;
   alliance_tag: string;
+  alliance_tag_verified?: boolean;
   language: string;
   region: string;
   bio: string;
@@ -317,6 +318,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         avatar_url: avatarUrl,
         home_kingdom: null,
         alliance_tag: '',
+        alliance_tag_verified: false,
         language: '',
         region: '',
         bio: '',
@@ -365,6 +367,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           avatar_url: avatarUrl,
           home_kingdom: null,
           alliance_tag: '',
+          alliance_tag_verified: false,
           language: '',
           region: '',
           bio: '',
@@ -488,6 +491,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           avatar_url: getCleanAvatarUrl(user.user_metadata?.avatar_url || user.user_metadata?.picture),
           home_kingdom: null,
           alliance_tag: '',
+          alliance_tag_verified: false,
           language: '',
           region: '',
           bio: '',
@@ -578,8 +582,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateProfile = async (updates: Partial<UserProfile>): Promise<{ success: boolean; error?: string }> => {
     if (!user) return { success: false, error: 'Not logged in' };
 
-    if (updates.alliance_tag) {
-      updates.alliance_tag = updates.alliance_tag.replace(/[^a-zA-Z0-9]/g, '').slice(0, 3);
+    if (updates.alliance_tag !== undefined) {
+      updates.alliance_tag = (updates.alliance_tag || '').replace(/[^a-zA-Z0-9]/g, '').slice(0, 3);
+      // If manually changing alliance_tag and it differs from the current verified tag, mark as unverified
+      if (updates.alliance_tag_verified === undefined && profile?.alliance_tag_verified &&
+          updates.alliance_tag !== profile.alliance_tag) {
+        updates.alliance_tag_verified = false;
+      }
     }
 
     // Always update local state and localStorage first (optimistic update)
@@ -599,7 +608,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // Send updates to Supabase, filtering out fields that don't exist in the database
     const dbFields = [
-      'username', 'display_name', 'email', 'avatar_url', 'home_kingdom', 'alliance_tag',
+      'username', 'display_name', 'email', 'avatar_url', 'home_kingdom', 'alliance_tag', 'alliance_tag_verified',
       'language', 'region', 'bio', 'theme_color', 'badge_style',
       'linked_player_id', 'linked_username', 'linked_avatar_url',
       'linked_kingdom', 'linked_tc_level', 'linked_last_synced', 'subscription_tier',

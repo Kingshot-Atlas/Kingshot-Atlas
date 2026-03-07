@@ -165,10 +165,10 @@ const KingdomProfile: React.FC = () => {
         const h = scoreHistory.history;
         const delta = h[h.length - 1]!.score - h[h.length - 2]!.score;
         setRecentScoreChange(delta);
-        // Rank change: positive = climbed (lower rank number is better)
+        // Rank change: use current rank (from kingdoms table) vs previous KvK's rank_at_time
         const prevRank = h[h.length - 2]!.rank_at_time;
-        const currRank = h[h.length - 1]!.rank_at_time;
-        if (prevRank != null && currRank != null) {
+        const currRank = data?.rank ?? 0;
+        if (prevRank != null && currRank > 0) {
           setRecentRankChange(prevRank - currRank);
         } else {
           setRecentRankChange(null);
@@ -501,7 +501,9 @@ const KingdomProfile: React.FC = () => {
         {user ? (
           <div style={{ marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
             <RankingHistoryChart 
-              kingdomNumber={kingdom.kingdom_number} 
+              kingdomNumber={kingdom.kingdom_number}
+              currentRank={rank}
+              currentScore={atlasScore}
               isExpanded={rankingHistoryExpanded}
               onToggle={setRankingHistoryExpanded}
             />
