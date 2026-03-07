@@ -68,6 +68,14 @@ const commands = [
         .setRequired(false)
         .setMinValue(1)
         .setMaxValue(20)
+    )
+    .addIntegerOption(option =>
+      option
+        .setName('max_kvks')
+        .setDescription('Maximum KvK experience — use same as min for exact match')
+        .setRequired(false)
+        .setMinValue(1)
+        .setMaxValue(20)
     ),
 
   // /tier <tier>
@@ -182,7 +190,7 @@ const commands = [
   // /transferstatus <number>
   new SlashCommandBuilder()
     .setName('transferstatus')
-    .setDescription('Check a kingdom\'s transfer group and status')
+    .setDescription('View a kingdom\'s full transfer history across all events')
     .addIntegerOption(option =>
       option
         .setName('number')

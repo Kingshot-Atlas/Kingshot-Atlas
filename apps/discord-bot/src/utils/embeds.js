@@ -347,8 +347,8 @@ function createHelpEmbed() {
       {
         name: '📊 Rankings & Events',
         value: [
-          '`/rankings [group] [min_kvks]` - Top 10 by Atlas Score',
-          '`/transferstatus <number>` - Transfer group & status',
+          '`/rankings [group] [min] [max]` - Top 10 by Atlas Score',
+          '`/transferstatus <number>` - Full transfer history',
           '`/countdownkvk` - Time until next KvK',
           '`/countdowntransfer` - Time until next Transfer Event',
         ].join('\n'),
@@ -1127,49 +1127,57 @@ function createShareCardEmbed(kingdom) {
 }
 
 /**
- * Create transfer status embed for a kingdom
+ * Create transfer status embed for a kingdom — shows full transfer history
+ * @param {Object} kingdom - Kingdom data from API
+ * @param {Object|null} historyData - { history: [{event_number, group_number, status}], events: [{event_number, event_date, total_groups, is_current}] }
  */
-function createTransferStatusEmbed(kingdom) {
+function createTransferStatusEmbed(kingdom, historyData) {
   const group = getTransferGroup(kingdom.kingdom_number);
   const groupLabel = group ? getTransferGroupLabel(group) : null;
   const transferStatus = kingdom.transfer_status || kingdom.most_recent_status || 'Unknown';
   const statusEmoji = transferStatus === 'Leading' ? '\ud83d\udc51' : transferStatus === 'Ordinary' ? '\ud83d\udfe2' : '\u2753';
 
-  // Build the list of all transfer groups with highlight
-  const groupsList = TRANSFER_GROUPS.map(([min, max]) => {
-    const label = getTransferGroupLabel([min, max]);
-    const isCurrentGroup = group && min === group[0] && max === group[1];
-    return isCurrentGroup
-      ? `\u25b6\ufe0f **${label}** \u2190 K${kingdom.kingdom_number} is here`
-      : `\u2003\u2003${label}`;
-  }).join('\n');
-
   const embed = new EmbedBuilder()
     .setColor(0xa855f7) // Purple for transfers
-    .setTitle(`\ud83d\udd04 Transfer Status \u2014 Kingdom ${kingdom.kingdom_number}`)
+    .setTitle(`\ud83d\udd04 Transfer History \u2014 Kingdom ${kingdom.kingdom_number}`)
     .setURL(config.urls.kingdom(kingdom.kingdom_number));
 
+  // Current status summary
   if (groupLabel) {
     embed.setDescription([
-      `**Transfer Group:** ${groupLabel}`,
-      `**Status:** ${statusEmoji} ${transferStatus}`,
-      '',
-      '*Kingdoms can only transfer within their group during Transfer Events.*',
+      `**Current Group:** ${groupLabel}`,
+      `**Current Status:** ${statusEmoji} ${transferStatus}`,
     ].join('\n'));
   } else {
-    embed.setDescription([
-      '**Transfer Group:** Not assigned',
-      '',
-      '*This kingdom is not currently part of any transfer group.*',
-    ].join('\n'));
+    embed.setDescription('**Current Group:** Not assigned');
   }
 
-  embed.addFields(
-    {
-      name: '\ud83d\udccc All Transfer Groups',
-      value: groupsList,
-    }
-  );
+  // Build transfer history timeline
+  const history = historyData?.history || [];
+  const events = historyData?.events || [];
+  const eventsMap = new Map(events.map(e => [e.event_number, e]));
+
+  if (history.length > 0) {
+    const historyLines = history.map(h => {
+      const event = eventsMap.get(h.event_number);
+      const date = event?.event_date
+        ? new Date(event.event_date + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' })
+        : '';
+      const statusIcon = h.status === 'Leading' ? '\ud83d\udc51' : '\ud83d\udfe2';
+      const dateStr = date ? ` (${date})` : '';
+      return `**Transfer #${h.event_number}**${dateStr} \u2014 ${statusIcon} ${h.status}`;
+    });
+
+    embed.addFields({
+      name: '\ud83d\udcdc Full Transfer History',
+      value: historyLines.join('\n'),
+    });
+  } else {
+    embed.addFields({
+      name: '\ud83d\udcdc Transfer History',
+      value: '*No transfer history available for this kingdom.*',
+    });
+  }
 
   // Outdated disclaimer
   const updatedAt = new Date(TRANSFER_GROUPS_UPDATED_AT);
@@ -1177,7 +1185,7 @@ function createTransferStatusEmbed(kingdom) {
   if (daysSinceUpdate >= 49) {
     embed.addFields({
       name: '\u26a0\ufe0f Note',
-      value: 'Transfer groups may have changed since our last update. Check in-game for the latest.',
+      value: 'Transfer data may have changed since our last update. Check in-game for the latest.',
     });
   }
 

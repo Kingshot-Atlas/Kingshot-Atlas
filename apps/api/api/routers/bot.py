@@ -1453,6 +1453,37 @@ async def get_user_by_discord(discord_id: str, _: bool = Depends(require_bot_adm
     return user
 
 
+@router.get("/transfer-history/{kingdom_number}")
+async def get_transfer_history(kingdom_number: int):
+    """
+    Public endpoint — returns the full transfer status history for a kingdom.
+    Used by the Discord bot /transferstatus command.
+    """
+    sb = get_supabase_admin()
+    if not sb:
+        return {"history": [], "events": [], "error": "Supabase not configured"}
+
+    try:
+        # Fetch history records for this kingdom
+        history_result = sb.table("transfer_status_history").select(
+            "event_number, group_number, status"
+        ).eq("kingdom_number", kingdom_number).order("event_number").execute()
+
+        # Fetch all transfer events for context (dates, group counts)
+        events_result = sb.table("transfer_events").select(
+            "event_number, event_date, total_groups, is_current"
+        ).order("event_number").execute()
+
+        return {
+            "kingdom_number": kingdom_number,
+            "history": history_result.data or [],
+            "events": events_result.data or [],
+        }
+    except Exception as e:
+        logger.error("Error in /transfer-history/%d: %s", kingdom_number, e)
+        return {"kingdom_number": kingdom_number, "history": [], "events": [], "error": str(e)}
+
+
 @router.get("/transfer-groups")
 async def get_transfer_groups():
     """

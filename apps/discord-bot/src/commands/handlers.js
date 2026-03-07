@@ -99,9 +99,20 @@ async function handleRankings(interaction) {
 
   const transferGroup = interaction.options.getString('transfer_group');
   const minKvks = interaction.options.getInteger('min_kvks');
+  const maxKvks = interaction.options.getInteger('max_kvks');
+
+  // Validate: max_kvks must be >= min_kvks if both are provided
+  if (minKvks && maxKvks && maxKvks < minKvks) {
+    const errorEmbed = embeds.createErrorEmbed(
+      'Invalid KvK range.',
+      `max_kvks (${maxKvks}) cannot be less than min_kvks (${minKvks}).`
+    );
+    return interaction.editReply({ embeds: [errorEmbed] });
+  }
 
   // Fetch more kingdoms when filtering so we can still show top 10 after filters
-  const fetchLimit = (transferGroup || minKvks) ? 100 : 10;
+  const hasFilters = transferGroup || minKvks || maxKvks;
+  const fetchLimit = hasFilters ? 100 : 10;
   const result = await api.fetchLeaderboard(fetchLimit);
   
   // Handle new structured response format
@@ -125,9 +136,19 @@ async function handleRankings(interaction) {
     kingdoms = kingdoms.filter(k => k.kingdom_number >= min && k.kingdom_number <= max);
   }
 
-  // Apply min KvK experience filter
-  if (minKvks) {
+  // Apply KvK experience filters (exact, min, range)
+  if (minKvks && maxKvks) {
+    // Range or exact: both provided
+    kingdoms = kingdoms.filter(k => {
+      const kvks = k.total_kvks || 0;
+      return kvks >= minKvks && kvks <= maxKvks;
+    });
+  } else if (minKvks) {
+    // Minimum only
     kingdoms = kingdoms.filter(k => (k.total_kvks || 0) >= minKvks);
+  } else if (maxKvks) {
+    // Maximum only
+    kingdoms = kingdoms.filter(k => (k.total_kvks || 0) <= maxKvks);
   }
 
   // Limit to top 10 after filtering
@@ -136,7 +157,7 @@ async function handleRankings(interaction) {
   if (kingdoms.length === 0) {
     const errorEmbed = embeds.createErrorEmbed(
       'No kingdoms match your filters.',
-      'Try adjusting the transfer group or minimum KvK experience.'
+      'Try adjusting the transfer group or KvK experience range.'
     );
     return interaction.editReply({ embeds: [errorEmbed] });
   }
@@ -148,7 +169,15 @@ async function handleRankings(interaction) {
     const label = max >= 99999 ? `K${min}+` : `K${min}\u2013K${max}`;
     filters.push(label);
   }
-  if (minKvks) filters.push(`${minKvks}+ KvKs`);
+  if (minKvks && maxKvks && minKvks === maxKvks) {
+    filters.push(`Exactly ${minKvks} KvKs`);
+  } else if (minKvks && maxKvks) {
+    filters.push(`${minKvks}\u2013${maxKvks} KvKs`);
+  } else if (minKvks) {
+    filters.push(`${minKvks}+ KvKs`);
+  } else if (maxKvks) {
+    filters.push(`\u2264${maxKvks} KvKs`);
+  }
   const title = filters.length > 0
     ? `\ud83c\udfc6 Atlas Rankings \u2022 ${filters.join(' \u2022 ')}`
     : '\ud83c\udfc6 Atlas Rankings';
@@ -613,13 +642,17 @@ async function handleShareCard(interaction) {
 }
 
 /**
- * /transferstatus <number> — Check a kingdom's transfer group and status
+ * /transferstatus <number> — Show a kingdom's full transfer history
  */
 async function handleTransferStatus(interaction) {
   const number = interaction.options.getInteger('number');
   await interaction.deferReply();
 
-  const kingdom = await api.fetchKingdom(number);
+  // Fetch kingdom data and transfer history in parallel
+  const [kingdom, historyData] = await Promise.all([
+    api.fetchKingdom(number),
+    api.fetchTransferHistory(number),
+  ]);
 
   if (!kingdom) {
     const errorEmbed = embeds.createErrorEmbed(
@@ -629,7 +662,7 @@ async function handleTransferStatus(interaction) {
     return interaction.editReply({ embeds: [errorEmbed] });
   }
 
-  const embed = embeds.createTransferStatusEmbed(kingdom);
+  const embed = embeds.createTransferStatusEmbed(kingdom, historyData);
   return interaction.editReply({ embeds: [embed] });
 }
 

@@ -114,8 +114,8 @@ const AtlasBot: React.FC = () => {
     },
     {
       command: 'rankings',
-      description: 'Top 10 kingdoms by Atlas Score. Filter by transfer group or minimum KvK experience to find the best in your bracket.',
-      example: '/rankings transfer_group:K418–K758 min_kvks:3',
+      description: 'Top 10 kingdoms by Atlas Score. Filter by transfer group and KvK experience — exact, minimum, or range.',
+      example: '/rankings transfer_group:K418–K758 min_kvks:3 max_kvks:7',
       icon: '\ud83c\udfc6',
       accentColor: '#eab308'
     },
@@ -147,7 +147,7 @@ const AtlasBot: React.FC = () => {
     },
     {
       command: 'transferstatus',
-      description: 'Check which transfer group a kingdom belongs to, its current status, and see all groups at a glance. Essential for planning moves.',
+      description: 'View a kingdom\'s full transfer history across every event — group changes, Leading/Ordinary status, and dates. Essential for scouting.',
       example: '/transferstatus 172',
       icon: '\ud83d\udd04',
       accentColor: '#a855f7'

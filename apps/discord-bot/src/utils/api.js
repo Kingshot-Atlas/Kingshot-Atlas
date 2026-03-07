@@ -258,6 +258,20 @@ async function lookupUserByDiscordId(discordId) {
   }
 }
 
+/**
+ * Fetch transfer history for a kingdom (all transfer events with group/status)
+ */
+async function fetchTransferHistory(kingdomNumber) {
+  try {
+    const res = await fetchWithRetry(`${config.apiUrl}/api/v1/bot/transfer-history/${kingdomNumber}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    console.error(`[API] fetchTransferHistory(${kingdomNumber}) error:`, e.message);
+    return null;
+  }
+}
+
 module.exports = {
   fetchKingdom,
   fetchLeaderboard,
@@ -268,4 +282,5 @@ module.exports = {
   incrementMultirallyCredits,
   fetchGiftCodes,
   lookupUserByDiscordId,
+  fetchTransferHistory,
 };
