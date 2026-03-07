@@ -76,7 +76,7 @@ export const ANIMATIONS = {
  *   Day  5, 10:00 UTC  = Prep Phase ends → "Add Prep Result" unlocks
  *   Day  5, 10:00 UTC  = Battle Phase begins
  *   Day  5, 12:00 UTC  = Castle Battle begins
- *   Day  5, 18:00 UTC  = Castle Battle ends → "Add Battle Result" unlocks
+ *   Day  5, 17:00 UTC  = Castle Battle ends → "Add Battle Result" unlocks
  *   Day  5, 22:00 UTC  = Battle Phase ends
  *   Day 12, 22:00 UTC  = Submission buttons lock (7 days after Battle Phase ends)
  *   Day 28             = Next KvK cycle begins
@@ -114,7 +114,7 @@ export interface KvKScheduleDates {
   prepEnd: Date;            // Day 5, 10:00 UTC
   battleStart: Date;        // Day 5, 10:00 UTC
   castleBattleStart: Date;  // Day 5, 12:00 UTC
-  castleBattleEnd: Date;    // Day 5, 18:00 UTC
+  castleBattleEnd: Date;    // Day 5, 17:00 UTC
   battleEnd: Date;          // Day 5, 22:00 UTC
   buttonsLock: Date;        // Day 12, 22:00 UTC (7 days after battle end)
 }
@@ -137,7 +137,7 @@ export function getKvKSchedule(kvkNumber: number): KvKScheduleDates {
     prepEnd:           addDaysHours(5, 10),
     battleStart:       addDaysHours(5, 10),
     castleBattleStart: addDaysHours(5, 12),
-    castleBattleEnd:   addDaysHours(5, 18),
+    castleBattleEnd:   addDaysHours(5, 17),
     battleEnd:         addDaysHours(5, 22),
     buttonsLock:       addDaysHours(12, 22),
   };

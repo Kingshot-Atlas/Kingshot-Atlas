@@ -21,9 +21,10 @@ interface GridCanvasProps {
   canvasHeight: number;
   onEditBuilding?: (building: PlacedBuilding, screenX: number, screenY: number) => void;
   readOnly?: boolean;
+  forbiddenZones?: { x: number; y: number; size: number }[];
 }
 
-const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHeight, onEditBuilding, readOnly }) => {
+const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHeight, onEditBuilding, readOnly, forbiddenZones }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
@@ -187,6 +188,20 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
       ctx.setLineDash([]);
     }
 
+    // Draw forbidden zones (red overlay)
+    if (forbiddenZones) {
+      for (const fz of forbiddenZones) {
+        drawDiamond(ctx, fz.x, fz.y, fz.size);
+        ctx.fillStyle = '#ef444418';
+        ctx.fill();
+        ctx.strokeStyle = '#ef444450';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+
     // Draw placed buildings
     for (const b of buildings) {
       const type = getBuildingType(b.typeId);
@@ -311,7 +326,7 @@ const GridCanvas: React.FC<GridCanvasProps> = ({ designer, canvasWidth, canvasHe
   }, [
     canvasWidth, canvasHeight, centerX, centerY, hc,
     buildings, selectedBuildingId, selectedToolType, showLabels, hoveredCell,
-    dragBuilding, dragPreview, canPlace, longPressHighlight,
+    dragBuilding, dragPreview, canPlace, longPressHighlight, forbiddenZones,
   ]);
 
   // Animate pulsing highlight

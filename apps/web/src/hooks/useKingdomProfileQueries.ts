@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { statusService } from '../services/statusService';
 import { reviewService } from '../services/reviewService';
@@ -10,6 +10,7 @@ export const kingdomProfileKeys = {
   pendingSubmissions: (kingdomNumber: number) => ['kingdom-pending-submissions', kingdomNumber] as const,
   editor: (kingdomNumber: number) => ['kingdom-editor', kingdomNumber] as const,
   aggregateRating: (kingdomNumber: number) => ['kingdom-aggregate-rating', kingdomNumber] as const,
+  battleManagers: (kingdomNumber: number) => ['battle-managers', kingdomNumber] as const,
 };
 
 /**
@@ -193,5 +194,105 @@ export function useKingdomAggregateRating(kingdomNumber: number | undefined) {
     queryFn: () => reviewService.getAggregateRatingForStructuredData(kingdomNumber!),
     enabled: !!kingdomNumber,
     staleTime: 10 * 60 * 1000,
+  });
+}
+
+// ─── Profile Search (for battle manager picker) ─────────────
+export interface ProfileSearchResult {
+  id: string;
+  linked_username: string | null;
+  username: string | null;
+}
+
+export function useSearchProfiles(query: string) {
+  return useQuery({
+    queryKey: ['profileSearch', query],
+    queryFn: async (): Promise<ProfileSearchResult[]> => {
+      if (!supabase || !query || query.length < 2) return [];
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, linked_username, username')
+        .or(`linked_username.ilike.%${query}%,username.ilike.%${query}%`)
+        .limit(8);
+      return (data || []) as ProfileSearchResult[];
+    },
+    enabled: !!query && query.length >= 2,
+    staleTime: 30 * 1000,
+  });
+}
+
+// ─── Battle Managers ─────────────────────────────────────────
+export interface BattleManager {
+  id: string;
+  kingdom_number: number;
+  user_id: string;
+  assigned_by: string;
+  created_at: string;
+  username?: string;
+}
+
+export function useBattleManagers(kingdomNumber: number | undefined) {
+  return useQuery({
+    queryKey: kingdomProfileKeys.battleManagers(kingdomNumber!),
+    queryFn: async (): Promise<BattleManager[]> => {
+      if (!supabase) return [];
+      const { data } = await supabase
+        .from('battle_managers')
+        .select('*')
+        .eq('kingdom_number', kingdomNumber!)
+        .order('created_at', { ascending: true });
+      if (!data || data.length === 0) return [];
+      // Fetch usernames
+      const userIds = data.map(d => d.user_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, linked_username, username')
+        .in('id', userIds);
+      const nameMap = new Map((profiles || []).map(p => [p.id, p.linked_username || p.username || 'User']));
+      return data.map(d => ({ ...d, username: nameMap.get(d.user_id) || 'User' }));
+    },
+    enabled: !!kingdomNumber,
+    staleTime: 60 * 1000,
+  });
+}
+
+export function useAddBattleManager(kingdomNumber: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, assignedBy }: { userId: string; assignedBy: string }) => {
+      if (!supabase) throw new Error('No database');
+      // Check count
+      const { count } = await supabase
+        .from('battle_managers')
+        .select('*', { count: 'exact', head: true })
+        .eq('kingdom_number', kingdomNumber);
+      if ((count ?? 0) >= 2) throw new Error('Maximum 2 battle managers allowed');
+      const { error } = await supabase.from('battle_managers').insert({
+        kingdom_number: kingdomNumber,
+        user_id: userId,
+        assigned_by: assignedBy,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: kingdomProfileKeys.battleManagers(kingdomNumber) });
+    },
+  });
+}
+
+export function useRemoveBattleManager(kingdomNumber: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (managerId: string) => {
+      if (!supabase) throw new Error('No database');
+      const { error } = await supabase
+        .from('battle_managers')
+        .delete()
+        .eq('id', managerId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: kingdomProfileKeys.battleManagers(kingdomNumber) });
+    },
   });
 }

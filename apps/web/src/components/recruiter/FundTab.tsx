@@ -166,6 +166,7 @@ const FundTab: React.FC<FundTabProps> = ({ fund, editorInfo }) => {
               { label: t('transferHubLanding.cmpGlow', 'Gold glow + priority placement'), minTier: 'gold' },
               { label: t('transferHubLanding.cmpBattlePlanner', 'KvK Battle Planner access'), minTier: 'gold' },
               { label: t('transferHubLanding.cmpBattleRegistry', 'KvK Battle Registry access'), minTier: 'gold' },
+              { label: t('transferHubLanding.cmpBattleLayout', 'KvK Battle Layout access'), minTier: 'gold' },
             ];
             const tierOrder = ['standard', 'bronze', 'silver', 'gold'];
             const isTierUnlocked = (featureTier: string, colTier: string) => tierOrder.indexOf(colTier) >= tierOrder.indexOf(featureTier);

@@ -102,8 +102,9 @@ interface CoordinateSearchProps {
   onGo: (x: number, y: number) => void;
   onFocusBase: () => void;
   hasBuildings: boolean;
+  focusLabel?: string;
 }
-export const CoordinateSearch: React.FC<CoordinateSearchProps> = ({ onGo, onFocusBase, hasBuildings }) => {
+export const CoordinateSearch: React.FC<CoordinateSearchProps> = ({ onGo, onFocusBase, hasBuildings, focusLabel }) => {
   const [cx, setCx] = useState('600');
   const [cy, setCy] = useState('600');
   const { t } = useTranslation();
@@ -148,7 +149,7 @@ export const CoordinateSearch: React.FC<CoordinateSearchProps> = ({ onGo, onFocu
             backgroundColor: '#22c55e15', border: '1px solid #22c55e40', borderRadius: '4px',
             color: '#22c55e', cursor: 'pointer', fontSize: '0.65rem', fontWeight: '600',
           }}
-        >📍 {t('baseDesigner.focusOnBase', 'Focus on Base')}</button>
+        >📍 {focusLabel || t('baseDesigner.focusOnBase', 'Focus on Base')}</button>
       )}
     </div>
   );

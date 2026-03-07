@@ -930,10 +930,10 @@ function createMultirallyHelpEmbed() {
         name: '\ud83c\udff0 Target Buildings',
         value: [
           "**King's Castle** \u2014 Center of the map",
-          '**Turret 1** \u2014 South corner',
-          '**Turret 2** \u2014 West corner',
-          '**Turret 3** \u2014 East corner',
-          '**Turret 4** \u2014 North corner',
+          '**South Turret** \u2014 South corner',
+          '**West Turret** \u2014 West corner',
+          '**East Turret** \u2014 East corner',
+          '**North Turret** \u2014 North corner',
         ].join('\n'),
       },
       {
@@ -950,7 +950,7 @@ function createMultirallyHelpEmbed() {
       {
         name: '\ud83d\udca1 Examples',
         value: [
-          '`/multirally target:Turret 1 players:Alpha:18,Bravo:15`',
+          '`/multirally target:South Turret players:Alpha:18,Bravo:15`',
           '`/multirally target:King\'s Castle players:R1Lead:22,R2Lead:15,R3Lead:30 gap:2`',
         ].join('\n'),
       },
@@ -1077,7 +1077,13 @@ function getTransferGroupLabel(group) {
 function createTransferStatusEmbed(kingdom, historyData) {
   const group = getTransferGroup(kingdom.kingdom_number);
   const groupLabel = group ? getTransferGroupLabel(group) : null;
-  const transferStatus = kingdom.transfer_status || kingdom.most_recent_status || 'Unknown';
+  const history = historyData?.history || [];
+  const events = historyData?.events || [];
+  const mostRecentEntry = history.length > 0 ? history[history.length - 1] : null;
+  const currentEvent = events.find(e => e.is_current);
+  const transferStatus = mostRecentEntry && currentEvent && mostRecentEntry.event_number === currentEvent.event_number
+    ? mostRecentEntry.status
+    : (kingdom.transfer_status || kingdom.most_recent_status || 'Unannounced');
   const statusEmoji = transferStatus === 'Leading' ? '\ud83d\udc51' : transferStatus === 'Ordinary' ? '\ud83d\udfe2' : '\u2753';
 
   const embed = new EmbedBuilder()
@@ -1096,8 +1102,6 @@ function createTransferStatusEmbed(kingdom, historyData) {
   }
 
   // Build transfer history timeline
-  const history = historyData?.history || [];
-  const events = historyData?.events || [];
   const eventsMap = new Map(events.map(e => [e.event_number, e]));
 
   if (history.length > 0) {

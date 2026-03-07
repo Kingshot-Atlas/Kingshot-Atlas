@@ -1,0 +1,1 @@
+INSERT INTO transfer_status_history (kingdom_number,event_number,group_number,status,is_unofficial) VALUES (501,2,4,'Ordinary',false),(502,2,4,'Ordinary',false),(503,2,4,'Ordinary',false),(504,2,4,'Ordinary',false),(505,2,4,'Ordinary',false);

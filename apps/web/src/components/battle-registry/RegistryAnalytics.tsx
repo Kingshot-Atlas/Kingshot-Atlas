@@ -27,8 +27,7 @@ const HOURLY_FRAMES = [
   { label: '13:00 – 14:00', slots: [2, 3] },
   { label: '14:00 – 15:00', slots: [4, 5] },
   { label: '15:00 – 16:00', slots: [6, 7] },
-  { label: '16:00 – 17:00', slots: [8, 9] },
-  { label: '17:00 – 18:00', slots: [10, 11, 12] },
+  { label: '16:00 – 17:00', slots: [8, 9, 10] },
 ];
 
 // Parse "T11/TG8" → { tier: 11, tg: 8 } or "T9" → { tier: 9, tg: -1 }

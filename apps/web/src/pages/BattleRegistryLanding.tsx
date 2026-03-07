@@ -42,7 +42,7 @@ const BattleRegistryLanding: React.FC = () => {
     {
       icon: '⏰',
       title: t('battleRegistryLanding.featTime', 'Time Slot Collection'),
-      desc: t('battleRegistryLanding.featTimeDesc', 'Players pick their availability between 12:00–18:00 UTC. Instantly see how many warriors you have at each hour. No more guessing who\'s online.'),
+      desc: t('battleRegistryLanding.featTimeDesc', 'Players pick their availability between 12:00–17:00 UTC. Instantly see how many warriors you have at each hour. No more guessing who\'s online.'),
     },
     {
       icon: '🗡️',

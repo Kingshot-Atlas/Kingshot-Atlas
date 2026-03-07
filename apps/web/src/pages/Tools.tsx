@@ -223,8 +223,8 @@ const Tools: React.FC = () => {
 
   // Fetch active gift code count for badge
   const [giftCodeCount, setGiftCodeCount] = useState<number | null>(null);
-  // Discord server count — no longer fetched since Render API was deleted; static fallback used
-  const discordServerCount: number | null = null;
+  // Discord server count — fetch from Supabase
+  const [discordServerCount, setDiscordServerCount] = useState<number | null>(null);
   // Fetch linked Kingshot player count for Transfer Hub card
   const [playerCount, setPlayerCount] = useState<number | null>(null);
   useEffect(() => {
@@ -245,6 +245,14 @@ const Tools: React.FC = () => {
         .not('linked_player_id', 'is', null)
         .then(({ count }) => {
           if (count) setPlayerCount(count);
+        });
+    }).catch(() => {});
+    // Fetch Discord server count from app_config (auto-updated by bot_telemetry trigger)
+    import('../lib/supabase').then(({ supabase }) => {
+      if (!supabase) return;
+      supabase.from('app_config').select('value').eq('key', 'discord_guild_count').maybeSingle()
+        .then(({ data }) => {
+          if (data?.value) setDiscordServerCount(parseInt(data.value, 10));
         });
     }).catch(() => {});
   }, []);
@@ -452,10 +460,30 @@ const Tools: React.FC = () => {
     ctaLabel: t('tools.launchTool', 'Launch Tool'),
   };
 
-  const kingdomTools = tools.slice(0, 4);
+  // Order: Transfer Hub, Battle Planner, Battle Layout, Battle Registry, Prep Scheduler
+  const transferHubCard = tools[0]!;
+  const battlePlannerCard = tools[1]!;
+  const prepSchedulerCard = tools[2]!;
+  const battleRegistryCard = tools[3]!;
   // Discord Bot (tools[4]) is index 4, Base Designer (tools[5]) is index 5
   const discordBotCard = tools[4]!;
   const baseDesignerCard = tools[5]!;
+  const battleLayoutCard: ToolCardProps = {
+    title: t('tools.battleLayoutTitle', 'KvK Battle Layout'),
+    description: t('tools.battleLayoutDesc', 'Plan your alliance\'s teleport positions around the castle and turrets. Visual map tool for Castle Battle coordination.'),
+    tagline: t('tools.battleLayoutTagline', 'Position wins battles.'),
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+    ),
+    href: '/tools/battle-layout/about',
+    accentColor: '#f97316',
+    ctaLabel: t('tools.learnMore', 'Learn More'),
+  };
+
   const allianceTools = [discordBotCard, allianceCenterCard, eventCoordinatorCard, baseDesignerCard];
   const individualTools = tools.slice(6);
 
@@ -520,7 +548,11 @@ const Tools: React.FC = () => {
             <div style={{ flex: 1, height: '1px', backgroundColor: '#ffffff20' }} />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: isMobile ? '1rem' : '1.5rem' }}>
-            {kingdomTools.map((tool, index) => (<ToolCard key={`k-${index}`} {...tool} />))}
+            <ToolCard key="k-transfer" {...transferHubCard} />
+            <ToolCard key="k-planner" {...battlePlannerCard} />
+            <ToolCard key="k-battle-layout" {...battleLayoutCard} />
+            <ToolCard key="k-registry" {...battleRegistryCard} />
+            <ToolCard key="k-scheduler" {...prepSchedulerCard} />
           </div>
         </div>
 

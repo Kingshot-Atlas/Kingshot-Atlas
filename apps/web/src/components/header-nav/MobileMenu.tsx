@@ -271,6 +271,9 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
               <Link to="/tools/battle-planner" style={{ color: isActive('/tools/battle-planner') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ color: '#f97316', fontSize: '0.7rem' }}>●</span> {t('nav.kvkBattleCoordinator')}
               </Link>
+              <Link to="/tools/battle-layout/about" style={{ color: (isActive('/tools/battle-layout') || isActive('/tools/battle-layout/about')) ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#f97316', fontSize: '0.7rem' }}>●</span> {t('nav.kvkBattleLayout', 'KvK Battle Layout')}
+              </Link>
               <Link to="/tools/battle-registry-info" style={{ color: (isActive('/tools/battle-registry') || isActive('/tools/battle-registry-info')) ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ color: '#f97316', fontSize: '0.7rem' }}>●</span> {t('nav.kvkBattleRegistry', 'KvK Battle Registry')}
               </Link>

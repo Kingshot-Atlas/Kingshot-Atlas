@@ -59,28 +59,28 @@ export interface RallyPreset {
 
 export const BUILDING_LABELS: Record<BuildingKey, string> = {
   castle: "King's Castle",
-  turret1: 'Turret 1 (South)',
-  turret2: 'Turret 2 (West)',
-  turret3: 'Turret 3 (East)',
-  turret4: 'Turret 4 (North)',
+  turret1: 'South Turret',
+  turret2: 'West Turret',
+  turret3: 'East Turret',
+  turret4: 'North Turret',
 };
 
 export const BUILDING_SHORT: Record<BuildingKey, string> = {
   castle: 'KC',
-  turret1: 'T1',
-  turret2: 'T2',
-  turret3: 'T3',
-  turret4: 'T4',
+  turret1: 'South',
+  turret2: 'West',
+  turret3: 'East',
+  turret4: 'North',
 };
 
 // i18n-aware building label helpers — pass t() from useTranslation()
 export const getBuildingLabel = (key: BuildingKey, t: (k: string, fallback: string) => string): string => {
   const map: Record<BuildingKey, [string, string]> = {
     castle: ['building.castle', "King's Castle"],
-    turret1: ['building.turret1', 'Turret 1 (South)'],
-    turret2: ['building.turret2', 'Turret 2 (West)'],
-    turret3: ['building.turret3', 'Turret 3 (East)'],
-    turret4: ['building.turret4', 'Turret 4 (North)'],
+    turret1: ['building.turret1', 'South Turret'],
+    turret2: ['building.turret2', 'West Turret'],
+    turret3: ['building.turret3', 'East Turret'],
+    turret4: ['building.turret4', 'North Turret'],
   };
   const [i18nKey, fallback] = map[key];
   return t(i18nKey, fallback);
@@ -89,10 +89,10 @@ export const getBuildingLabel = (key: BuildingKey, t: (k: string, fallback: stri
 export const getBuildingShort = (key: BuildingKey, t: (k: string, fallback: string) => string): string => {
   const map: Record<BuildingKey, [string, string]> = {
     castle: ['building.castleShort', 'KC'],
-    turret1: ['building.turret1Short', 'T1'],
-    turret2: ['building.turret2Short', 'T2'],
-    turret3: ['building.turret3Short', 'T3'],
-    turret4: ['building.turret4Short', 'T4'],
+    turret1: ['building.turret1Short', 'South'],
+    turret2: ['building.turret2Short', 'West'],
+    turret3: ['building.turret3Short', 'East'],
+    turret4: ['building.turret4Short', 'North'],
   };
   const [i18nKey, fallback] = map[key];
   return t(i18nKey, fallback);

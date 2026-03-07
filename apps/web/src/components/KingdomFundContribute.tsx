@@ -61,7 +61,7 @@ const TIER_BENEFITS: Record<string, string[]> = {
   standard: ['Basic listing with Atlas Score & stats', 'Community reviews from players', 'Kingdom Bio & Language display'],
   bronze: ['Min TC & Power requirements shown', 'Browse recruit candidates', 'Kingdom Policies & Vibe tags', 'Alliance Information & Schedules'],
   silver: ['All Bronze benefits', 'Send invites to recruit candidates', 'KvK Prep Scheduler access'],
-  gold: ['All Silver benefits', 'Gilded badge for all kingdom users', 'Gold glow + priority placement', 'KvK Battle Planner access', 'KvK Battle Registry access'],
+  gold: ['All Silver benefits', 'Gilded badge for all kingdom users', 'Gold glow + priority placement', 'KvK Battle Planner access', 'KvK Battle Registry access', 'KvK Battle Layout access'],
 };
 
 // =============================================

@@ -16,7 +16,7 @@ interface GameEvent {
 // KvK: Every 4 weeks
 //   - Preparation Phase: Monday 00:00 UTC to Saturday 10:00 UTC
 //   - Battle Phase: Saturday 10:00 UTC to Saturday 22:00 UTC
-//     └─ Castle Battle: Saturday 12:00 UTC to Saturday 18:00 UTC (core competitive window)
+//     └─ Castle Battle: Saturday 12:00 UTC to Saturday 17:00 UTC (core competitive window)
 //        Winning Castle Battle = Winning the "Battle Phase"
 //   - Reference: KvK #10 started Monday, January 26, 2026 at 00:00 UTC
 // Transfer Event: Every 8 weeks
@@ -80,12 +80,12 @@ const generateEvents = (): GameEvent[] => {
       color: '#f97316'
     });
 
-    // Castle Battle: Saturday 12:00 UTC to Saturday 18:00 UTC (core competitive window)
+    // Castle Battle: Saturday 12:00 UTC to Saturday 17:00 UTC (core competitive window)
     // Winning Castle Battle = Winning the "Battle Phase"
     const castleBattleStart = new Date(battleStart);
     castleBattleStart.setUTCHours(12, 0, 0, 0);
     const castleBattleEnd = new Date(battleStart);
-    castleBattleEnd.setUTCHours(18, 0, 0, 0);
+    castleBattleEnd.setUTCHours(17, 0, 0, 0);
 
     events.push({
       id: `kvk-castle-${kvkNumber}`,

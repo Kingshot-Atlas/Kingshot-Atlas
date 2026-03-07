@@ -1,7 +1,7 @@
 // Alliance Base Designer — Building type definitions
 // Source of truth for all building types, sizes, colors, and icons
 
-export type BuildingCategory = 'player' | 'relocatable' | 'obstacle';
+export type BuildingCategory = 'player' | 'relocatable' | 'obstacle' | 'battle';
 
 export interface BuildingType {
   id: string;
@@ -116,6 +116,62 @@ export const BUILDING_TYPES: BuildingType[] = [
     icon: '⛏️',
     category: 'obstacle',
     description: 'Alliance Mine (2×2). Iron resource. Cannot be moved.',
+  },
+  // ─── KvK Battle Layout buildings (not shown in Alliance Base Designer) ───
+  {
+    id: 'battle-castle',
+    name: "King's Castle",
+    shortName: 'Castle',
+    size: 6,
+    color: '#f59e0b',
+    icon: '🏰',
+    category: 'battle',
+    description: "The King's Castle (6×6). Center of the KvK battlefield. Immovable.",
+    maxCount: 1,
+  },
+  {
+    id: 'battle-turret-south',
+    name: 'South Turret',
+    shortName: 'S Turret',
+    size: 2,
+    color: '#f59e0b',
+    icon: '🗼',
+    category: 'battle',
+    description: 'South Turret (2×2). Provides Lethality bonus. Immovable.',
+    maxCount: 1,
+  },
+  {
+    id: 'battle-turret-west',
+    name: 'West Turret',
+    shortName: 'W Turret',
+    size: 2,
+    color: '#f59e0b',
+    icon: '🗼',
+    category: 'battle',
+    description: 'West Turret (2×2). Provides Lethality bonus. Immovable.',
+    maxCount: 1,
+  },
+  {
+    id: 'battle-turret-east',
+    name: 'East Turret',
+    shortName: 'E Turret',
+    size: 2,
+    color: '#f59e0b',
+    icon: '🗼',
+    category: 'battle',
+    description: 'East Turret (2×2). Provides Lethality bonus. Immovable.',
+    maxCount: 1,
+  },
+  {
+    id: 'battle-turret-north',
+    name: 'North Turret',
+    shortName: 'N Turret',
+    size: 2,
+    color: '#f59e0b',
+    icon: '🗼',
+    category: 'battle',
+    description: 'North Turret (2×2). Provides Lethality bonus. Immovable.',
+    maxCount: 1,
   },
 ];
 

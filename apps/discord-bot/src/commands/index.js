@@ -152,10 +152,10 @@ const commands = [
         .setRequired(true)
         .addChoices(
           { name: "King's Castle", value: "King's Castle" },
-          { name: 'Turret 1 (South)', value: 'Turret 1' },
-          { name: 'Turret 2 (West)', value: 'Turret 2' },
-          { name: 'Turret 3 (East)', value: 'Turret 3' },
-          { name: 'Turret 4 (North)', value: 'Turret 4' }
+          { name: 'South Turret', value: 'South Turret' },
+          { name: 'West Turret', value: 'West Turret' },
+          { name: 'East Turret', value: 'East Turret' },
+          { name: 'North Turret', value: 'North Turret' }
         )
     )
     .addStringOption(option =>
