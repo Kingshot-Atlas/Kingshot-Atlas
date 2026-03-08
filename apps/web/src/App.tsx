@@ -71,6 +71,8 @@ const AllianceCenterLanding = lazy(() => import('./pages/AllianceCenterLanding')
 const AllianceEventCoordinator = lazy(() => import('./pages/AllianceEventCoordinator'));
 const KvKBattleLayout = lazy(() => import('./pages/KvKBattleLayout'));
 const KvKBattleLayoutLanding = lazy(() => import('./pages/KvKBattleLayoutLanding'));
+const BearRallyTierList = lazy(() => import('./pages/BearRallyTierList'));
+const BearRallyTierListLanding = lazy(() => import('./pages/BearRallyTierListLanding'));
 
 // 404 Not Found component
 const NotFound = () => {
@@ -190,6 +192,8 @@ function AppContent() {
               <Route path="/tools/event-coordinator" element={<ErrorBoundary><AllianceEventCoordinator /></ErrorBoundary>} />
               <Route path="/tools/battle-layout" element={<ErrorBoundary><KvKBattleLayout /></ErrorBoundary>} />
               <Route path="/tools/battle-layout/about" element={<ErrorBoundary><KvKBattleLayoutLanding /></ErrorBoundary>} />
+              <Route path="/tools/bear-rally-tier-list" element={<ErrorBoundary><BearRallyTierList /></ErrorBoundary>} />
+              <Route path="/tools/bear-rally-tier-list/about" element={<ErrorBoundary><BearRallyTierListLanding /></ErrorBoundary>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

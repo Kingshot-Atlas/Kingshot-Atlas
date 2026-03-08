@@ -485,7 +485,23 @@ const Tools: React.FC = () => {
     goldTierBadge: true,
   };
 
-  const allianceTools = [discordBotCard, allianceCenterCard, eventCoordinatorCard, baseDesignerCard];
+  const bearRallyTierListCard: ToolCardProps = {
+    title: t('tools.bearRallyTitle', 'Bear Rally Tier List'),
+    description: t('tools.bearRallyDesc', 'Rank your alliance members by Bear Hunt rally power. Input scouted stats, adjust for Exclusive Gear, and see who hits the hardest.'),
+    tagline: t('tools.bearRallyTagline', 'Know your hitters. Win the hunt.'),
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+    ),
+    href: '/tools/bear-rally-tier-list/about',
+    accentColor: '#3b82f6',
+    ctaLabel: t('tools.learnMore', 'Learn More'),
+  };
+
+  const allianceTools = [discordBotCard, allianceCenterCard, eventCoordinatorCard, baseDesignerCard, bearRallyTierListCard];
   const individualTools = tools.slice(6);
 
   return (

@@ -303,6 +303,10 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ isActive, user, changeLanguage,
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#3b82f6' }}><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                   {t('nav.baseDesigner', 'Base Designer')}
                 </Link>
+                <Link to="/tools/bear-rally-tier-list" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.55rem 0.75rem', borderRadius: '8px', color: isActive('/tools/bear-rally-tier-list') ? '#22d3ee' : '#fff', textDecoration: 'none', fontSize: '0.82rem', transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#3b82f6' }}><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                  {t('nav.bearRallyTierList', 'Bear Rally Tier List')}
+                </Link>
               </div>
             )}
 

@@ -311,6 +311,9 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
               <Link to="/tools/base-designer/about" style={{ color: (isActive('/tools/base-designer') || isActive('/tools/base-designer/about')) ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ color: '#3b82f6', fontSize: '0.7rem' }}>●</span> {t('nav.baseDesigner', 'Base Designer')}
               </Link>
+              <Link to="/tools/bear-rally-tier-list" onClick={onClose} style={{ color: isActive('/tools/bear-rally-tier-list') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#3b82f6', fontSize: '0.7rem' }}>●</span> {t('nav.bearRallyTierList', 'Bear Rally Tier List')}
+              </Link>
             </>
           )}
 

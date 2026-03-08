@@ -1458,6 +1458,15 @@ const AllianceDashboard: React.FC = () => {
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#3b82f625'; }}>
             🏰 {t('allianceCenter.baseDesignerLink', 'Base Designer')}
           </Link>
+          <Link to="/tools/bear-rally-tier-list" style={{
+            textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+            padding: '0.4rem 0.75rem', backgroundColor: '#3b82f610', border: '1px solid #3b82f625',
+            borderRadius: '8px', color: '#3b82f6', fontSize: '0.75rem', fontWeight: 600, transition: 'border-color 0.15s',
+          }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#3b82f6'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#3b82f625'; }}>
+            🐻 {t('allianceCenter.bearRallyLink', 'Bear Rally Tier List')}
+          </Link>
         </div>
       </div>
 
