@@ -434,7 +434,7 @@ const MyAvailabilityForm: React.FC<{
                         )}
                         {slotCount > 0 && (
                           <button onClick={() => clearDay(day.value)} style={{ padding: '0.15rem 0.3rem', border: 'none', backgroundColor: 'transparent', color: '#ef4444', fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer' }}>
-                            Clear
+                            {t('eventCoordinator.clearDay', 'Clear')}
                           </button>
                         )}
                       </div>

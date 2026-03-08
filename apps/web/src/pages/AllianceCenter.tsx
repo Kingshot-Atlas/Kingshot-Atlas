@@ -295,6 +295,7 @@ const AddMemberModal: React.FC<{
 }> = ({ onAdd, searchAtlasUsers, onClose, memberCount, maxMembers }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
+  const isMob = useIsMobile();
   const [mode, setMode] = useState<'search' | 'manual'>('search');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<MemberSearchResult[]>([]);
@@ -343,8 +344,8 @@ const AddMemberModal: React.FC<{
   };
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '440px', backgroundColor: '#111111', borderRadius: '16px', border: '1px solid #2a2a2a', padding: '1.5rem', boxShadow: '0 16px 64px rgba(0,0,0,0.5)', maxHeight: '80vh', overflowY: 'auto' }}>
+    <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: isMob ? 'flex-end' : 'center', justifyContent: 'center', zIndex: 1000, padding: isMob ? '0' : '1rem' }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '440px', backgroundColor: '#111111', borderRadius: isMob ? '16px 16px 0 0' : '16px', border: '1px solid #2a2a2a', padding: isMob ? '1.25rem 1rem' : '1.5rem', boxShadow: '0 16px 64px rgba(0,0,0,0.5)', maxHeight: isMob ? '90vh' : '80vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: isMob ? 'max(1.5rem, env(safe-area-inset-bottom))' : '1.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '700', margin: 0 }}>{t('allianceCenter.addMember', 'Add Member')}</h3>
           <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>{memberCount}/{maxMembers}</span>
@@ -434,6 +435,7 @@ const ImportMembersModal: React.FC<{
 }> = ({ onImport, onClose, memberCount, maxMembers }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
+  const isMob = useIsMobile();
   const [rawIds, setRawIds] = useState('');
   const [importing, setImporting] = useState(false);
 
@@ -453,8 +455,8 @@ const ImportMembersModal: React.FC<{
   };
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '440px', backgroundColor: '#111111', borderRadius: '16px', border: '1px solid #2a2a2a', padding: '1.5rem', boxShadow: '0 16px 64px rgba(0,0,0,0.5)' }}>
+    <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: isMob ? 'flex-end' : 'center', justifyContent: 'center', zIndex: 1000, padding: isMob ? '0' : '1rem' }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '440px', backgroundColor: '#111111', borderRadius: isMob ? '16px 16px 0 0' : '16px', border: '1px solid #2a2a2a', padding: isMob ? '1.25rem 1rem' : '1.5rem', boxShadow: '0 16px 64px rgba(0,0,0,0.5)', maxHeight: isMob ? '90vh' : '85vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: isMob ? 'max(1.5rem, env(safe-area-inset-bottom))' : '1.5rem' }}>
         <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '700', marginBottom: '0.5rem' }}>
           {t('allianceCenter.importTitle', 'Import Members by Player ID')}
         </h3>
@@ -483,6 +485,7 @@ const ImportMembersModal: React.FC<{
 const ManagerModal: React.FC<{ ac: ReturnType<typeof useAllianceCenter>; onClose: () => void }> = ({ ac, onClose }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
+  const isMob = useIsMobile();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<MemberSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
@@ -517,8 +520,8 @@ const ManagerModal: React.FC<{ ac: ReturnType<typeof useAllianceCenter>; onClose
   };
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '440px', backgroundColor: '#111111', borderRadius: '16px', border: '1px solid #a855f730', padding: '1.5rem', boxShadow: '0 16px 64px rgba(0,0,0,0.5)', maxHeight: '80vh', overflowY: 'auto' }}>
+    <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: isMob ? 'flex-end' : 'center', justifyContent: 'center', zIndex: 1000, padding: isMob ? '0' : '1rem' }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '440px', backgroundColor: '#111111', borderRadius: isMob ? '16px 16px 0 0' : '16px', border: '1px solid #a855f730', padding: isMob ? '1.25rem 1rem' : '1.5rem', boxShadow: '0 16px 64px rgba(0,0,0,0.5)', maxHeight: isMob ? '90vh' : '80vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: isMob ? 'max(1.5rem, env(safe-area-inset-bottom))' : '1.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '700', margin: 0 }}>
             {t('allianceCenter.managersLabel', 'Managers')} ({ac.managers.length}/{ac.maxManagers})
@@ -573,11 +576,12 @@ const TransferOwnershipModal: React.FC<{
 }> = ({ ac, onClose }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
+  const isMob = useIsMobile();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<MemberSearchResult[]>([]);
-  const [searching, setSearching] = useState(false);
-  const [transferring, setTransferring] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<MemberSearchResult | null>(null);
+  const [transferring, setTransferring] = useState(false);
+  const [searching, setSearching] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
@@ -604,8 +608,8 @@ const TransferOwnershipModal: React.FC<{
   };
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '420px', backgroundColor: '#111111', borderRadius: '16px', border: '1px solid #f59e0b30', padding: '1.5rem', boxShadow: '0 16px 64px rgba(0,0,0,0.5)' }}>
+    <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: isMob ? 'flex-end' : 'center', justifyContent: 'center', zIndex: 1000, padding: isMob ? '0' : '1rem' }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '420px', backgroundColor: '#111111', borderRadius: isMob ? '16px 16px 0 0' : '16px', border: '1px solid #f59e0b30', padding: isMob ? '1.25rem 1rem' : '1.5rem', boxShadow: '0 16px 64px rgba(0,0,0,0.5)', maxHeight: isMob ? '90vh' : '85vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: isMob ? 'max(1.5rem, env(safe-area-inset-bottom))' : '1.5rem' }}>
         {!confirmTarget ? (
           <>
             <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '700', marginBottom: '0.5rem' }}>
@@ -867,6 +871,7 @@ const EditMemberModal: React.FC<{
 }> = ({ member, onUpdate, onClose, restrictedMode }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
+  const isMob = useIsMobile();
   const [editName, setEditName] = useState(member.player_name);
   const [editNotes, setEditNotes] = useState(member.notes || '');
   const [infTier, setInfTier] = useState<number | null>(member.infantry_tier);
@@ -895,8 +900,8 @@ const EditMemberModal: React.FC<{
   };
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '440px', backgroundColor: '#111111', borderRadius: '16px', border: '1px solid #2a2a2a', padding: '1.5rem', boxShadow: '0 16px 64px rgba(0,0,0,0.5)' }}>
+    <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: isMob ? 'flex-end' : 'center', justifyContent: 'center', zIndex: 1000, padding: isMob ? '0' : '1rem' }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '440px', backgroundColor: '#111111', borderRadius: isMob ? '16px 16px 0 0' : '16px', border: '1px solid #2a2a2a', padding: isMob ? '1.25rem 1rem' : '1.5rem', boxShadow: '0 16px 64px rgba(0,0,0,0.5)', maxHeight: isMob ? '90vh' : '85vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: isMob ? 'max(1.5rem, env(safe-area-inset-bottom))' : '1.5rem' }}>
         <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '700', marginBottom: '1rem' }}>
           {restrictedMode ? t('allianceCenter.editMyTroops', 'Edit My Troops') : t('allianceCenter.editMember', 'Edit Member')}
         </h3>
@@ -1093,7 +1098,7 @@ const ApplicationsInbox: React.FC<{
                 style={{
                   fontSize: '0.65rem', fontWeight: 600, padding: '0.25rem 0.5rem', borderRadius: '5px',
                   backgroundColor: '#22c55e15', border: '1px solid #22c55e30', color: '#22c55e',
-                  cursor: bulkProcessing ? 'default' : 'pointer', minHeight: isMobile ? '36px' : 'auto',
+                  cursor: bulkProcessing ? 'default' : 'pointer', minHeight: isMobile ? '44px' : 'auto',
                   WebkitTapHighlightColor: 'transparent',
                 }}
               >
@@ -1105,7 +1110,7 @@ const ApplicationsInbox: React.FC<{
                 style={{
                   fontSize: '0.65rem', fontWeight: 600, padding: '0.25rem 0.5rem', borderRadius: '5px',
                   backgroundColor: '#ef444410', border: '1px solid #ef444425', color: '#ef4444',
-                  cursor: bulkProcessing ? 'default' : 'pointer', minHeight: isMobile ? '36px' : 'auto',
+                  cursor: bulkProcessing ? 'default' : 'pointer', minHeight: isMobile ? '44px' : 'auto',
                   WebkitTapHighlightColor: 'transparent',
                 }}
               >
@@ -1444,6 +1449,7 @@ const AllianceDashboard: React.FC = () => {
             textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
             padding: '0.4rem 0.75rem', backgroundColor: '#3b82f610', border: '1px solid #3b82f625',
             borderRadius: '8px', color: '#3b82f6', fontSize: '0.75rem', fontWeight: 600, transition: 'border-color 0.15s',
+            minHeight: isMobile ? '44px' : undefined, WebkitTapHighlightColor: 'transparent',
           }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#3b82f6'; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#3b82f625'; }}>
@@ -1453,6 +1459,7 @@ const AllianceDashboard: React.FC = () => {
             textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
             padding: '0.4rem 0.75rem', backgroundColor: '#3b82f610', border: '1px solid #3b82f625',
             borderRadius: '8px', color: '#3b82f6', fontSize: '0.75rem', fontWeight: 600, transition: 'border-color 0.15s',
+            minHeight: isMobile ? '44px' : undefined, WebkitTapHighlightColor: 'transparent',
           }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#3b82f6'; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#3b82f625'; }}>
@@ -1462,6 +1469,7 @@ const AllianceDashboard: React.FC = () => {
             textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
             padding: '0.4rem 0.75rem', backgroundColor: '#3b82f610', border: '1px solid #3b82f625',
             borderRadius: '8px', color: '#3b82f6', fontSize: '0.75rem', fontWeight: 600, transition: 'border-color 0.15s',
+            minHeight: isMobile ? '44px' : undefined, WebkitTapHighlightColor: 'transparent',
           }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#3b82f6'; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#3b82f625'; }}>
@@ -1506,18 +1514,18 @@ const AllianceDashboard: React.FC = () => {
           <div style={{ display: 'flex', gap: '0.3rem' }}>
             {ac.canManage && (
               <button onClick={() => ac.refreshApiPlayerData()} disabled={ac.apiPlayerDataLoading}
-                style={{ padding: isMobile ? '0.4rem 0.6rem' : '0.25rem 0.5rem', minHeight: isMobile ? '36px' : 'auto', backgroundColor: '#10b98115', border: '1px solid #10b98130', borderRadius: '6px', color: '#10b981', fontSize: '0.65rem', fontWeight: '600', cursor: ac.apiPlayerDataLoading ? 'wait' : 'pointer', opacity: ac.apiPlayerDataLoading ? 0.5 : 1, WebkitTapHighlightColor: 'transparent' }}>
+                style={{ padding: isMobile ? '0.4rem 0.6rem' : '0.25rem 0.5rem', minHeight: isMobile ? '44px' : 'auto', backgroundColor: '#10b98115', border: '1px solid #10b98130', borderRadius: '6px', color: '#10b981', fontSize: '0.65rem', fontWeight: '600', cursor: ac.apiPlayerDataLoading ? 'wait' : 'pointer', opacity: ac.apiPlayerDataLoading ? 0.5 : 1, WebkitTapHighlightColor: 'transparent' }}>
                 🔄 {t('allianceCenter.refreshData', 'Refresh')}
               </button>
             )}
             {ac.canManage && (
               <>
                 <button onClick={() => setShowImport(true)} disabled={!ac.canAddMember}
-                  style={{ padding: '0.25rem 0.5rem', backgroundColor: '#22d3ee15', border: '1px solid #22d3ee30', borderRadius: '6px', color: '#22d3ee', fontSize: '0.65rem', fontWeight: '600', cursor: ac.canAddMember ? 'pointer' : 'not-allowed', opacity: ac.canAddMember ? 1 : 0.5 }}>
+                  style={{ padding: isMobile ? '0.4rem 0.6rem' : '0.25rem 0.5rem', minHeight: isMobile ? '44px' : 'auto', backgroundColor: '#22d3ee15', border: '1px solid #22d3ee30', borderRadius: '6px', color: '#22d3ee', fontSize: '0.65rem', fontWeight: '600', cursor: ac.canAddMember ? 'pointer' : 'not-allowed', opacity: ac.canAddMember ? 1 : 0.5, WebkitTapHighlightColor: 'transparent' }}>
                   📋 Import IDs
                 </button>
                 <button onClick={() => setShowAddMember(true)} disabled={!ac.canAddMember}
-                  style={{ padding: '0.25rem 0.6rem', backgroundColor: ACCENT + '15', border: `1px solid ${ACCENT}30`, borderRadius: '6px', color: ACCENT, fontSize: '0.7rem', fontWeight: '600', cursor: ac.canAddMember ? 'pointer' : 'not-allowed', opacity: ac.canAddMember ? 1 : 0.5 }}>
+                  style={{ padding: isMobile ? '0.4rem 0.6rem' : '0.25rem 0.6rem', minHeight: isMobile ? '44px' : 'auto', backgroundColor: ACCENT + '15', border: `1px solid ${ACCENT}30`, borderRadius: '6px', color: ACCENT, fontSize: '0.7rem', fontWeight: '600', cursor: ac.canAddMember ? 'pointer' : 'not-allowed', opacity: ac.canAddMember ? 1 : 0.5, WebkitTapHighlightColor: 'transparent' }}>
                   + {t('allianceCenter.addMember', 'Add Member')}
                 </button>
               </>
@@ -1687,17 +1695,17 @@ const AllianceDashboard: React.FC = () => {
                     <div style={{ display: 'flex', gap: '0.3rem' }}>
                       {ac.canManage ? (
                         <>
-                          <button onClick={() => setEditingMember(m)} style={{ padding: '0.3rem 0.5rem', backgroundColor: '#1a1a24', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#6b7280', fontSize: '0.7rem', cursor: 'pointer', minHeight: '28px' }} title="Edit">✏️</button>
+                          <button onClick={() => setEditingMember(m)} style={{ padding: '0.4rem 0.6rem', backgroundColor: '#1a1a24', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#6b7280', fontSize: '0.7rem', cursor: 'pointer', minHeight: '44px', minWidth: '44px', WebkitTapHighlightColor: 'transparent' }} title="Edit">✏️</button>
                           <button onClick={async () => {
                             setRemovingMemberId(m.id);
                             const result = await ac.removeMember(m.id);
                             setRemovingMemberId(null);
                             if (result.success) showToast(t('allianceCenter.memberRemoved', '{{name}} removed', { name: m.player_name }), 'success');
                             else showToast(result.error || t('allianceCenter.removeFailed', 'Failed to remove'), 'error');
-                          }} disabled={isRemoving} style={{ padding: '0.3rem 0.5rem', backgroundColor: '#1a1a24', border: '1px solid #ef444430', borderRadius: '6px', color: '#ef4444', fontSize: '0.7rem', cursor: isRemoving ? 'wait' : 'pointer', opacity: isRemoving ? 0.5 : 1, minHeight: '28px' }} title={t('common.remove', 'Remove')}>🗑️</button>
+                          }} disabled={isRemoving} style={{ padding: '0.4rem 0.6rem', backgroundColor: '#1a1a24', border: '1px solid #ef444430', borderRadius: '6px', color: '#ef4444', fontSize: '0.7rem', cursor: isRemoving ? 'wait' : 'pointer', opacity: isRemoving ? 0.5 : 1, minHeight: '44px', minWidth: '44px', WebkitTapHighlightColor: 'transparent' }} title={t('common.remove', 'Remove')}>🗑️</button>
                         </>
                       ) : isOwnRow ? (
-                        <button onClick={() => setEditingMember(m)} style={{ padding: '0.3rem 0.5rem', backgroundColor: '#1a1a24', border: `1px solid ${ACCENT}30`, borderRadius: '6px', color: ACCENT, fontSize: '0.7rem', cursor: 'pointer', minHeight: '28px' }} title="Edit my troops">✏️</button>
+                        <button onClick={() => setEditingMember(m)} style={{ padding: '0.4rem 0.6rem', backgroundColor: '#1a1a24', border: `1px solid ${ACCENT}30`, borderRadius: '6px', color: ACCENT, fontSize: '0.7rem', cursor: 'pointer', minHeight: '44px', minWidth: '44px', WebkitTapHighlightColor: 'transparent' }} title="Edit my troops">✏️</button>
                       ) : null}
                     </div>
                   </div>
@@ -1858,9 +1866,9 @@ const AllianceDashboard: React.FC = () => {
 
       {/* Edit alliance modal */}
       {showEditAlliance && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', zIndex: 1000, padding: isMobile ? '0' : '1rem' }}
           onClick={() => setShowEditAlliance(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '400px', backgroundColor: '#111111', borderRadius: '16px', border: '1px solid #2a2a2a', padding: '1.5rem', boxShadow: '0 16px 64px rgba(0,0,0,0.5)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '400px', backgroundColor: '#111111', borderRadius: isMobile ? '16px 16px 0 0' : '16px', border: '1px solid #2a2a2a', padding: isMobile ? '1.25rem 1rem' : '1.5rem', boxShadow: '0 16px 64px rgba(0,0,0,0.5)', maxHeight: isMobile ? '90vh' : '85vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: isMobile ? 'max(1.5rem, env(safe-area-inset-bottom))' : '1.5rem' }}>
             <h3 style={{ color: '#fff', fontSize: '1rem', fontWeight: '700', marginBottom: '1rem' }}>
               {t('allianceCenter.editAlliance', 'Edit Alliance')}
             </h3>
@@ -1886,9 +1894,9 @@ const AllianceDashboard: React.FC = () => {
 
       {/* Delete confirm modal */}
       {showDeleteConfirm && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', zIndex: 1000, padding: isMobile ? '0' : '1rem' }}
           onClick={() => setShowDeleteConfirm(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '380px', backgroundColor: '#111111', borderRadius: '16px', border: '1px solid #ef444430', padding: '1.5rem', boxShadow: '0 16px 64px rgba(0,0,0,0.5)', textAlign: 'center' }}>
+          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '380px', backgroundColor: '#111111', borderRadius: isMobile ? '16px 16px 0 0' : '16px', border: '1px solid #ef444430', padding: isMobile ? '1.25rem 1rem' : '1.5rem', boxShadow: '0 16px 64px rgba(0,0,0,0.5)', textAlign: 'center', paddingBottom: isMobile ? 'max(1.5rem, env(safe-area-inset-bottom))' : '1.5rem' }}>
             <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>⚠️</div>
             <h3 style={{ color: '#fff', fontSize: '1.05rem', fontWeight: '700', marginBottom: '0.5rem' }}>
               {t('allianceCenter.deleteTitle', 'Delete Alliance Center?')}

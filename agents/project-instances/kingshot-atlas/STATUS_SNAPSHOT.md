@@ -28,6 +28,7 @@
 
 | Task | Owner | Status |
 |------|-------|--------|
+| Bear Rally Tier List Refactor | Product Engineer | ✅ Complete — Fixed `canEdit` to include delegates. Auto-populate new lists with roster members. Redesigned empty state with contextual CTAs. Updated read-only banner. Mobile UX polish. i18n 6 keys × 9 languages. **Unranked Empty State (2026-06):** Incomplete players (missing heroes/gear/stats) excluded from ranking, shown in amber "Unranked — Missing Data" section. `isPlayerComplete()` helper. BulkEdit saves incomplete players without error. Build passes. |
 | Kingdom Settlers Campaign #1 | Product Engineer | ✅ IMPLEMENTED (local) — 2 Supabase tables (campaigns, campaign_winners), campaign hub page (/campaigns/kingdom-settlers) with 3 tabs, admin slot machine (/admin/campaign-draw) with full draw experience, React Query hooks, i18n (9 langs). Build passes. NOT deployed — awaiting owner review. |
 | Transfer Group Update Banner | Product Engineer | ✅ Complete — Purple notification banner with smart routing (Discord-linked → Transfer Hub, unlinked → Profile). i18n in all 9 languages. Live on Cloudflare Pages. |
 | Rally Session Persistence + EvCard Countdown + UTC Timestamp | Product Engineer | ✅ Complete — `rally_sessions` Supabase table with auto-save/restore for queue recovery. EvCard shows live "fires in Xh Ym" countdown. Rally copy text Start At now in UTC. |

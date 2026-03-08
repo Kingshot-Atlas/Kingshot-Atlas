@@ -6,19 +6,27 @@ import { useMetaTags } from '../hooks/useMetaTags';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 import {
-  EG_BONUS_BY_LEVEL,
+  getEGBonusDisplay,
   getHeroesByTroopType,
+  getPlayerDisplayStats,
   calculateBearScore,
   assignBearTier,
+  isPlayerComplete,
   BEAR_TIER_COLORS,
-  BEAR_STORAGE_KEY,
+  BEAR_LISTS_INDEX_KEY,
+  BEAR_LIST_DATA_PREFIX,
+  BEAR_STORAGE_KEY_LEGACY,
+  BEAR_ACTIVE_LIST_KEY,
   BEAR_DISCLAIMER_KEY,
   BEAR_DISCLAIMER_DEFAULT,
+  getDefaultListName,
   type BearPlayerEntry,
+  type BearListMeta,
   type BearTier,
-  type TroopType,
 } from '../data/bearHuntData';
 import { useAllianceCenter } from '../hooks/useAllianceCenter';
+import BearBulkInput from '../components/bear/BearBulkInput';
+import BearBulkEdit from '../components/bear/BearBulkEdit';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -35,20 +43,100 @@ const archerHeroes = getHeroesByTroopType('archer');
 
 const genId = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 
-// ─── Helper: load/save localStorage ─────────────────────────────────────────
+// ─── Helper: normalize Unicode for fuzzy name search ─────────────────────────
+// Converts special Unicode chars (small caps, fullwidth, etc.) to ASCII
+// so typing "AHK" matches "ᴀʜᴋɪʀᴀ"
+const UNICODE_TO_ASCII: Record<string, string> = {
+  // Small caps
+  '\u1D00': 'a', '\u0299': 'b', '\u1D04': 'c', '\u1D05': 'd', '\u1D07': 'e',
+  '\u0493': 'f', '\u0262': 'g', '\u029C': 'h', '\u026A': 'i', '\u1D0A': 'j',
+  '\u1D0B': 'k', '\u029F': 'l', '\u1D0D': 'm', '\u0274': 'n', '\u1D0F': 'o',
+  '\u1D18': 'p', '\u01EB': 'q', '\u0280': 'r', '\u0455': 's', '\u1D1B': 't',
+  '\u1D1C': 'u', '\u1D20': 'v', '\u1D21': 'w', '\u0263': 'x', '\u028F': 'y',
+  '\u1D22': 'z',
+  // Circled, subscript, superscript — handled by NFKD
+  // Fullwidth — handled by NFKD
+};
 
-function loadPlayers(): BearPlayerEntry[] {
-  try {
-    const raw = localStorage.getItem(BEAR_STORAGE_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw);
-  } catch {
-    return [];
+function normalizeForSearch(str: string): string {
+  // Step 1: map known special chars
+  let result = '';
+  for (const ch of str) {
+    result += UNICODE_TO_ASCII[ch] ?? ch;
   }
+  // Step 2: NFKD decomposition (handles fullwidth, circled, superscript, etc.)
+  result = result.normalize('NFKD');
+  // Step 3: strip combining marks (accents, diacritics)
+  result = result.replace(/[\u0300-\u036f]/g, '');
+  return result.toLowerCase();
 }
 
-function savePlayers(players: BearPlayerEntry[]) {
-  localStorage.setItem(BEAR_STORAGE_KEY, JSON.stringify(players));
+// ─── Multi-List Storage Helpers ──────────────────────────────────────────────
+
+function loadListsIndex(): BearListMeta[] {
+  try {
+    const raw = localStorage.getItem(BEAR_LISTS_INDEX_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch { /* ignore */ }
+  return [];
+}
+
+function saveListsIndex(lists: BearListMeta[]) {
+  localStorage.setItem(BEAR_LISTS_INDEX_KEY, JSON.stringify(lists));
+}
+
+function loadListPlayers(listId: string): BearPlayerEntry[] {
+  try {
+    const raw = localStorage.getItem(BEAR_LIST_DATA_PREFIX + listId);
+    if (raw) return JSON.parse(raw);
+  } catch { /* ignore */ }
+  return [];
+}
+
+function saveListPlayers(listId: string, players: BearPlayerEntry[]) {
+  localStorage.setItem(BEAR_LIST_DATA_PREFIX + listId, JSON.stringify(players));
+}
+
+function deleteListData(listId: string) {
+  localStorage.removeItem(BEAR_LIST_DATA_PREFIX + listId);
+}
+
+function getActiveListId(): string | null {
+  return localStorage.getItem(BEAR_ACTIVE_LIST_KEY);
+}
+
+function setActiveListId(id: string) {
+  localStorage.setItem(BEAR_ACTIVE_LIST_KEY, id);
+}
+
+/** Migrate legacy single-list storage → multi-list on first load */
+function migrateLegacyIfNeeded(): { lists: BearListMeta[]; activeId: string | null } {
+  const existing = loadListsIndex();
+  if (existing.length > 0) return { lists: existing, activeId: getActiveListId() };
+
+  // Check for legacy data
+  try {
+    const legacyRaw = localStorage.getItem(BEAR_STORAGE_KEY_LEGACY);
+    if (legacyRaw) {
+      const legacyPlayers: BearPlayerEntry[] = JSON.parse(legacyRaw);
+      if (legacyPlayers.length > 0) {
+        const id = genId();
+        const meta: BearListMeta = {
+          id,
+          name: getDefaultListName(),
+          createdAt: new Date().toISOString(),
+          playerCount: legacyPlayers.length,
+        };
+        saveListPlayers(id, legacyPlayers);
+        saveListsIndex([meta]);
+        setActiveListId(id);
+        localStorage.removeItem(BEAR_STORAGE_KEY_LEGACY);
+        return { lists: [meta], activeId: id };
+      }
+    }
+  } catch { /* ignore */ }
+
+  return { lists: [], activeId: null };
 }
 
 // ─── Empty Form State ───────────────────────────────────────────────────────
@@ -71,16 +159,16 @@ interface FormState {
 
 const emptyForm: FormState = {
   playerName: '',
-  infantryHero: infantryHeroes[0]?.name ?? '',
-  infantryEGLevel: 0,
+  infantryHero: '',
+  infantryEGLevel: -1,
   infantryAttack: '',
   infantryLethality: '',
-  cavalryHero: cavalryHeroes[0]?.name ?? '',
-  cavalryEGLevel: 0,
+  cavalryHero: '',
+  cavalryEGLevel: -1,
   cavalryAttack: '',
   cavalryLethality: '',
-  archerHero: archerHeroes[0]?.name ?? '',
-  archerEGLevel: 0,
+  archerHero: '',
+  archerEGLevel: -1,
   archerAttack: '',
   archerLethality: '',
 };
@@ -129,25 +217,59 @@ const BearRallyTierList: React.FC = () => {
     ac.members.map(m => m.player_name).filter(Boolean).sort((a, b) => a.localeCompare(b)),
     [ac.members]
   );
+  // Edit access: owner/manager/delegate can edit; member sees read-only; no alliance = full access (local tool)
+  const canEdit = !ac.alliance || ac.canManage || ac.accessRole === 'delegate';
 
-  // ── State ──
-  const [players, setPlayers] = useState<BearPlayerEntry[]>(loadPlayers);
+  // ── Multi-list state ──
+  const [listsIndex, setListsIndex] = useState<BearListMeta[]>([]);
+  const [activeListId, setActiveListIdState] = useState<string | null>(null);
+  const [players, setPlayers] = useState<BearPlayerEntry[]>([]);
+  const [editingListName, setEditingListName] = useState<string | null>(null);
+  const [listNameDraft, setListNameDraft] = useState('');
+  const [showListMenu, setShowListMenu] = useState(false);
+  const [deleteListConfirm, setDeleteListConfirm] = useState<string | null>(null);
+  const [showNewListPrompt, setShowNewListPrompt] = useState(false);
+  const [newListNameDraft, setNewListNameDraft] = useState('');
+  const listMenuRef = useRef<HTMLDivElement>(null);
+  const initializedRef = useRef(false);
+
+  // ── Form state ──
   const [form, setForm] = useState<FormState>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [showBulkInput, setShowBulkInput] = useState(false);
+  const [showBulkEdit, setShowBulkEdit] = useState(false);
   const [formError, setFormError] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const nameInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  // Filtered roster suggestions based on current input
+  // ── Initialize multi-list storage (migrate legacy if needed) ──
+  useEffect(() => {
+    const { lists, activeId } = migrateLegacyIfNeeded();
+    setListsIndex(lists);
+    if (activeId && lists.some(l => l.id === activeId)) {
+      setActiveListIdState(activeId);
+      setPlayers(loadListPlayers(activeId));
+    } else if (lists.length > 0 && lists[0]) {
+      setActiveListIdState(lists[0].id);
+      setActiveListId(lists[0].id);
+      setPlayers(loadListPlayers(lists[0].id));
+    }
+    // Mark init complete so persist effect won't overwrite localStorage with []
+    initializedRef.current = true;
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Filtered roster suggestions based on current input (Unicode-normalized for fuzzy matching)
   const nameSuggestions = useMemo(() => {
     if (!form.playerName.trim() || rosterNames.length === 0) return [];
-    const q = form.playerName.trim().toLowerCase();
-    return rosterNames.filter(n =>
-      n.toLowerCase().includes(q) && n.toLowerCase() !== q
-    ).slice(0, 8);
+    const q = normalizeForSearch(form.playerName.trim());
+    return rosterNames.filter(n => {
+      const normalized = normalizeForSearch(n);
+      return normalized.includes(q) && normalized !== q;
+    }).slice(0, 8);
   }, [form.playerName, rosterNames]);
 
   // Close suggestions on outside click
@@ -164,14 +286,149 @@ const BearRallyTierList: React.FC = () => {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // Persist to localStorage
-  useEffect(() => { savePlayers(players); }, [players]);
+  // Persist players to active list (guarded: skip until init is done)
+  useEffect(() => {
+    if (!activeListId || !initializedRef.current) return;
+    saveListPlayers(activeListId, players);
+    // Update player count in index
+    setListsIndex(prev => {
+      const updated = prev.map(l => l.id === activeListId ? { ...l, playerCount: players.length } : l);
+      saveListsIndex(updated);
+      return updated;
+    });
+  }, [players, activeListId]);
 
-  // ── Sorted & ranked players ──
-  const rankedPlayers = useMemo(() =>
-    [...players].sort((a, b) => b.bearScore - a.bearScore).map((p, i) => ({ ...p, rank: i + 1 })),
-    [players]
-  );
+  // Close list menu on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (listMenuRef.current && !listMenuRef.current.contains(e.target as Node)) {
+        setShowListMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  // ── List Management Handlers ──
+  const getNextMonthName = useCallback(() => {
+    const now = new Date();
+    const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    return next.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  }, []);
+
+  const openNewListPrompt = useCallback(() => {
+    setNewListNameDraft(getNextMonthName());
+    setShowNewListPrompt(true);
+    setShowListMenu(false);
+  }, [getNextMonthName]);
+
+  const handleCreateList = useCallback((name?: string) => {
+    const listName = (name ?? getNextMonthName()).trim();
+    if (!listName) return;
+    const id = genId();
+
+    // Auto-populate with roster members (empty stats, score 0, tier D)
+    const initialPlayers: BearPlayerEntry[] = rosterNames.map(playerName => ({
+      id: genId(),
+      playerName,
+      infantryHero: '',
+      infantryEGLevel: 0,
+      infantryAttack: 0,
+      infantryLethality: 0,
+      cavalryHero: '',
+      cavalryEGLevel: 0,
+      cavalryAttack: 0,
+      cavalryLethality: 0,
+      archerHero: '',
+      archerEGLevel: 0,
+      archerAttack: 0,
+      archerLethality: 0,
+      bearScore: 0,
+      tier: 'D' as BearTier,
+    }));
+
+    const meta: BearListMeta = {
+      id,
+      name: listName,
+      createdAt: new Date().toISOString(),
+      playerCount: initialPlayers.length,
+    };
+    setListsIndex(prev => {
+      const updated = [...prev, meta];
+      saveListsIndex(updated);
+      return updated;
+    });
+    saveListPlayers(id, initialPlayers);
+    setActiveListIdState(id);
+    setActiveListId(id);
+    setPlayers(initialPlayers);
+    setShowForm(false);
+    setEditingId(null);
+    setForm(emptyForm);
+    setShowListMenu(false);
+    setShowNewListPrompt(false);
+  }, [getNextMonthName, rosterNames]);
+
+  const handleSwitchList = useCallback((listId: string) => {
+    if (listId === activeListId) return;
+    setActiveListIdState(listId);
+    setActiveListId(listId);
+    setPlayers(loadListPlayers(listId));
+    setShowForm(false);
+    setEditingId(null);
+    setForm(emptyForm);
+    setShowListMenu(false);
+  }, [activeListId]);
+
+  const handleRenameList = useCallback((listId: string, newName: string) => {
+    const trimmed = newName.trim();
+    if (!trimmed) return;
+    setListsIndex(prev => {
+      const updated = prev.map(l => l.id === listId ? { ...l, name: trimmed } : l);
+      saveListsIndex(updated);
+      return updated;
+    });
+    setEditingListName(null);
+  }, []);
+
+  const handleDeleteList = useCallback((listId: string) => {
+    deleteListData(listId);
+    setListsIndex(prev => {
+      const updated = prev.filter(l => l.id !== listId);
+      saveListsIndex(updated);
+      // Switch to another list or clear
+      if (activeListId === listId) {
+        if (updated.length > 0 && updated[0]) {
+          setActiveListIdState(updated[0].id);
+          setActiveListId(updated[0].id);
+          setPlayers(loadListPlayers(updated[0].id));
+        } else {
+          setActiveListIdState(null);
+          setPlayers([]);
+        }
+      }
+      return updated;
+    });
+    setDeleteListConfirm(null);
+    setShowListMenu(false);
+    setShowForm(false);
+    setEditingId(null);
+  }, [activeListId]);
+
+  // ── Sorted & ranked players (only complete data gets ranked) ──
+  const { rankedPlayers, incompletePlayers } = useMemo(() => {
+    const complete = players.filter(isPlayerComplete);
+    const incomplete = players.filter(p => !isPlayerComplete(p));
+    const ranked = [...complete].sort((a, b) => b.bearScore - a.bearScore).map((p, i) => ({ ...p, rank: i + 1 }));
+    return { rankedPlayers: ranked, incompletePlayers: incomplete };
+  }, [players]);
+
+  // ── Unscored roster members (alliance members not yet in this list) ──
+  const unscoredRosterMembers = useMemo(() => {
+    if (rosterNames.length === 0) return [];
+    const playerNamesLower = new Set(players.map(p => p.playerName.toLowerCase()));
+    return rosterNames.filter(n => !playerNamesLower.has(n.toLowerCase()));
+  }, [rosterNames, players]);
 
   // ── Form Handlers ──
   const updateForm = useCallback((field: keyof FormState, value: string | number) => {
@@ -182,6 +439,21 @@ const BearRallyTierList: React.FC = () => {
   const handleSubmit = useCallback(() => {
     if (!form.playerName.trim()) {
       setFormError(t('bearRally.errorName', 'Player name is required.'));
+      return;
+    }
+    // Validate all heroes selected
+    if (!form.infantryHero || !form.cavalryHero || !form.archerHero) {
+      setFormError(t('bearRally.errorHeroes', 'All three heroes must be selected.'));
+      return;
+    }
+    // Validate all EG levels selected
+    if (form.infantryEGLevel < 0 || form.cavalryEGLevel < 0 || form.archerEGLevel < 0) {
+      setFormError(t('bearRally.errorEG', 'All Exclusive Gear levels must be selected.'));
+      return;
+    }
+    // Validate all stat fields filled
+    if (!form.infantryAttack || !form.infantryLethality || !form.cavalryAttack || !form.cavalryLethality || !form.archerAttack || !form.archerLethality) {
+      setFormError(t('bearRally.errorStats', 'All Attack and Lethality values are required.'));
       return;
     }
 
@@ -224,9 +496,10 @@ const BearRallyTierList: React.FC = () => {
       } else {
         updated = [...prev, entry];
       }
-      // Recalculate tiers for ALL players using percentile-based assignment
-      const allScores = updated.map(p => p.bearScore);
-      return updated.map(p => ({ ...p, tier: assignBearTier(p.bearScore, allScores) }));
+      // Recalculate tiers only for complete players using percentile-based assignment
+      const completePlayers = updated.filter(isPlayerComplete);
+      const allScores = completePlayers.map(p => p.bearScore);
+      return updated.map(p => isPlayerComplete(p) ? { ...p, tier: assignBearTier(p.bearScore, allScores) } : p);
     });
 
     // Sync new name to alliance roster if not already there
@@ -272,8 +545,9 @@ const BearRallyTierList: React.FC = () => {
     setPlayers(prev => {
       const remaining = prev.filter(p => p.id !== id);
       if (remaining.length === 0) return remaining;
-      const allScores = remaining.map(p => p.bearScore);
-      return remaining.map(p => ({ ...p, tier: assignBearTier(p.bearScore, allScores) }));
+      const completePlayers = remaining.filter(isPlayerComplete);
+      const allScores = completePlayers.map(p => p.bearScore);
+      return remaining.map(p => isPlayerComplete(p) ? { ...p, tier: assignBearTier(p.bearScore, allScores) } : p);
     });
     setDeleteConfirm(null);
     if (editingId === id) {
@@ -287,6 +561,14 @@ const BearRallyTierList: React.FC = () => {
     setForm(emptyForm);
     setEditingId(null);
     setShowForm(false);
+    setFormError('');
+  }, []);
+
+  const handleAddRosterMember = useCallback((name: string) => {
+    setForm({ ...emptyForm, playerName: name });
+    setEditingId(null);
+    setShowForm(true);
+    setShowBulkEdit(false);
     setFormError('');
   }, []);
 
@@ -323,83 +605,111 @@ const BearRallyTierList: React.FC = () => {
     letterSpacing: '0.03em',
   };
 
-  // ── Hero Section Renderer ──
-  const renderHeroSection = (
-    _troopType: TroopType,
+  // ── Hero Row Renderer (hero + gear per troop type) ──
+  const renderHeroRow = (
     label: string,
     emoji: string,
     heroList: { name: string }[],
     heroKey: 'infantryHero' | 'cavalryHero' | 'archerHero',
     egKey: 'infantryEGLevel' | 'cavalryEGLevel' | 'archerEGLevel',
-    atkKey: 'infantryAttack' | 'cavalryAttack' | 'archerAttack',
-    lethKey: 'infantryLethality' | 'cavalryLethality' | 'archerLethality',
     accentHex: string,
   ) => (
     <div style={{
       backgroundColor: '#111111',
-      borderRadius: '12px',
-      border: `1px solid ${accentHex}25`,
-      padding: isMobile ? '0.85rem' : '1rem',
+      borderRadius: '10px',
+      border: `1px solid ${accentHex}20`,
+      padding: isMobile ? '0.7rem' : '0.85rem',
     }}>
       <div style={{
-        display: 'flex', alignItems: 'center', gap: '0.5rem',
-        marginBottom: '0.75rem',
-        fontSize: isMobile ? '0.85rem' : '0.9rem',
+        display: 'flex', alignItems: 'center', gap: '0.4rem',
+        marginBottom: '0.5rem',
+        fontSize: isMobile ? '0.8rem' : '0.85rem',
         fontWeight: 700, color: accentHex,
       }}>
         <span>{emoji}</span> {label}
       </div>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr',
-        gap: '0.6rem',
-      }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
         <div>
-          <label style={labelStyle}>{t('bearRally.hero', 'Hero')}</label>
+          <label style={labelStyle}>{t('bearRally.hero', 'Hero')} <span style={{ color: '#ef4444' }}>*</span></label>
           <select
             value={form[heroKey]}
             onChange={(e) => updateForm(heroKey, e.target.value)}
-            style={selectStyle}
+            style={{ ...selectStyle, ...(formError && !form[heroKey] ? { borderColor: '#ef444480' } : {}) }}
           >
+            <option value="" disabled>{t('bearRally.selectHero', '— Select hero —')}</option>
             {heroList.map(h => (
               <option key={h.name} value={h.name}>{h.name}</option>
             ))}
           </select>
         </div>
         <div>
-          <label style={labelStyle}>{t('bearRally.egLevel', 'EG Level')}</label>
+          <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            {t('bearRally.egLevel', 'Gear Level')} <span style={{ color: '#ef4444' }}>*</span>
+            <span
+              title={t('bearRally.egTooltip', 'Exclusive Gear (EG) — each hero\'s unique equipment that boosts specific stats. Levels range from 0 to 10.')}
+              style={{ cursor: 'help', color: '#6b7280', fontSize: '0.65rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', borderRadius: '50%', border: '1px solid #4b5563', lineHeight: 1 }}
+            >?</span>
+          </label>
           <select
             value={form[egKey]}
             onChange={(e) => updateForm(egKey, parseInt(e.target.value))}
-            style={selectStyle}
+            style={{ ...selectStyle, ...(formError && form[egKey] < 0 ? { borderColor: '#ef444480' } : {}) }}
           >
+            <option value={-1} disabled>{t('bearRally.selectEG', '— Select EG level —')}</option>
             {EG_LEVELS.map(lvl => (
               <option key={lvl} value={lvl}>
-                Lv {lvl} ({EG_BONUS_BY_LEVEL[lvl]}%)
+                Lv {lvl} ({getEGBonusDisplay(lvl)}%)
               </option>
             ))}
           </select>
         </div>
+      </div>
+    </div>
+  );
+
+  // ── Stats Row Renderer (attack + lethality per troop type) ──
+  const renderStatsRow = (
+    label: string,
+    emoji: string,
+    atkKey: 'infantryAttack' | 'cavalryAttack' | 'archerAttack',
+    lethKey: 'infantryLethality' | 'cavalryLethality' | 'archerLethality',
+    accentHex: string,
+  ) => (
+    <div style={{
+      backgroundColor: '#111111',
+      borderRadius: '10px',
+      border: `1px solid ${accentHex}20`,
+      padding: isMobile ? '0.7rem' : '0.85rem',
+    }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '0.4rem',
+        marginBottom: '0.5rem',
+        fontSize: isMobile ? '0.8rem' : '0.85rem',
+        fontWeight: 700, color: accentHex,
+      }}>
+        <span>{emoji}</span> {label}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
         <div>
-          <label style={labelStyle}>{t('bearRally.attack', 'Attack %')}</label>
+          <label style={labelStyle}>{t('bearRally.attack', 'Attack %')} <span style={{ color: '#ef4444' }}>*</span></label>
           <input
             type="number"
             step="0.1"
             placeholder="e.g. 250"
             value={form[atkKey]}
             onChange={(e) => updateForm(atkKey, e.target.value)}
-            style={inputStyle}
+            style={{ ...inputStyle, ...(formError && !form[atkKey] ? { borderColor: '#ef444480' } : {}) }}
           />
         </div>
         <div>
-          <label style={labelStyle}>{t('bearRally.lethality', 'Lethality %')}</label>
+          <label style={labelStyle}>{t('bearRally.lethality', 'Lethality %')} <span style={{ color: '#ef4444' }}>*</span></label>
           <input
             type="number"
             step="0.1"
             placeholder="e.g. 180"
             value={form[lethKey]}
             onChange={(e) => updateForm(lethKey, e.target.value)}
-            style={inputStyle}
+            style={{ ...inputStyle, ...(formError && !form[lethKey] ? { borderColor: '#ef444480' } : {}) }}
           />
         </div>
       </div>
@@ -436,11 +746,246 @@ const BearRallyTierList: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: isMobile ? '0.75rem' : '1.5rem' }}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: isMobile ? '0.75rem' : '1.5rem' }}>
 
-        {/* Add Player Button */}
-        {!showForm && (
-          <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}>
+        {/* List Selector */}
+        <div style={{
+          marginBottom: '1rem',
+          padding: isMobile ? '0.75rem' : '0.85rem 1rem',
+          backgroundColor: '#111111',
+          borderRadius: '12px',
+          border: '1px solid #2a2a2a',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          flexWrap: 'wrap',
+          position: 'relative',
+        }} ref={listMenuRef}>
+          <span style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            📋 {t('bearRally.listLabel', 'List')}:
+          </span>
+
+          {listsIndex.length === 0 ? (
+            canEdit ? (
+              showNewListPrompt ? (
+                <form
+                  onSubmit={(e) => { e.preventDefault(); handleCreateList(newListNameDraft); }}
+                  style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}
+                >
+                  <input
+                    autoFocus
+                    value={newListNameDraft}
+                    onChange={(e) => setNewListNameDraft(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Escape') setShowNewListPrompt(false); }}
+                    placeholder={t('bearRally.listNamePlaceholder', 'List name')}
+                    style={{
+                      padding: '0.3rem 0.5rem', backgroundColor: '#1a1a1a',
+                      border: `1px solid ${ACCENT}50`, borderRadius: '6px',
+                      color: '#fff', fontSize: '0.8rem', outline: 'none', width: '180px',
+                    }}
+                  />
+                  <button type="submit" style={{
+                    padding: '0.3rem 0.6rem', backgroundColor: ACCENT, border: 'none',
+                    borderRadius: '6px', color: '#fff', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer',
+                  }}>
+                    {t('common.create', 'Create')}
+                  </button>
+                  <button type="button" onClick={() => setShowNewListPrompt(false)} style={{
+                    background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.7rem',
+                  }}>
+                    {t('common.cancel', 'Cancel')}
+                  </button>
+                </form>
+              ) : (
+                <button
+                  onClick={openNewListPrompt}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                    padding: '0.35rem 0.75rem', backgroundColor: `${ACCENT}20`,
+                    border: `1px solid ${ACCENT}40`, borderRadius: '6px',
+                    color: ACCENT, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
+                  }}
+                >
+                  + {t('bearRally.createFirstList', 'Create First List')}
+                </button>
+              )
+            ) : (
+              <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                {t('bearRally.noListsYet', 'No tier lists created yet.')}
+              </span>
+            )
+          ) : (
+            <>
+              {/* Active list name / selector */}
+              {editingListName === activeListId ? (
+                <form
+                  onSubmit={(e) => { e.preventDefault(); if (activeListId) handleRenameList(activeListId, listNameDraft); }}
+                  style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}
+                >
+                  <input
+                    autoFocus
+                    value={listNameDraft}
+                    onChange={(e) => setListNameDraft(e.target.value)}
+                    onBlur={() => { if (activeListId) handleRenameList(activeListId, listNameDraft); }}
+                    style={{
+                      padding: '0.3rem 0.5rem', backgroundColor: '#1a1a1a',
+                      border: `1px solid ${ACCENT}50`, borderRadius: '6px',
+                      color: '#fff', fontSize: '0.8rem', outline: 'none', width: '160px',
+                    }}
+                  />
+                </form>
+              ) : (
+                <button
+                  onClick={() => setShowListMenu(prev => !prev)}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                    padding: '0.35rem 0.65rem', backgroundColor: '#1a1a1a',
+                    border: '1px solid #333', borderRadius: '6px',
+                    color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
+                    maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}
+                >
+                  {listsIndex.find(l => l.id === activeListId)?.name ?? '—'}
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                </button>
+              )}
+
+              {/* Rename button */}
+              {canEdit && editingListName !== activeListId && activeListId && (
+                <button
+                  onClick={() => {
+                    const current = listsIndex.find(l => l.id === activeListId);
+                    setListNameDraft(current?.name ?? '');
+                    setEditingListName(activeListId);
+                  }}
+                  title={t('bearRally.renameList', 'Rename list')}
+                  style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '0.2rem', display: 'flex' }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+              )}
+
+              {/* New List button / prompt */}
+              {canEdit && (
+                showNewListPrompt ? (
+                  <form
+                    onSubmit={(e) => { e.preventDefault(); handleCreateList(newListNameDraft); }}
+                    style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', marginLeft: 'auto' }}
+                  >
+                    <input
+                      autoFocus
+                      value={newListNameDraft}
+                      onChange={(e) => setNewListNameDraft(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Escape') setShowNewListPrompt(false); }}
+                      placeholder={t('bearRally.listNamePlaceholder', 'List name')}
+                      style={{
+                        padding: '0.3rem 0.5rem', backgroundColor: '#1a1a1a',
+                        border: `1px solid ${ACCENT}50`, borderRadius: '6px',
+                        color: '#fff', fontSize: '0.75rem', outline: 'none', width: isMobile ? '130px' : '170px',
+                      }}
+                    />
+                    <button type="submit" style={{
+                      padding: '0.3rem 0.55rem', backgroundColor: ACCENT, border: 'none',
+                      borderRadius: '6px', color: '#fff', fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer',
+                    }}>
+                      ✓
+                    </button>
+                    <button type="button" onClick={() => setShowNewListPrompt(false)} style={{
+                      background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.65rem', padding: '0.2rem',
+                    }}>
+                      ✕
+                    </button>
+                  </form>
+                ) : (
+                  <button
+                    onClick={openNewListPrompt}
+                    title={t('bearRally.newList', 'New list')}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                      padding: '0.3rem 0.6rem', backgroundColor: `${ACCENT}15`,
+                      border: `1px solid ${ACCENT}30`, borderRadius: '6px',
+                      color: ACCENT, fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer',
+                      marginLeft: 'auto',
+                    }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    {!isMobile && t('bearRally.newList', 'New List')}
+                  </button>
+                )
+              )}
+
+              {/* Dropdown menu */}
+              {showListMenu && (
+                <div style={{
+                  position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
+                  backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '10px',
+                  marginTop: '4px', maxHeight: '300px', overflowY: 'auto',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
+                }}>
+                  {listsIndex.map((list) => (
+                    <div
+                      key={list.id}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '0.6rem 0.85rem', borderBottom: '1px solid #2a2a2a',
+                        backgroundColor: list.id === activeListId ? `${ACCENT}10` : 'transparent',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.1s',
+                      }}
+                      onClick={() => handleSwitchList(list.id)}
+                      onMouseEnter={(e) => { if (list.id !== activeListId) e.currentTarget.style.backgroundColor = '#2a2a2a'; }}
+                      onMouseLeave={(e) => { if (list.id !== activeListId) e.currentTarget.style.backgroundColor = 'transparent'; }}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{
+                          fontSize: '0.8rem', fontWeight: list.id === activeListId ? 700 : 500,
+                          color: list.id === activeListId ? ACCENT : '#fff',
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}>
+                          {list.name}
+                        </div>
+                        <div style={{ fontSize: '0.65rem', color: '#6b7280', marginTop: '0.15rem' }}>
+                          {t('bearRally.listPlayerCount', '{{count}} players', { count: list.playerCount })}
+                          {' · '}
+                          {new Date(list.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                      {list.id === activeListId && (
+                        <span style={{ fontSize: '0.65rem', color: ACCENT, fontWeight: 700, marginLeft: '0.5rem' }}>✓</span>
+                      )}
+                      {canEdit && listsIndex.length > 1 && (
+                        deleteListConfirm === list.id ? (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDeleteList(list.id); }}
+                            style={{
+                              background: 'none', border: '1px solid #ef444460', borderRadius: '4px',
+                              color: '#ef4444', cursor: 'pointer', padding: '0.15rem 0.4rem',
+                              fontSize: '0.6rem', fontWeight: 700, marginLeft: '0.5rem',
+                            }}
+                          >
+                            {t('common.confirm', 'Confirm')}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setDeleteListConfirm(list.id); }}
+                            title={t('bearRally.deleteList', 'Delete list')}
+                            style={{ background: 'none', border: 'none', color: '#6b728080', cursor: 'pointer', padding: '0.2rem', marginLeft: '0.5rem', display: 'flex' }}
+                          >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                          </button>
+                        )
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Add Player / Bulk Add / Bulk Edit Buttons */}
+        {canEdit && !showForm && !showBulkInput && !showBulkEdit && activeListId && (
+          <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
             <button
               onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); }}
               style={{
@@ -462,11 +1007,81 @@ const BearRallyTierList: React.FC = () => {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               {t('bearRally.addPlayer', 'Add Player')}
             </button>
+            <button
+              onClick={() => setShowBulkInput(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.7rem 1.5rem',
+                backgroundColor: 'transparent',
+                border: `1px solid ${ACCENT}50`,
+                borderRadius: '10px',
+                color: ACCENT,
+                fontWeight: 700,
+                fontSize: isMobile ? '0.9rem' : '0.95rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+              {t('bearRally.bulkAdd', 'Bulk Add')}
+            </button>
+            {players.length > 0 && (
+              <button
+                onClick={() => setShowBulkEdit(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.7rem 1.5rem',
+                  backgroundColor: 'transparent',
+                  border: `1px solid #6b728040`,
+                  borderRadius: '10px',
+                  color: '#9ca3af',
+                  fontWeight: 700,
+                  fontSize: isMobile ? '0.9rem' : '0.95rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                {t('bearRally.bulkEdit', 'Edit All')}
+              </button>
+            )}
           </div>
         )}
 
+        {/* Bulk Input */}
+        {canEdit && showBulkInput && (
+          <BearBulkInput
+            existingPlayers={players}
+            onSave={(allPlayers) => {
+              setPlayers(allPlayers);
+              setShowBulkInput(false);
+            }}
+            onClose={() => setShowBulkInput(false)}
+            isMobile={isMobile}
+            rosterNames={rosterNames}
+          />
+        )}
+
+        {/* Bulk Edit */}
+        {canEdit && showBulkEdit && (
+          <BearBulkEdit
+            existingPlayers={players}
+            unscoredNames={unscoredRosterMembers}
+            onSave={(updatedPlayers) => {
+              setPlayers(updatedPlayers);
+              setShowBulkEdit(false);
+            }}
+            onClose={() => setShowBulkEdit(false)}
+            isMobile={isMobile}
+          />
+        )}
+
         {/* Player Form */}
-        {showForm && (
+        {canEdit && showForm && (
           <div style={{
             marginBottom: '1.5rem',
             backgroundColor: '#0d0d0d',
@@ -503,7 +1118,7 @@ const BearRallyTierList: React.FC = () => {
             {/* Player Name (with roster autocomplete) */}
             <div style={{ marginBottom: '0.75rem', position: 'relative' }}>
               <label style={labelStyle}>
-                {t('bearRally.playerName', 'Player Name')}
+                {t('bearRally.playerName', 'Player Name')} <span style={{ color: '#ef4444' }}>*</span>
                 {rosterNames.length > 0 && (
                   <span style={{ color: '#6b7280', fontWeight: 400, fontSize: '0.65rem', marginLeft: '0.5rem', textTransform: 'none' }}>
                     {t('bearRally.rosterHint', '(suggestions from alliance roster)')}
@@ -555,11 +1170,28 @@ const BearRallyTierList: React.FC = () => {
               )}
             </div>
 
-            {/* Hero Sections */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '0.75rem' }}>
-              {renderHeroSection('infantry', t('bearRally.infantry', 'Infantry'), '🛡️', infantryHeroes, 'infantryHero', 'infantryEGLevel', 'infantryAttack', 'infantryLethality', '#3b82f6')}
-              {renderHeroSection('cavalry', t('bearRally.cavalry', 'Cavalry'), '🐎', cavalryHeroes, 'cavalryHero', 'cavalryEGLevel', 'cavalryAttack', 'cavalryLethality', '#f97316')}
-              {renderHeroSection('archer', t('bearRally.archer', 'Archer'), '🏹', archerHeroes, 'archerHero', 'archerEGLevel', 'archerAttack', 'archerLethality', '#ef4444')}
+            {/* Section 1: Heroes & Gear */}
+            <div style={{ marginBottom: '0.75rem' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.4rem', paddingLeft: '0.25rem' }}>
+                {t('bearRally.formSectionHeroes', '① Heroes & Exclusive Gear')}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {renderHeroRow(t('bearRally.infantry', 'Infantry'), '🛡️', infantryHeroes, 'infantryHero', 'infantryEGLevel', '#3b82f6')}
+                {renderHeroRow(t('bearRally.cavalry', 'Cavalry'), '🐎', cavalryHeroes, 'cavalryHero', 'cavalryEGLevel', '#f97316')}
+                {renderHeroRow(t('bearRally.archer', 'Archer'), '🏹', archerHeroes, 'archerHero', 'archerEGLevel', '#ef4444')}
+              </div>
+            </div>
+
+            {/* Section 2: Troop Stats */}
+            <div style={{ marginBottom: '0.75rem' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.4rem', paddingLeft: '0.25rem' }}>
+                {t('bearRally.formSectionStats', '② Troop Bonus Stats')}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {renderStatsRow(t('bearRally.infantry', 'Infantry'), '🛡️', 'infantryAttack', 'infantryLethality', '#3b82f6')}
+                {renderStatsRow(t('bearRally.cavalry', 'Cavalry'), '🐎', 'cavalryAttack', 'cavalryLethality', '#f97316')}
+                {renderStatsRow(t('bearRally.archer', 'Archer'), '🏹', 'archerAttack', 'archerLethality', '#ef4444')}
+              </div>
             </div>
 
             {/* Error */}
@@ -594,183 +1226,489 @@ const BearRallyTierList: React.FC = () => {
           </div>
         )}
 
+        {/* Read-only banner for non-editors */}
+        {!canEdit && ac.alliance && (
+          <div style={{
+            marginBottom: '0.75rem',
+            padding: '0.5rem 0.75rem',
+            backgroundColor: `${ACCENT}08`,
+            border: `1px solid ${ACCENT}20`,
+            borderRadius: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ACCENT} strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+              {t('bearRally.readOnly', 'Read-only — only alliance owners, managers, and delegates can edit this tier list.')}
+            </span>
+          </div>
+        )}
+
         {/* Tier List / Rankings Table */}
-        {rankedPlayers.length > 0 ? (
+        {(rankedPlayers.length > 0 || incompletePlayers.length > 0) ? (
           <div style={{
             backgroundColor: '#111111',
             borderRadius: '16px',
             border: '1px solid #2a2a2a',
             overflow: 'hidden',
           }}>
-            {/* Table Header */}
-            {!isMobile && (
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '50px 1fr 100px 100px 60px',
-                gap: '0.5rem',
-                padding: '0.75rem 1rem',
-                backgroundColor: '#0d0d0d',
-                borderBottom: '1px solid #2a2a2a',
-                fontSize: '0.7rem',
-                fontWeight: 700,
-                color: '#6b7280',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}>
-                <div>{t('bearRally.rank', 'Rank')}</div>
-                <div>{t('bearRally.player', 'Player')}</div>
-                <div style={{ textAlign: 'center' }}>{t('bearRally.bearScore', 'Bear Score')}</div>
-                <div style={{ textAlign: 'center' }}>{t('bearRally.tierLabel', 'Tier')}</div>
-                <div style={{ textAlign: 'center' }}>{t('bearRally.actions', 'Actions')}</div>
-              </div>
-            )}
-
-            {/* Player Rows */}
-            {rankedPlayers.map((player) => {
-              const tierColor = BEAR_TIER_COLORS[player.tier];
-              return (
-                <div
-                  key={player.id}
-                  style={{
-                    borderBottom: '1px solid #1a1a1a',
-                    transition: 'background-color 0.15s',
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                >
-                  {isMobile ? (
-                    /* Mobile Card Layout */
-                    <div style={{ padding: '0.85rem 1rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <span style={{
-                            fontSize: '0.85rem',
-                            fontWeight: 800,
-                            color: player.rank <= 3 ? ACCENT_LIGHT : '#6b7280',
-                            fontFamily: FONT_DISPLAY,
-                            minWidth: '24px',
-                          }}>
-                            #{player.rank}
-                          </span>
-                          <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff' }}>
-                            {player.playerName}
-                          </span>
-                        </div>
+            {isMobile ? (
+              /* ═══ MOBILE: Collapsible Card Layout ═══ */
+              <div>
+                {rankedPlayers.map((player) => {
+                  const tierColor = BEAR_TIER_COLORS[player.tier];
+                  const ds = getPlayerDisplayStats(player);
+                  const isExpanded = expandedCards.has(player.id);
+                  return (
+                    <div
+                      key={player.id}
+                      style={{ borderBottom: '1px solid #1a1a1a' }}
+                    >
+                      {/* Collapsed header row — always visible, tap to expand */}
+                      <div
+                        onClick={() => setExpandedCards(prev => {
+                          const next = new Set(prev);
+                          if (next.has(player.id)) next.delete(player.id);
+                          else next.add(player.id);
+                          return next;
+                        })}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '0.4rem',
+                          padding: '0.6rem 0.85rem', cursor: 'pointer',
+                          transition: 'background-color 0.1s',
+                        }}
+                      >
+                        <span style={{
+                          fontSize: '0.8rem', fontWeight: 800,
+                          color: player.rank <= 3 ? ACCENT_LIGHT : '#6b7280',
+                          fontFamily: FONT_DISPLAY, minWidth: '24px',
+                        }}>
+                          #{player.rank}
+                        </span>
+                        <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {player.playerName}
+                        </span>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 800, color: tierColor, fontFamily: FONT_DISPLAY }}>
+                          {player.bearScore.toFixed(1)}
+                        </span>
                         <TierBadge tier={player.tier} size="sm" />
+                        <svg
+                          width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5"
+                          style={{ flexShrink: 0, transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                        >
+                          <path d="M6 9l6 6 6-6"/>
+                        </svg>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <span style={{ fontSize: '0.7rem', color: '#6b7280' }}>
-                            {player.infantryHero} · {player.cavalryHero} · {player.archerHero}
-                          </span>
+
+                      {/* Expanded detail — troop rows with EG + edit/delete */}
+                      {isExpanded && (
+                        <div style={{ padding: '0 0.85rem 0.6rem' }}>
+                          {([
+                            { label: 'INF', hero: player.infantryHero, eg: player.infantryEGLevel, atk: ds.infAtk, leth: ds.infLeth, color: '#3b82f6', bg: '#3b82f608' },
+                            { label: 'CAV', hero: player.cavalryHero, eg: player.cavalryEGLevel, atk: ds.cavAtk, leth: ds.cavLeth, color: '#f97316', bg: '#f9731608' },
+                            { label: 'ARC', hero: player.archerHero, eg: player.archerEGLevel, atk: ds.arcAtk, leth: ds.arcLeth, color: '#ef4444', bg: '#ef444408' },
+                          ] as const).map(troop => (
+                            <div key={troop.label} style={{
+                              display: 'flex', alignItems: 'center', gap: '0.4rem',
+                              padding: '0.25rem 0.4rem', marginBottom: '0.15rem',
+                              borderRadius: '6px', backgroundColor: troop.bg,
+                            }}>
+                              <span style={{ fontSize: '0.65rem', fontWeight: 800, color: troop.color, width: '26px', flexShrink: 0 }}>
+                                {troop.label}
+                              </span>
+                              <span style={{ fontSize: '0.7rem', color: '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {troop.hero}
+                              </span>
+                              <span style={{ fontSize: '0.58rem', color: '#6b7280', flexShrink: 0 }}
+                                title={t('bearRally.egTooltip', 'Exclusive Gear (EG) — each hero\'s unique equipment that boosts specific stats. Levels range from 0 to 10.')}
+                              >
+                                EG{troop.eg}
+                              </span>
+                              <span style={{ flex: 1 }} />
+                              <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#d1d5db', fontVariantNumeric: 'tabular-nums', minWidth: '42px', textAlign: 'right' }}>
+                                {troop.atk}%
+                              </span>
+                              <span style={{ fontSize: '0.55rem', color: '#6b7280', flexShrink: 0 }}>A</span>
+                              <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#d1d5db', fontVariantNumeric: 'tabular-nums', minWidth: '42px', textAlign: 'right' }}>
+                                {troop.leth}%
+                              </span>
+                              <span style={{ fontSize: '0.55rem', color: '#6b7280', flexShrink: 0 }}>L</span>
+                            </div>
+                          ))}
+
+                          {/* Edit / Delete actions */}
+                          {canEdit && (
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.3rem' }}>
+                              <button
+                                onClick={() => handleEdit(player)}
+                                style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '0.15rem', display: 'flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.6rem' }}
+                              >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                              </button>
+                              {deleteConfirm === player.id ? (
+                                <button
+                                  onClick={() => handleDelete(player.id)}
+                                  style={{ background: 'none', border: '1px solid #ef444440', borderRadius: '4px', color: '#ef4444', cursor: 'pointer', padding: '0.15rem 0.5rem', fontSize: '0.6rem', fontWeight: 700 }}
+                                >
+                                  {t('common.confirm', 'Confirm')}
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => setDeleteConfirm(player.id)}
+                                  style={{ background: 'none', border: 'none', color: '#6b728060', cursor: 'pointer', padding: '0.15rem' }}
+                                  title="Delete"
+                                >
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <span style={{
-                            fontSize: '0.95rem',
-                            fontWeight: 800,
-                            color: tierColor,
-                            fontFamily: FONT_DISPLAY,
-                          }}>
-                            {player.bearScore.toFixed(1)}
-                          </span>
-                          <button
-                            onClick={() => handleEdit(player)}
-                            style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '0.25rem' }}
-                            title="Edit"
-                          >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                          </button>
-                          {deleteConfirm === player.id ? (
+                      )}
+                    </div>
+                  );
+                })}
+                {/* Incomplete players — in list but missing data */}
+                {incompletePlayers.length > 0 && (
+                  <>
+                    <div style={{ padding: '0.5rem 0.75rem 0.25rem', fontSize: '0.6rem', fontWeight: 700, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.05em', borderTop: rankedPlayers.length > 0 ? '1px solid #2a2a2a' : 'none' }}>
+                      {t('bearRally.incompleteSection', 'Unranked — Missing Data')} ({incompletePlayers.length})
+                    </div>
+                    {incompletePlayers.map((player) => (
+                      <div key={player.id} style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '0.5rem 0.75rem', borderBottom: '1px solid #1a1a1a',
+                        backgroundColor: '#f59e0b06',
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flex: 1, minWidth: 0 }}>
+                          <span style={{ fontSize: '0.7rem', color: '#f59e0b80', fontWeight: 700 }}>—</span>
+                          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.playerName}</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0 }}>
+                          <span style={{ fontSize: '0.55rem', color: '#f59e0b80', fontStyle: 'italic' }}>{t('bearRally.needsData', 'needs data')}</span>
+                          {canEdit && (
                             <button
-                              onClick={() => handleDelete(player.id)}
-                              style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.25rem', fontSize: '0.65rem', fontWeight: 700 }}
+                              onClick={() => handleEdit(player)}
+                              style={{
+                                padding: '0.2rem 0.6rem', backgroundColor: '#f59e0b15',
+                                border: '1px solid #f59e0b30', borderRadius: '6px',
+                                color: '#f59e0b', fontSize: '0.6rem', fontWeight: 700, cursor: 'pointer',
+                                minHeight: '28px',
+                              }}
                             >
-                              {t('common.confirm', 'Confirm')}
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => setDeleteConfirm(player.id)}
-                              style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '0.25rem' }}
-                              title="Delete"
-                            >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                              + {t('bearRally.addData', 'Add Data')}
                             </button>
                           )}
                         </div>
                       </div>
+                    ))}
+                  </>
+                )}
+                {/* Unscored roster members */}
+                {unscoredRosterMembers.length > 0 && (
+                  <>
+                    <div style={{ padding: '0.5rem 0.75rem 0.25rem', fontSize: '0.6rem', fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      {t('bearRally.unscoredSection', 'Roster — No Data Yet')} ({unscoredRosterMembers.length})
                     </div>
-                  ) : (
-                    /* Desktop Row Layout */
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: '50px 1fr 100px 100px 60px',
-                      gap: '0.5rem',
-                      padding: '0.65rem 1rem',
-                      alignItems: 'center',
-                    }}>
-                      <span style={{
-                        fontSize: '0.9rem',
-                        fontWeight: 800,
-                        color: player.rank <= 3 ? ACCENT_LIGHT : '#6b7280',
-                        fontFamily: FONT_DISPLAY,
+                    {unscoredRosterMembers.map((name) => (
+                      <div key={name} style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '0.5rem 0.75rem', borderBottom: '1px solid #1a1a1a',
+                        backgroundColor: '#0a162808',
                       }}>
-                        #{player.rank}
-                      </span>
-                      <div>
-                        <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff' }}>
-                          {player.playerName}
-                        </span>
-                        <span style={{ fontSize: '0.7rem', color: '#4b5563', marginLeft: '0.75rem' }}>
-                          {player.infantryHero} · {player.cavalryHero} · {player.archerHero}
-                        </span>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#6b7280' }}>{name}</span>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.6rem', color: '#4b5563' }}>—</span>
+                          {canEdit && (
+                            <button
+                              onClick={() => handleAddRosterMember(name)}
+                              style={{
+                                padding: '0.2rem 0.6rem', backgroundColor: `${ACCENT}15`,
+                                border: `1px solid ${ACCENT}30`, borderRadius: '6px',
+                                color: ACCENT, fontSize: '0.6rem', fontWeight: 700, cursor: 'pointer',
+                              }}
+                            >
+                              + {t('bearRally.addData', 'Add Data')}
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      <div style={{ textAlign: 'center' }}>
-                        <span style={{
-                          fontSize: '1rem',
-                          fontWeight: 800,
-                          color: tierColor,
-                          fontFamily: FONT_DISPLAY,
-                        }}>
-                          {player.bearScore.toFixed(1)}
-                        </span>
-                      </div>
-                      <div style={{ textAlign: 'center' }}>
-                        <TierBadge tier={player.tier} />
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'center', gap: '0.35rem' }}>
-                        <button
-                          onClick={() => handleEdit(player)}
-                          style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '0.3rem' }}
-                          title="Edit"
+                    ))}
+                  </>
+                )}
+              </div>
+            ) : (
+              /* ═══ DESKTOP: Proper HTML Table with Gear columns ═══ */
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+                  <colgroup>
+                    <col style={{ width: '40px' }} />   {/* # rank — wider for left padding */}
+                    <col style={{ width: '58px' }} />   {/* Bear Score */}
+                    <col style={{ width: '42px' }} />   {/* Tier */}
+                    <col />                              {/* Player name — flex */}
+                    {/* Infantry: Hero, Gear, Attack, Lethality */}
+                    <col style={{ width: '62px' }} />
+                    <col style={{ width: '34px' }} />
+                    <col style={{ width: '56px' }} />
+                    <col style={{ width: '56px' }} />
+                    {/* Cavalry: Hero, Gear, Attack, Lethality */}
+                    <col style={{ width: '62px' }} />
+                    <col style={{ width: '34px' }} />
+                    <col style={{ width: '56px' }} />
+                    <col style={{ width: '56px' }} />
+                    {/* Archer: Hero, Gear, Attack, Lethality */}
+                    <col style={{ width: '62px' }} />
+                    <col style={{ width: '34px' }} />
+                    <col style={{ width: '56px' }} />
+                    <col style={{ width: '56px' }} />
+                    {canEdit && <col style={{ width: '48px' }} />}
+                  </colgroup>
+                  <thead>
+                    {/* Group header row */}
+                    <tr style={{ backgroundColor: '#0d0d0d' }}>
+                      <th colSpan={4} style={{ padding: 0 }} />
+                      <th colSpan={4} style={{
+                        fontSize: '0.58rem', fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase',
+                        letterSpacing: '0.04em', textAlign: 'center', padding: '0.35rem 0 0.15rem',
+                        borderBottom: '1px solid #3b82f625',
+                      }}>
+                        {t('bearRally.infantry', 'Infantry')}
+                      </th>
+                      <th colSpan={4} style={{
+                        fontSize: '0.58rem', fontWeight: 700, color: '#f97316', textTransform: 'uppercase',
+                        letterSpacing: '0.04em', textAlign: 'center', padding: '0.35rem 0 0.15rem',
+                        borderBottom: '1px solid #f9731625',
+                      }}>
+                        {t('bearRally.cavalry', 'Cavalry')}
+                      </th>
+                      <th colSpan={4} style={{
+                        fontSize: '0.58rem', fontWeight: 700, color: '#ef4444', textTransform: 'uppercase',
+                        letterSpacing: '0.04em', textAlign: 'center', padding: '0.35rem 0 0.15rem',
+                        borderBottom: '1px solid #ef444425',
+                      }}>
+                        {t('bearRally.archer', 'Archer')}
+                      </th>
+                      {canEdit && <th style={{ padding: 0 }} />}
+                    </tr>
+                    {/* Column header row */}
+                    <tr style={{ backgroundColor: '#0d0d0d', borderBottom: '1px solid #2a2a2a' }}>
+                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#6b7280', textAlign: 'left', padding: '0.3rem 0.25rem 0.3rem 0.6rem' }}>#</th>
+                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.25rem' }}>
+                        {t('bearRally.bearScore', 'Score')}
+                      </th>
+                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.25rem' }}>
+                        {t('bearRally.tierLabel', 'Tier')}
+                      </th>
+                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', textAlign: 'left', padding: '0.3rem 0.25rem' }}>
+                        {t('bearRally.player', 'Player')}
+                      </th>
+                      {/* Infantry sub-headers */}
+                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem' }}>
+                        {t('bearRally.hero', 'Hero')}
+                      </th>
+                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem', cursor: 'help' }}
+                        title={t('bearRally.egTooltip', 'Exclusive Gear (EG) — each hero\'s unique equipment that boosts specific stats. Levels range from 0 to 10.')}
+                      >
+                        {t('bearRally.gearShort', 'Gear')}
+                      </th>
+                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem' }}>
+                        {t('bearRally.attack', 'Attack')}
+                      </th>
+                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem' }}>
+                        {t('bearRally.lethality', 'Lethality')}
+                      </th>
+                      {/* Cavalry sub-headers */}
+                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#f97316', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem' }}>
+                        {t('bearRally.hero', 'Hero')}
+                      </th>
+                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#f97316', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem', cursor: 'help' }}
+                        title={t('bearRally.egTooltip', 'Exclusive Gear (EG) — each hero\'s unique equipment that boosts specific stats. Levels range from 0 to 10.')}
+                      >
+                        {t('bearRally.gearShort', 'Gear')}
+                      </th>
+                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#f97316', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem' }}>
+                        {t('bearRally.attack', 'Attack')}
+                      </th>
+                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#f97316', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem' }}>
+                        {t('bearRally.lethality', 'Lethality')}
+                      </th>
+                      {/* Archer sub-headers */}
+                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#ef4444', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem' }}>
+                        {t('bearRally.hero', 'Hero')}
+                      </th>
+                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#ef4444', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem', cursor: 'help' }}
+                        title={t('bearRally.egTooltip', 'Exclusive Gear (EG) — each hero\'s unique equipment that boosts specific stats. Levels range from 0 to 10.')}
+                      >
+                        {t('bearRally.gearShort', 'Gear')}
+                      </th>
+                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#ef4444', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem' }}>
+                        {t('bearRally.attack', 'Attack')}
+                      </th>
+                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#ef4444', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem' }}>
+                        {t('bearRally.lethality', 'Lethality')}
+                      </th>
+                      {canEdit && <th style={{ padding: '0.3rem 0.15rem' }} />}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rankedPlayers.map((player) => {
+                      const tierColor = BEAR_TIER_COLORS[player.tier];
+                      const ds = getPlayerDisplayStats(player);
+                      const tdBase: React.CSSProperties = { padding: '0.4rem 0.15rem', fontSize: '0.72rem', fontVariantNumeric: 'tabular-nums', borderBottom: '1px solid #1a1a1a' };
+                      const heroCellBase: React.CSSProperties = { ...tdBase, fontWeight: 500, textAlign: 'center', fontSize: '0.62rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
+                      const gearCellBase: React.CSSProperties = { ...tdBase, fontWeight: 600, textAlign: 'center', fontSize: '0.6rem' };
+                      return (
+                        <tr key={player.id} style={{ transition: 'background-color 0.1s' }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#1a1a1a'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
                         >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                        </button>
-                        {deleteConfirm === player.id ? (
-                          <button
-                            onClick={() => handleDelete(player.id)}
-                            style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.3rem', fontSize: '0.6rem', fontWeight: 700 }}
-                          >
-                            {t('common.confirm', 'Confirm')}
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => setDeleteConfirm(player.id)}
-                            style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '0.3rem' }}
-                            title="Delete"
-                          >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                          <td style={{ ...tdBase, fontWeight: 800, color: player.rank <= 3 ? ACCENT_LIGHT : '#6b7280', fontFamily: FONT_DISPLAY, paddingLeft: '0.6rem' }}>
+                            #{player.rank}
+                          </td>
+                          <td style={{ ...tdBase, fontWeight: 800, color: tierColor, fontFamily: FONT_DISPLAY, textAlign: 'center', fontSize: '0.78rem' }}>
+                            {player.bearScore.toFixed(1)}
+                          </td>
+                          <td style={{ ...tdBase, textAlign: 'center' }}>
+                            <TierBadge tier={player.tier} size="sm" />
+                          </td>
+                          <td style={{ ...tdBase, fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {player.playerName}
+                          </td>
+                          {/* Infantry */}
+                          <td style={{ ...heroCellBase, color: '#93c5fd' }}>{player.infantryHero}</td>
+                          <td style={{ ...gearCellBase, color: '#93c5fd' }}>{player.infantryEGLevel}</td>
+                          <td style={{ ...tdBase, fontWeight: 600, color: '#93c5fd', textAlign: 'center' }}>{ds.infAtk}</td>
+                          <td style={{ ...tdBase, fontWeight: 600, color: '#93c5fd', textAlign: 'center' }}>{ds.infLeth}</td>
+                          {/* Cavalry */}
+                          <td style={{ ...heroCellBase, color: '#fdba74' }}>{player.cavalryHero}</td>
+                          <td style={{ ...gearCellBase, color: '#fdba74' }}>{player.cavalryEGLevel}</td>
+                          <td style={{ ...tdBase, fontWeight: 600, color: '#fdba74', textAlign: 'center' }}>{ds.cavAtk}</td>
+                          <td style={{ ...tdBase, fontWeight: 600, color: '#fdba74', textAlign: 'center' }}>{ds.cavLeth}</td>
+                          {/* Archer */}
+                          <td style={{ ...heroCellBase, color: '#fca5a5' }}>{player.archerHero}</td>
+                          <td style={{ ...gearCellBase, color: '#fca5a5' }}>{player.archerEGLevel}</td>
+                          <td style={{ ...tdBase, fontWeight: 600, color: '#fca5a5', textAlign: 'center' }}>{ds.arcAtk}</td>
+                          <td style={{ ...tdBase, fontWeight: 600, color: '#fca5a5', textAlign: 'center' }}>{ds.arcLeth}</td>
+                          {canEdit && (
+                            <td style={{ ...tdBase, textAlign: 'center', paddingRight: '0.5rem' }}>
+                              <div style={{ display: 'flex', justifyContent: 'center', gap: '0.15rem' }}>
+                                <button
+                                  onClick={() => handleEdit(player)}
+                                  style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '0.15rem' }}
+                                  title="Edit"
+                                >
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                </button>
+                                {deleteConfirm === player.id ? (
+                                  <button
+                                    onClick={() => handleDelete(player.id)}
+                                    style={{ background: 'none', border: '1px solid #ef444440', borderRadius: '3px', color: '#ef4444', cursor: 'pointer', padding: '0.1rem 0.3rem', fontSize: '0.55rem', fontWeight: 700 }}
+                                  >
+                                    ✓
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => setDeleteConfirm(player.id)}
+                                    style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '0.15rem' }}
+                                    title="Delete"
+                                  >
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    })}
+                    {/* Incomplete players — in list but missing data */}
+                    {incompletePlayers.length > 0 && (
+                      <>
+                        <tr><td colSpan={canEdit ? 17 : 16} style={{ padding: '0.35rem 0.6rem 0.15rem', fontSize: '0.55rem', fontWeight: 700, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #1a1a1a', borderTop: rankedPlayers.length > 0 ? '1px solid #2a2a2a' : 'none' }}>
+                          {t('bearRally.incompleteSection', 'Unranked — Missing Data')} ({incompletePlayers.length})
+                        </td></tr>
+                        {incompletePlayers.map((player) => {
+                          const tdBase: React.CSSProperties = { padding: '0.4rem 0.15rem', fontSize: '0.72rem', borderBottom: '1px solid #1a1a1a' };
+                          return (
+                            <tr key={player.id} style={{ backgroundColor: '#f59e0b06' }}>
+                              <td style={{ ...tdBase, color: '#f59e0b60', paddingLeft: '0.6rem', fontWeight: 700 }}>—</td>
+                              <td style={{ ...tdBase, color: '#f59e0b60', textAlign: 'center', fontStyle: 'italic', fontSize: '0.6rem' }}>—</td>
+                              <td style={{ ...tdBase, textAlign: 'center' }}>
+                                <span style={{
+                                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                  minWidth: '28px', height: '22px', padding: '0 0.35rem',
+                                  backgroundColor: '#f59e0b10', border: '1px solid #f59e0b25',
+                                  borderRadius: '6px', color: '#f59e0b80', fontSize: '0.55rem',
+                                  fontWeight: 700, letterSpacing: '0.03em',
+                                }}>?</span>
+                              </td>
+                              <td style={{ ...tdBase, fontWeight: 600, color: '#9ca3af' }}>{player.playerName}</td>
+                              {Array.from({ length: 12 }).map((_, i) => (
+                                <td key={i} style={{ ...tdBase, color: '#f59e0b30', textAlign: 'center', fontSize: '0.6rem' }}>—</td>
+                              ))}
+                              {canEdit && (
+                                <td style={{ ...tdBase, textAlign: 'center' }}>
+                                  <button
+                                    onClick={() => handleEdit(player)}
+                                    title={t('bearRally.addData', 'Add Data')}
+                                    style={{
+                                      background: 'none', border: '1px solid #f59e0b30', borderRadius: '4px',
+                                      color: '#f59e0b', cursor: 'pointer', padding: '0.1rem 0.3rem', fontSize: '0.55rem', fontWeight: 700,
+                                    }}
+                                  >
+                                    +
+                                  </button>
+                                </td>
+                              )}
+                            </tr>
+                          );
+                        })}
+                      </>
+                    )}
+                    {/* Unscored roster members */}
+                    {unscoredRosterMembers.length > 0 && (
+                      <>
+                        <tr><td colSpan={canEdit ? 17 : 16} style={{ padding: '0.35rem 0.6rem 0.15rem', fontSize: '0.55rem', fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #1a1a1a' }}>
+                          {t('bearRally.unscoredSection', 'Roster — No Data Yet')} ({unscoredRosterMembers.length})
+                        </td></tr>
+                        {unscoredRosterMembers.map((name) => {
+                          const tdBase: React.CSSProperties = { padding: '0.4rem 0.15rem', fontSize: '0.72rem', borderBottom: '1px solid #1a1a1a' };
+                          return (
+                            <tr key={name} style={{ backgroundColor: '#0a162808' }}>
+                              <td style={{ ...tdBase, color: '#4b5563', paddingLeft: '0.6rem' }}>—</td>
+                              <td style={{ ...tdBase, color: '#4b5563', textAlign: 'center' }}>—</td>
+                              <td style={{ ...tdBase, textAlign: 'center' }}>—</td>
+                              <td style={{ ...tdBase, fontWeight: 600, color: '#6b7280' }}>{name}</td>
+                              {Array.from({ length: 12 }).map((_, i) => (
+                                <td key={i} style={{ ...tdBase, color: '#333', textAlign: 'center', fontSize: '0.6rem' }}>—</td>
+                              ))}
+                              {canEdit && (
+                                <td style={{ ...tdBase, textAlign: 'center' }}>
+                                  <button
+                                    onClick={() => handleAddRosterMember(name)}
+                                    style={{
+                                      background: 'none', border: `1px solid ${ACCENT}30`, borderRadius: '4px',
+                                      color: ACCENT, cursor: 'pointer', padding: '0.1rem 0.3rem', fontSize: '0.55rem', fontWeight: 700,
+                                    }}
+                                  >
+                                    +
+                                  </button>
+                                </td>
+                              )}
+                            </tr>
+                          );
+                        })}
+                      </>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             {/* Summary Footer */}
             <div style={{
-              padding: '0.75rem 1rem',
+              padding: '0.6rem 0.75rem',
               backgroundColor: '#0d0d0d',
               display: 'flex',
               justifyContent: 'space-between',
@@ -778,16 +1716,18 @@ const BearRallyTierList: React.FC = () => {
               flexWrap: 'wrap',
               gap: '0.5rem',
             }}>
-              <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                {t('bearRally.totalPlayers', '{{count}} players', { count: players.length })}
+              <span style={{ fontSize: '0.7rem', color: '#6b7280' }}>
+                {incompletePlayers.length > 0
+                  ? t('bearRally.rankedOfTotal', '{{ranked}} ranked / {{total}} total', { ranked: rankedPlayers.length, total: players.length })
+                  : t('bearRally.totalPlayers', '{{count}} players', { count: players.length })}
               </span>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                 {(['SS', 'S', 'A', 'B', 'C', 'D'] as BearTier[]).map(tier => {
-                  const count = players.filter(p => p.tier === tier).length;
+                  const count = rankedPlayers.filter(p => p.tier === tier).length;
                   if (count === 0) return null;
                   return (
                     <span key={tier} style={{
-                      fontSize: '0.65rem',
+                      fontSize: '0.6rem',
                       color: BEAR_TIER_COLORS[tier],
                       fontWeight: 700,
                     }}>
@@ -799,52 +1739,108 @@ const BearRallyTierList: React.FC = () => {
             </div>
           </div>
         ) : (
-          /* Empty State */
+          /* Empty State — prominent creation prompt */
           !showForm && (
             <div style={{
               textAlign: 'center',
-              padding: isMobile ? '2rem 1rem' : '3rem 2rem',
+              padding: isMobile ? '2.5rem 1.25rem' : '3.5rem 2.5rem',
               backgroundColor: '#111111',
               borderRadius: '16px',
-              border: '1px solid #2a2a2a',
+              border: `1px solid ${ACCENT}18`,
+              background: `linear-gradient(180deg, #111111 0%, ${ACCENT}06 100%)`,
             }}>
               <div style={{
-                width: '64px', height: '64px', borderRadius: '50%',
-                backgroundColor: `${ACCENT}12`, border: `2px solid ${ACCENT}25`,
+                width: '80px', height: '80px', borderRadius: '50%',
+                backgroundColor: `${ACCENT}15`, border: `2px solid ${ACCENT}30`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                margin: '0 auto 1rem',
+                margin: '0 auto 1.25rem',
+                boxShadow: `0 0 30px ${ACCENT}12`,
               }}>
-                <span style={{ fontSize: '1.5rem' }}>🐻</span>
+                <span style={{ fontSize: '2rem' }}>🐻</span>
               </div>
               <h3 style={{
-                fontSize: isMobile ? '1rem' : '1.15rem',
+                fontSize: isMobile ? '1.15rem' : '1.35rem',
                 fontWeight: 700, color: '#fff',
                 marginBottom: '0.5rem',
               }}>
                 {t('bearRally.emptyTitle', 'No players yet')}
               </h3>
               <p style={{
-                color: '#6b7280',
-                fontSize: isMobile ? '0.8rem' : '0.85rem',
-                maxWidth: '400px', margin: '0 auto 1.25rem',
-                lineHeight: 1.5,
+                color: '#9ca3af',
+                fontSize: isMobile ? '0.82rem' : '0.9rem',
+                maxWidth: '440px', margin: '0 auto 0.75rem',
+                lineHeight: 1.6,
               }}>
                 {t('bearRally.emptyDesc', 'Scout your alliance members with their best Bear Hunt team in the Guard Station, then add them here.')}
               </p>
-              <button
-                onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); }}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                  padding: '0.7rem 1.5rem',
-                  backgroundColor: ACCENT, border: 'none', borderRadius: '10px',
-                  color: '#fff', fontWeight: 700,
-                  fontSize: isMobile ? '0.9rem' : '0.95rem', cursor: 'pointer',
-                  boxShadow: `0 4px 20px ${ACCENT}35`,
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                {t('bearRally.addFirstPlayer', 'Add First Player')}
-              </button>
+              {/* No list exists yet — show creation prompt with roster hints */}
+              {!activeListId && rosterNames.length > 0 && canEdit && (
+                <p style={{
+                  color: `${ACCENT}cc`,
+                  fontSize: isMobile ? '0.8rem' : '0.85rem',
+                  marginBottom: '1.5rem',
+                }}>
+                  {t('bearRally.emptyRosterHint', '{{count}} roster members will be auto-added to get you started.', { count: rosterNames.length })}
+                </p>
+              )}
+              {!activeListId && rosterNames.length === 0 && canEdit && (
+                <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem', marginBottom: '1.5rem' }}>
+                  {t('bearRally.emptyNoRoster', 'No roster members found — you can add players manually after creating a list.')}
+                </p>
+              )}
+              {/* List exists but has no players */}
+              {activeListId && canEdit && (
+                <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem', marginBottom: '1.5rem' }}>
+                  {t('bearRally.emptyListHint', 'This list has no players yet. Add your first player to get started.')}
+                </p>
+              )}
+              {!canEdit && (
+                <p style={{ color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem', marginBottom: '1.5rem' }}>
+                  {t('bearRally.emptyReadOnly', 'Ask an alliance owner, manager, or delegate to create a list.')}
+                </p>
+              )}
+              {canEdit && !activeListId && (
+                <button
+                  onClick={() => openNewListPrompt()}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem',
+                    padding: isMobile ? '0.8rem 1.75rem' : '0.85rem 2rem',
+                    minHeight: isMobile ? '44px' : 'auto',
+                    backgroundColor: ACCENT, border: 'none', borderRadius: '12px',
+                    color: '#fff', fontWeight: 700,
+                    fontSize: isMobile ? '0.95rem' : '1rem', cursor: 'pointer',
+                    boxShadow: `0 4px 24px ${ACCENT}40`,
+                    transition: 'transform 0.15s, box-shadow 0.15s',
+                    WebkitTapHighlightColor: 'transparent',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 6px 28px ${ACCENT}50`; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = `0 4px 24px ${ACCENT}40`; }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  {t('bearRally.createFirstList', 'Create Tier List')}
+                </button>
+              )}
+              {canEdit && activeListId && (
+                <button
+                  onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); }}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem',
+                    padding: isMobile ? '0.8rem 1.75rem' : '0.85rem 2rem',
+                    minHeight: isMobile ? '44px' : 'auto',
+                    backgroundColor: ACCENT, border: 'none', borderRadius: '12px',
+                    color: '#fff', fontWeight: 700,
+                    fontSize: isMobile ? '0.95rem' : '1rem', cursor: 'pointer',
+                    boxShadow: `0 4px 24px ${ACCENT}40`,
+                    transition: 'transform 0.15s, box-shadow 0.15s',
+                    WebkitTapHighlightColor: 'transparent',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 6px 28px ${ACCENT}50`; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = `0 4px 24px ${ACCENT}40`; }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  {t('bearRally.addFirstPlayer', 'Add First Player')}
+                </button>
+              )}
             </div>
           )
         )}

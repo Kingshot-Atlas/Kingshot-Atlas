@@ -203,7 +203,7 @@ const AllianceBaseDesigner: React.FC = () => {
     padding: '0.35rem 0.45rem', backgroundColor: '#0d1117', border: '1px solid #1e2a35',
     borderRadius: '6px', color: '#9ca3af', cursor: 'pointer', fontSize: '0.85rem',
     fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    minWidth: '36px', minHeight: '36px',
+    minWidth: '44px', minHeight: '44px', WebkitTapHighlightColor: 'transparent',
   };
 
   // ─── Desktop Layout ───
