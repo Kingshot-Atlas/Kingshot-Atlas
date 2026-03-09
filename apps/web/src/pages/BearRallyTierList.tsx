@@ -27,6 +27,8 @@ import {
   type BearTier,
 } from '../data/bearHuntData';
 import { useAllianceCenter } from '../hooks/useAllianceCenter';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import BearBulkInput from '../components/bear/BearBulkInput';
 import BearBulkEdit from '../components/bear/BearBulkEdit';
 
@@ -222,6 +224,12 @@ const BearRallyTierList: React.FC = () => {
   // Edit access: owner/manager/delegate can edit; member sees read-only; no alliance = full access (local tool)
   const canEdit = !ac.alliance || ac.canManage || ac.accessRole === 'delegate';
 
+  // ── Auth + Supabase sync ──
+  const { user } = useAuth();
+  const supabaseSync = !!(ac.alliance && isSupabaseConfigured && supabase);
+  const allianceId = ac.alliance?.id;
+  const supabaseSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // ── Multi-list state ──
   const [listsIndex, setListsIndex] = useState<BearListMeta[]>([]);
   const [activeListId, setActiveListIdState] = useState<string | null>(null);
@@ -252,21 +260,105 @@ const BearRallyTierList: React.FC = () => {
   const nameInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  // ── Initialize multi-list storage (migrate legacy if needed) ──
+  // ── Initialize multi-list storage ──
+  // Waits for alliance resolution so we know whether to use Supabase or localStorage.
   useEffect(() => {
-    const { lists, activeId } = migrateLegacyIfNeeded();
-    setListsIndex(lists);
-    if (activeId && lists.some(l => l.id === activeId)) {
-      setActiveListIdState(activeId);
-      setPlayers(loadListPlayers(activeId));
-    } else if (lists.length > 0 && lists[0]) {
-      setActiveListIdState(lists[0].id);
-      setActiveListId(lists[0].id);
-      setPlayers(loadListPlayers(lists[0].id));
+    if (ac.allianceLoading) return; // Wait for alliance check to finish
+    if (initializedRef.current) return;
+
+    if (ac.alliance && isSupabaseConfigured && supabase) {
+      // Alliance present → load from Supabase (source of truth)
+      const aid = ac.alliance.id;
+      let cancelled = false;
+      (async () => {
+        try {
+          const { data, error } = await supabase
+            .from('bear_rally_lists')
+            .select('id, name, players, created_at')
+            .eq('alliance_id', aid)
+            .order('created_at', { ascending: true });
+
+          if (cancelled) return;
+          if (error) throw error;
+
+          if (data && data.length > 0) {
+            // Cloud has data — use it
+            const lists: BearListMeta[] = data.map(row => ({
+              id: row.id,
+              name: row.name,
+              createdAt: row.created_at,
+              playerCount: Array.isArray(row.players) ? (row.players as unknown[]).length : 0,
+            }));
+            setListsIndex(lists);
+            saveListsIndex(lists);
+
+            const savedActive = getActiveListId();
+            const pickId = (savedActive && data.some(d => d.id === savedActive)) ? savedActive : data[0]!.id;
+            setActiveListIdState(pickId);
+            setActiveListId(pickId);
+            setPlayers((data.find(d => d.id === pickId)?.players as BearPlayerEntry[]) ?? []);
+
+            // Cache all lists to localStorage
+            data.forEach(row => saveListPlayers(row.id, row.players as BearPlayerEntry[]));
+          } else {
+            // Cloud empty — migrate localStorage data to Supabase
+            const { lists: localLists } = migrateLegacyIfNeeded();
+            if (localLists.length > 0 && user?.id) {
+              const migrated: BearListMeta[] = [];
+              for (const list of localLists) {
+                const lp = loadListPlayers(list.id);
+                const { data: ins } = await supabase
+                  .from('bear_rally_lists')
+                  .insert({ alliance_id: aid, name: list.name, players: lp, created_by: user.id })
+                  .select('id, name, created_at')
+                  .single();
+                if (cancelled) return;
+                if (ins) {
+                  migrated.push({ id: ins.id, name: ins.name, createdAt: ins.created_at, playerCount: lp.length });
+                  saveListPlayers(ins.id, lp);
+                }
+              }
+              if (migrated.length > 0 && !cancelled) {
+                setListsIndex(migrated);
+                saveListsIndex(migrated);
+                setActiveListIdState(migrated[0]!.id);
+                setActiveListId(migrated[0]!.id);
+                setPlayers(loadListPlayers(migrated[0]!.id));
+              }
+            }
+          }
+        } catch (err) {
+          logger.error('Bear rally cloud load failed:', err);
+          // Fallback to localStorage
+          const { lists, activeId } = migrateLegacyIfNeeded();
+          setListsIndex(lists);
+          if (activeId && lists.some(l => l.id === activeId)) {
+            setActiveListIdState(activeId);
+            setPlayers(loadListPlayers(activeId));
+          } else if (lists.length > 0 && lists[0]) {
+            setActiveListIdState(lists[0].id);
+            setActiveListId(lists[0].id);
+            setPlayers(loadListPlayers(lists[0].id));
+          }
+        }
+        if (!cancelled) initializedRef.current = true;
+      })();
+      return () => { cancelled = true; };
+    } else {
+      // No alliance — use localStorage
+      const { lists, activeId } = migrateLegacyIfNeeded();
+      setListsIndex(lists);
+      if (activeId && lists.some(l => l.id === activeId)) {
+        setActiveListIdState(activeId);
+        setPlayers(loadListPlayers(activeId));
+      } else if (lists.length > 0 && lists[0]) {
+        setActiveListIdState(lists[0].id);
+        setActiveListId(lists[0].id);
+        setPlayers(loadListPlayers(lists[0].id));
+      }
+      initializedRef.current = true;
     }
-    // Mark init complete so persist effect won't overwrite localStorage with []
-    initializedRef.current = true;
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ac.allianceLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Filtered roster suggestions based on current input (Unicode-normalized for fuzzy matching)
   const nameSuggestions = useMemo(() => {
@@ -302,7 +394,29 @@ const BearRallyTierList: React.FC = () => {
       saveListsIndex(updated);
       return updated;
     });
-  }, [players, activeListId]);
+
+    // Debounced Supabase save (1s after last change)
+    if (supabaseSync) {
+      if (supabaseSaveTimer.current) clearTimeout(supabaseSaveTimer.current);
+      const sb = supabase!;
+      const lid = activeListId;
+      supabaseSaveTimer.current = setTimeout(() => {
+        sb.from('bear_rally_lists')
+          .update({ players })
+          .eq('id', lid)
+          .then(({ error }) => {
+            if (error) logger.error('Bear rally cloud save failed:', error);
+          });
+      }, 1000);
+    }
+  }, [players, activeListId, supabaseSync]);
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (supabaseSaveTimer.current) clearTimeout(supabaseSaveTimer.current);
+    };
+  }, []);
 
   // Close list menu on outside click
   useEffect(() => {
@@ -328,10 +442,9 @@ const BearRallyTierList: React.FC = () => {
     setShowListMenu(false);
   }, [getNextMonthName]);
 
-  const handleCreateList = useCallback((name?: string) => {
+  const handleCreateList = useCallback(async (name?: string) => {
     const listName = (name ?? getNextMonthName()).trim();
     if (!listName) return;
-    const id = genId();
 
     // Auto-populate with roster members (empty stats, score 0, tier D)
     const initialPlayers: BearPlayerEntry[] = rosterNames.map(playerName => ({
@@ -353,10 +466,30 @@ const BearRallyTierList: React.FC = () => {
       tier: 'D' as BearTier,
     }));
 
+    let listId: string;
+    let createdAt = new Date().toISOString();
+
+    if (supabaseSync && allianceId) {
+      // Create in Supabase first to get proper UUID
+      const { data, error } = await supabase!
+        .from('bear_rally_lists')
+        .insert({ alliance_id: allianceId, name: listName, players: initialPlayers, created_by: user?.id })
+        .select('id, created_at')
+        .single();
+      if (error || !data) {
+        logger.error('Failed to create list in cloud:', error);
+        return;
+      }
+      listId = data.id;
+      createdAt = data.created_at;
+    } else {
+      listId = genId();
+    }
+
     const meta: BearListMeta = {
-      id,
+      id: listId,
       name: listName,
-      createdAt: new Date().toISOString(),
+      createdAt,
       playerCount: initialPlayers.length,
     };
     setListsIndex(prev => {
@@ -364,27 +497,49 @@ const BearRallyTierList: React.FC = () => {
       saveListsIndex(updated);
       return updated;
     });
-    saveListPlayers(id, initialPlayers);
-    setActiveListIdState(id);
-    setActiveListId(id);
+    saveListPlayers(listId, initialPlayers);
+    setActiveListIdState(listId);
+    setActiveListId(listId);
     setPlayers(initialPlayers);
     setShowForm(false);
     setEditingId(null);
     setForm(emptyForm);
     setShowListMenu(false);
     setShowNewListPrompt(false);
-  }, [getNextMonthName, rosterNames]);
+  }, [getNextMonthName, rosterNames, supabaseSync, allianceId, user?.id]);
 
-  const handleSwitchList = useCallback((listId: string) => {
+  const handleSwitchList = useCallback(async (listId: string) => {
     if (listId === activeListId) return;
     setActiveListIdState(listId);
     setActiveListId(listId);
-    setPlayers(loadListPlayers(listId));
+
+    // Load from Supabase if available, else localStorage cache
+    if (supabaseSync) {
+      try {
+        const { data } = await supabase!
+          .from('bear_rally_lists')
+          .select('players')
+          .eq('id', listId)
+          .single();
+        if (data) {
+          const cloudPlayers = data.players as BearPlayerEntry[];
+          setPlayers(cloudPlayers);
+          saveListPlayers(listId, cloudPlayers);
+        } else {
+          setPlayers(loadListPlayers(listId));
+        }
+      } catch {
+        setPlayers(loadListPlayers(listId));
+      }
+    } else {
+      setPlayers(loadListPlayers(listId));
+    }
+
     setShowForm(false);
     setEditingId(null);
     setForm(emptyForm);
     setShowListMenu(false);
-  }, [activeListId]);
+  }, [activeListId, supabaseSync]);
 
   const handleRenameList = useCallback((listId: string, newName: string) => {
     const trimmed = newName.trim();
@@ -395,7 +550,12 @@ const BearRallyTierList: React.FC = () => {
       return updated;
     });
     setEditingListName(null);
-  }, []);
+    // Sync rename to Supabase
+    if (supabaseSync) {
+      supabase!.from('bear_rally_lists').update({ name: trimmed }).eq('id', listId)
+        .then(({ error }) => { if (error) logger.error('Bear rally cloud rename failed:', error); });
+    }
+  }, [supabaseSync]);
 
   const handleDeleteList = useCallback((listId: string) => {
     deleteListData(listId);
@@ -419,7 +579,12 @@ const BearRallyTierList: React.FC = () => {
     setShowListMenu(false);
     setShowForm(false);
     setEditingId(null);
-  }, [activeListId]);
+    // Delete from Supabase
+    if (supabaseSync) {
+      supabase!.from('bear_rally_lists').delete().eq('id', listId)
+        .then(({ error }) => { if (error) logger.error('Bear rally cloud delete failed:', error); });
+    }
+  }, [activeListId, supabaseSync]);
 
   // ── Sorted & ranked players (only complete data gets ranked) ──
   const { rankedPlayers, incompletePlayers } = useMemo(() => {
@@ -1583,12 +1748,12 @@ const BearRallyTierList: React.FC = () => {
                     <col style={{ width: '62px' }} />
                     <col style={{ width: '34px' }} />
                     {/* Troop Bonuses: INF Atk, INF Leth, CAV Atk, CAV Leth, ARC Atk, ARC Leth */}
-                    <col style={{ width: '56px' }} />
-                    <col style={{ width: '56px' }} />
-                    <col style={{ width: '56px' }} />
-                    <col style={{ width: '56px' }} />
-                    <col style={{ width: '56px' }} />
-                    <col style={{ width: '56px' }} />
+                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '72px' }} />
                     {canEdit && <col style={{ width: '48px' }} />}
                   </colgroup>
                   <thead>
@@ -1658,7 +1823,6 @@ const BearRallyTierList: React.FC = () => {
                         }}>
                           <div style={{ fontSize: '0.7rem', lineHeight: 1 }}>{col.emoji}</div>
                           <div style={{ lineHeight: 1.2, marginTop: '1px' }}>{col.label}</div>
-                          <div style={{ fontSize: '0.55rem', color: '#6b7280', lineHeight: 1, marginTop: '1px' }}>%</div>
                         </th>
                       ))}
                       {canEdit && <th style={{ padding: '0.3rem 0.15rem' }} />}

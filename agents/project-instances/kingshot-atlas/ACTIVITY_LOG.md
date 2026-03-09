@@ -3,6 +3,19 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-09 | Product Engineer | COMPLETED
+Task: Bear Rally Tier List — Fix duplicate %, widen columns, add cross-device persistence
+Files: apps/web/src/pages/BearRallyTierList.tsx, Supabase migration (bear_rally_lists table)
+Changes:
+- Removed duplicate gray % div from troop bonus column headers (i18n labels already include %)
+- Widened troop bonus columns from 56px to 72px so "Attack %" fits on one line (emoji row 1, "Attack %" row 2)
+- Created `bear_rally_lists` Supabase table with JSONB players column, RLS policies for alliance roles
+- Added Supabase sync: init loads from cloud when alliance present, debounced 1s save on player changes
+- CRUD handlers (create/switch/rename/delete) all sync to Supabase
+- localStorage → Supabase migration on first cloud load when cloud is empty
+- localStorage kept as offline cache fallback
+Result: Column headers no longer show duplicate %, tier list data persists across devices for alliance users
+
 ## 2026-03-08 | Product Engineer | COMPLETED
 Task: Bear Rally Tier List — Column header refactor + share button relocation
 Files: apps/web/src/pages/BearRallyTierList.tsx
