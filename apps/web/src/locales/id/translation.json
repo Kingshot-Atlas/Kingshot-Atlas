@@ -3839,12 +3839,9 @@
     "incompleteSection": "Belum Diperingkat — Data Kurang",
     "rankedOfTotal": "{{ranked}} diperingkat / {{total}} total",
     "share": "Bagikan",
-    "shareScreenshot": "Bagikan sebagai gambar",
-    "shareAction": "Bagikan",
-    "download": "Unduh",
+    "copyImage": "Salin gambar",
     "copyLink": "Salin tautan",
-    "link": "Tautan",
-    "sharePreviewAlt": "Pratinjau daftar tier"
+    "exportCSV": "Ekspor CSV"
   },
   "bearRallyLanding": {
     "pageTitle": "Daftar Tier Rally Beruang",

@@ -3902,12 +3902,9 @@
     "incompleteSection": "미분류 — 데이터 부족",
     "rankedOfTotal": "{{ranked}} 분류됨 / {{total}} 전체",
     "share": "공유",
-    "shareScreenshot": "이미지로 공유",
-    "shareAction": "공유",
-    "download": "다운로드",
+    "copyImage": "이미지 복사",
     "copyLink": "링크 복사",
-    "link": "링크",
-    "sharePreviewAlt": "등급표 미리보기"
+    "exportCSV": "CSV 내보내기"
   },
   "bearRallyLanding": {
     "pageTitle": "곰 랠리 등급표",

@@ -3906,12 +3906,9 @@
     "incompleteSection": "Nicht bewertet — Fehlende Daten",
     "rankedOfTotal": "{{ranked}} bewertet / {{total}} gesamt",
     "share": "Teilen",
-    "shareScreenshot": "Als Bild teilen",
-    "shareAction": "Teilen",
-    "download": "Herunterladen",
+    "copyImage": "Bild kopieren",
     "copyLink": "Link kopieren",
-    "link": "Link",
-    "sharePreviewAlt": "Stufenliste Vorschau"
+    "exportCSV": "CSV exportieren"
   },
   "bearRallyLanding": {
     "pageTitle": "Bären-Rally Stufenliste",

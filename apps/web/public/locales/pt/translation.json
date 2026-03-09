@@ -3837,12 +3837,9 @@
     "incompleteSection": "Não classificado — Dados incompletos",
     "rankedOfTotal": "{{ranked}} classificados / {{total}} total",
     "share": "Compartilhar",
-    "shareScreenshot": "Compartilhar como imagem",
-    "shareAction": "Compartilhar",
-    "download": "Baixar",
+    "copyImage": "Copiar imagem",
     "copyLink": "Copiar link",
-    "link": "Link",
-    "sharePreviewAlt": "Pré-visualização da lista"
+    "exportCSV": "Exportar CSV"
   },
   "bearRallyLanding": {
     "pageTitle": "Lista de Níveis do Rally do Urso",

@@ -3906,12 +3906,9 @@
     "incompleteSection": "Sıralanmamış — Eksik Veri",
     "rankedOfTotal": "{{ranked}} sıralanmış / {{total}} toplam",
     "share": "Paylaş",
-    "shareScreenshot": "Resim olarak paylaş",
-    "shareAction": "Paylaş",
-    "download": "İndir",
+    "copyImage": "Resmi kopyala",
     "copyLink": "Bağlantıyı kopyala",
-    "link": "Bağlantı",
-    "sharePreviewAlt": "Seviye listesi önizleme"
+    "exportCSV": "CSV dışa aktar"
   },
   "bearRallyLanding": {
     "pageTitle": "Ayı Rallisi Seviye Listesi",

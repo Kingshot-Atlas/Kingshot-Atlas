@@ -248,9 +248,10 @@ const BearRallyTierList: React.FC = () => {
   const initializedRef = useRef(false);
   const tierListRef = useRef<HTMLDivElement>(null);
   const shareCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [sharePreview, setSharePreview] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [showUndoToast, setShowUndoToast] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
+  const shareMenuRef = useRef<HTMLDivElement>(null);
 
   // ── Form state ──
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -395,6 +396,9 @@ const BearRallyTierList: React.FC = () => {
       ) {
         setShowSuggestions(false);
       }
+      if (shareMenuRef.current && !shareMenuRef.current.contains(e.target as Node)) {
+        setShowShareMenu(false);
+      }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -525,25 +529,45 @@ const BearRallyTierList: React.FC = () => {
     const listName = (name ?? getNextMonthName()).trim();
     if (!listName) return;
 
-    // Auto-populate with roster members (empty stats, score 0, tier D)
-    const initialPlayers: BearPlayerEntry[] = rosterNames.map(playerName => ({
-      id: genId(),
-      playerName,
-      infantryHero: '',
-      infantryEGLevel: 0,
-      infantryAttack: 0,
-      infantryLethality: 0,
-      cavalryHero: '',
-      cavalryEGLevel: 0,
-      cavalryAttack: 0,
-      cavalryLethality: 0,
-      archerHero: '',
-      archerEGLevel: 0,
-      archerAttack: 0,
-      archerLethality: 0,
-      bearScore: 0,
-      tier: 'D' as BearTier,
-    }));
+    // If we have an existing list, carry forward heroes & gear but clear troop stats
+    // Otherwise, auto-populate with roster members (empty stats)
+    const initialPlayers: BearPlayerEntry[] = players.length > 0
+      ? players.map(p => ({
+          id: genId(),
+          playerName: p.playerName,
+          infantryHero: p.infantryHero,
+          infantryEGLevel: p.infantryEGLevel,
+          infantryAttack: 0,
+          infantryLethality: 0,
+          cavalryHero: p.cavalryHero,
+          cavalryEGLevel: p.cavalryEGLevel,
+          cavalryAttack: 0,
+          cavalryLethality: 0,
+          archerHero: p.archerHero,
+          archerEGLevel: p.archerEGLevel,
+          archerAttack: 0,
+          archerLethality: 0,
+          bearScore: 0,
+          tier: 'D' as BearTier,
+        }))
+      : rosterNames.map(playerName => ({
+          id: genId(),
+          playerName,
+          infantryHero: '',
+          infantryEGLevel: 0,
+          infantryAttack: 0,
+          infantryLethality: 0,
+          cavalryHero: '',
+          cavalryEGLevel: 0,
+          cavalryAttack: 0,
+          cavalryLethality: 0,
+          archerHero: '',
+          archerEGLevel: 0,
+          archerAttack: 0,
+          archerLethality: 0,
+          bearScore: 0,
+          tier: 'D' as BearTier,
+        }));
 
     let listId: string;
     let createdAt = new Date().toISOString();
@@ -585,7 +609,7 @@ const BearRallyTierList: React.FC = () => {
     setForm(emptyForm);
     setShowListMenu(false);
     setShowNewListPrompt(false);
-  }, [getNextMonthName, rosterNames, supabaseSync, allianceId, user?.id]);
+  }, [getNextMonthName, rosterNames, players, supabaseSync, allianceId, user?.id]);
 
   const handleSwitchList = useCallback(async (listId: string) => {
     if (listId === activeListId) return;
@@ -848,71 +872,54 @@ const BearRallyTierList: React.FC = () => {
     }
   }, []);
 
-  const handleSharePreview = useCallback(async () => {
+  const handleCopyImage = useCallback(async () => {
+    setShowShareMenu(false);
     const canvas = await captureScreenshot();
-    if (canvas) {
-      setSharePreview(canvas.toDataURL('image/png'));
-      triggerHaptic('success');
-    }
-  }, [captureScreenshot]);
-
-  const handleShareDownload = useCallback(async () => {
-    let canvas = shareCanvasRef.current;
-    if (!canvas) canvas = await captureScreenshot();
     if (!canvas) return;
-    triggerHaptic('medium');
-    const listName = listsIndex.find(l => l.id === activeListId)?.name ?? 'tier-list';
-    const link = document.createElement('a');
-    link.download = `bear-rally-${listName.replace(/\s+/g, '-').toLowerCase()}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-    setSharePreview(null);
-  }, [captureScreenshot, listsIndex, activeListId]);
-
-  const handleShareNative = useCallback(async () => {
-    let canvas = shareCanvasRef.current;
-    if (!canvas) canvas = await captureScreenshot();
-    if (!canvas) return;
-    triggerHaptic('medium');
-    const listName = listsIndex.find(l => l.id === activeListId)?.name ?? 'tier-list';
+    triggerHaptic('success');
     canvas.toBlob(async (blob) => {
       if (!blob) return;
-      const shareText = `🐻 Bear Rally Tier List: ${listName}\n${rankedPlayers.length} ranked players\n\nView at ${window.location.href}`;
-      if (navigator.share && navigator.canShare) {
-        const file = new File([blob], `bear-rally-${listName.replace(/\s+/g, '-').toLowerCase()}.png`, { type: 'image/png' });
-        if (navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({ title: `Bear Rally — ${listName}`, text: shareText, files: [file] });
-            setSharePreview(null);
-            return;
-          } catch (err) {
-            if ((err as Error).name !== 'AbortError') logger.error('Share failed:', err);
-          }
-        }
-      }
       if (navigator.clipboard && 'write' in navigator.clipboard) {
         try {
           await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-          setSharePreview(null);
-          shareCanvasRef.current = null;
           return;
         } catch (err) {
-          logger.error('Clipboard write failed:', err);
+          logger.error('Clipboard write failed, falling back to download:', err);
         }
       }
-      handleShareDownload();
+      // Fallback: download if clipboard API unavailable
+      const listName = listsIndex.find(l => l.id === activeListId)?.name ?? 'tier-list';
+      const link = document.createElement('a');
+      link.download = `bear-rally-${listName.replace(/\s+/g, '-').toLowerCase()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
     }, 'image/png');
-  }, [captureScreenshot, listsIndex, activeListId, rankedPlayers.length, handleShareDownload]);
+  }, [captureScreenshot, listsIndex, activeListId]);
 
   const handleCopyLink = useCallback(() => {
+    setShowShareMenu(false);
     triggerHaptic('light');
     navigator.clipboard.writeText(window.location.href);
   }, []);
 
-  const closeSharePreview = useCallback(() => {
-    setSharePreview(null);
-    shareCanvasRef.current = null;
-  }, []);
+  const handleExportCSV = useCallback(() => {
+    setShowShareMenu(false);
+    triggerHaptic('light');
+    const listName = listsIndex.find(l => l.id === activeListId)?.name ?? 'tier-list';
+    const headers = ['Rank', 'Bear Score', 'Tier', 'Player', 'Inf Hero', 'Inf Gear', 'Cav Hero', 'Cav Gear', 'Arc Hero', 'Arc Gear', 'Inf Attack%', 'Inf Lethality%', 'Cav Attack%', 'Cav Lethality%', 'Arc Attack%', 'Arc Lethality%'];
+    const q = (s: string) => `"${s.replace(/"/g, '""')}"`;
+    const rows = rankedPlayers.map(p => {
+      const ds = getPlayerDisplayStats(p);
+      return [p.rank, p.bearScore.toFixed(1), p.tier, q(p.playerName), q(p.infantryHero), p.infantryEGLevel, q(p.cavalryHero), p.cavalryEGLevel, q(p.archerHero), p.archerEGLevel, ds.infAtk.toFixed(1), ds.infLeth.toFixed(1), ds.cavAtk.toFixed(1), ds.cavLeth.toFixed(1), ds.arcAtk.toFixed(1), ds.arcLeth.toFixed(1)].join(',');
+    });
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const link = document.createElement('a');
+    link.download = `bear-rally-${listName.replace(/\s+/g, '-').toLowerCase()}.csv`;
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }, [listsIndex, activeListId, rankedPlayers]);
 
   // ── Styles ──
   const inputStyle: React.CSSProperties = {
@@ -1256,7 +1263,7 @@ const BearRallyTierList: React.FC = () => {
                 )
               )}
 
-              {/* Undo / Share / Link buttons */}
+              {/* Undo / Share buttons */}
               {players.length > 0 && (
                 <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', marginLeft: canEdit ? '0' : 'auto' }}>
                   {canEdit && undoStack.current.length > 0 && (
@@ -1274,32 +1281,74 @@ const BearRallyTierList: React.FC = () => {
                       {!isMobile && t('bearRally.undo', 'Undo')}
                     </button>
                   )}
-                  <button
-                    onClick={handleSharePreview}
-                    disabled={isCapturing}
-                    title={t('bearRally.shareScreenshot', 'Share as image')}
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
-                      padding: '0.3rem 0.55rem', backgroundColor: '#1a1a1a',
-                      border: '1px solid #333', borderRadius: '6px',
-                      color: '#9ca3af', fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer',
-                      opacity: isCapturing ? 0.5 : 1,
-                    }}
-                  >
-                    📸 {!isMobile && t('bearRally.share', 'Share')}
-                  </button>
-                  <button
-                    onClick={handleCopyLink}
-                    title={t('bearRally.copyLink', 'Copy link')}
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
-                      padding: '0.3rem 0.55rem', backgroundColor: '#1a1a1a',
-                      border: '1px solid #333', borderRadius: '6px',
-                      color: '#9ca3af', fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer',
-                    }}
-                  >
-                    🔗 {!isMobile && t('bearRally.link', 'Link')}
-                  </button>
+                  <div style={{ position: 'relative' }} ref={shareMenuRef}>
+                    <button
+                      onClick={() => setShowShareMenu(prev => !prev)}
+                      disabled={isCapturing}
+                      title={t('bearRally.share', 'Share')}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                        padding: '0.3rem 0.55rem', backgroundColor: '#1a1a1a',
+                        border: '1px solid #333', borderRadius: '6px',
+                        color: '#9ca3af', fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer',
+                        opacity: isCapturing ? 0.5 : 1,
+                      }}
+                    >
+                      📤 {!isMobile && t('bearRally.share', 'Share')}
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ marginLeft: '2px', transition: 'transform 0.15s', transform: showShareMenu ? 'rotate(180deg)' : 'rotate(0deg)' }}><path d="M6 9l6 6 6-6"/></svg>
+                    </button>
+                    {showShareMenu && (
+                      <div style={{
+                        position: 'absolute', top: '100%', right: 0, zIndex: 60,
+                        marginTop: '4px', minWidth: '160px',
+                        backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '8px',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.6)', overflow: 'hidden',
+                      }}>
+                        <button
+                          onClick={handleCopyImage}
+                          style={{
+                            width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                            padding: '0.55rem 0.75rem', background: 'none', border: 'none', borderBottom: '1px solid #2a2a2a',
+                            color: '#d1d5db', fontSize: '0.75rem', fontWeight: 500, cursor: 'pointer',
+                            textAlign: 'left', transition: 'background-color 0.1s',
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#2a2a2a'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                        >
+                          <span style={{ fontSize: '0.85rem' }}>📸</span>
+                          {t('bearRally.copyImage', 'Copy Image')}
+                        </button>
+                        <button
+                          onClick={handleCopyLink}
+                          style={{
+                            width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                            padding: '0.55rem 0.75rem', background: 'none', border: 'none', borderBottom: '1px solid #2a2a2a',
+                            color: '#d1d5db', fontSize: '0.75rem', fontWeight: 500, cursor: 'pointer',
+                            textAlign: 'left', transition: 'background-color 0.1s',
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#2a2a2a'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                        >
+                          <span style={{ fontSize: '0.85rem' }}>🔗</span>
+                          {t('bearRally.copyLink', 'Copy Link')}
+                        </button>
+                        <button
+                          onClick={handleExportCSV}
+                          style={{
+                            width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                            padding: '0.55rem 0.75rem', background: 'none', border: 'none',
+                            color: '#d1d5db', fontSize: '0.75rem', fontWeight: 500, cursor: 'pointer',
+                            textAlign: 'left', transition: 'background-color 0.1s',
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#2a2a2a'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                        >
+                          <span style={{ fontSize: '0.85rem' }}>📊</span>
+                          {t('bearRally.exportCSV', 'Export CSV')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -2289,58 +2338,7 @@ const BearRallyTierList: React.FC = () => {
             {t('common.allTools', '← All Tools')}
           </Link>
         </div>
-        {/* Share Preview Modal */}
-        {sharePreview && (
-          <div
-            style={{
-              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.92)', zIndex: 9999,
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              padding: '1rem',
-            }}
-            onClick={closeSharePreview}
-          >
-            <div
-              style={{
-                maxWidth: '90vw', maxHeight: '65vh', overflow: 'auto',
-                borderRadius: '12px', border: '1px solid #333', marginBottom: '1.25rem',
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <img src={sharePreview} alt={t('bearRally.sharePreviewAlt', 'Tier list preview')} style={{ maxWidth: '100%', height: 'auto', display: 'block' }} />
-            </div>
-            <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', justifyContent: 'center' }} onClick={(e) => e.stopPropagation()}>
-              <button onClick={handleShareNative} style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-                padding: '0.5rem 1rem', backgroundColor: ACCENT, border: 'none', borderRadius: '8px',
-                color: '#fff', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer',
-              }}>
-                📤 {t('bearRally.shareAction', 'Share')}
-              </button>
-              <button onClick={handleShareDownload} style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-                padding: '0.5rem 1rem', backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '8px',
-                color: '#d1d5db', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer',
-              }}>
-                💾 {t('bearRally.download', 'Download')}
-              </button>
-              <button onClick={() => { handleCopyLink(); closeSharePreview(); }} style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-                padding: '0.5rem 1rem', backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '8px',
-                color: '#d1d5db', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer',
-              }}>
-                🔗 {t('bearRally.copyLink', 'Copy Link')}
-              </button>
-              <button onClick={closeSharePreview} style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-                padding: '0.5rem 1rem', backgroundColor: '#1a1a1a', border: '1px solid #ef444440', borderRadius: '8px',
-                color: '#ef4444', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer',
-              }}>
-                ✕ {t('common.close', 'Close')}
-              </button>
-            </div>
-          </div>
-        )}
+        {/* Click-outside handler for share menu */}
 
         {/* Undo toast notification */}
         {showUndoToast && (

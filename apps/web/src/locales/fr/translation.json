@@ -3906,12 +3906,9 @@
     "incompleteSection": "Non classé — Données manquantes",
     "rankedOfTotal": "{{ranked}} classés / {{total}} total",
     "share": "Partager",
-    "shareScreenshot": "Partager en image",
-    "shareAction": "Partager",
-    "download": "Télécharger",
+    "copyImage": "Copier l'image",
     "copyLink": "Copier le lien",
-    "link": "Lien",
-    "sharePreviewAlt": "Aperçu de la liste"
+    "exportCSV": "Exporter CSV"
   },
   "bearRallyLanding": {
     "pageTitle": "Liste de Niveaux du Rally de l'Ours",

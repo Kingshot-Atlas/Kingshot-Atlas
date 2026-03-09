@@ -3905,12 +3905,9 @@
     "incompleteSection": "Sin clasificar — Datos incompletos",
     "rankedOfTotal": "{{ranked}} clasificados / {{total}} total",
     "share": "Compartir",
-    "shareScreenshot": "Compartir como imagen",
-    "shareAction": "Compartir",
-    "download": "Descargar",
+    "copyImage": "Copiar imagen",
     "copyLink": "Copiar enlace",
-    "link": "Enlace",
-    "sharePreviewAlt": "Vista previa de la lista"
+    "exportCSV": "Exportar CSV"
   },
   "bearRallyLanding": {
     "pageTitle": "Lista de Niveles de Rally del Oso",

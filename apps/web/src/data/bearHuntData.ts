@@ -261,7 +261,7 @@ export function getPlayerDisplayStats(player: BearPlayerEntry): {
 /**
  * Calculates the Bear Score for a player.
  *
- * Weights: Infantry ATK/Leth × 0.1, Cavalry ATK/Leth × 0.1, Archer ATK/Leth × 0.8
+ * Weights: Infantry ATK/Leth × 0.01, Cavalry ATK/Leth × 0.09, Archer ATK/Leth × 0.9
  * Amadeus multiplier: 1.1× fixed boost (hero skills are exceptional for bear rally).
  */
 export function calculateBearScore(
@@ -282,9 +282,9 @@ export function calculateBearScore(
 
   // Weighted sum: archers are the primary damage dealers in bear rally
   const rawScore =
-    inf.adjustedAttack * 0.1 + inf.adjustedLethality * 0.1 +
-    cav.adjustedAttack * 0.1 + cav.adjustedLethality * 0.1 +
-    arch.adjustedAttack * 0.8 + arch.adjustedLethality * 0.8;
+    inf.adjustedAttack * 0.01 + inf.adjustedLethality * 0.01 +
+    cav.adjustedAttack * 0.09 + cav.adjustedLethality * 0.09 +
+    arch.adjustedAttack * 0.9 + arch.adjustedLethality * 0.9;
 
   // Amadeus fixed 1.1× multiplier (exceptional offensive hero skills)
   const amadeusMultiplier = infantryHero === 'Amadeus' ? 1.1 : 1;

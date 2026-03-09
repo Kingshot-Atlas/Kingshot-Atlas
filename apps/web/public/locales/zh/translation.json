@@ -3906,12 +3906,9 @@
     "incompleteSection": "未排名 — 数据缺失",
     "rankedOfTotal": "{{ranked}} 已排名 / {{total}} 总计",
     "share": "分享",
-    "shareScreenshot": "分享为图片",
-    "shareAction": "分享",
-    "download": "下载",
+    "copyImage": "复制图片",
     "copyLink": "复制链接",
-    "link": "链接",
-    "sharePreviewAlt": "等级列表预览"
+    "exportCSV": "导出 CSV"
   },
   "bearRallyLanding": {
     "pageTitle": "猎熊集结等级列表",

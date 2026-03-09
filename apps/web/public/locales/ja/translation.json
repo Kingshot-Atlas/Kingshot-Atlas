@@ -3906,12 +3906,9 @@
     "incompleteSection": "未ランク — データ不足",
     "rankedOfTotal": "{{ranked}} ランク済み / {{total}} 合計",
     "share": "共有",
-    "shareScreenshot": "画像として共有",
-    "shareAction": "共有",
-    "download": "ダウンロード",
+    "copyImage": "画像をコピー",
     "copyLink": "リンクをコピー",
-    "link": "リンク",
-    "sharePreviewAlt": "ティアリストプレビュー"
+    "exportCSV": "CSV エクスポート"
   },
   "bearRallyLanding": {
     "pageTitle": "ベアラリーティアリスト",

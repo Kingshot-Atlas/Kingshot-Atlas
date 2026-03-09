@@ -3906,12 +3906,9 @@
     "incompleteSection": "غير مصنف — بيانات ناقصة",
     "rankedOfTotal": "{{ranked}} مصنف / {{total}} إجمالي",
     "share": "مشاركة",
-    "shareScreenshot": "مشاركة كصورة",
-    "shareAction": "مشاركة",
-    "download": "تحميل",
+    "copyImage": "نسخ الصورة",
     "copyLink": "نسخ الرابط",
-    "link": "رابط",
-    "sharePreviewAlt": "معاينة قائمة المستويات"
+    "exportCSV": "تصدير CSV"
   },
   "bearRallyLanding": {
     "pageTitle": "قائمة مستويات تجمع الدب",

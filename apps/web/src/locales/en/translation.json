@@ -4023,12 +4023,9 @@
     "incompleteSection": "Unranked — Missing Data",
     "rankedOfTotal": "{{ranked}} ranked / {{total}} total",
     "share": "Share",
-    "shareScreenshot": "Share as image",
-    "shareAction": "Share",
-    "download": "Download",
+    "copyImage": "Copy Image",
     "copyLink": "Copy Link",
-    "link": "Link",
-    "sharePreviewAlt": "Tier list preview"
+    "exportCSV": "Export CSV"
   },
   "bearRallyLanding": {
     "pageTitle": "Bear Rally Tier List",
