@@ -53,7 +53,7 @@ export function useBattleRegistry() {
   const [formUsername, setFormUsername] = useState('');
   const [formAlliance, setFormAlliance] = useState('');
   const [formTimeSlots, setFormTimeSlots] = useState<TimeSlotRange[]>([
-    { from: TIME_SLOTS[0] ?? '12:00', to: TIME_SLOTS[TIME_SLOTS.length - 1] ?? '18:00' },
+    { from: '12:00', to: '14:00' },
   ]);
   const [formInfantryTier, setFormInfantryTier] = useState<number | null>(null);
   const [formInfantryTg, setFormInfantryTg] = useState<number | null>(null);
@@ -359,7 +359,7 @@ export function useBattleRegistry() {
     for (let i = 1; i < sorted.length; i++) {
       const prev = sorted[i - 1]!;
       const curr = sorted[i]!;
-      if (TIME_SLOTS.indexOf(curr.from) <= TIME_SLOTS.indexOf(prev.to)) {
+      if (TIME_SLOTS.indexOf(curr.from) < TIME_SLOTS.indexOf(prev.to)) {
         showToast(t('battleRegistry.toastOverlappingSlots', 'Time slots cannot overlap. Please fix your time ranges.'), 'error');
         return;
       }
@@ -490,7 +490,7 @@ export function useBattleRegistry() {
         return;
       }
     }
-    const first = data.time_slots[0] ?? { from: TIME_SLOTS[0] ?? '12:00', to: TIME_SLOTS[TIME_SLOTS.length - 1] ?? '18:00' };
+    const first = data.time_slots[0] ?? { from: '12:00', to: '14:00' };
     setSaving(true);
     try {
       const payload = {
@@ -536,7 +536,7 @@ export function useBattleRegistry() {
         return;
       }
     }
-    const first = data.time_slots[0] ?? { from: TIME_SLOTS[0] ?? '12:00', to: TIME_SLOTS[TIME_SLOTS.length - 1] ?? '18:00' };
+    const first = data.time_slots[0] ?? { from: '12:00', to: '14:00' };
     setSaving(true);
     try {
       const { error } = await supabase.from('battle_registry_entries').update({

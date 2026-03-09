@@ -3023,6 +3023,9 @@
     "topPeakSlots": "En Yoğun Zaman Dilimleri",
     "uniqueMembers": "Üyeler",
     "activeSlots": "Aktif Dilimler",
+    "toTooltip": "Bitiş zamanı — müsaitliğiniz bu saate kadar geçerlidir",
+    "zeroDuration": "Başlangıç ve Bitiş aynı — bu aralık hiçbir süreyi kapsamaz.",
+    "clearDay": "Temizle",
     "createScheduleBtn": "Program Oluştur",
     "day": "Gün",
     "deadlineHintUTC": "Son tarih UTC'dedir",
@@ -3557,7 +3560,10 @@
     "editEntry": "Girişi düzenle",
     "exportList": "Oyuncu Listesini Kopyala",
     "toastManualUpdated": "Oyuncu girişi güncellendi.",
-    "toastManualUpdateFailed": "Oyuncu girişi güncellenemedi."
+    "toastManualUpdateFailed": "Oyuncu girişi güncellenemedi.",
+    "toTooltip": "Bitiş zamanı — müsaitliğiniz bu saate kadar geçerlidir",
+    "zeroDuration": "Başlangıç ve Bitiş aynı — bu aralık hiçbir süreyi kapsamaz.",
+    "duplicateWarning": "Bu kullanıcı adı ve ittifakla bir oyuncu zaten mevcut."
   },
   "battleRegistryLanding": {
     "pageTitle": "KvK Savaş Kaydı",

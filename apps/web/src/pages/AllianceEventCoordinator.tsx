@@ -90,7 +90,7 @@ function rangesToSlots(ranges: TimeRange[]): string[] {
     const fi = TIME_SLOTS_30MIN.indexOf(r.from);
     const ti = TIME_SLOTS_30MIN.indexOf(r.to);
     if (fi < 0 || ti < 0) continue;
-    for (let i = fi; i <= ti; i++) {
+    for (let i = fi; i < ti; i++) {
       const s = TIME_SLOTS_30MIN[i];
       if (s) result.add(s);
     }
@@ -110,12 +110,12 @@ function slotsToRanges(slots: string[]): TimeRange[] {
     if (indices[i] === end + 1) {
       end = indices[i]!;
     } else {
-      ranges.push({ from: TIME_SLOTS_30MIN[start]!, to: TIME_SLOTS_30MIN[end]! });
+      ranges.push({ from: TIME_SLOTS_30MIN[start]!, to: TIME_SLOTS_30MIN[end + 1] ?? TIME_SLOTS_30MIN[end]! });
       start = indices[i]!;
       end = indices[i]!;
     }
   }
-  ranges.push({ from: TIME_SLOTS_30MIN[start]!, to: TIME_SLOTS_30MIN[end]! });
+  ranges.push({ from: TIME_SLOTS_30MIN[start]!, to: TIME_SLOTS_30MIN[end + 1] ?? TIME_SLOTS_30MIN[end]! });
   return ranges;
 }
 
@@ -129,6 +129,18 @@ function utcToLocalLabel(utcTime: string): string {
 
 function formatSlotLabel(slot: string): string {
   return `${slot} UTC (${utcToLocalLabel(slot)})`;
+}
+
+function getSlotDuration(from: string, to: string, slots: string[]): string {
+  const fi = slots.indexOf(from);
+  const ti = slots.indexOf(to);
+  if (fi < 0 || ti < 0 || ti <= fi) return '';
+  const mins = (ti - fi) * 30;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h > 0 && m > 0) return `${h}h ${m}m`;
+  if (h > 0) return `${h}h`;
+  return `${m}m`;
 }
 
 // ─── Searchable Time Slot Dropdown ───
@@ -236,12 +248,14 @@ const TimeRangeRow: React.FC<{
   const fromIdx = TIME_SLOTS_30MIN.indexOf(range.from);
   const toIdx = TIME_SLOTS_30MIN.indexOf(range.to);
   const isInvalid = fromIdx >= 0 && toIdx >= 0 && toIdx < fromIdx;
+  const isZeroDuration = fromIdx >= 0 && toIdx >= 0 && fromIdx === toIdx;
+  const duration = getSlotDuration(range.from, range.to, TIME_SLOTS_30MIN);
 
   return (
     <div style={{
       padding: '0.6rem 0.65rem', borderRadius: '8px',
-      border: `1px solid ${isInvalid ? '#ef444460' : '#1e1e24'}`,
-      backgroundColor: isInvalid ? '#ef444408' : '#0d1117',
+      border: `1px solid ${isInvalid ? '#ef444460' : isZeroDuration ? '#f9731640' : '#1e1e24'}`,
+      backgroundColor: isInvalid ? '#ef444408' : isZeroDuration ? '#f9731608' : '#0d1117',
     }}>
       {total > 1 && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
@@ -270,10 +284,29 @@ const TimeRangeRow: React.FC<{
         </div>
         <span style={{ color: '#6b7280', fontSize: '0.75rem', fontWeight: 600, textAlign: 'center', paddingTop: isMobile ? '0' : '1.1rem', flexShrink: 0 }}>{t('eventCoordinator.timeTo', 'to')}</span>
         <div style={{ flex: 1 }}>
-          <label style={{ color: '#9ca3af', fontSize: '0.65rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>{t('eventCoordinator.timeTo_label', 'To')}</label>
+          <label style={{ color: '#9ca3af', fontSize: '0.65rem', fontWeight: 600, display: 'block', marginBottom: '0.15rem' }}>{t('eventCoordinator.timeTo_label', 'To')} <span style={{ fontWeight: 400, color: '#6b7280', fontSize: '0.55rem' }} title={t('eventCoordinator.toTooltip', 'End time — your availability runs up to this time')}>ⓘ</span></label>
           <ECTimeSlotDropdown value={range.to} onChange={(v) => onChange({ ...range, to: v })} disabled={disabled} isMobile={isMobile} minSlot={range.from} />
         </div>
       </div>
+      {duration && !isInvalid && !isZeroDuration && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.3rem' }}>
+          <span style={{ color: ACCENT, fontSize: '0.6rem', fontWeight: 600, whiteSpace: 'nowrap' }}>⏱ {duration}</span>
+          <div style={{ flex: 1, height: '3px', borderRadius: '2px', backgroundColor: '#1e1e24', position: 'relative', overflow: 'hidden' }}>
+            <div style={{
+              position: 'absolute', top: 0, bottom: 0,
+              left: `${(fromIdx / (TIME_SLOTS_30MIN.length - 1)) * 100}%`,
+              width: `${((toIdx - fromIdx) / (TIME_SLOTS_30MIN.length - 1)) * 100}%`,
+              backgroundColor: ACCENT + '60', borderRadius: '2px',
+              transition: 'left 0.2s ease, width 0.2s ease',
+            }} />
+          </div>
+        </div>
+      )}
+      {isZeroDuration && (
+        <p style={{ color: '#f97316', fontSize: '0.6rem', marginTop: '0.3rem', fontWeight: 600 }}>
+          ⚠️ {t('eventCoordinator.zeroDuration', 'From and To are the same — this range covers no time.')}
+        </p>
+      )}
       {isInvalid && (
         <p style={{ color: '#ef4444', fontSize: '0.6rem', marginTop: '0.3rem', fontWeight: 600 }}>
           ⚠️ {t('eventCoordinator.invalidRange', '"To" must be equal to or after "From".')}
@@ -333,7 +366,12 @@ const MyAvailabilityForm: React.FC<{
 
   const addRange = (day: number) => {
     setDayRanges(prev => {
-      const ranges = [...(prev[day] || []), { from: '12:00', to: '18:00' }];
+      const existing = prev[day] || [];
+      const lastRange = existing[existing.length - 1];
+      const lastToIdx = lastRange ? TIME_SLOTS_30MIN.indexOf(lastRange.to) : -1;
+      const newFromIdx = lastToIdx > 0 && lastToIdx < TIME_SLOTS_30MIN.length - 1 ? lastToIdx : 24;
+      const newToIdx = Math.min(newFromIdx + 12, TIME_SLOTS_30MIN.length - 1);
+      const ranges = [...existing, { from: TIME_SLOTS_30MIN[newFromIdx] ?? '12:00', to: TIME_SLOTS_30MIN[newToIdx] ?? '18:00' }];
       return { ...prev, [day]: ranges };
     });
   };
@@ -632,7 +670,12 @@ const ManualInputModal: React.FC<{
 
   const addRange = (day: number) => {
     setDayRanges(prev => {
-      const ranges = [...(prev[day] || []), { from: '12:00', to: '18:00' }];
+      const existing = prev[day] || [];
+      const lastRange = existing[existing.length - 1];
+      const lastToIdx = lastRange ? TIME_SLOTS_30MIN.indexOf(lastRange.to) : -1;
+      const newFromIdx = lastToIdx > 0 && lastToIdx < TIME_SLOTS_30MIN.length - 1 ? lastToIdx : 24;
+      const newToIdx = Math.min(newFromIdx + 12, TIME_SLOTS_30MIN.length - 1);
+      const ranges = [...existing, { from: TIME_SLOTS_30MIN[newFromIdx] ?? '12:00', to: TIME_SLOTS_30MIN[newToIdx] ?? '18:00' }];
       return { ...prev, [day]: ranges };
     });
   };

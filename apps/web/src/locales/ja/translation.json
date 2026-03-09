@@ -3023,6 +3023,9 @@
     "topPeakSlots": "トップピーク時間帯",
     "uniqueMembers": "メンバー",
     "activeSlots": "アクティブスロット",
+    "toTooltip": "終了時刻 — この時刻まで参加可能です",
+    "zeroDuration": "開始と終了が同じです — この範囲は時間を含みません。",
+    "clearDay": "クリア",
     "createScheduleBtn": "スケジュール作成",
     "day": "日",
     "deadlineHintUTC": "締切はUTCです",
@@ -3557,7 +3560,10 @@
     "editEntry": "エントリを編集",
     "exportList": "プレイヤーリストをコピー",
     "toastManualUpdated": "プレイヤーエントリが更新されました。",
-    "toastManualUpdateFailed": "プレイヤーエントリの更新に失敗しました。"
+    "toastManualUpdateFailed": "プレイヤーエントリの更新に失敗しました。",
+    "toTooltip": "終了時刻 — この時刻まで参加可能です",
+    "zeroDuration": "開始と終了が同じです — この範囲は時間を含みません。",
+    "duplicateWarning": "このユーザー名と同盟のプレイヤーは既に存在します。"
   },
   "battleRegistryLanding": {
     "pageTitle": "KvKバトル登録",

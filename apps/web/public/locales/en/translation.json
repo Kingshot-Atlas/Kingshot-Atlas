@@ -3569,7 +3569,10 @@
     "editEntry": "Edit entry",
     "exportList": "Copy Player List",
     "toastManualUpdated": "Player entry updated.",
-    "toastManualUpdateFailed": "Failed to update player entry."
+    "toastManualUpdateFailed": "Failed to update player entry.",
+    "toTooltip": "End time — your availability runs up to this time",
+    "zeroDuration": "From and To are the same — this range covers no time.",
+    "duplicateWarning": "A player with this username and alliance already exists."
   },
   "battleRegistryLanding": {
     "pageTitle": "KvK Battle Registry",
@@ -3808,7 +3811,10 @@
     "copyFrom": "Copy from...",
     "topPeakSlots": "Top Peak Slots",
     "uniqueMembers": "Members",
-    "activeSlots": "Active Slots"
+    "activeSlots": "Active Slots",
+    "toTooltip": "End time — your availability runs up to this time",
+    "zeroDuration": "From and To are the same — this range covers no time.",
+    "clearDay": "Clear"
   },
   "building": {
     "castle": "King's Castle",

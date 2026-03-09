@@ -60,11 +60,15 @@ export interface ManagerSearchResult {
 
 export type RegistryView = 'landing' | 'form' | 'manage' | 'gate';
 
-// Time slots: 12:00 UTC to 17:00 UTC in 30-minute increments
+// Time slots: full day in 30-minute increments (00:00 – 23:30) + 24:00 midnight sentinel
+// 24:00 is only valid as an exclusive "To" boundary (end-of-day)
 export const TIME_SLOTS: string[] = [
-  '12:00', '12:30', '13:00', '13:30',
-  '14:00', '14:30', '15:00', '15:30',
-  '16:00', '16:30', '17:00',
+  ...Array.from({ length: 48 }, (_, i) => {
+    const h = Math.floor(i / 2).toString().padStart(2, '0');
+    const m = (i % 2 === 0) ? '00' : '30';
+    return `${h}:${m}`;
+  }),
+  '24:00',
 ];
 
 // Troop types

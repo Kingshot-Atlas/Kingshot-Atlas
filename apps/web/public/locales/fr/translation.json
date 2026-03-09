@@ -3023,6 +3023,9 @@
     "topPeakSlots": "Créneaux de Pointe",
     "uniqueMembers": "Membres",
     "activeSlots": "Créneaux Actifs",
+    "toTooltip": "Heure de fin — votre disponibilité s'étend jusqu'à cette heure",
+    "zeroDuration": "Début et Fin sont identiques — ce créneau ne couvre aucun temps.",
+    "clearDay": "Effacer",
     "createScheduleBtn": "Créer un planning",
     "day": "Jour",
     "deadlineHintUTC": "La date limite est en UTC",
@@ -3557,7 +3560,10 @@
     "editEntry": "Modifier l'entrée",
     "exportList": "Copier la liste des joueurs",
     "toastManualUpdated": "Entrée du joueur mise à jour.",
-    "toastManualUpdateFailed": "Échec de la mise à jour de l'entrée du joueur."
+    "toastManualUpdateFailed": "Échec de la mise à jour de l'entrée du joueur.",
+    "toTooltip": "Heure de fin — votre disponibilité s'étend jusqu'à cette heure",
+    "zeroDuration": "Début et Fin sont identiques — ce créneau ne couvre aucun temps.",
+    "duplicateWarning": "Un joueur avec ce nom d'utilisateur et cette alliance existe déjà."
   },
   "battleRegistryLanding": {
     "pageTitle": "Registre de Bataille KvK",

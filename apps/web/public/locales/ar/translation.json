@@ -3023,6 +3023,9 @@
     "topPeakSlots": "أوقات الذروة الرئيسية",
     "uniqueMembers": "الأعضاء",
     "activeSlots": "الفترات النشطة",
+    "toTooltip": "وقت الانتهاء — توافرك يمتد حتى هذا الوقت",
+    "zeroDuration": "البداية والنهاية متساويتان — هذا النطاق لا يغطي أي وقت.",
+    "clearDay": "مسح",
     "createScheduleBtn": "إنشاء جدول",
     "day": "يوم",
     "deadlineHintUTC": "الموعد النهائي بتوقيت UTC",
@@ -3557,7 +3560,10 @@
     "editEntry": "تعديل الإدخال",
     "exportList": "نسخ قائمة اللاعبين",
     "toastManualUpdated": "تم تحديث إدخال اللاعب.",
-    "toastManualUpdateFailed": "فشل تحديث إدخال اللاعب."
+    "toastManualUpdateFailed": "فشل تحديث إدخال اللاعب.",
+    "toTooltip": "وقت الانتهاء — توافرك يمتد حتى هذا الوقت",
+    "zeroDuration": "البداية والنهاية متساويتان — هذا النطاق لا يغطي أي وقت.",
+    "duplicateWarning": "يوجد بالفعل لاعب بهذا الاسم والتحالف."
   },
   "battleRegistryLanding": {
     "pageTitle": "سجل معارك KvK",

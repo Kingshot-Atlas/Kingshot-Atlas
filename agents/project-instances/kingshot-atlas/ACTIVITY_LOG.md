@@ -4,6 +4,44 @@
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
 ## 2026-03-09 | Product Engineer | COMPLETED
+Task: Extend Battle Registry TIME_SLOTS to full day + fix overlap false positive deployment
+Files: types.ts, BattleRegistryForm.tsx, BattleRegistryDashboard.tsx, RegistryAnalytics.tsx, useBattleRegistry.ts
+Changes:
+- Extended TIME_SLOTS from 12:00-17:00 to full day (00:00-23:30) + 24:00 midnight sentinel
+- 24:00 is exclusive "To" boundary only — excluded from "From" dropdowns
+- Updated formatSlotLabel to display 24:00 as "00:00 UTC (Midnight)"
+- Made HOURLY_FRAMES in RegistryAnalytics dynamic (24h), only renders frames with data
+- Fixed smart defaults for new slots to default to 12:00-14:00 (not 00:00-24:00)
+- Updated all hardcoded TIME_SLOTS[0]/[length-1] references in form/dashboard defaults
+- i18n translations for UX polish keys added to all 9 locales
+Result: Build passes. 18 unit tests pass. Adjacent slots (12:00→13:00 + 13:00→14:00) no longer falsely flagged.
+
+## 2026-03-09 | Product Engineer | COMPLETED
+Task: Time Range UX Polish + Data Audit + Sophia Cavalry Hero
+Files: BattleRegistryForm.tsx, BattleRegistryDashboard.tsx, AllianceEventCoordinator.tsx, bearHuntData.ts, timeSlotConversion.ts (new), timeSlotConversion.test.ts (new)
+Changes:
+- Added Sophia cavalry hero (defensive lethality EG) to bear rally tier list
+- UX Polish across 3 components (BattleRegistryForm, BattleRegistryDashboard, AllianceEventCoordinator):
+  - Duration labels (e.g. "2h 30m") next to each time range row
+  - Visual timeline bar showing range coverage within the day
+  - Tooltip on "To" dropdown explaining exclusive boundary semantics
+  - Zero-duration validation (from===to) with orange warning hint
+  - Smarter defaults for new time slots (start where last slot ended)
+- Data Audit: Ran Supabase migration to trim extra boundary slots from alliance_event_availability (14 rows fixed)
+- Extracted rangesToSlots/slotsToRanges to shared utility (timeSlotConversion.ts) with 18 unit tests
+Result: All 18 unit tests pass. Migration verified via SQL query.
+
+## 2026-03-09 | Platform Engineer | COMPLETED
+Task: Fix time range overlap false positive — "to" treated as inclusive instead of exclusive boundary
+Files: BattleRegistryForm.tsx, useBattleRegistry.ts, BattleRegistryDashboard.tsx, RegistryAnalytics.tsx, AllianceEventCoordinator.tsx
+Changes:
+- Battle Registry: Changed `<=` to `<` in 3 overlap detection spots (findOverlap, submitEntry, overlapWarning)
+- Registry Analytics: Fixed getEntrySlotIndices to use `<` instead of `<=`, removed stale index 10 from HOURLY_FRAMES
+- Alliance Event Coordinator: Fixed rangesToSlots (exclusive end), slotsToRanges (to = next slot after last included)
+- Rule: "to" value in any time range is the exclusive boundary — adjacent slots (e.g., 12:00-13:00 and 13:00-14:00) do NOT overlap
+Result: Build passes. All time range tools now treat "to" as exclusive boundary.
+
+## 2026-03-09 | Product Engineer | COMPLETED
 Task: Bear Rally — Score persistence optimization + component refactor
 Files: bearHuntData.ts, BearRallyTierList.tsx (2365→420 lines), useBearRallyState.ts (new), BearShareMenu.tsx (new), BearListManager.tsx (new), BearPlayerForm.tsx (new), BearTierTable.tsx (new)
 Changes:

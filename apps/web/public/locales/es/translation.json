@@ -3022,6 +3022,9 @@
     "topPeakSlots": "Horarios Pico Principales",
     "uniqueMembers": "Miembros",
     "activeSlots": "Horarios Activos",
+    "toTooltip": "Hora de fin — tu disponibilidad llega hasta esta hora",
+    "zeroDuration": "Inicio y Fin son iguales — este rango no cubre ningún tiempo.",
+    "clearDay": "Limpiar",
     "createScheduleBtn": "Crear horario",
     "day": "Día",
     "deadlineHintUTC": "La fecha límite está en UTC",
@@ -3556,7 +3559,10 @@
     "editEntry": "Editar entrada",
     "exportList": "Copiar Lista de Jugadores",
     "toastManualUpdated": "Entrada de jugador actualizada.",
-    "toastManualUpdateFailed": "Error al actualizar la entrada del jugador."
+    "toastManualUpdateFailed": "Error al actualizar la entrada del jugador.",
+    "toTooltip": "Hora de fin — tu disponibilidad llega hasta esta hora",
+    "zeroDuration": "Inicio y Fin son iguales — este rango no cubre ningún tiempo.",
+    "duplicateWarning": "Ya existe un jugador con este nombre de usuario y alianza."
   },
   "battleRegistryLanding": {
     "pageTitle": "Registro de Batalla KvK",

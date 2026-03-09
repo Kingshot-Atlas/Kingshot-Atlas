@@ -14,7 +14,7 @@ function findOverlap(slots: TimeSlotRange[]): [number, number] | null {
   for (let i = 1; i < sorted.length; i++) {
     const prev = sorted[i - 1]!;
     const curr = sorted[i]!;
-    if (TIME_SLOTS.indexOf(curr.from) <= TIME_SLOTS.indexOf(prev.to)) {
+    if (TIME_SLOTS.indexOf(curr.from) < TIME_SLOTS.indexOf(prev.to)) {
       return [prev.idx, curr.idx];
     }
   }
@@ -30,7 +30,20 @@ function utcToLocalLabel(utcTime: string): string {
 }
 
 function formatSlotLabel(slot: string): string {
+  if (slot === '24:00') return '00:00 UTC (Midnight)';
   return `${slot} UTC (${utcToLocalLabel(slot)})`;
+}
+
+function getSlotDuration(from: string, to: string, slots: string[]): string {
+  const fi = slots.indexOf(from);
+  const ti = slots.indexOf(to);
+  if (fi < 0 || ti < 0 || ti <= fi) return '';
+  const mins = (ti - fi) * 30;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h > 0 && m > 0) return `${h}h ${m}m`;
+  if (h > 0) return `${h}h`;
+  return `${m}m`;
 }
 
 // ─── Searchable Time Slot Dropdown ──────────────────────────────────────
@@ -48,7 +61,7 @@ const TimeSlotDropdown: React.FC<TimeSlotDropdownProps> = ({ value, onChange, di
   const ref = useRef<HTMLDivElement>(null);
 
   const minIndex = minSlot ? TIME_SLOTS.indexOf(minSlot) : 0;
-  const availableSlots = TIME_SLOTS.filter((_, i) => i >= (minIndex >= 0 ? minIndex : 0));
+  const availableSlots = TIME_SLOTS.filter((s, i) => i >= (minIndex >= 0 ? minIndex : 0) && (minSlot || s !== '24:00'));
 
   const filtered = availableSlots.filter(slot =>
     formatSlotLabel(slot).toLowerCase().includes(search.toLowerCase())
@@ -264,11 +277,13 @@ const BattleRegistryForm: React.FC<BattleRegistryFormProps> = ({
                   const fromIdx = TIME_SLOTS.indexOf(slot.from);
                   const toIdx = TIME_SLOTS.indexOf(slot.to);
                   const isInvalidRange = fromIdx >= 0 && toIdx >= 0 && toIdx < fromIdx;
+                  const isZeroDuration = fromIdx >= 0 && toIdx >= 0 && fromIdx === toIdx;
+                  const duration = getSlotDuration(slot.from, slot.to, TIME_SLOTS);
                   return (
                     <div key={idx} style={{
                       padding: '0.75rem', borderRadius: '10px',
-                      border: `1px solid ${isOverlapping || isInvalidRange ? '#ef444460' : colors.borderSubtle}`,
-                      backgroundColor: isOverlapping || isInvalidRange ? '#ef444408' : 'transparent',
+                      border: `1px solid ${isOverlapping || isInvalidRange ? '#ef444460' : isZeroDuration ? '#f9731640' : colors.borderSubtle}`,
+                      backgroundColor: isOverlapping || isInvalidRange ? '#ef444408' : isZeroDuration ? '#f9731608' : 'transparent',
                     }}>
                       {formTimeSlots.length > 1 && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
@@ -300,7 +315,7 @@ const BattleRegistryForm: React.FC<BattleRegistryFormProps> = ({
                         </div>
                         <span style={{ color: colors.textMuted, fontSize: '0.8rem', fontWeight: 600, textAlign: 'center', paddingTop: isMobile ? '0' : '1.3rem', flexShrink: 0 }}>{t('battleRegistry.timeTo', 'to')}</span>
                         <div style={{ flex: 1 }}>
-                          <label style={labelStyle}>{t('battleRegistry.timeTo_label', 'To')}</label>
+                          <label style={labelStyle}>{t('battleRegistry.timeTo_label', 'To')} <span style={{ fontWeight: 400, color: colors.textMuted, fontSize: '0.6rem' }} title={t('battleRegistry.toTooltip', 'End time — your availability runs up to this time')}>ⓘ</span></label>
                           <TimeSlotDropdown value={slot.to} onChange={(v) => {
                             if (isClosed) return;
                             const updated = [...formTimeSlots];
@@ -309,6 +324,25 @@ const BattleRegistryForm: React.FC<BattleRegistryFormProps> = ({
                           }} disabled={isClosed || isLocked} isMobile={isMobile} minSlot={slot.from} />
                         </div>
                       </div>
+                      {duration && !isInvalidRange && !isZeroDuration && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.35rem' }}>
+                          <span style={{ color: '#22d3ee', fontSize: '0.65rem', fontWeight: 600, whiteSpace: 'nowrap' }}>⏱ {duration}</span>
+                          <div style={{ flex: 1, height: '4px', borderRadius: '2px', backgroundColor: `${colors.border}40`, position: 'relative', overflow: 'hidden' }}>
+                            <div style={{
+                              position: 'absolute', top: 0, bottom: 0,
+                              left: `${(fromIdx / (TIME_SLOTS.length - 1)) * 100}%`,
+                              width: `${((toIdx - fromIdx) / (TIME_SLOTS.length - 1)) * 100}%`,
+                              backgroundColor: '#ef444460', borderRadius: '2px',
+                              transition: 'left 0.2s ease, width 0.2s ease',
+                            }} />
+                          </div>
+                        </div>
+                      )}
+                      {isZeroDuration && (
+                        <p style={{ color: '#f97316', fontSize: '0.65rem', marginTop: '0.35rem', fontWeight: 600 }}>
+                          ⚠️ {t('battleRegistry.zeroDuration', 'From and To are the same — this range covers no time.')}
+                        </p>
+                      )}
                       {isInvalidRange && (
                         <p style={{ color: '#ef4444', fontSize: '0.65rem', marginTop: '0.35rem', fontWeight: 600 }}>
                           ⚠️ {t('battleRegistry.toastInvalidTimeRange', 'Invalid time range. "To" must be equal to or after "From".')}
@@ -323,7 +357,13 @@ const BattleRegistryForm: React.FC<BattleRegistryFormProps> = ({
                   );
                 })}
                 {!isClosed && !isLocked && formTimeSlots.length < 4 && (
-                  <button onClick={() => setFormTimeSlots([...formTimeSlots, { from: TIME_SLOTS[0] ?? '12:00', to: TIME_SLOTS[TIME_SLOTS.length - 1] ?? '18:00' }])}
+                  <button onClick={() => {
+                    const lastSlot = formTimeSlots[formTimeSlots.length - 1];
+                    const lastToIdx = lastSlot ? TIME_SLOTS.indexOf(lastSlot.to) : -1;
+                    const newFromIdx = lastToIdx > 0 && lastToIdx < TIME_SLOTS.length - 2 ? lastToIdx : 24;
+                    const newToIdx = Math.min(newFromIdx + 4, TIME_SLOTS.length - 1);
+                    setFormTimeSlots([...formTimeSlots, { from: TIME_SLOTS[newFromIdx] ?? '12:00', to: TIME_SLOTS[newToIdx] ?? '14:00' }]);
+                  }}
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                       padding: '0.55rem', borderRadius: '8px', border: `1px dashed ${colors.border}`,

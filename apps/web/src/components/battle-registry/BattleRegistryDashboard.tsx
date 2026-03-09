@@ -12,6 +12,18 @@ import {
 import { getEntryTimeSlots } from './useBattleRegistry';
 import RegistryAnalytics from './RegistryAnalytics';
 
+function getSlotDuration(from: string, to: string, slots: string[]): string {
+  const fi = slots.indexOf(from);
+  const ti = slots.indexOf(to);
+  if (fi < 0 || ti < 0 || ti <= fi) return '';
+  const mins = (ti - fi) * 30;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h > 0 && m > 0) return `${h}h ${m}m`;
+  if (h > 0) return `${h}h`;
+  return `${m}m`;
+}
+
 interface BattleRegistryDashboardProps {
   isMobile: boolean;
   registry: BattleRegistry;
@@ -72,7 +84,7 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
   const [manualUsername, setManualUsername] = useState('');
   const [manualAlliance, setManualAlliance] = useState('');
   const [manualTimeSlots, setManualTimeSlots] = useState<TimeSlotRange[]>([
-    { from: TIME_SLOTS[0] ?? '12:00', to: TIME_SLOTS[TIME_SLOTS.length - 1] ?? '18:00' },
+    { from: '12:00', to: '14:00' },
   ]);
   const [manualInfTier, setManualInfTier] = useState<number | null>(null);
   const [manualInfTg, setManualInfTg] = useState<number | null>(null);
@@ -90,7 +102,7 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
 
   const resetManualForm = () => {
     setManualUsername(''); setManualAlliance('');
-    setManualTimeSlots([{ from: TIME_SLOTS[0] ?? '12:00', to: TIME_SLOTS[TIME_SLOTS.length - 1] ?? '18:00' }]);
+    setManualTimeSlots([{ from: '12:00', to: '14:00' }]);
     setManualInfTier(null); setManualInfTg(null);
     setManualCavTier(null); setManualCavTg(null);
     setManualArcTier(null); setManualArcTg(null);
@@ -100,7 +112,13 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
     setManualTimeSlots(prev => prev.map((s, i) => i === idx ? { ...s, [field]: value } : s));
   };
   const addManualSlot = () => {
-    if (manualTimeSlots.length < 4) setManualTimeSlots(prev => [...prev, { from: TIME_SLOTS[0] ?? '12:00', to: TIME_SLOTS[TIME_SLOTS.length - 1] ?? '18:00' }]);
+    if (manualTimeSlots.length < 4) {
+      const lastSlot = manualTimeSlots[manualTimeSlots.length - 1];
+      const lastToIdx = lastSlot ? TIME_SLOTS.indexOf(lastSlot.to) : -1;
+      const newFromIdx = lastToIdx > 0 && lastToIdx < TIME_SLOTS.length - 2 ? lastToIdx : 24;
+      const newToIdx = Math.min(newFromIdx + 4, TIME_SLOTS.length - 1);
+      setManualTimeSlots(prev => [...prev, { from: TIME_SLOTS[newFromIdx] ?? '12:00', to: TIME_SLOTS[newToIdx] ?? '14:00' }]);
+    }
   };
   const removeManualSlot = (idx: number) => {
     if (manualTimeSlots.length > 1) setManualTimeSlots(prev => prev.filter((_, i) => i !== idx));
@@ -113,7 +131,7 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
         const a = manualTimeSlots[i]!, b = manualTimeSlots[j]!;
         const ai = TIME_SLOTS.indexOf(a.from), aj = TIME_SLOTS.indexOf(a.to);
         const bi = TIME_SLOTS.indexOf(b.from), bj = TIME_SLOTS.indexOf(b.to);
-        if (ai <= bj && bi <= aj) return true;
+        if (ai < bj && bi < aj) return true;
       }
     }
     return false;
@@ -378,26 +396,41 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
             </div>
             {/* Time Slots */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '0.75rem' }}>
-              {manualTimeSlots.map((slot, idx) => (
-                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <span style={{ color: colors.textMuted, fontSize: '0.65rem', fontWeight: 600, width: '16px', flexShrink: 0 }}>{idx + 1}.</span>
-                  <select value={slot.from} onChange={e => { updateManualSlot(idx, 'from', e.target.value); if (TIME_SLOTS.indexOf(e.target.value) > TIME_SLOTS.indexOf(slot.to)) updateManualSlot(idx, 'to', e.target.value); }}
-                    style={{ flex: 1, padding: '0.4rem 0.5rem', backgroundColor: colors.bg, border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.text, fontSize: '0.75rem', cursor: 'pointer', boxSizing: 'border-box' }}>
-                    {TIME_SLOTS.map(s => <option key={s} value={s}>{s} UTC</option>)}
-                  </select>
-                  <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>→</span>
-                  <select value={slot.to} onChange={e => updateManualSlot(idx, 'to', e.target.value)}
-                    style={{ flex: 1, padding: '0.4rem 0.5rem', backgroundColor: colors.bg, border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.text, fontSize: '0.75rem', cursor: 'pointer', boxSizing: 'border-box' }}>
-                    {TIME_SLOTS.filter((_, i) => i >= TIME_SLOTS.indexOf(slot.from)).map(s => <option key={s} value={s}>{s} UTC</option>)}
-                  </select>
-                  {manualTimeSlots.length > 1 && (
-                    <button onClick={() => removeManualSlot(idx)}
-                      style={{ padding: '0.25rem 0.4rem', borderRadius: '4px', border: `1px solid ${colors.error}40`, backgroundColor: 'transparent', color: colors.error, fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer' }}>
-                      {t('battleRegistry.removeSlot', 'Remove')}
-                    </button>
-                  )}
-                </div>
-              ))}
+              {manualTimeSlots.map((slot, idx) => {
+                const fromIdx = TIME_SLOTS.indexOf(slot.from);
+                const toIdx = TIME_SLOTS.indexOf(slot.to);
+                const isZeroDuration = fromIdx >= 0 && toIdx >= 0 && fromIdx === toIdx;
+                const duration = getSlotDuration(slot.from, slot.to, TIME_SLOTS);
+                return (
+                  <div key={idx}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <span style={{ color: colors.textMuted, fontSize: '0.65rem', fontWeight: 600, width: '16px', flexShrink: 0 }}>{idx + 1}.</span>
+                      <select value={slot.from} onChange={e => { updateManualSlot(idx, 'from', e.target.value); if (TIME_SLOTS.indexOf(e.target.value) > TIME_SLOTS.indexOf(slot.to)) updateManualSlot(idx, 'to', e.target.value); }}
+                        style={{ flex: 1, padding: '0.4rem 0.5rem', backgroundColor: colors.bg, border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.text, fontSize: '0.75rem', cursor: 'pointer', boxSizing: 'border-box' }}>
+                        {TIME_SLOTS.filter(s => s !== '24:00').map(s => <option key={s} value={s}>{s} UTC</option>)}
+                      </select>
+                      <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>→</span>
+                      <select value={slot.to} onChange={e => updateManualSlot(idx, 'to', e.target.value)}
+                        title={t('battleRegistry.toTooltip', 'End time — your availability runs up to this time')}
+                        style={{ flex: 1, padding: '0.4rem 0.5rem', backgroundColor: colors.bg, border: `1px solid ${isZeroDuration ? '#f97316' : colors.border}`, borderRadius: '6px', color: colors.text, fontSize: '0.75rem', cursor: 'pointer', boxSizing: 'border-box' }}>
+                        {TIME_SLOTS.filter((_, i) => i >= TIME_SLOTS.indexOf(slot.from)).map(s => <option key={s} value={s}>{s === '24:00' ? '00:00 UTC (Midnight)' : `${s} UTC`}</option>)}
+                      </select>
+                      {duration && <span style={{ color: '#22d3ee', fontSize: '0.6rem', fontWeight: 600, whiteSpace: 'nowrap' }}>{duration}</span>}
+                      {manualTimeSlots.length > 1 && (
+                        <button onClick={() => removeManualSlot(idx)}
+                          style={{ padding: '0.25rem 0.4rem', borderRadius: '4px', border: `1px solid ${colors.error}40`, backgroundColor: 'transparent', color: colors.error, fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer' }}>
+                          {t('battleRegistry.removeSlot', 'Remove')}
+                        </button>
+                      )}
+                    </div>
+                    {isZeroDuration && (
+                      <p style={{ color: '#f97316', fontSize: '0.6rem', marginTop: '0.15rem', marginLeft: '20px', fontWeight: 600 }}>
+                        ⚠️ {t('battleRegistry.zeroDuration', 'From and To are the same — this range covers no time.')}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
               {manualTimeSlots.length < 4 && (
                 <button onClick={addManualSlot}
                   style={{ alignSelf: 'flex-start', padding: '0.25rem 0.6rem', borderRadius: '6px', border: `1px solid ${colors.border}`, backgroundColor: 'transparent', color: colors.textSecondary, fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer', marginTop: '0.15rem' }}>

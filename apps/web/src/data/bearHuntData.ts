@@ -80,6 +80,7 @@ const CAVALRY_HEROES: HeroData[] = [
   { name: 'Petra',    troopType: 'cavalry',  egDirection: 'offensive',  egStat: 'attack' },
   { name: 'Margot',   troopType: 'cavalry',  egDirection: 'defensive',  egStat: 'lethality' },
   { name: 'Thrud',    troopType: 'cavalry',  egDirection: 'offensive',  egStat: 'lethality' },
+  { name: 'Sophia',   troopType: 'cavalry',  egDirection: 'defensive',  egStat: 'lethality' },
 ];
 
 const ARCHER_HEROES: HeroData[] = [

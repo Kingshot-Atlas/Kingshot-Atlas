@@ -3023,6 +3023,9 @@
     "topPeakSlots": "Top-Spitzenzeiten",
     "uniqueMembers": "Mitglieder",
     "activeSlots": "Aktive Zeitfenster",
+    "toTooltip": "Endzeit — deine Verfügbarkeit reicht bis zu dieser Uhrzeit",
+    "zeroDuration": "Beginn und Ende sind gleich — dieser Bereich deckt keine Zeit ab.",
+    "clearDay": "Löschen",
     "createScheduleBtn": "Zeitplan erstellen",
     "day": "Tag",
     "deadlineHintUTC": "Frist ist in UTC",
@@ -3557,7 +3560,10 @@
     "editEntry": "Eintrag bearbeiten",
     "exportList": "Spielerliste kopieren",
     "toastManualUpdated": "Spielereintrag aktualisiert.",
-    "toastManualUpdateFailed": "Fehler beim Aktualisieren des Spielereintrags."
+    "toastManualUpdateFailed": "Fehler beim Aktualisieren des Spielereintrags.",
+    "toTooltip": "Endzeit — deine Verfügbarkeit reicht bis zu dieser Uhrzeit",
+    "zeroDuration": "Beginn und Ende sind gleich — dieser Bereich deckt keine Zeit ab.",
+    "duplicateWarning": "Ein Spieler mit diesem Benutzernamen und dieser Allianz existiert bereits."
   },
   "battleRegistryLanding": {
     "pageTitle": "KvK Schlachtregister",

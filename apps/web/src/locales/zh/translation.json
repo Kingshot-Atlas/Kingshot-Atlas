@@ -3023,6 +3023,9 @@
     "topPeakSlots": "热门高峰时段",
     "uniqueMembers": "成员",
     "activeSlots": "活跃时段",
+    "toTooltip": "结束时间 — 你的可用时间到此为止",
+    "zeroDuration": "开始和结束时间相同 — 此范围不包含任何时间。",
+    "clearDay": "清除",
     "createScheduleBtn": "创建计划",
     "day": "天",
     "deadlineHintUTC": "截止时间为UTC",
@@ -3557,7 +3560,10 @@
     "editEntry": "编辑条目",
     "exportList": "复制玩家列表",
     "toastManualUpdated": "玩家条目已更新。",
-    "toastManualUpdateFailed": "更新玩家条目失败。"
+    "toastManualUpdateFailed": "更新玩家条目失败。",
+    "toTooltip": "结束时间 — 你的可用时间到此为止",
+    "zeroDuration": "开始和结束时间相同 — 此范围不包含任何时间。",
+    "duplicateWarning": "已存在使用此用户名和联盟的玩家。"
   },
   "battleRegistryLanding": {
     "pageTitle": "KvK战斗注册",

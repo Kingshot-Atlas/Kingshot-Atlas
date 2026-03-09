@@ -21,14 +21,11 @@ function sortPlayers(a: BattleRegistryEntry, b: BattleRegistryEntry): number {
   return a.username.localeCompare(b.username);
 }
 
-// Hourly frames for time distribution
-const HOURLY_FRAMES = [
-  { label: '12:00 – 13:00', slots: [0, 1] },
-  { label: '13:00 – 14:00', slots: [2, 3] },
-  { label: '14:00 – 15:00', slots: [4, 5] },
-  { label: '15:00 – 16:00', slots: [6, 7] },
-  { label: '16:00 – 17:00', slots: [8, 9, 10] },
-];
+// Hourly frames for time distribution (dynamic, covers full 24h)
+const HOURLY_FRAMES = Array.from({ length: 24 }, (_, h) => ({
+  label: `${h.toString().padStart(2, '0')}:00 – ${((h + 1) % 24).toString().padStart(2, '0')}:00`,
+  slots: [h * 2, h * 2 + 1],
+}));
 
 // Parse "T11/TG8" → { tier: 11, tg: 8 } or "T9" → { tier: 9, tg: -1 }
 function parseTroopCombo(label: string): { tier: number; tg: number } {
@@ -61,7 +58,7 @@ const RegistryAnalytics: React.FC<RegistryAnalyticsProps> = ({ entries, isMobile
     const indices = new Set<number>();
     getEntryTimeSlots(e).forEach(range => {
       const fi = TIME_SLOTS.indexOf(range.from), ti = TIME_SLOTS.indexOf(range.to);
-      for (let i = (fi >= 0 ? fi : 0); i <= (ti >= fi ? ti : fi); i++) indices.add(i);
+      for (let i = (fi >= 0 ? fi : 0); i < (ti >= fi ? ti : fi + 1); i++) indices.add(i);
     });
     return indices;
   };
@@ -170,7 +167,7 @@ const RegistryAnalytics: React.FC<RegistryAnalyticsProps> = ({ entries, isMobile
           <p style={{ color: colors.textMuted, fontSize: '0.8rem' }}>{t('battleRegistry.noEntriesYet', 'No registrations yet.')}</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-            {hourlyData.map((frame, fi) => {
+            {hourlyData.filter(f => f.count > 0).map((frame, fi) => {
               const pct = maxHourlyCount > 0 ? (frame.count / maxHourlyCount) * 100 : 0;
               const isExpanded = expandedTimeFrames.has(frame.label);
               return (
