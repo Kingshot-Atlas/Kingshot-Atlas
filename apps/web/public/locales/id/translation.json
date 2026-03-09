@@ -3345,8 +3345,9 @@
   },
   "toolDelegates": {
     "title": "Delegasi Alat",
-    "desc": "Berikan akses Alliance Base Designer ke hingga 2 anggota aliansi di kingdom Anda.",
+    "desc": "Berikan akses ke alat tertentu di Pusat Aliansi kepada hingga 2 anggota aliansi.",
     "added": "Delegasi berhasil ditambahkan",
+    "updateFailed": "Gagal memperbarui alat",
     "addFailed": "Gagal menambah delegasi",
     "removed": "Delegasi dihapus",
     "removeFailed": "Gagal menghapus delegasi",

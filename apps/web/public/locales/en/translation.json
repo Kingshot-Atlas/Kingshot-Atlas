@@ -3412,11 +3412,12 @@
   },
   "toolDelegates": {
     "title": "Tool Delegates",
-    "desc": "Grant up to 2 alliance members in your kingdom access to the Alliance Base Designer.",
+    "desc": "Grant up to 2 alliance members access to specific Alliance Center tools.",
     "added": "Delegate added successfully",
     "addFailed": "Failed to add delegate",
     "removed": "Delegate removed",
     "removeFailed": "Failed to remove delegate",
+    "updateFailed": "Failed to update tools",
     "unknownUser": "Unknown User",
     "remove": "Remove",
     "noDelegates": "No delegates yet. Add alliance members so they can help manage your tools.",

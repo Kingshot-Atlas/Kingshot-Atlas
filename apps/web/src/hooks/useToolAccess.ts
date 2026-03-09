@@ -4,10 +4,18 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { logger } from '../utils/logger';
 
+export type AllianceTool = 'base_designer' | 'bear_rally' | 'rally_coordinator';
+export const ALLIANCE_TOOLS: { id: AllianceTool; label: string }[] = [
+  { id: 'base_designer', label: 'Base Designer' },
+  { id: 'bear_rally', label: 'Bear Rally' },
+  { id: 'rally_coordinator', label: 'Rally Coordinator' },
+];
+
 export interface ToolDelegate {
   id: string;
   owner_id: string;
   delegate_id: string;
+  tool: 'all' | AllianceTool;
   created_at: string;
   // Joined from profiles
   delegate_username?: string;
@@ -30,13 +38,24 @@ export interface UserSearchResult {
   avatar_url?: string;
 }
 
+/** A delegate grouped by person, with the list of tools they have access to */
+export interface GroupedDelegate {
+  delegate_id: string;
+  delegate_username?: string;
+  delegate_avatar_url?: string;
+  tools: ('all' | AllianceTool)[];
+  rows: ToolDelegate[];
+}
+
 interface DelegateManagement {
   delegates: ToolDelegate[];
+  groupedDelegates: GroupedDelegate[];
   delegatesLoading: boolean;
   canAddDelegate: boolean;
   maxDelegates: number;
-  addDelegate: (username: string) => Promise<{ success: boolean; error?: string }>;
-  removeDelegate: (delegateId: string) => Promise<{ success: boolean; error?: string }>;
+  addDelegate: (username: string, tools?: AllianceTool[]) => Promise<{ success: boolean; error?: string }>;
+  removeDelegate: (delegateUserId: string) => Promise<{ success: boolean; error?: string }>;
+  updateDelegateTools: (delegateUserId: string, tools: AllianceTool[]) => Promise<{ success: boolean; error?: string }>;
   searchUsers: (query: string) => Promise<UserSearchResult[]>;
 }
 
@@ -117,7 +136,7 @@ export function useDelegateManagement(): DelegateManagement {
       // Fetch delegate rows
       const { data: rows, error } = await supabase
         .from('tool_delegates')
-        .select('id, owner_id, delegate_id, created_at')
+        .select('id, owner_id, delegate_id, tool, created_at')
         .eq('owner_id', user.id)
         .order('created_at', { ascending: true });
 
@@ -142,6 +161,7 @@ export function useDelegateManagement(): DelegateManagement {
           id: row.id,
           owner_id: row.owner_id,
           delegate_id: row.delegate_id,
+          tool: (row as { tool?: string }).tool as ToolDelegate['tool'] || 'all',
           created_at: row.created_at,
           delegate_username: p?.linked_username || p?.username,
           delegate_avatar_url: p?.avatar_url,
@@ -153,11 +173,13 @@ export function useDelegateManagement(): DelegateManagement {
   });
 
   const addMutation = useMutation({
-    mutationFn: async (username: string): Promise<{ success: boolean; error?: string }> => {
+    mutationFn: async ({ username, tools }: { username: string; tools?: AllianceTool[] }): Promise<{ success: boolean; error?: string }> => {
       if (!isSupabaseConfigured || !supabase || !user) {
         return { success: false, error: 'Not authenticated' };
       }
-      if (delegates.length >= MAX_DELEGATES) {
+      // Count unique delegates (not rows)
+      const uniqueDelegateIds = new Set(delegates.map(d => d.delegate_id));
+      if (uniqueDelegateIds.size >= MAX_DELEGATES) {
         return { success: false, error: `Maximum ${MAX_DELEGATES} delegates allowed` };
       }
 
@@ -192,15 +214,19 @@ export function useDelegateManagement(): DelegateManagement {
         return { success: false, error: 'notInKingdom' };
       }
 
-      // Check if already a delegate
-      const existing = delegates.find(d => d.delegate_id === targetProfile.id);
-      if (existing) {
-        return { success: false, error: 'This user is already your delegate' };
+      // Build rows to insert — one per tool (or 'all' if no specific tools)
+      const toolsToInsert: ('all' | AllianceTool)[] = tools && tools.length > 0 ? tools : ['all'];
+      const existingTools = new Set(delegates.filter(d => d.delegate_id === targetProfile.id).map(d => d.tool));
+      const newTools = toolsToInsert.filter(t => !existingTools.has(t));
+
+      if (newTools.length === 0) {
+        return { success: false, error: 'This user already has those tool delegations' };
       }
 
+      const rows = newTools.map(tool => ({ owner_id: user.id, delegate_id: targetProfile.id, tool }));
       const { error: insertError } = await supabase
         .from('tool_delegates')
-        .insert({ owner_id: user.id, delegate_id: targetProfile.id });
+        .insert(rows);
 
       if (insertError) {
         if (insertError.message.includes('Maximum 2 delegates')) {
@@ -220,15 +246,16 @@ export function useDelegateManagement(): DelegateManagement {
   });
 
   const removeMutation = useMutation({
-    mutationFn: async (delegateRowId: string): Promise<{ success: boolean; error?: string }> => {
+    mutationFn: async (delegateUserId: string): Promise<{ success: boolean; error?: string }> => {
       if (!isSupabaseConfigured || !supabase || !user) {
         return { success: false, error: 'Not authenticated' };
       }
 
+      // Remove ALL rows for this delegate (all tools)
       const { error } = await supabase
         .from('tool_delegates')
         .delete()
-        .eq('id', delegateRowId)
+        .eq('delegate_id', delegateUserId)
         .eq('owner_id', user.id);
 
       if (error) {
@@ -277,13 +304,79 @@ export function useDelegateManagement(): DelegateManagement {
     })) as UserSearchResult[];
   };
 
+  // Update tools for an existing delegate (replace all their rows)
+  const updateDelegateTools = async (delegateUserId: string, tools: AllianceTool[]): Promise<{ success: boolean; error?: string }> => {
+    if (!isSupabaseConfigured || !supabase || !user) {
+      return { success: false, error: 'Not authenticated' };
+    }
+    if (tools.length === 0) {
+      // No tools selected = remove delegate entirely
+      return removeMutation.mutateAsync(delegateUserId);
+    }
+
+    // Get current rows for this delegate
+    const currentTools = delegates.filter(d => d.delegate_id === delegateUserId).map(d => d.tool);
+    const toAdd = tools.filter(t => !currentTools.includes(t));
+    const toRemove = currentTools.filter(t => t !== 'all' && !tools.includes(t as AllianceTool));
+    // If they had 'all', remove the 'all' row and add specific tool rows
+    const hadAll = currentTools.includes('all');
+
+    if (hadAll) {
+      // Delete the 'all' row
+      await supabase.from('tool_delegates').delete().eq('owner_id', user.id).eq('delegate_id', delegateUserId).eq('tool', 'all');
+      // Insert all specific tool rows
+      const rows = tools.map(tool => ({ owner_id: user.id, delegate_id: delegateUserId, tool }));
+      const { error } = await supabase.from('tool_delegates').insert(rows);
+      if (error) { logger.error('Failed to update delegate tools:', error); return { success: false, error: 'Failed to update' }; }
+    } else {
+      // Remove deselected tools
+      if (toRemove.length > 0) {
+        await supabase.from('tool_delegates').delete().eq('owner_id', user.id).eq('delegate_id', delegateUserId).in('tool', toRemove);
+      }
+      // Add newly selected tools
+      if (toAdd.length > 0) {
+        const rows = toAdd.map(tool => ({ owner_id: user.id, delegate_id: delegateUserId, tool }));
+        const { error } = await supabase.from('tool_delegates').insert(rows);
+        if (error) { logger.error('Failed to add delegate tools:', error); return { success: false, error: 'Failed to update' }; }
+      }
+    }
+
+    queryClient.invalidateQueries({ queryKey: ['tool-delegates', user?.id] });
+    return { success: true };
+  };
+
+  // Group delegates by person
+  const groupedDelegates: GroupedDelegate[] = (() => {
+    const map = new Map<string, GroupedDelegate>();
+    for (const d of delegates) {
+      const existing = map.get(d.delegate_id);
+      if (existing) {
+        existing.tools.push(d.tool);
+        existing.rows.push(d);
+      } else {
+        map.set(d.delegate_id, {
+          delegate_id: d.delegate_id,
+          delegate_username: d.delegate_username,
+          delegate_avatar_url: d.delegate_avatar_url,
+          tools: [d.tool],
+          rows: [d],
+        });
+      }
+    }
+    return Array.from(map.values());
+  })();
+
+  const uniqueDelegateCount = groupedDelegates.length;
+
   return {
     delegates,
+    groupedDelegates,
     delegatesLoading,
-    canAddDelegate: delegates.length < MAX_DELEGATES,
+    canAddDelegate: uniqueDelegateCount < MAX_DELEGATES,
     maxDelegates: MAX_DELEGATES,
-    addDelegate: addMutation.mutateAsync,
+    addDelegate: (username: string, tools?: AllianceTool[]) => addMutation.mutateAsync({ username, tools }),
     removeDelegate: removeMutation.mutateAsync,
+    updateDelegateTools,
     searchUsers,
   };
 }

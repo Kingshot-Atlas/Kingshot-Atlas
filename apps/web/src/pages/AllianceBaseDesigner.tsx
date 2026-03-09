@@ -52,8 +52,8 @@ const AllianceBaseDesigner: React.FC = () => {
   const [shareMenu, setShareMenu] = useState(false);
   const [shareToast, setShareToast] = useState<string | null>(null);
 
-  // Determine edit permission: owner/manager/delegate with tool access can edit; members get read-only
-  const canEdit = hasAccess && (ac.accessRole === 'owner' || ac.accessRole === 'manager' || ac.accessRole === 'delegate');
+  // Determine edit permission: owner/manager can edit all; delegates only if they have base_designer access
+  const canEdit = hasAccess && (ac.accessRole === 'owner' || ac.accessRole === 'manager' || (ac.accessRole === 'delegate' && ac.hasDelegateAccessTo('base_designer')));
   const rosterNames = useMemo(() => {
     if (!ac.members || ac.members.length === 0) return [];
     return ac.sortedMembers.map(m => m.player_name);

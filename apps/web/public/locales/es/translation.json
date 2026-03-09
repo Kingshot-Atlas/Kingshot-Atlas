@@ -3338,8 +3338,9 @@
   },
   "toolDelegates": {
     "title": "Delegados de Herramientas",
-    "desc": "Otorga acceso al Diseñador de Base de Alianza a hasta 2 miembros de tu alianza en tu reino.",
+    "desc": "Otorga acceso a herramientas específicas del Centro de Alianza a hasta 2 miembros de tu alianza.",
     "added": "Delegado añadido correctamente",
+    "updateFailed": "Error al actualizar herramientas",
     "addFailed": "Error al añadir delegado",
     "removed": "Delegado eliminado",
     "removeFailed": "Error al eliminar delegado",

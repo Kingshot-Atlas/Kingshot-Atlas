@@ -188,7 +188,7 @@ export function useAllianceEventCoordinator() {
     if (!isSupabaseConfigured || !supabase || !user || !alliance) {
       return { success: false, error: 'Not authenticated or no alliance' };
     }
-    if (!ac.canManage) {
+    if (!ac.canManage && !(ac.accessRole === 'delegate' && ac.hasDelegateAccessTo('rally_coordinator'))) {
       return { success: false, error: 'Only managers/owners can input for others' };
     }
 
@@ -235,7 +235,7 @@ export function useAllianceEventCoordinator() {
     if (!isSupabaseConfigured || !supabase || !user || !alliance) {
       return { success: false, error: 'Not authenticated' };
     }
-    if (!ac.canManage) {
+    if (!ac.canManage && !(ac.accessRole === 'delegate' && ac.hasDelegateAccessTo('rally_coordinator'))) {
       return { success: false, error: 'Only managers/owners can delete' };
     }
 
@@ -267,7 +267,7 @@ export function useAllianceEventCoordinator() {
     membersLoading: ac.membersLoading,
     isOwner: ac.isOwner,
     isManager: ac.isManager,
-    canManage: ac.canManage,
+    canManage: ac.canManage || (ac.accessRole === 'delegate' && ac.hasDelegateAccessTo('rally_coordinator')),
     accessRole: ac.accessRole,
 
     // Availability data

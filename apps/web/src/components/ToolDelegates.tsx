@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDelegateManagement, UserSearchResult } from '../hooks/useToolAccess';
+import { useDelegateManagement, UserSearchResult, ALLIANCE_TOOLS, AllianceTool } from '../hooks/useToolAccess';
 import { useToast } from './Toast';
 
 const ToolDelegates: React.FC = () => {
   const { t } = useTranslation();
   const { showToast } = useToast();
-  const { delegates, delegatesLoading, canAddDelegate, maxDelegates, addDelegate, removeDelegate, searchUsers } = useDelegateManagement();
+  const { groupedDelegates, delegatesLoading, canAddDelegate, maxDelegates, addDelegate, removeDelegate, updateDelegateTools, searchUsers } = useDelegateManagement();
+  const [updatingTools, setUpdatingTools] = useState<string | null>(null);
   const [username, setUsername] = useState('');
   const [adding, setAdding] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
@@ -34,12 +35,12 @@ const ToolDelegates: React.FC = () => {
     setSearching(true);
     const results = await searchUsers(query);
     // Filter out users already added as delegates
-    const delegateIds = new Set(delegates.map(d => d.delegate_id));
+    const delegateIds = new Set(groupedDelegates.map(d => d.delegate_id));
     setSearchResults(results.filter(r => !delegateIds.has(r.id)));
     setShowDropdown(true);
     setSearching(false);
     setHighlightIdx(-1);
-  }, [searchUsers, delegates]);
+  }, [searchUsers, groupedDelegates]);
 
   const handleInputChange = (value: string) => {
     setUsername(value);
@@ -69,14 +70,37 @@ const ToolDelegates: React.FC = () => {
     }
   };
 
-  const handleRemove = async (id: string) => {
-    setRemovingId(id);
-    const result = await removeDelegate(id);
+  const handleRemove = async (delegateUserId: string) => {
+    setRemovingId(delegateUserId);
+    const result = await removeDelegate(delegateUserId);
     setRemovingId(null);
     if (result.success) {
       showToast(t('toolDelegates.removed', 'Delegate removed'), 'success');
     } else {
       showToast(result.error || t('toolDelegates.removeFailed', 'Failed to remove delegate'), 'error');
+    }
+  };
+
+  const handleToolToggle = async (delegateUserId: string, currentTools: ('all' | AllianceTool)[], toolId: AllianceTool) => {
+    setUpdatingTools(delegateUserId);
+    const hasAll = currentTools.includes('all');
+    let newTools: AllianceTool[];
+    if (hasAll) {
+      // Switching from 'all' to specific: remove this tool, keep others
+      newTools = ALLIANCE_TOOLS.map(t => t.id).filter(t => t !== toolId);
+    } else {
+      const currentSpecific = currentTools.filter((t): t is AllianceTool => t !== 'all');
+      if (currentSpecific.includes(toolId)) {
+        newTools = currentSpecific.filter(t => t !== toolId);
+      } else {
+        newTools = [...currentSpecific, toolId];
+      }
+      // If all 3 tools are selected, upgrade to 'all' equivalent (keep all 3)
+    }
+    const result = await updateDelegateTools(delegateUserId, newTools);
+    setUpdatingTools(null);
+    if (!result.success) {
+      showToast(result.error || t('toolDelegates.updateFailed', 'Failed to update tools'), 'error');
     }
   };
 
@@ -127,12 +151,12 @@ const ToolDelegates: React.FC = () => {
           {t('toolDelegates.title', 'Tool Delegates')}
         </h3>
         <span style={{ color: '#6b7280', fontSize: '0.8rem', marginLeft: 'auto' }}>
-          {delegates.length}/{maxDelegates}
+          {groupedDelegates.length}/{maxDelegates}
         </span>
       </div>
 
       <p style={{ color: '#9ca3af', fontSize: '0.8rem', marginBottom: '1rem', lineHeight: 1.4 }}>
-        {t('toolDelegates.desc', 'Grant up to 2 alliance members in your kingdom access to the Alliance Base Designer.')}
+        {t('toolDelegates.desc', 'Grant up to 2 alliance members access to specific Alliance Center tools.')}
       </p>
 
       {/* Current delegates */}
@@ -140,55 +164,85 @@ const ToolDelegates: React.FC = () => {
         <div style={{ color: '#6b7280', fontSize: '0.85rem', padding: '0.5rem 0' }}>
           {t('common.loading', 'Loading...')}
         </div>
-      ) : delegates.length > 0 ? (
+      ) : groupedDelegates.length > 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
-          {delegates.map(d => (
-            <div key={d.id} style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '0.6rem 0.75rem',
-              backgroundColor: '#1a1a20',
-              borderRadius: '8px',
-              border: '1px solid #2a2a2a',
-            }}>
-              <div style={{
-                width: '28px',
-                height: '28px',
-                borderRadius: '50%',
-                backgroundColor: '#22d3ee20',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#22d3ee',
-                fontWeight: 'bold',
-                fontSize: '0.75rem',
-                flexShrink: 0,
+          {groupedDelegates.map(gd => {
+            const hasAll = gd.tools.includes('all');
+            return (
+              <div key={gd.delegate_id} style={{
+                padding: '0.6rem 0.75rem',
+                backgroundColor: '#1a1a20',
+                borderRadius: '8px',
+                border: '1px solid #2a2a2a',
               }}>
-                {d.delegate_username?.[0]?.toUpperCase() || '?'}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                  <div style={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    backgroundColor: '#22d3ee20',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#22d3ee',
+                    fontWeight: 'bold',
+                    fontSize: '0.75rem',
+                    flexShrink: 0,
+                  }}>
+                    {gd.delegate_username?.[0]?.toUpperCase() || '?'}
+                  </div>
+                  <span style={{ color: '#fff', fontSize: '0.85rem', flex: 1 }}>
+                    {gd.delegate_username || t('toolDelegates.unknownUser', 'Unknown User')}
+                  </span>
+                  <button
+                    onClick={() => handleRemove(gd.delegate_id)}
+                    disabled={removingId === gd.delegate_id}
+                    style={{
+                      padding: '0.25rem 0.5rem',
+                      backgroundColor: 'transparent',
+                      border: '1px solid #ef444440',
+                      borderRadius: '6px',
+                      color: '#ef4444',
+                      fontSize: '0.75rem',
+                      cursor: removingId === gd.delegate_id ? 'wait' : 'pointer',
+                      opacity: removingId === gd.delegate_id ? 0.5 : 1,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {removingId === gd.delegate_id ? '...' : t('toolDelegates.remove', 'Remove')}
+                  </button>
+                </div>
+                {/* Per-tool toggle pills */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', paddingLeft: '40px' }}>
+                  {ALLIANCE_TOOLS.map(tool => {
+                    const isActive = hasAll || gd.tools.includes(tool.id);
+                    const isUpdating = updatingTools === gd.delegate_id;
+                    return (
+                      <button
+                        key={tool.id}
+                        onClick={() => handleToolToggle(gd.delegate_id, gd.tools, tool.id)}
+                        disabled={isUpdating}
+                        style={{
+                          padding: '0.2rem 0.5rem',
+                          borderRadius: '6px',
+                          border: `1px solid ${isActive ? '#22c55e40' : '#2a2a2a'}`,
+                          backgroundColor: isActive ? '#22c55e15' : 'transparent',
+                          color: isActive ? '#22c55e' : '#6b7280',
+                          fontSize: '0.7rem',
+                          fontWeight: 600,
+                          cursor: isUpdating ? 'wait' : 'pointer',
+                          opacity: isUpdating ? 0.5 : 1,
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        {isActive ? '✓ ' : ''}{tool.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <span style={{ color: '#fff', fontSize: '0.85rem', flex: 1 }}>
-                {d.delegate_username || t('toolDelegates.unknownUser', 'Unknown User')}
-              </span>
-              <button
-                onClick={() => handleRemove(d.id)}
-                disabled={removingId === d.id}
-                style={{
-                  padding: '0.25rem 0.5rem',
-                  backgroundColor: 'transparent',
-                  border: '1px solid #ef444440',
-                  borderRadius: '6px',
-                  color: '#ef4444',
-                  fontSize: '0.75rem',
-                  cursor: removingId === d.id ? 'wait' : 'pointer',
-                  opacity: removingId === d.id ? 0.5 : 1,
-                  flexShrink: 0,
-                }}
-              >
-                {removingId === d.id ? '...' : t('toolDelegates.remove', 'Remove')}
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <p style={{ color: '#4b5563', fontSize: '0.8rem', marginBottom: '1rem', fontStyle: 'italic' }}>

@@ -3,6 +3,7 @@ import { useMemo, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { logger } from '../utils/logger';
+import type { AllianceTool } from './useToolAccess';
 
 // ─── Types ───
 
@@ -114,6 +115,8 @@ export interface UseAllianceCenterResult {
   isManager: boolean;
   canManage: boolean; // owner OR manager
   accessRole: 'owner' | 'manager' | 'delegate' | 'member' | 'none';
+  delegateTools: ('all' | AllianceTool)[] | undefined;
+  hasDelegateAccessTo: (tool: AllianceTool) => boolean;
 
   // Player profile data (resolved from player IDs)
   playerProfiles: Map<string, PlayerProfileData>;
@@ -141,9 +144,9 @@ export function useAllianceCenter(): UseAllianceCenterResult {
   const queryClient = useQueryClient();
 
   // ─── Fetch alliance (owner → manager → delegate path) ───
-  const { data: allianceData = { alliance: null, accessRole: 'none' as const }, isLoading: queryLoading } = useQuery({
+  const { data: allianceData = { alliance: null, accessRole: 'none' as const, delegateTools: undefined as ('all' | AllianceTool)[] | undefined }, isLoading: queryLoading } = useQuery({
     queryKey: ['alliance-center', user?.id],
-    queryFn: async (): Promise<{ alliance: Alliance | null; accessRole: 'owner' | 'manager' | 'delegate' | 'member' | 'none' }> => {
+    queryFn: async (): Promise<{ alliance: Alliance | null; accessRole: 'owner' | 'manager' | 'delegate' | 'member' | 'none'; delegateTools?: ('all' | AllianceTool)[] }> => {
       if (!isSupabaseConfigured || !supabase || !user) return { alliance: null, accessRole: 'none' };
 
       // 1. Check if user owns an alliance
@@ -174,20 +177,26 @@ export function useAllianceCenter(): UseAllianceCenterResult {
         if (mgrAlliance) return { alliance: mgrAlliance as Alliance, accessRole: 'manager' };
       }
 
-      // 3. Check if user is a delegate
-      const { data: delegateRow } = await supabase
+      // 3. Check if user is a delegate (may have multiple rows for different tools)
+      const { data: delegateRows } = await supabase
         .from('tool_delegates')
-        .select('owner_id')
-        .eq('delegate_id', user.id)
-        .maybeSingle();
+        .select('owner_id, tool')
+        .eq('delegate_id', user.id);
 
-      if (delegateRow) {
-        const { data: ownerAlliance } = await supabase
-          .from('alliances')
-          .select('*')
-          .eq('owner_id', delegateRow.owner_id)
-          .maybeSingle();
-        if (ownerAlliance) return { alliance: ownerAlliance as Alliance, accessRole: 'delegate' };
+      if (delegateRows && delegateRows.length > 0) {
+        // Group by owner and find one whose alliance exists
+        const ownerIds = [...new Set(delegateRows.map(r => r.owner_id))];
+        for (const ownerId of ownerIds) {
+          const { data: ownerAlliance } = await supabase
+            .from('alliances')
+            .select('*')
+            .eq('owner_id', ownerId)
+            .maybeSingle();
+          if (ownerAlliance) {
+            const tools = delegateRows.filter(r => r.owner_id === ownerId).map(r => (r as { tool: string }).tool as ('all' | AllianceTool));
+            return { alliance: ownerAlliance as Alliance, accessRole: 'delegate', delegateTools: tools };
+          }
+        }
       }
 
       // 4. Check if user is a member of an alliance (via linked_player_id)
@@ -222,6 +231,7 @@ export function useAllianceCenter(): UseAllianceCenterResult {
 
   const alliance = allianceData.alliance;
   const accessRole = allianceData.accessRole;
+  const delegateTools = allianceData.delegateTools;
   const isOwner = accessRole === 'owner';
   const isManager = accessRole === 'manager';
   const canManage = isOwner || isManager;
@@ -976,6 +986,11 @@ export function useAllianceCenter(): UseAllianceCenterResult {
     isManager,
     canManage,
     accessRole,
+    delegateTools,
+    hasDelegateAccessTo: (tool: AllianceTool) => {
+      if (accessRole !== 'delegate' || !delegateTools) return false;
+      return delegateTools.includes('all') || delegateTools.includes(tool);
+    },
 
     playerProfiles,
     playerProfilesLoading,

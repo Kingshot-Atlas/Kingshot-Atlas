@@ -3339,8 +3339,9 @@
   },
   "toolDelegates": {
     "title": "Tool-Delegierte",
-    "desc": "Gewähre bis zu 2 Allianz-Mitgliedern in deinem Königreich Zugang zum Allianz-Basis-Designer.",
+    "desc": "Gewähre bis zu 2 Allianz-Mitgliedern Zugang zu bestimmten Allianz-Zentrum-Tools.",
     "added": "Delegierter erfolgreich hinzugefügt",
+    "updateFailed": "Tools konnten nicht aktualisiert werden",
     "addFailed": "Delegierter konnte nicht hinzugefügt werden",
     "removed": "Delegierter entfernt",
     "removeFailed": "Delegierter konnte nicht entfernt werden",

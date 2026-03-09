@@ -3143,8 +3143,9 @@
   },
   "toolDelegates": {
     "title": "工具委托",
-    "desc": "授权您王国中最多2名联盟成员访问联盟基地设计师。",
+    "desc": "授权最多2名联盟成员访问特定的联盟中心工具。",
     "added": "委托添加成功",
+    "updateFailed": "更新工具失败",
     "addFailed": "添加委托失败",
     "removed": "委托已移除",
     "removeFailed": "移除委托失败",

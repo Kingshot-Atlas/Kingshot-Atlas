@@ -3339,8 +3339,9 @@
   },
   "toolDelegates": {
     "title": "Délégués d'outils",
-    "desc": "Accordez l'accès au Concepteur de Base d'Alliance à jusqu'à 2 membres de votre alliance dans votre royaume.",
+    "desc": "Accordez l'accès à des outils spécifiques du Centre d'Alliance à jusqu'à 2 membres de votre alliance.",
     "added": "Délégué ajouté avec succès",
+    "updateFailed": "Échec de la mise à jour des outils",
     "addFailed": "Échec de l'ajout du délégué",
     "removed": "Délégué supprimé",
     "removeFailed": "Échec de la suppression du délégué",

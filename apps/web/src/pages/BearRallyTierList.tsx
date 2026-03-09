@@ -221,8 +221,8 @@ const BearRallyTierList: React.FC = () => {
     ac.members.map(m => m.player_name).filter(Boolean).sort((a, b) => a.localeCompare(b)),
     [ac.members]
   );
-  // Edit access: owner/manager/delegate can edit; member sees read-only; no alliance = full access (local tool)
-  const canEdit = !ac.alliance || ac.canManage || ac.accessRole === 'delegate';
+  // Edit access: owner/manager can edit all; delegates only if they have bear_rally access; no alliance = full access (local tool)
+  const canEdit = !ac.alliance || ac.canManage || (ac.accessRole === 'delegate' && ac.hasDelegateAccessTo('bear_rally'));
 
   // ── Auth + Supabase sync ──
   const { user } = useAuth();

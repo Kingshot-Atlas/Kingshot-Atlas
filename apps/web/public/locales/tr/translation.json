@@ -3339,8 +3339,9 @@
   },
   "toolDelegates": {
     "title": "Araç Temsilcileri",
-    "desc": "Krallığınızdaki en fazla 2 ittifak üyesine İttifak Üssü Tasarımcısına erişim verin.",
+    "desc": "En fazla 2 ittifak üyesine belirli İttifak Merkezi araçlarına erişim verin.",
     "added": "Temsilci başarıyla eklendi",
+    "updateFailed": "Araçlar güncellenemedi",
     "addFailed": "Temsilci eklenemedi",
     "removed": "Temsilci kaldırıldı",
     "removeFailed": "Temsilci kaldırılamadı",

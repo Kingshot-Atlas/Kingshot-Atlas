@@ -4,6 +4,17 @@
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
 ## 2026-03-09 | Product Engineer | COMPLETED
+Task: Access Viewer redesign — tool-centric categories with role badges
+Files: apps/web/src/components/admin/AccessViewerTab.tsx, agents/project-instances/kingshot-atlas/FEATURES_IMPLEMENTED.md
+Changes:
+- Replaced 7 table-centric categories with 5 tool-centric ones: Kingdom Profile, KvK Battle Registry, Prep Day Scheduler, Battle Planner, Alliance Center
+- Merged tool_delegates + alliance_managers into Alliance Center section with specific tool callout (Base Designer, Bear Rally, Rally Coord.)
+- Merged tool_access + battle_managers into Battle Planner section
+- Added color-coded role badges: Editor, Co-Editor, Manager, Owner, Delegate, Admin Granted
+- Each delegate entry now shows which tools they can access
+Result: Access Viewer now matches how users think about tools, not database tables. Delegates clearly show what they have access to.
+
+## 2026-03-09 | Product Engineer | COMPLETED
 Task: Transfer Hub — Season Management admin tab + chronological history order
 Files: apps/web/src/components/admin/SeasonTab.tsx (new), apps/web/src/components/admin/TransferHubAdminTab.tsx, apps/web/src/components/admin/transferHubTypes.ts, apps/web/src/components/KingdomListingCard.tsx
 Changes:
