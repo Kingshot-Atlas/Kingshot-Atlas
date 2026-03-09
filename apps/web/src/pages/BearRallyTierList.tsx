@@ -35,7 +35,6 @@ import BearBulkEdit from '../components/bear/BearBulkEdit';
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const ACCENT = '#3b82f6'; // Blue theme for alliance tools
-const ACCENT_LIGHT = '#60a5fa';
 
 const EG_LEVELS = Array.from({ length: 11 }, (_, i) => i);
 
@@ -1574,18 +1573,18 @@ const BearRallyTierList: React.FC = () => {
                       >
                         <span style={{
                           fontSize: '0.8rem', fontWeight: 800,
-                          color: player.rank <= 3 ? ACCENT_LIGHT : '#6b7280',
+                          color: '#fff',
                           fontFamily: FONT_DISPLAY, minWidth: '24px',
                         }}>
                           #{player.rank}
-                        </span>
-                        <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {player.playerName}
                         </span>
                         <span style={{ fontSize: '0.85rem', fontWeight: 800, color: tierColor, fontFamily: FONT_DISPLAY }}>
                           {player.bearScore.toFixed(1)}
                         </span>
                         <TierBadge tier={player.tier} size="sm" />
+                        <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {player.playerName}
+                        </span>
                         <svg
                           width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5"
                           style={{ flexShrink: 0, transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
@@ -1594,41 +1593,40 @@ const BearRallyTierList: React.FC = () => {
                         </svg>
                       </div>
 
-                      {/* Expanded detail — troop rows with EG + edit/delete */}
+                      {/* Expanded detail — troop table + edit/delete */}
                       {isExpanded && (
                         <div style={{ padding: '0 0.85rem 0.6rem' }}>
-                          {([
-                            { label: 'INF', hero: player.infantryHero, eg: player.infantryEGLevel, atk: ds.infAtk, leth: ds.infLeth, color: '#3b82f6', bg: '#3b82f608' },
-                            { label: 'CAV', hero: player.cavalryHero, eg: player.cavalryEGLevel, atk: ds.cavAtk, leth: ds.cavLeth, color: '#f97316', bg: '#f9731608' },
-                            { label: 'ARC', hero: player.archerHero, eg: player.archerEGLevel, atk: ds.arcAtk, leth: ds.arcLeth, color: '#ef4444', bg: '#ef444408' },
-                          ] as const).map(troop => (
-                            <div key={troop.label} style={{
-                              display: 'flex', alignItems: 'center', gap: '0.4rem',
-                              padding: '0.25rem 0.4rem', marginBottom: '0.15rem',
-                              borderRadius: '6px', backgroundColor: troop.bg,
-                            }}>
-                              <span style={{ fontSize: '0.65rem', fontWeight: 800, color: troop.color, width: '26px', flexShrink: 0 }}>
-                                {troop.label}
-                              </span>
-                              <span style={{ fontSize: '0.7rem', color: '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                {troop.hero}
-                              </span>
-                              <span style={{ fontSize: '0.58rem', color: '#6b7280', flexShrink: 0 }}
-                                title={t('bearRally.egTooltip', 'Exclusive Gear (EG) — each hero\'s unique equipment that boosts specific stats. Levels range from 0 to 10.')}
-                              >
-                                EG{troop.eg}
-                              </span>
-                              <span style={{ flex: 1 }} />
-                              <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#d1d5db', fontVariantNumeric: 'tabular-nums', minWidth: '42px', textAlign: 'right' }}>
-                                {troop.atk}%
-                              </span>
-                              <span style={{ fontSize: '0.55rem', color: '#6b7280', flexShrink: 0 }}>A</span>
-                              <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#d1d5db', fontVariantNumeric: 'tabular-nums', minWidth: '42px', textAlign: 'right' }}>
-                                {troop.leth}%
-                              </span>
-                              <span style={{ fontSize: '0.55rem', color: '#6b7280', flexShrink: 0 }}>L</span>
-                            </div>
-                          ))}
+                          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <tbody>
+                              {([
+                                { label: 'INF', hero: player.infantryHero, eg: player.infantryEGLevel, atk: ds.infAtk, leth: ds.infLeth, color: '#3b82f6', bg: '#3b82f608' },
+                                { label: 'CAV', hero: player.cavalryHero, eg: player.cavalryEGLevel, atk: ds.cavAtk, leth: ds.cavLeth, color: '#f97316', bg: '#f9731608' },
+                                { label: 'ARC', hero: player.archerHero, eg: player.archerEGLevel, atk: ds.arcAtk, leth: ds.arcLeth, color: '#ef4444', bg: '#ef444408' },
+                              ] as const).map(troop => (
+                                <tr key={troop.label} style={{ backgroundColor: troop.bg }}>
+                                  <td style={{ fontSize: '0.65rem', fontWeight: 800, color: troop.color, padding: '0.3rem 0.4rem', width: '30px' }}>
+                                    {troop.label}
+                                  </td>
+                                  <td style={{ fontSize: '0.7rem', color: '#9ca3af', padding: '0.3rem 0.2rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80px' }}>
+                                    {troop.hero}
+                                  </td>
+                                  <td style={{ fontSize: '0.58rem', color: '#6b7280', padding: '0.3rem 0.2rem', width: '32px' }}
+                                    title={t('bearRally.egTooltip', 'Exclusive Gear (EG) — each hero\'s unique equipment that boosts specific stats. Levels range from 0 to 10.')}
+                                  >
+                                    EG{troop.eg}
+                                  </td>
+                                  <td style={{ fontSize: '0.7rem', fontWeight: 600, color: '#d1d5db', fontVariantNumeric: 'tabular-nums', padding: '0.3rem 0.2rem', textAlign: 'right' }}>
+                                    {troop.atk.toFixed(1)}%
+                                  </td>
+                                  <td style={{ fontSize: '0.55rem', color: '#6b7280', padding: '0.3rem 0', width: '12px', textAlign: 'center' }}>A</td>
+                                  <td style={{ fontSize: '0.7rem', fontWeight: 600, color: '#d1d5db', fontVariantNumeric: 'tabular-nums', padding: '0.3rem 0.2rem', textAlign: 'right' }}>
+                                    {troop.leth.toFixed(1)}%
+                                  </td>
+                                  <td style={{ fontSize: '0.55rem', color: '#6b7280', padding: '0.3rem 0.4rem 0.3rem 0', width: '12px' }}>L</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
 
                           {/* Edit / Delete actions */}
                           {canEdit && (
@@ -1778,14 +1776,14 @@ const BearRallyTierList: React.FC = () => {
                     </tr>
                     {/* Column header row */}
                     <tr style={{ backgroundColor: '#0d0d0d', borderBottom: '1px solid #2a2a2a' }}>
-                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#6b7280', textAlign: 'left', padding: '0.3rem 0.25rem 0.3rem 0.6rem' }}>#</th>
-                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.25rem' }}>
+                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#6b7280', textAlign: 'left', padding: '0.3rem 0.4rem' }}>#</th>
+                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.4rem' }}>
                         {t('bearRally.bearScore', 'Score')}
                       </th>
-                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.25rem' }}>
+                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.4rem' }}>
                         {t('bearRally.tierLabel', 'Tier')}
                       </th>
-                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', textAlign: 'left', padding: '0.3rem 0.25rem' }}>
+                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', textAlign: 'left', padding: '0.3rem 0.4rem' }}>
                         {t('bearRally.player', 'Player')}
                       </th>
                       {/* Heroes & Gear sub-headers: INF → CAV → ARC */}
@@ -1810,12 +1808,12 @@ const BearRallyTierList: React.FC = () => {
                       ))}
                       {/* Troop Bonuses sub-headers: INF → CAV → ARC */}
                       {([
-                        { emoji: '🛡️', label: t('bearRally.attack', 'Attack'), color: '#3b82f6' },
-                        { emoji: '🛡️', label: t('bearRally.lethality', 'Lethality'), color: '#3b82f6' },
-                        { emoji: '🐎', label: t('bearRally.attack', 'Attack'), color: '#f97316' },
-                        { emoji: '🐎', label: t('bearRally.lethality', 'Lethality'), color: '#f97316' },
-                        { emoji: '🏹', label: t('bearRally.attack', 'Attack'), color: '#ef4444' },
-                        { emoji: '🏹', label: t('bearRally.lethality', 'Lethality'), color: '#ef4444' },
+                        { emoji: '🛡️', label: t('bearRally.attackShort', 'Attack'), color: '#3b82f6' },
+                        { emoji: '🛡️', label: t('bearRally.lethalityShort', 'Lethality'), color: '#3b82f6' },
+                        { emoji: '🐎', label: t('bearRally.attackShort', 'Attack'), color: '#f97316' },
+                        { emoji: '🐎', label: t('bearRally.lethalityShort', 'Lethality'), color: '#f97316' },
+                        { emoji: '🏹', label: t('bearRally.attackShort', 'Attack'), color: '#ef4444' },
+                        { emoji: '🏹', label: t('bearRally.lethalityShort', 'Lethality'), color: '#ef4444' },
                       ] as const).map((col, i) => (
                         <th key={`tb-${i}`} style={{
                           fontSize: '0.6rem', fontWeight: 700, color: col.color, textTransform: 'uppercase',
@@ -1823,6 +1821,7 @@ const BearRallyTierList: React.FC = () => {
                         }}>
                           <div style={{ fontSize: '0.7rem', lineHeight: 1 }}>{col.emoji}</div>
                           <div style={{ lineHeight: 1.2, marginTop: '1px' }}>{col.label}</div>
+                          <div style={{ fontSize: '0.55rem', color: '#6b7280', lineHeight: 1, marginTop: '1px' }}>%</div>
                         </th>
                       ))}
                       {canEdit && <th style={{ padding: '0.3rem 0.15rem' }} />}
@@ -1840,16 +1839,16 @@ const BearRallyTierList: React.FC = () => {
                           onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#1a1a1a'; }}
                           onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
                         >
-                          <td style={{ ...tdBase, fontWeight: 800, color: player.rank <= 3 ? ACCENT_LIGHT : '#6b7280', fontFamily: FONT_DISPLAY, paddingLeft: '0.6rem' }}>
+                          <td style={{ ...tdBase, fontWeight: 800, color: '#fff', fontFamily: FONT_DISPLAY, padding: '0.4rem 0.4rem' }}>
                             #{player.rank}
                           </td>
-                          <td style={{ ...tdBase, fontWeight: 800, color: tierColor, fontFamily: FONT_DISPLAY, textAlign: 'center', fontSize: '0.78rem' }}>
+                          <td style={{ ...tdBase, fontWeight: 800, color: tierColor, fontFamily: FONT_DISPLAY, textAlign: 'center', fontSize: '0.78rem', padding: '0.4rem 0.4rem' }}>
                             {player.bearScore.toFixed(1)}
                           </td>
-                          <td style={{ ...tdBase, textAlign: 'center' }}>
+                          <td style={{ ...tdBase, textAlign: 'center', padding: '0.4rem 0.4rem' }}>
                             <TierBadge tier={player.tier} size="sm" />
                           </td>
-                          <td style={{ ...tdBase, fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <td style={{ ...tdBase, fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '0.4rem 0.4rem' }}>
                             {player.playerName}
                           </td>
                           {/* Heroes & Gear: INF → CAV → ARC */}
@@ -1860,12 +1859,12 @@ const BearRallyTierList: React.FC = () => {
                           <td style={{ ...heroCellBase, color: '#fca5a5' }}>{player.archerHero}</td>
                           <td style={{ ...gearCellBase, color: '#fca5a5' }}>{player.archerEGLevel}</td>
                           {/* Troop Bonuses: INF → CAV → ARC */}
-                          <td style={{ ...tdBase, fontWeight: 600, color: '#93c5fd', textAlign: 'center' }}>{ds.infAtk}</td>
-                          <td style={{ ...tdBase, fontWeight: 600, color: '#93c5fd', textAlign: 'center' }}>{ds.infLeth}</td>
-                          <td style={{ ...tdBase, fontWeight: 600, color: '#fdba74', textAlign: 'center' }}>{ds.cavAtk}</td>
-                          <td style={{ ...tdBase, fontWeight: 600, color: '#fdba74', textAlign: 'center' }}>{ds.cavLeth}</td>
-                          <td style={{ ...tdBase, fontWeight: 600, color: '#fca5a5', textAlign: 'center' }}>{ds.arcAtk}</td>
-                          <td style={{ ...tdBase, fontWeight: 600, color: '#fca5a5', textAlign: 'center' }}>{ds.arcLeth}</td>
+                          <td style={{ ...tdBase, fontWeight: 600, color: '#93c5fd', textAlign: 'center' }}>{ds.infAtk.toFixed(1)}</td>
+                          <td style={{ ...tdBase, fontWeight: 600, color: '#93c5fd', textAlign: 'center' }}>{ds.infLeth.toFixed(1)}</td>
+                          <td style={{ ...tdBase, fontWeight: 600, color: '#fdba74', textAlign: 'center' }}>{ds.cavAtk.toFixed(1)}</td>
+                          <td style={{ ...tdBase, fontWeight: 600, color: '#fdba74', textAlign: 'center' }}>{ds.cavLeth.toFixed(1)}</td>
+                          <td style={{ ...tdBase, fontWeight: 600, color: '#fca5a5', textAlign: 'center' }}>{ds.arcAtk.toFixed(1)}</td>
+                          <td style={{ ...tdBase, fontWeight: 600, color: '#fca5a5', textAlign: 'center' }}>{ds.arcLeth.toFixed(1)}</td>
                           {canEdit && (
                             <td style={{ ...tdBase, textAlign: 'center', paddingRight: '0.5rem' }}>
                               <div style={{ display: 'flex', justifyContent: 'center', gap: '0.15rem' }}>

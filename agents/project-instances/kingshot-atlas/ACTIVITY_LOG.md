@@ -4,6 +4,21 @@
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
 ## 2026-03-09 | Product Engineer | COMPLETED
+Task: Bear Rally Tier List — UI polish: consistent % headers, 1dp numbers, rank white, mobile reorder + table
+Files: apps/web/src/pages/BearRallyTierList.tsx, all 11 locale translation.json files
+Changes:
+- Desktop: separated % from column header labels into its own gray row (consistent wrapping for Attack and Lethality)
+- Desktop: all troop bonus numbers now show 1 decimal place via .toFixed(1)
+- Desktop: rank column text changed from blue to white
+- Desktop: equalized padding (0.4rem) across Rank, Score, Tier, Player columns
+- Mobile: reordered card header from Rank, Player, Score, Tier → Rank, Score, Tier, Player
+- Mobile: replaced flex-based expanded troop rows with table layout (no header) for tidier alignment
+- Mobile: all troop bonus numbers now show 1 decimal place
+- Added i18n keys attackShort/lethalityShort (without %) to all 11 locales
+- Removed unused ACCENT_LIGHT constant
+Result: Consistent visual formatting across desktop and mobile tier list views
+
+## 2026-03-09 | Product Engineer | COMPLETED
 Task: Bear Rally Tier List — Fix duplicate %, widen columns, add cross-device persistence
 Files: apps/web/src/pages/BearRallyTierList.tsx, Supabase migration (bear_rally_lists table)
 Changes:
