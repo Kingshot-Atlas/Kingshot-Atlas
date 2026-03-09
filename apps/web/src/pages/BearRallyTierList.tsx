@@ -1010,6 +1010,38 @@ const BearRallyTierList: React.FC = () => {
                 )
               )}
 
+              {/* Share / Link buttons */}
+              {players.length > 0 && (
+                <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', marginLeft: canEdit ? '0' : 'auto' }}>
+                  <button
+                    onClick={handleSharePreview}
+                    disabled={isCapturing}
+                    title={t('bearRally.shareScreenshot', 'Share as image')}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                      padding: '0.3rem 0.55rem', backgroundColor: '#1a1a1a',
+                      border: '1px solid #333', borderRadius: '6px',
+                      color: '#9ca3af', fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer',
+                      opacity: isCapturing ? 0.5 : 1,
+                    }}
+                  >
+                    📸 {!isMobile && t('bearRally.share', 'Share')}
+                  </button>
+                  <button
+                    onClick={handleCopyLink}
+                    title={t('bearRally.copyLink', 'Copy link')}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                      padding: '0.3rem 0.55rem', backgroundColor: '#1a1a1a',
+                      border: '1px solid #333', borderRadius: '6px',
+                      color: '#9ca3af', fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer',
+                    }}
+                  >
+                    🔗 {!isMobile && t('bearRally.link', 'Link')}
+                  </button>
+                </div>
+              )}
+
               {/* Dropdown menu */}
               {showListMenu && (
                 <div style={{
@@ -1592,49 +1624,43 @@ const BearRallyTierList: React.FC = () => {
                         {t('bearRally.player', 'Player')}
                       </th>
                       {/* Heroes & Gear sub-headers: INF → CAV → ARC */}
-                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem' }}>
-                        🛡️ {t('bearRally.hero', 'Hero')}
-                      </th>
-                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem', cursor: 'help' }}
-                        title={t('bearRally.egTooltip', 'Exclusive Gear (EG) — each hero\'s unique equipment that boosts specific stats. Levels range from 0 to 10.')}
-                      >
-                        🛡️ {t('bearRally.gearShort', 'Gear')}
-                      </th>
-                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#f97316', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem' }}>
-                        🐎 {t('bearRally.hero', 'Hero')}
-                      </th>
-                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#f97316', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem', cursor: 'help' }}
-                        title={t('bearRally.egTooltip', 'Exclusive Gear (EG) — each hero\'s unique equipment that boosts specific stats. Levels range from 0 to 10.')}
-                      >
-                        🐎 {t('bearRally.gearShort', 'Gear')}
-                      </th>
-                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#ef4444', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem' }}>
-                        🏹 {t('bearRally.hero', 'Hero')}
-                      </th>
-                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#ef4444', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem', cursor: 'help' }}
-                        title={t('bearRally.egTooltip', 'Exclusive Gear (EG) — each hero\'s unique equipment that boosts specific stats. Levels range from 0 to 10.')}
-                      >
-                        🏹 {t('bearRally.gearShort', 'Gear')}
-                      </th>
+                      {([
+                        { emoji: '🛡️', label: t('bearRally.hero', 'Hero'), color: '#3b82f6', isGear: false },
+                        { emoji: '🛡️', label: t('bearRally.gearShort', 'Gear'), color: '#3b82f6', isGear: true },
+                        { emoji: '🐎', label: t('bearRally.hero', 'Hero'), color: '#f97316', isGear: false },
+                        { emoji: '🐎', label: t('bearRally.gearShort', 'Gear'), color: '#f97316', isGear: true },
+                        { emoji: '🏹', label: t('bearRally.hero', 'Hero'), color: '#ef4444', isGear: false },
+                        { emoji: '🏹', label: t('bearRally.gearShort', 'Gear'), color: '#ef4444', isGear: true },
+                      ] as const).map((col, i) => (
+                        <th key={`hg-${i}`} style={{
+                          fontSize: '0.6rem', fontWeight: 700, color: col.color, textTransform: 'uppercase',
+                          textAlign: 'center', padding: '0.2rem 0.15rem', verticalAlign: 'bottom',
+                          cursor: col.isGear ? 'help' : undefined,
+                        }}
+                          title={col.isGear ? t('bearRally.egTooltip', 'Exclusive Gear (EG) — each hero\'s unique equipment that boosts specific stats. Levels range from 0 to 10.') : undefined}
+                        >
+                          <div style={{ fontSize: '0.7rem', lineHeight: 1 }}>{col.emoji}</div>
+                          <div style={{ lineHeight: 1.2, marginTop: '1px' }}>{col.label}</div>
+                        </th>
+                      ))}
                       {/* Troop Bonuses sub-headers: INF → CAV → ARC */}
-                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem' }}>
-                        🛡️ {t('bearRally.attack', 'Attack')}
-                      </th>
-                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem' }}>
-                        🛡️ {t('bearRally.lethality', 'Lethality')}
-                      </th>
-                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#f97316', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem' }}>
-                        🐎 {t('bearRally.attack', 'Attack')}
-                      </th>
-                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#f97316', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem' }}>
-                        🐎 {t('bearRally.lethality', 'Lethality')}
-                      </th>
-                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#ef4444', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem' }}>
-                        🏹 {t('bearRally.attack', 'Attack')}
-                      </th>
-                      <th style={{ fontSize: '0.6rem', fontWeight: 700, color: '#ef4444', textTransform: 'uppercase', textAlign: 'center', padding: '0.3rem 0.15rem' }}>
-                        🏹 {t('bearRally.lethality', 'Lethality')}
-                      </th>
+                      {([
+                        { emoji: '🛡️', label: t('bearRally.attack', 'Attack'), color: '#3b82f6' },
+                        { emoji: '🛡️', label: t('bearRally.lethality', 'Lethality'), color: '#3b82f6' },
+                        { emoji: '🐎', label: t('bearRally.attack', 'Attack'), color: '#f97316' },
+                        { emoji: '🐎', label: t('bearRally.lethality', 'Lethality'), color: '#f97316' },
+                        { emoji: '🏹', label: t('bearRally.attack', 'Attack'), color: '#ef4444' },
+                        { emoji: '🏹', label: t('bearRally.lethality', 'Lethality'), color: '#ef4444' },
+                      ] as const).map((col, i) => (
+                        <th key={`tb-${i}`} style={{
+                          fontSize: '0.6rem', fontWeight: 700, color: col.color, textTransform: 'uppercase',
+                          textAlign: 'center', padding: '0.2rem 0.15rem', verticalAlign: 'bottom',
+                        }}>
+                          <div style={{ fontSize: '0.7rem', lineHeight: 1 }}>{col.emoji}</div>
+                          <div style={{ lineHeight: 1.2, marginTop: '1px' }}>{col.label}</div>
+                          <div style={{ fontSize: '0.55rem', color: '#6b7280', lineHeight: 1, marginTop: '1px' }}>%</div>
+                        </th>
+                      ))}
                       {canEdit && <th style={{ padding: '0.3rem 0.15rem' }} />}
                     </tr>
                   </thead>
@@ -1807,7 +1833,7 @@ const BearRallyTierList: React.FC = () => {
                   ? t('bearRally.rankedOfTotal', '{{ranked}} ranked / {{total}} total', { ranked: rankedPlayers.length, total: players.length })
                   : t('bearRally.totalPlayers', '{{count}} players', { count: players.length })}
               </span>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                 {(['SS', 'S', 'A', 'B', 'C', 'D'] as BearTier[]).map(tier => {
                   const count = rankedPlayers.filter(p => p.tier === tier).length;
                   if (count === 0) return null;
@@ -1821,33 +1847,6 @@ const BearRallyTierList: React.FC = () => {
                     </span>
                   );
                 })}
-                <span style={{ color: '#333', fontSize: '0.6rem' }}>|</span>
-                <button
-                  onClick={handleSharePreview}
-                  disabled={isCapturing}
-                  title={t('bearRally.shareScreenshot', 'Share as image')}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
-                    padding: '0.2rem 0.5rem', backgroundColor: '#1a1a1a',
-                    border: '1px solid #333', borderRadius: '5px',
-                    color: '#9ca3af', fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer',
-                    opacity: isCapturing ? 0.5 : 1,
-                  }}
-                >
-                  📸 {t('bearRally.share', 'Share')}
-                </button>
-                <button
-                  onClick={handleCopyLink}
-                  title={t('bearRally.copyLink', 'Copy link')}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
-                    padding: '0.2rem 0.5rem', backgroundColor: '#1a1a1a',
-                    border: '1px solid #333', borderRadius: '5px',
-                    color: '#9ca3af', fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer',
-                  }}
-                >
-                  🔗 {t('bearRally.link', 'Link')}
-                </button>
               </div>
             </div>
           </div>

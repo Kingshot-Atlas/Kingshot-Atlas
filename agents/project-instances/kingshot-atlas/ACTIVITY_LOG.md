@@ -3,6 +3,16 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-08 | Product Engineer | COMPLETED
+Task: Bear Rally Tier List — Column header refactor + share button relocation
+Files: apps/web/src/pages/BearRallyTierList.tsx
+Changes:
+- Refactored desktop column headers to 3-row layout: emoji (row 1), label (row 2), % symbol (row 3 for troop bonus columns)
+- Moved Share (📸) and Link (🔗) buttons from summary footer to list selector bar for better discoverability
+- Mobile: buttons show emoji-only; desktop: emoji + text label
+- Buttons only visible when players exist in the list
+Result: Cleaner header visual hierarchy, share functionality more accessible in the toolbar area
+
 ## 2026-03-06 | Product Engineer | COMPLETED
 Task: Bear Rally Tier List — Refactor access permissions, list creation flow, and empty state UX
 Files: apps/web/src/pages/BearRallyTierList.tsx, 9 locale translation.json files
