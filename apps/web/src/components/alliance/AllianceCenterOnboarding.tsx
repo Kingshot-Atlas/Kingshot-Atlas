@@ -38,7 +38,7 @@ interface AllianceCenterOnboardingProps {
   onShowCreate: () => void;
 }
 
-const AllianceCenterOnboarding: React.FC<AllianceCenterOnboardingProps> = ({ hasAccess, reason, onShowCreate }) => {
+const AllianceCenterOnboarding: React.FC<AllianceCenterOnboardingProps> = ({ hasAccess, onShowCreate }) => {
   const { t } = useTranslation();
   const { user, profile } = useAuth();
   const { showToast } = useToast();

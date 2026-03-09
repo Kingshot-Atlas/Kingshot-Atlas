@@ -15,6 +15,7 @@ import { useToast } from '../components/Toast';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { BEAR_TIER_COLORS } from '../data/bearHuntData';
 import { Button } from '../components/shared';
+import AllianceCenterOnboarding from '../components/alliance/AllianceCenterOnboarding';
 
 const ACCENT = '#3b82f6';
 const ACCENT_DIM = '#3b82f615';
@@ -998,13 +999,13 @@ const EditMemberModal: React.FC<{
 };
 
 // ─── Applications Inbox (managers only) ───
-type AppRow = { id: string; applicant_username: string; applicant_player_id: string; status: string; created_at: string; resolved_at?: string };
+type AppRow = { id: string; applicant_username: string; applicant_player_id: string; applicant_user_id: string; message: string | null; status: string; created_at: string; resolved_at?: string };
 const ApplicationsInbox: React.FC<{
   allianceId: string;
   canManage: boolean;
   isMobile: boolean;
-  onApproved: () => void;
-}> = ({ allianceId, canManage, isMobile, onApproved }) => {
+  onResolved: () => void;
+}> = ({ allianceId, canManage, isMobile, onResolved }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
   const [apps, setApps] = useState<AppRow[]>([]);
@@ -1020,7 +1021,7 @@ const ApplicationsInbox: React.FC<{
     setLoading(true);
     const { data } = await supabase
       .from('alliance_applications')
-      .select('id, applicant_username, applicant_player_id, status, created_at, resolved_at')
+      .select('id, applicant_username, applicant_player_id, applicant_user_id, message, status, created_at, resolved_at')
       .eq('alliance_id', allianceId)
       .eq('status', 'pending')
       .order('created_at', { ascending: true });
@@ -1033,7 +1034,7 @@ const ApplicationsInbox: React.FC<{
     if (!isSupabaseConfigured || !supabase) return;
     const { data } = await supabase
       .from('alliance_applications')
-      .select('id, applicant_username, applicant_player_id, status, created_at, resolved_at')
+      .select('id, applicant_username, applicant_player_id, applicant_user_id, message, status, created_at, resolved_at')
       .eq('alliance_id', allianceId)
       .in('status', ['approved', 'rejected'])
       .order('resolved_at', { ascending: false })
@@ -1047,21 +1048,49 @@ const ApplicationsInbox: React.FC<{
   const handleAction = async (appId: string, status: 'approved' | 'rejected') => {
     if (!supabase) return;
     setProcessing(appId);
+    const currentUser = (await supabase.auth.getUser()).data.user;
+    const now = new Date().toISOString();
+    const app = apps.find(a => a.id === appId);
+
     const { error } = await supabase
       .from('alliance_applications')
-      .update({ status, resolved_by: (await supabase.auth.getUser()).data.user?.id })
+      .update({ status, resolved_by: currentUser?.id, resolved_at: now })
       .eq('id', appId);
     setProcessing(null);
     if (error) {
       showToast(t('allianceCenter.applicationActionFailed', 'Failed to process application'), 'error');
     } else {
+      // On approval: add applicant to alliance roster
+      if (status === 'approved' && app) {
+        await supabase.from('alliance_members').insert({
+          alliance_id: allianceId,
+          player_name: app.applicant_username,
+          player_id: app.applicant_player_id,
+          added_by: currentUser?.id,
+        });
+      }
+      // Notify the applicant
+      if (app) {
+        await supabase.from('notifications').insert({
+          user_id: app.applicant_user_id,
+          type: 'alliance_application_result',
+          title: status === 'approved'
+            ? t('allianceCenter.notifApprovedTitle', 'Application Approved!')
+            : t('allianceCenter.notifRejectedTitle', 'Application Update'),
+          message: status === 'approved'
+            ? t('allianceCenter.notifApprovedMsg', 'You\'ve been accepted into the alliance! Welcome aboard.')
+            : t('allianceCenter.notifRejectedMsg', 'Your alliance application was not accepted at this time.'),
+          link: '/tools/alliance-center',
+          metadata: { alliance_id: allianceId, status },
+        });
+      }
       showToast(
         status === 'approved'
           ? t('allianceCenter.applicationApproved', 'Application approved — member added!')
           : t('allianceCenter.applicationRejected', 'Application rejected'),
         status === 'approved' ? 'success' : 'info'
       );
-      if (status === 'approved') onApproved();
+      onResolved();
       fetchApps();
       if (showHistory) fetchHistory();
     }
@@ -1070,14 +1099,51 @@ const ApplicationsInbox: React.FC<{
   const handleBulkAction = async (status: 'approved' | 'rejected') => {
     if (!supabase || selected.size === 0) return;
     setBulkProcessing(true);
-    const userId = (await supabase.auth.getUser()).data.user?.id;
+    const currentUser = (await supabase.auth.getUser()).data.user;
+    const now = new Date().toISOString();
+    const selectedApps = apps.filter(a => selected.has(a.id));
+
     const results = await Promise.all(
       Array.from(selected).map(appId =>
-        supabase!.from('alliance_applications').update({ status, resolved_by: userId }).eq('id', appId)
+        supabase!.from('alliance_applications').update({ status, resolved_by: currentUser?.id, resolved_at: now }).eq('id', appId)
       )
     );
-    setBulkProcessing(false);
     const failures = results.filter(r => r.error);
+
+    // On approval: add all approved applicants to roster + notify
+    if (status === 'approved' && failures.length < selectedApps.length) {
+      const approvedApps = selectedApps.filter((_, i) => !results[i]?.error);
+      if (approvedApps.length > 0) {
+        await supabase.from('alliance_members').insert(
+          approvedApps.map(app => ({
+            alliance_id: allianceId,
+            player_name: app.applicant_username,
+            player_id: app.applicant_player_id,
+            added_by: currentUser?.id,
+          }))
+        );
+      }
+    }
+    // Notify all processed applicants
+    const processed = selectedApps.filter((_, i) => !results[i]?.error);
+    if (processed.length > 0) {
+      await supabase.from('notifications').insert(
+        processed.map(app => ({
+          user_id: app.applicant_user_id,
+          type: 'alliance_application_result',
+          title: status === 'approved'
+            ? t('allianceCenter.notifApprovedTitle', 'Application Approved!')
+            : t('allianceCenter.notifRejectedTitle', 'Application Update'),
+          message: status === 'approved'
+            ? t('allianceCenter.notifApprovedMsg', 'You\'ve been accepted into the alliance! Welcome aboard.')
+            : t('allianceCenter.notifRejectedMsg', 'Your alliance application was not accepted at this time.'),
+          link: '/tools/alliance-center',
+          metadata: { alliance_id: allianceId, status },
+        }))
+      );
+    }
+
+    setBulkProcessing(false);
     if (failures.length > 0) {
       showToast(t('allianceCenter.applicationActionFailed', 'Failed to process application'), 'error');
     } else {
@@ -1087,7 +1153,7 @@ const ApplicationsInbox: React.FC<{
           : t('allianceCenter.applicationRejected', 'Application rejected'),
         status === 'approved' ? 'success' : 'info'
       );
-      if (status === 'approved') onApproved();
+      onResolved();
     }
     fetchApps();
     if (showHistory) fetchHistory();
@@ -1105,7 +1171,7 @@ const ApplicationsInbox: React.FC<{
     else setSelected(new Set(apps.map(a => a.id)));
   };
 
-  if (!canManage || (apps.length === 0 && history.length === 0 && !loading && !showHistory)) return null;
+  if (!canManage) return null;
 
   return (
     <div style={{
@@ -1216,6 +1282,11 @@ const ApplicationsInbox: React.FC<{
                       {new Date(app.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </span>
                   </div>
+                  {app.message && (
+                    <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '0.25rem', fontStyle: 'italic', maxWidth: '300px' }}>
+                      "{app.message}"
+                    </div>
+                  )}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '0.3rem', flexShrink: 0 }}>
@@ -1295,6 +1366,7 @@ const AllianceDashboard: React.FC = () => {
   const ac = useAllianceCenter();
   const queryClient = useQueryClient();
   const { hasAccess, reason, grantedBy } = useToolAccess();
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -1310,6 +1382,23 @@ const AllianceDashboard: React.FC = () => {
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const appsRef = useRef<HTMLDivElement>(null);
+
+  // Pending application count for the tools row badge
+  const { data: pendingAppCount = 0 } = useQuery({
+    queryKey: ['alliance-pending-apps-count', ac.alliance?.id],
+    queryFn: async () => {
+      if (!isSupabaseConfigured || !supabase || !ac.alliance) return 0;
+      const { count } = await supabase
+        .from('alliance_applications')
+        .select('id', { count: 'exact', head: true })
+        .eq('alliance_id', ac.alliance.id)
+        .eq('status', 'pending');
+      return count ?? 0;
+    },
+    enabled: !!ac.alliance && ac.canManage,
+    staleTime: 30 * 1000,
+  });
 
   // Fetch availability summary per member (includes per-day detail for tooltip)
   const { data: availSummary = new Map<string, { days: number; slots: number; byDay: { day: number; slots: string[] }[] }>() } = useQuery({
@@ -1392,7 +1481,7 @@ const AllianceDashboard: React.FC = () => {
     );
   }
 
-  // No alliance — show create, delegate message, or "not in any alliance" for regular users
+  // No alliance — show delegate message, create form, or onboarding flow
   if (!ac.alliance) {
     if (ac.accessRole === 'delegate' || reason === 'delegate') {
       return (
@@ -1407,28 +1496,17 @@ const AllianceDashboard: React.FC = () => {
         </div>
       );
     }
-    // Supporters can create; regular users see "not in any alliance"
-    if (hasAccess) {
+    // If user chose to create, show the create form
+    if (showCreateForm && hasAccess) {
       return <CreateAllianceForm onCreated={() => window.location.reload()} createAlliance={ac.createAlliance} />;
     }
+    // Otherwise show the onboarding flow (apply / create choice / upgrade prompt)
     return (
-      <div style={{ minHeight: '50vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', textAlign: 'center' }}>
-        <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>🏰</div>
-        <h2 style={{ color: '#fff', fontSize: '1.25rem', marginBottom: '0.5rem' }}>
-          {t('allianceCenter.noAlliance', 'You\'re not in any Alliance Center')}
-        </h2>
-        <p style={{ color: '#6b7280', fontSize: '0.85rem', maxWidth: '420px', lineHeight: 1.6 }}>
-          {t('allianceCenter.noAllianceDesc', 'Ask your alliance leader to add your Player ID to their roster. Once added, you\'ll be able to view the roster and update your own troop levels here.')}
-        </p>
-        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <Link to="/support" style={{ textDecoration: 'none' }}>
-            <Button variant="primary">{t('allianceCenter.becomeSupporter', 'Become a Supporter')}</Button>
-          </Link>
-          <Link to="/tools" style={{ textDecoration: 'none' }}>
-            <Button variant="ghost">{t('allianceCenter.backToTools', 'Back to Tools')}</Button>
-          </Link>
-        </div>
-      </div>
+      <AllianceCenterOnboarding
+        hasAccess={hasAccess}
+        reason={reason}
+        onShowCreate={() => setShowCreateForm(true)}
+      />
     );
   }
 
@@ -1537,17 +1615,45 @@ const AllianceDashboard: React.FC = () => {
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#3b82f625'; }}>
             🐻 {t('allianceCenter.bearRallyLink', 'Bear Rally Tier List')}
           </Link>
+          {ac.canManage && (
+            <button
+              onClick={() => appsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                padding: '0.4rem 0.75rem', backgroundColor: '#a855f710', border: '1px solid #a855f725',
+                borderRadius: '8px', color: '#a855f7', fontSize: '0.75rem', fontWeight: 600, transition: 'border-color 0.15s',
+                minHeight: isMobile ? '44px' : undefined, WebkitTapHighlightColor: 'transparent',
+                cursor: 'pointer', position: 'relative',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#a855f7'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#a855f725'; }}
+            >
+              📩 {t('allianceCenter.applicationsLink', 'Applications')}
+              {pendingAppCount > 0 && (
+                <span style={{
+                  fontSize: '0.6rem', fontWeight: 700, padding: '0.1rem 0.4rem', borderRadius: '10px',
+                  backgroundColor: '#a855f730', color: '#a855f7', fontFamily: 'monospace',
+                  minWidth: '16px', textAlign: 'center',
+                }}>{pendingAppCount}</span>
+              )}
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Applications Inbox (managers only — auto-hides when empty) */}
+      {/* Applications Inbox (managers only) */}
       {ac.alliance && (
-        <ApplicationsInbox
-          allianceId={ac.alliance.id}
-          canManage={ac.canManage}
-          isMobile={isMobile}
-          onApproved={() => queryClient.invalidateQueries({ queryKey: ['alliance-members', ac.alliance?.id] })}
-        />
+        <div ref={appsRef} style={{ scrollMarginTop: '1rem' }}>
+          <ApplicationsInbox
+            allianceId={ac.alliance.id}
+            canManage={ac.canManage}
+            isMobile={isMobile}
+            onResolved={() => {
+              queryClient.invalidateQueries({ queryKey: ['alliance-members', ac.alliance?.id] });
+              queryClient.invalidateQueries({ queryKey: ['alliance-pending-apps-count', ac.alliance?.id] });
+            }}
+          />
+        </div>
       )}
 
       {/* Alliance Charts — Distribution Analytics */}
