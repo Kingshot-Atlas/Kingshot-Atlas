@@ -68,6 +68,8 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
   const [mobileExpanded, setMobileExpanded] = useState(false);
   const [topReviews, setTopReviews] = useState<Review[]>([]);
   const [topReviewsLoaded, setTopReviewsLoaded] = useState(false);
+  const [transferHistory, setTransferHistory] = useState<Array<{ event_number: number; group_number: number; status: string; is_unofficial: boolean }>>([]);
+  const [transferHistoryLoaded, setTransferHistoryLoaded] = useState(false);
 
   // Lazy-load top 5 helpful reviews when details section is expanded
   const loadTopReviews = useCallback(async () => {
@@ -81,6 +83,23 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
       setTopReviewsLoaded(true);
     }
   }, [kingdom.kingdom_number, reviewSummary, topReviewsLoaded]);
+
+  // Lazy-load transfer status history when details section is expanded
+  const loadTransferHistory = useCallback(async () => {
+    if (transferHistoryLoaded || !supabase) return;
+    try {
+      const { data } = await supabase
+        .from('transfer_status_history')
+        .select('event_number, group_number, status, is_unofficial')
+        .eq('kingdom_number', kingdom.kingdom_number)
+        .order('event_number', { ascending: false });
+      setTransferHistory(data || []);
+    } catch (err) {
+      logger.error('Error loading transfer history:', err);
+    } finally {
+      setTransferHistoryLoaded(true);
+    }
+  }, [kingdom.kingdom_number, transferHistoryLoaded]);
 
   const fundTier = fund?.tier || 'standard';
   const tierColor = TIER_COLORS[fundTier];
@@ -110,6 +129,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
     setExpandedSection(newSection);
     if (newSection === 'details') {
       loadTopReviews();
+      loadTransferHistory();
     }
   };
 
@@ -569,9 +589,10 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                 const statBox = (
                   <div style={{
                     textAlign: 'center',
-                    padding: '0.3rem 0.2rem',
+                    padding: '0.4rem 0.2rem',
                     border: `1px solid ${colors.border}`,
                     borderRadius: '6px',
+                    minHeight: '52px',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center',
@@ -692,6 +713,67 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                   </div>
                 </div>
               </div>
+              {/* Row 2.5: Invite Counters (Regular + Special) */}
+              {fund && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem' }}>
+                  <div style={{
+                    textAlign: 'center',
+                    padding: '0.3rem 0.2rem',
+                    border: `1px solid ${colors.border}`,
+                    borderRadius: '6px',
+                    minHeight: '42px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                  }}>
+                    <div style={{ fontSize: '0.5rem', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.05rem' }}>
+                      📨 {t('listing.regularInvites', 'Regular Invites')} 📨
+                    </div>
+                    {(() => {
+                      const total = 35;
+                      const used = fund.regular_invites_used ?? 0;
+                      const remaining = Math.max(0, total - used);
+                      const pct = remaining / total;
+                      return (
+                        <div style={{ fontSize: '0.8rem', fontWeight: '600', color: pct > 0.3 ? '#22c55e' : pct > 0 ? '#eab308' : '#ef4444', lineHeight: 1.2 }}>
+                          {remaining}/{total}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                  <div style={{
+                    textAlign: 'center',
+                    padding: '0.3rem 0.2rem',
+                    border: `1px solid ${colors.border}`,
+                    borderRadius: '6px',
+                    minHeight: '42px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                  }}>
+                    <div style={{ fontSize: '0.5rem', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.05rem' }}>
+                      ⭐ {t('listing.specialInvites', 'Special Invites')} ⭐
+                    </div>
+                    {(() => {
+                      const cap = fund.special_invite_cap ?? 0;
+                      const used = fund.special_invites_used ?? 0;
+                      const remaining = Math.max(0, cap - used);
+                      if (cap === 0) {
+                        return (
+                          <div style={{ fontSize: '0.75rem', fontWeight: '600', color: colors.textMuted, lineHeight: 1.2 }}>
+                            {t('listing.none', 'None')}
+                          </div>
+                        );
+                      }
+                      return (
+                        <div style={{ fontSize: '0.8rem', fontWeight: '600', color: remaining > 0 ? '#a855f7' : '#ef4444', lineHeight: 1.2 }}>
+                          {remaining}/{cap}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+              )}
               {/* Row 3: Kingdom Vibe (full width, 1 row, with empty state) */}
               <div style={{
                 padding: '0.35rem 0.4rem',
@@ -781,6 +863,45 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
             padding: '0.75rem 1rem',
             backgroundColor: colors.bg,
           }}>
+            {/* Transfer Status History */}
+            {transferHistoryLoaded && transferHistory.length > 0 && (
+              <div style={{ marginBottom: '0.6rem' }}>
+                <div style={{ fontSize: '0.6rem', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.35rem', fontWeight: '600' }}>
+                  🔀 {t('listing.transferHistory', 'Transfer History')}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+                  {transferHistory.map((h) => {
+                    const statusColors: Record<string, string> = {
+                      Ordinary: '#9ca3af', Heroic: '#3b82f6', Legendary: '#a855f7', Mythic: '#f59e0b',
+                    };
+                    const statusColor = statusColors[h.status] || colors.textMuted;
+                    return (
+                      <div key={h.event_number} style={{
+                        padding: '0.2rem 0.45rem',
+                        backgroundColor: `${statusColor}10`,
+                        border: `1px solid ${statusColor}30`,
+                        borderRadius: '6px',
+                        fontSize: '0.6rem',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                      }}>
+                        <span style={{ color: colors.textMuted, fontWeight: '500' }}>
+                          {t('listing.eventShort', 'E')}#{h.event_number}
+                        </span>
+                        <span style={{ color: statusColor, fontWeight: '700' }}>
+                          {h.status}
+                        </span>
+                        {h.is_unofficial && (
+                          <span style={{ color: colors.textMuted, fontSize: '0.5rem' }}>*</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* NAP / Sanctuary / Castle Rotation — same row */}
             {fund && (fund.nap_policy !== null || fund.sanctuary_distribution !== null || fund.castle_rotation !== null) && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '0.6rem' }}>

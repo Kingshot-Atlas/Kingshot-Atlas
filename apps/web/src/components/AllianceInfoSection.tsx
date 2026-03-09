@@ -27,14 +27,20 @@ const convertUtcToLocal = (utcTime: string): string => {
 
 export const AllianceDetailsGrid: React.FC<{
   alliances: string[];
-  allianceDetails: Record<string, { language?: string; secondary_language?: string; spots?: number }>;
+  allianceDetails: Record<string, { language?: string; secondary_language?: string; spots?: number; power_million?: number; is_recruiting?: boolean }>;
 }> = ({ alliances, allianceDetails }) => {
   const { t } = useTranslation();
 
-  const DETAIL_ROWS: { key: string; label: string; render: (detail: { language?: string; secondary_language?: string; spots?: number } | undefined) => string }[] = [
+  type AllianceDetail = { language?: string; secondary_language?: string; spots?: number; power_million?: number; is_recruiting?: boolean };
+  const DETAIL_ROWS: { key: string; label: string; render: (detail: AllianceDetail | undefined) => string; color?: (detail: AllianceDetail | undefined) => string }[] = [
+    { key: 'power_million', label: t('listing.alliancePower', 'Power'), render: (d) => {
+      if (d?.power_million == null) return '—';
+      return d.power_million >= 1000 ? `${(d.power_million / 1000).toFixed(d.power_million % 1000 === 0 ? 0 : 1)}B` : `${d.power_million.toLocaleString()}M`;
+    }},
     { key: 'language', label: t('listing.mainLanguage', 'Main Language'), render: (d) => d?.language || '—' },
     { key: 'secondary_language', label: t('listing.secondaryLanguage', 'Secondary Language'), render: (d) => d?.secondary_language || '—' },
     { key: 'spots', label: t('listing.availableSlots', 'Available Slots'), render: (d) => d?.spots != null ? String(d.spots) : '—' },
+    { key: 'is_recruiting', label: t('listing.recruiting', 'Recruiting'), render: (d) => d?.is_recruiting === true ? 'Yes' : d?.is_recruiting === false ? 'No' : '—', color: (d) => d?.is_recruiting === true ? '#22c55e' : d?.is_recruiting === false ? '#ef4444' : '' },
   ];
 
   return (
@@ -87,12 +93,13 @@ export const AllianceDetailsGrid: React.FC<{
             {alliances.map((tag, aIdx) => {
               const detail = allianceDetails[tag];
               const value = row.render(detail);
+              const customColor = row.color ? row.color(detail) : '';
               return (
                 <div key={aIdx} style={{
                   padding: '0.25rem 0.3rem',
                   fontSize: '0.6rem',
-                  color: value !== '—' ? colors.text : colors.textMuted,
-                  fontWeight: '500',
+                  color: customColor || (value !== '—' ? colors.text : colors.textMuted),
+                  fontWeight: row.key === 'power_million' || row.key === 'is_recruiting' ? '700' : '500',
                   textAlign: 'center',
                   borderLeft: `1px solid ${colors.border}`,
                   display: 'flex',

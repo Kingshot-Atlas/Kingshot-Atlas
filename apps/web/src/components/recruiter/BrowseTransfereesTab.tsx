@@ -269,9 +269,10 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
   };
 
   const getInviteBudget = () => {
-    if (!editorInfo || !fund) return { total: 35, used: usedInvites, bonus: 0 };
+    if (!editorInfo || !fund) return { total: 35, used: usedInvites, bonus: 0, specialTotal: 0, specialUsed: 0 };
     const base = 35;
-    return { total: base, used: usedInvites, bonus: 0 };
+    const specialTotal = fund.special_invite_cap || 0;
+    return { total: base, used: usedInvites, bonus: 0, specialTotal, specialUsed: 0 };
   };
 
   return (

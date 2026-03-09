@@ -56,7 +56,8 @@ export interface FundInfo {
     alliances: string[];
     schedule: Record<string, string[][]>;
   } | null;
-  alliance_details: Record<string, { language?: string; secondary_language?: string; spots?: number }> | null;
+  special_invite_cap: number;
+  alliance_details: Record<string, { language?: string; secondary_language?: string; spots?: number; power_million?: number; is_recruiting?: boolean }> | null;
   updated_at: string | null;
 }
 

@@ -377,6 +377,27 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
         </div>
       </ProfileField>
 
+      {/* Special Invite Cap (Bronze+) */}
+      <ProfileField label="Special Invites" tierRequired="bronze" currentTier={fund.tier}>
+        <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.4rem' }}>
+          Set the number of special invites available this transfer season (0–3). Special invites are for high-priority recruits and are tracked separately from regular invites.
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <select
+            value={profileDraft.special_invite_cap ?? fund.special_invite_cap ?? 0}
+            onChange={(e) => setProfileDraft(d => ({ ...d, special_invite_cap: parseInt(e.target.value) }))}
+            style={{ ...inputStyle, width: '80px' }}
+          >
+            {[0, 1, 2, 3].map(n => (
+              <option key={n} value={n}>{n}</option>
+            ))}
+          </select>
+          <span style={{ color: '#9ca3af', fontSize: '0.65rem' }}>
+            special invite{(profileDraft.special_invite_cap ?? fund.special_invite_cap ?? 0) !== 1 ? 's' : ''} available
+          </span>
+        </div>
+      </ProfileField>
+
       {/* Alliance Details (Bronze+) — language, secondary language, open spots per alliance */}
       <ProfileField label="Alliance Details" tierRequired="bronze" currentTier={fund.tier}>
         <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.4rem' }}>
@@ -395,8 +416,8 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
             );
           }
 
-          type AllianceDetail = { language?: string; secondary_language?: string; spots?: number };
-          const updateDetail = (key: string, field: keyof AllianceDetail, value: string | number | undefined) => {
+          type AllianceDetail = { language?: string; secondary_language?: string; spots?: number; power_million?: number; is_recruiting?: boolean };
+          const updateDetail = (key: string, field: keyof AllianceDetail, value: string | number | boolean | undefined) => {
             const updated = { ...allianceDetails as Record<string, AllianceDetail> };
             const current = updated[key] || {};
             updated[key] = { ...current, [field]: value };
@@ -460,6 +481,55 @@ const KingdomProfileTab: React.FC<KingdomProfileTabProps> = ({ fund, editorInfo,
                             placeholder="0-100"
                             style={inputStyle}
                           />
+                        </div>
+                      )}
+                      {['bronze', 'silver', 'gold'].includes(fund.tier) && (
+                        <div style={{ width: '110px' }}>
+                          <span style={{ color: '#6b7280', fontSize: '0.6rem' }}>Power (Millions)</span>
+                          <input
+                            type="number"
+                            min={0}
+                            max={99999}
+                            step={1}
+                            value={detail.power_million ?? ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === '') {
+                                updateDetail(key, 'power_million', undefined);
+                              } else {
+                                const num = Math.floor(Math.abs(parseInt(val) || 0));
+                                if (num <= 99999) updateDetail(key, 'power_million', num);
+                              }
+                            }}
+                            placeholder="e.g. 36000"
+                            style={inputStyle}
+                          />
+                          {detail.power_million != null && (
+                            <span style={{ color: '#9ca3af', fontSize: '0.55rem', display: 'block', marginTop: '0.1rem' }}>
+                              = {detail.power_million >= 1000 ? `${(detail.power_million / 1000).toFixed(detail.power_million % 1000 === 0 ? 0 : 1)}B` : `${detail.power_million}M`}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {['bronze', 'silver', 'gold'].includes(fund.tier) && (
+                        <div style={{ width: '90px' }}>
+                          <span style={{ color: '#6b7280', fontSize: '0.6rem' }}>Recruiting?</span>
+                          <div style={{ display: 'flex', gap: '0.2rem', marginTop: '0.25rem' }}>
+                            {[
+                              { v: true, label: 'Yes', color: '#22c55e' },
+                              { v: false, label: 'No', color: '#ef4444' },
+                            ].map((opt) => (
+                              <button key={String(opt.v)} onClick={() => updateDetail(key, 'is_recruiting', opt.v)} style={{
+                                flex: 1, padding: '0.3rem', borderRadius: '6px', fontSize: '0.6rem', fontWeight: '600', cursor: 'pointer',
+                                backgroundColor: detail.is_recruiting === opt.v ? `${opt.color}15` : '#0a0a0a',
+                                border: `1px solid ${detail.is_recruiting === opt.v ? `${opt.color}40` : '#2a2a2a'}`,
+                                color: detail.is_recruiting === opt.v ? opt.color : '#6b7280',
+                                minHeight: '32px',
+                              }}>
+                                {opt.label}
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>

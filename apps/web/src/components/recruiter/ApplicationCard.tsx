@@ -21,7 +21,7 @@ interface AppMessage {
 
 const ApplicationCard: React.FC<{
   application: IncomingApplication;
-  onStatusChange: (id: string, newStatus: string) => void;
+  onStatusChange: (id: string, newStatus: string, inviteType?: 'regular' | 'special') => void;
   updating: string | null;
   unreadCount?: number;
   kingdomNumber?: number;
@@ -904,55 +904,80 @@ const ApplicationCard: React.FC<{
               flexWrap: 'wrap',
             }}>
               {confirmingAccept ? (
-                <>
-                  <span style={{ color: '#22c55e', fontSize: '0.75rem', fontWeight: '600', alignSelf: 'center' }}>
-                    {t('appCard.acceptConfirm', 'Accept this application? Their identity will be revealed.')}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', width: '100%' }}>
+                  <span style={{ color: '#22c55e', fontSize: '0.75rem', fontWeight: '600' }}>
+                    {t('appCard.acceptConfirm', 'Accept this application? Choose invite type:')}
                   </span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setConfirmingAccept(false);
-                      onStatusChange(application.id, 'accepted');
-                    }}
-                    disabled={updating === application.id}
-                    style={{
-                      padding: '0.4rem 0.75rem',
-                      backgroundColor: '#22c55e20',
-                      border: '1px solid #22c55e50',
-                      borderRadius: '6px',
-                      color: '#22c55e',
-                      fontSize: '0.75rem',
-                      fontWeight: '700',
-                      cursor: 'pointer',
-                      minHeight: '44px',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                    }}
-                  >
-                    {t('appCard.yesAccept', 'Yes, Accept')}
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setConfirmingAccept(false);
-                    }}
-                    style={{
-                      padding: '0.4rem 0.75rem',
-                      backgroundColor: '#ffffff08',
-                      border: '1px solid #ffffff15',
-                      borderRadius: '6px',
-                      color: '#9ca3af',
-                      fontSize: '0.75rem',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      minHeight: '44px',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                    }}
-                  >
-                    {t('appCard.cancel', 'Cancel')}
-                  </button>
-                </>
+                  <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setConfirmingAccept(false);
+                        onStatusChange(application.id, 'accepted', 'regular');
+                      }}
+                      disabled={updating === application.id}
+                      style={{
+                        padding: '0.4rem 0.75rem',
+                        backgroundColor: '#22c55e20',
+                        border: '1px solid #22c55e50',
+                        borderRadius: '6px',
+                        color: '#22c55e',
+                        fontSize: '0.75rem',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        minHeight: '44px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      📨 {t('appCard.regularInvite', 'Regular Invite')}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setConfirmingAccept(false);
+                        onStatusChange(application.id, 'accepted', 'special');
+                      }}
+                      disabled={updating === application.id}
+                      style={{
+                        padding: '0.4rem 0.75rem',
+                        backgroundColor: '#a855f720',
+                        border: '1px solid #a855f750',
+                        borderRadius: '6px',
+                        color: '#a855f7',
+                        fontSize: '0.75rem',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        minHeight: '44px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      ⭐ {t('appCard.specialInvite', 'Special Invite')}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setConfirmingAccept(false);
+                      }}
+                      style={{
+                        padding: '0.4rem 0.75rem',
+                        backgroundColor: '#ffffff08',
+                        border: '1px solid #ffffff15',
+                        borderRadius: '6px',
+                        color: '#9ca3af',
+                        fontSize: '0.75rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        minHeight: '44px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      {t('appCard.cancel', 'Cancel')}
+                    </button>
+                  </div>
+                </div>
               ) : confirmingDecline ? (
                 <>
                   <span style={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: '600', alignSelf: 'center' }}>

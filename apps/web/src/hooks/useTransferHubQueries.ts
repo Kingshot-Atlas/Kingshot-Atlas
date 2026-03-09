@@ -135,12 +135,28 @@ export function useTransferKingdoms() {
 // ─── Kingdom Funds ────────────────────────────────────────────
 async function fetchFunds(): Promise<KingdomFund[]> {
   if (!supabase) return [];
-  const { data, error } = await supabase
-    .from('kingdom_funds')
-    .select('*');
+  const [fundsResult, inviteCountsResult] = await Promise.all([
+    supabase.from('kingdom_funds').select('*'),
+    supabase.rpc('get_all_kingdom_invite_counts'),
+  ]);
 
-  if (error) throw error;
-  return data || [];
+  if (fundsResult.error) throw fundsResult.error;
+  const funds: KingdomFund[] = fundsResult.data || [];
+
+  // Merge invite counts into fund objects
+  if (inviteCountsResult.data) {
+    const countMap = new Map<number, { regular_used: number; special_used: number }>();
+    for (const row of inviteCountsResult.data) {
+      countMap.set(row.kingdom_number, { regular_used: row.regular_used, special_used: row.special_used });
+    }
+    for (const fund of funds) {
+      const counts = countMap.get(fund.kingdom_number);
+      fund.regular_invites_used = counts?.regular_used ?? 0;
+      fund.special_invites_used = counts?.special_used ?? 0;
+    }
+  }
+
+  return funds;
 }
 
 export function useTransferFunds() {

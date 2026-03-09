@@ -17,6 +17,7 @@ export interface RecruiterDashboardState {
   activeTab: 'inbox' | 'browse' | 'team' | 'fund' | 'profile' | 'analytics';
   filterStatus: string;
   usedInvites: number;
+  specialUsedInvites: number;
   pendingInvite: { id: string; kingdom_number: number; assigned_by: string | null } | null;
   listingViews: number;
   showOnboarding: boolean;
@@ -29,13 +30,13 @@ export interface RecruiterDashboardActions {
   setActiveTab: (tab: RecruiterDashboardState['activeTab']) => void;
   setFilterStatus: (status: string) => void;
   setShowOnboarding: (show: boolean) => void;
-  handleStatusChange: (applicationId: string, newStatus: string) => Promise<void>;
+  handleStatusChange: (applicationId: string, newStatus: string, inviteType?: 'regular' | 'special') => Promise<void>;
   handleToggleRecruiting: () => Promise<void>;
   handleAcceptInvite: () => Promise<void>;
   handleDeclineInvite: () => Promise<void>;
   loadDashboard: (silent?: boolean) => Promise<void>;
   setFund: (fundOrUpdater: FundInfo | null | ((prev: FundInfo | null) => FundInfo | null)) => void;
-  getInviteBudget: () => { total: number; used: number; bonus: number };
+  getInviteBudget: () => { total: number; used: number; bonus: number; specialTotal: number; specialUsed: number };
 }
 
 export interface RecruiterDashboardDerived {
@@ -60,6 +61,7 @@ interface RecruiterDashboardData {
   team: TeamMember[];
   fund: FundInfo | null;
   usedInvites: number;
+  specialUsedInvites: number;
   pendingInvite: { id: string; kingdom_number: number; assigned_by: string | null } | null;
   listingViews: number;
   unreadMessageCount: number;
@@ -73,6 +75,7 @@ const EMPTY_DASHBOARD: RecruiterDashboardData = {
   team: [],
   fund: null,
   usedInvites: 0,
+  specialUsedInvites: 0,
   pendingInvite: null,
   listingViews: 0,
   unreadMessageCount: 0,
@@ -160,13 +163,15 @@ async function fetchRecruiterDashboard(userId: string): Promise<RecruiterDashboa
   // Get fund info
   const { data: fundData } = await supabase
     .from('kingdom_funds')
-    .select('kingdom_number, balance, tier, is_recruiting, recruitment_pitch, what_we_offer, what_we_want, min_tc_level, min_power_range, min_power_million, main_language, secondary_languages, event_times, contact_link, recruitment_tags, highlighted_stats, kingdom_vibe, nap_policy, sanctuary_distribution, castle_rotation, alliance_events, alliance_details, updated_at')
+    .select('kingdom_number, balance, tier, is_recruiting, recruitment_pitch, what_we_offer, what_we_want, min_tc_level, min_power_range, min_power_million, main_language, secondary_languages, event_times, contact_link, recruitment_tags, highlighted_stats, kingdom_vibe, nap_policy, sanctuary_distribution, castle_rotation, alliance_events, alliance_details, special_invite_cap, updated_at')
     .eq('kingdom_number', editor.kingdom_number)
     .maybeSingle();
 
-  // Get used invites count
+  // Get used invites count (regular + special)
   const { data: usedData } = await supabase
     .rpc('get_used_invites', { p_kingdom_number: editor.kingdom_number });
+  const { data: usedDetailedData } = await supabase
+    .rpc('get_used_invites_detailed', { p_kingdom_number: editor.kingdom_number });
 
   // Get listing views (last 30 days)
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
@@ -226,6 +231,7 @@ async function fetchRecruiterDashboard(userId: string): Promise<RecruiterDashboa
     team: enrichedTeam,
     fund: fundData || null,
     usedInvites: usedData ?? 0,
+    specialUsedInvites: usedDetailedData?.[0]?.special_used ?? 0,
     pendingInvite: null,
     listingViews: viewCount || 0,
     unreadMessageCount: unreadMsgCount,
@@ -255,6 +261,7 @@ export function useRecruiterDashboard(): RecruiterDashboardState & RecruiterDash
   const team = dashboardData?.team ?? [];
   const fund = dashboardData?.fund ?? null;
   const usedInvites = dashboardData?.usedInvites ?? 0;
+  const specialUsedInvites = dashboardData?.specialUsedInvites ?? 0;
   const pendingInvite = dashboardData?.pendingInvite ?? null;
   const listingViews = dashboardData?.listingViews ?? 0;
   const unreadMessageCount = dashboardData?.unreadMessageCount ?? 0;
@@ -331,12 +338,13 @@ export function useRecruiterDashboard(): RecruiterDashboardState & RecruiterDash
   }, [editorInfo?.kingdom_number, user?.id, showToast, refetch]);
 
   const getInviteBudget = useCallback(() => {
-    if (!editorInfo || !fund) return { total: 35, used: usedInvites, bonus: 0 };
+    if (!editorInfo || !fund) return { total: 35, used: usedInvites, bonus: 0, specialTotal: 0, specialUsed: specialUsedInvites };
     const base = 35;
-    return { total: base, used: usedInvites, bonus: 0 };
-  }, [editorInfo, fund, usedInvites]);
+    const specialTotal = fund.special_invite_cap || 0;
+    return { total: base, used: usedInvites, bonus: 0, specialTotal, specialUsed: specialUsedInvites };
+  }, [editorInfo, fund, usedInvites, specialUsedInvites]);
 
-  const handleStatusChange = useCallback(async (applicationId: string, newStatus: string) => {
+  const handleStatusChange = useCallback(async (applicationId: string, newStatus: string, inviteType?: 'regular' | 'special') => {
     if (!supabase || !user) return;
     setUpdating(applicationId);
 
@@ -358,6 +366,10 @@ export function useRecruiterDashboard(): RecruiterDashboardState & RecruiterDash
         updateData.viewed_at = new Date().toISOString();
       } else {
         updateData.responded_at = new Date().toISOString();
+      }
+      // Set invite_type when accepting
+      if (newStatus === 'accepted' && inviteType) {
+        updateData.invite_type = inviteType;
       }
 
       const { error } = await supabase
@@ -471,6 +483,7 @@ export function useRecruiterDashboard(): RecruiterDashboardState & RecruiterDash
     activeTab,
     filterStatus,
     usedInvites,
+    specialUsedInvites,
     pendingInvite,
     listingViews,
     showOnboarding,

@@ -83,7 +83,7 @@ interface InboxTabProps {
   approvedApps: IncomingApplication[];
   closedApps: IncomingApplication[];
   filteredApps: IncomingApplication[];
-  handleStatusChange: (applicationId: string, newStatus: string) => Promise<void>;
+  handleStatusChange: (applicationId: string, newStatus: string, inviteType?: 'regular' | 'special') => Promise<void>;
   updating: string | null;
   fundTier?: string;
   perAppUnreadCounts?: Record<string, number>;

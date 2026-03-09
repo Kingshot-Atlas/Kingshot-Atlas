@@ -46,7 +46,10 @@ export interface KingdomFund {
   nap_policy: boolean | null;
   sanctuary_distribution: boolean | null;
   castle_rotation: boolean | null;
-  alliance_details: Record<string, { language?: string; secondary_language?: string; spots?: number }> | null;
+  special_invite_cap: number;
+  alliance_details: Record<string, { language?: string; secondary_language?: string; spots?: number; power_million?: number; is_recruiting?: boolean }> | null;
+  regular_invites_used?: number;
+  special_invites_used?: number;
   updated_at?: string | null;
 }
 

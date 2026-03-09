@@ -1661,7 +1661,12 @@
     "allianceInfo": "Информация об альянсе",
     "goldPerksV2": "Преимущества Gold",
     "hideDetails": "Скрыть детали",
-    "seeDetails": "Подробнее"
+    "seeDetails": "Подробнее",
+    "regularInvites": "Обычные приглашения",
+    "specialInvites": "Специальные приглашения",
+    "none": "Нет",
+    "transferHistory": "История переводов",
+    "eventShort": "E"
   },
   "editor": {
     "activated": "Активировано!",
@@ -2618,7 +2623,9 @@
     "declineConfirm": "Отклонить эту заявку?",
     "yesDecline": "Да, отклонить",
     "markViewed": "Отметить просмотренным",
-    "acceptConfirm": "Принять заявку? Личность будет раскрыта.",
+    "acceptConfirm": "Принять заявку? Выберите тип приглашения:",
+    "regularInvite": "Обычное приглашение",
+    "specialInvite": "Специальное приглашение",
     "yesAccept": "Да, принять",
     "cancelApproval": "Отменить одобрение",
     "translate": "Перевести",
