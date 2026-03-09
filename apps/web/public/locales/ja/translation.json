@@ -3897,7 +3897,18 @@
     "emptyRosterHint": "{{count}}人のロスターメンバーが自動的に追加され、開始できます。",
     "emptyNoRoster": "ロスターメンバーが見つかりません — リスト作成後に手動でプレイヤーを追加できます。",
     "emptyReadOnly": "同盟のオーナー、マネージャー、またはデリゲートにリストの作成を依頼してください。",
-    "emptyListHint": "このリストにはまだプレイヤーがいません。最初のプレイヤーを追加して開始しましょう。"
+    "emptyListHint": "このリストにはまだプレイヤーがいません。最初のプレイヤーを追加して開始しましょう。",
+    "sectionHeroesGear": "ヒーロー＆装備",
+    "sectionTroopBonuses": "兵種ボーナス",
+    "incompleteSection": "未ランク — データ不足",
+    "rankedOfTotal": "{{ranked}} ランク済み / {{total}} 合計",
+    "share": "共有",
+    "shareScreenshot": "画像として共有",
+    "shareAction": "共有",
+    "download": "ダウンロード",
+    "copyLink": "リンクをコピー",
+    "link": "リンク",
+    "sharePreviewAlt": "ティアリストプレビュー"
   },
   "bearRallyLanding": {
     "pageTitle": "ベアラリーティアリスト",

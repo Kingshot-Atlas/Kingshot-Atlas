@@ -4014,7 +4014,18 @@
     "emptyRosterHint": "{{count}} roster members will be auto-added to get you started.",
     "emptyNoRoster": "No roster members found — you can add players manually after creating a list.",
     "emptyReadOnly": "Ask an alliance owner, manager, or delegate to create a list.",
-    "emptyListHint": "This list has no players yet. Add your first player to get started."
+    "emptyListHint": "This list has no players yet. Add your first player to get started.",
+    "sectionHeroesGear": "Heroes & Gear",
+    "sectionTroopBonuses": "Troop Bonuses",
+    "incompleteSection": "Unranked — Missing Data",
+    "rankedOfTotal": "{{ranked}} ranked / {{total}} total",
+    "share": "Share",
+    "shareScreenshot": "Share as image",
+    "shareAction": "Share",
+    "download": "Download",
+    "copyLink": "Copy Link",
+    "link": "Link",
+    "sharePreviewAlt": "Tier list preview"
   },
   "bearRallyLanding": {
     "pageTitle": "Bear Rally Tier List",

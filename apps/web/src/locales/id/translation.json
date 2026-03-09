@@ -3830,7 +3830,18 @@
     "addData": "Tambah Data",
     "formSectionHeroes": "① Pahlawan & Perlengkapan Eksklusif",
     "formSectionStats": "② Bonus Stat Pasukan",
-    "gearShort": "Gear"
+    "gearShort": "Gear",
+    "sectionHeroesGear": "Pahlawan & Peralatan",
+    "sectionTroopBonuses": "Bonus Pasukan",
+    "incompleteSection": "Belum Diperingkat — Data Kurang",
+    "rankedOfTotal": "{{ranked}} diperingkat / {{total}} total",
+    "share": "Bagikan",
+    "shareScreenshot": "Bagikan sebagai gambar",
+    "shareAction": "Bagikan",
+    "download": "Unduh",
+    "copyLink": "Salin tautan",
+    "link": "Tautan",
+    "sharePreviewAlt": "Pratinjau daftar tier"
   },
   "bearRallyLanding": {
     "pageTitle": "Daftar Tier Rally Beruang",

@@ -3897,7 +3897,18 @@
     "emptyRosterHint": "سيتم إضافة {{count}} عضو من القائمة تلقائيًا لمساعدتك في البدء.",
     "emptyNoRoster": "لم يتم العثور على أعضاء في القائمة — يمكنك إضافة لاعبين يدويًا بعد إنشاء قائمة.",
     "emptyReadOnly": "اطلب من مالك التحالف أو المدير أو المفوض إنشاء قائمة.",
-    "emptyListHint": "هذه القائمة لا تحتوي على لاعبين بعد. أضف أول لاعب للبدء."
+    "emptyListHint": "هذه القائمة لا تحتوي على لاعبين بعد. أضف أول لاعب للبدء.",
+    "sectionHeroesGear": "الأبطال والمعدات",
+    "sectionTroopBonuses": "مكافآت القوات",
+    "incompleteSection": "غير مصنف — بيانات ناقصة",
+    "rankedOfTotal": "{{ranked}} مصنف / {{total}} إجمالي",
+    "share": "مشاركة",
+    "shareScreenshot": "مشاركة كصورة",
+    "shareAction": "مشاركة",
+    "download": "تحميل",
+    "copyLink": "نسخ الرابط",
+    "link": "رابط",
+    "sharePreviewAlt": "معاينة قائمة المستويات"
   },
   "bearRallyLanding": {
     "pageTitle": "قائمة مستويات تجمع الدب",

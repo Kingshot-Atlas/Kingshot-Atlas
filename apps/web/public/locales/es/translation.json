@@ -3896,7 +3896,18 @@
     "emptyRosterHint": "{{count}} miembros del roster se agregarán automáticamente para comenzar.",
     "emptyNoRoster": "No se encontraron miembros del roster — puedes agregar jugadores manualmente después de crear una lista.",
     "emptyReadOnly": "Pide a un propietario, gerente o delegado de la alianza que cree una lista.",
-    "emptyListHint": "Esta lista aún no tiene jugadores. Agrega tu primer jugador para comenzar."
+    "emptyListHint": "Esta lista aún no tiene jugadores. Agrega tu primer jugador para comenzar.",
+    "sectionHeroesGear": "Héroes y Equipo",
+    "sectionTroopBonuses": "Bonos de Tropas",
+    "incompleteSection": "Sin clasificar — Datos incompletos",
+    "rankedOfTotal": "{{ranked}} clasificados / {{total}} total",
+    "share": "Compartir",
+    "shareScreenshot": "Compartir como imagen",
+    "shareAction": "Compartir",
+    "download": "Descargar",
+    "copyLink": "Copiar enlace",
+    "link": "Enlace",
+    "sharePreviewAlt": "Vista previa de la lista"
   },
   "bearRallyLanding": {
     "pageTitle": "Lista de Niveles de Rally del Oso",

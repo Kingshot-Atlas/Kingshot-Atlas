@@ -3897,7 +3897,18 @@
     "emptyRosterHint": "{{count}} Roster-Mitglieder werden automatisch hinzugefügt, um Ihnen den Einstieg zu erleichtern.",
     "emptyNoRoster": "Keine Roster-Mitglieder gefunden — Sie können nach dem Erstellen einer Liste Spieler manuell hinzufügen.",
     "emptyReadOnly": "Bitten Sie einen Allianzbesitzer, Manager oder Delegierten, eine Liste zu erstellen.",
-    "emptyListHint": "Diese Liste hat noch keine Spieler. Fügen Sie Ihren ersten Spieler hinzu, um zu beginnen."
+    "emptyListHint": "Diese Liste hat noch keine Spieler. Fügen Sie Ihren ersten Spieler hinzu, um zu beginnen.",
+    "sectionHeroesGear": "Helden & Ausrüstung",
+    "sectionTroopBonuses": "Truppenboni",
+    "incompleteSection": "Nicht bewertet — Fehlende Daten",
+    "rankedOfTotal": "{{ranked}} bewertet / {{total}} gesamt",
+    "share": "Teilen",
+    "shareScreenshot": "Als Bild teilen",
+    "shareAction": "Teilen",
+    "download": "Herunterladen",
+    "copyLink": "Link kopieren",
+    "link": "Link",
+    "sharePreviewAlt": "Stufenliste Vorschau"
   },
   "bearRallyLanding": {
     "pageTitle": "Bären-Rally Stufenliste",

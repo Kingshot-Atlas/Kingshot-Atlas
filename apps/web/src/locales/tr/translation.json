@@ -3897,7 +3897,18 @@
     "emptyRosterHint": "{{count}} kadro üyesi başlamanız için otomatik olarak eklenecektir.",
     "emptyNoRoster": "Kadro üyesi bulunamadı — liste oluşturduktan sonra oyuncuları manuel olarak ekleyebilirsiniz.",
     "emptyReadOnly": "İttifak sahibinden, yöneticiden veya delegeden bir liste oluşturmasını isteyin.",
-    "emptyListHint": "Bu listede henüz oyuncu yok. Başlamak için ilk oyuncunuzu ekleyin."
+    "emptyListHint": "Bu listede henüz oyuncu yok. Başlamak için ilk oyuncunuzu ekleyin.",
+    "sectionHeroesGear": "Kahramanlar ve Teçhizat",
+    "sectionTroopBonuses": "Birlik Bonusları",
+    "incompleteSection": "Sıralanmamış — Eksik Veri",
+    "rankedOfTotal": "{{ranked}} sıralanmış / {{total}} toplam",
+    "share": "Paylaş",
+    "shareScreenshot": "Resim olarak paylaş",
+    "shareAction": "Paylaş",
+    "download": "İndir",
+    "copyLink": "Bağlantıyı kopyala",
+    "link": "Bağlantı",
+    "sharePreviewAlt": "Seviye listesi önizleme"
   },
   "bearRallyLanding": {
     "pageTitle": "Ayı Rallisi Seviye Listesi",

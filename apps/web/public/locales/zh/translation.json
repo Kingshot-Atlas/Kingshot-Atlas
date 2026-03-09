@@ -3897,7 +3897,18 @@
     "emptyRosterHint": "{{count}} 名花名册成员将自动添加以帮助您开始。",
     "emptyNoRoster": "未找到花名册成员 — 您可以在创建列表后手动添加玩家。",
     "emptyReadOnly": "请联盟盟主、管理员或代理人创建列表。",
-    "emptyListHint": "此列表还没有玩家。添加您的第一个玩家以开始。"
+    "emptyListHint": "此列表还没有玩家。添加您的第一个玩家以开始。",
+    "sectionHeroesGear": "英雄与装备",
+    "sectionTroopBonuses": "部队加成",
+    "incompleteSection": "未排名 — 数据缺失",
+    "rankedOfTotal": "{{ranked}} 已排名 / {{total}} 总计",
+    "share": "分享",
+    "shareScreenshot": "分享为图片",
+    "shareAction": "分享",
+    "download": "下载",
+    "copyLink": "复制链接",
+    "link": "链接",
+    "sharePreviewAlt": "等级列表预览"
   },
   "bearRallyLanding": {
     "pageTitle": "猎熊集结等级列表",

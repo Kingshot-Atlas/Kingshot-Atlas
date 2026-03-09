@@ -3897,7 +3897,18 @@
     "emptyRosterHint": "{{count}} membres du roster seront ajoutés automatiquement pour vous aider à démarrer.",
     "emptyNoRoster": "Aucun membre du roster trouvé — vous pouvez ajouter des joueurs manuellement après avoir créé une liste.",
     "emptyReadOnly": "Demandez à un propriétaire, gestionnaire ou délégué de l'alliance de créer une liste.",
-    "emptyListHint": "Cette liste n'a pas encore de joueurs. Ajoutez votre premier joueur pour commencer."
+    "emptyListHint": "Cette liste n'a pas encore de joueurs. Ajoutez votre premier joueur pour commencer.",
+    "sectionHeroesGear": "Héros et Équipement",
+    "sectionTroopBonuses": "Bonus de Troupes",
+    "incompleteSection": "Non classé — Données manquantes",
+    "rankedOfTotal": "{{ranked}} classés / {{total}} total",
+    "share": "Partager",
+    "shareScreenshot": "Partager en image",
+    "shareAction": "Partager",
+    "download": "Télécharger",
+    "copyLink": "Copier le lien",
+    "link": "Lien",
+    "sharePreviewAlt": "Aperçu de la liste"
   },
   "bearRallyLanding": {
     "pageTitle": "Liste de Niveaux du Rally de l'Ours",

@@ -339,19 +339,32 @@ const BearBulkEdit: React.FC<BearBulkEditProps> = ({ existingPlayers, unscoredNa
       <div style={{ overflowX: 'auto', marginBottom: '0.75rem' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '900px' }}>
           <thead>
+            {/* Group header row */}
+            <tr style={{ borderBottom: '1px solid #2a2a2a' }}>
+              <th colSpan={2} style={{ padding: 0 }} />
+              <th colSpan={6} style={{ ...headerCell, textAlign: 'center', color: '#9ca3af', fontSize: '0.55rem', padding: '0.3rem 0', borderBottom: '1px solid #9ca3af20' }}>
+                {t('bearRally.sectionHeroesGear', 'Heroes & Gear')}
+              </th>
+              <th colSpan={6} style={{ ...headerCell, textAlign: 'center', color: '#9ca3af', fontSize: '0.55rem', padding: '0.3rem 0', borderBottom: '1px solid #9ca3af20' }}>
+                {t('bearRally.sectionTroopBonuses', 'Troop Bonuses')}
+              </th>
+            </tr>
+            {/* Column header row */}
             <tr style={{ borderBottom: '2px solid #2a2a2a' }}>
               <th style={{ ...headerCell, width: '24px' }}>#</th>
               <th style={{ ...headerCell, minWidth: '120px' }}>{t('bearRally.player', 'Player')}</th>
+              {/* Heroes & Gear: INF → CAV → ARC */}
               <th style={{ ...headerCell, minWidth: '80px', color: '#3b82f6' }}>🛡️ {t('bearRally.hero', 'Hero')}</th>
               <th style={{ ...headerCell, minWidth: '75px', color: '#3b82f6' }}>🛡️ EG</th>
-              <th style={{ ...headerCell, minWidth: '72px', color: '#3b82f6' }}>🛡️ Atk</th>
-              <th style={{ ...headerCell, minWidth: '72px', color: '#3b82f6' }}>🛡️ Leth</th>
-              <th style={{ ...headerCell, minWidth: '80px', color: '#f97316' }}>🐎 {t('bearRally.hero', 'Hero')}</th>
-              <th style={{ ...headerCell, minWidth: '75px', color: '#f97316' }}>🐎 EG</th>
-              <th style={{ ...headerCell, minWidth: '72px', color: '#f97316' }}>🐎 Atk</th>
-              <th style={{ ...headerCell, minWidth: '72px', color: '#f97316' }}>🐎 Leth</th>
+              <th style={{ ...headerCell, minWidth: '80px', color: '#f97316' }}>� {t('bearRally.hero', 'Hero')}</th>
+              <th style={{ ...headerCell, minWidth: '75px', color: '#f97316' }}>� EG</th>
               <th style={{ ...headerCell, minWidth: '80px', color: '#ef4444' }}>🏹 {t('bearRally.hero', 'Hero')}</th>
               <th style={{ ...headerCell, minWidth: '75px', color: '#ef4444' }}>🏹 EG</th>
+              {/* Troop Bonuses: INF → CAV → ARC */}
+              <th style={{ ...headerCell, minWidth: '72px', color: '#3b82f6' }}>�️ Atk</th>
+              <th style={{ ...headerCell, minWidth: '72px', color: '#3b82f6' }}>�️ Leth</th>
+              <th style={{ ...headerCell, minWidth: '72px', color: '#f97316' }}>🐎 Atk</th>
+              <th style={{ ...headerCell, minWidth: '72px', color: '#f97316' }}>🐎 Leth</th>
               <th style={{ ...headerCell, minWidth: '72px', color: '#ef4444' }}>🏹 Atk</th>
               <th style={{ ...headerCell, minWidth: '72px', color: '#ef4444' }}>🏹 Leth</th>
             </tr>
@@ -375,7 +388,7 @@ const BearBulkEdit: React.FC<BearBulkEditProps> = ({ existingPlayers, unscoredNa
                     {row.isNew && <span style={{ fontSize: '0.55rem', color: '#4b5563', flexShrink: 0 }}>✦</span>}
                   </div>
                 </td>
-                {/* Infantry */}
+                {/* ── Heroes & Gear: INF → CAV → ARC ── */}
                 <td style={{ padding: '0.3rem 0.15rem' }}>
                   <select value={row.infantryHero} onChange={e => updateRow(row.id, 'infantryHero', e.target.value)} style={cellSelect}>
                     <option value="" disabled>—</option>
@@ -389,13 +402,6 @@ const BearBulkEdit: React.FC<BearBulkEditProps> = ({ existingPlayers, unscoredNa
                   </select>
                 </td>
                 <td style={{ padding: '0.3rem 0.15rem' }}>
-                  <input type="number" step="0.1" placeholder="Atk" value={row.infantryAttack} onChange={e => updateRow(row.id, 'infantryAttack', e.target.value)} style={numInput} />
-                </td>
-                <td style={{ padding: '0.3rem 0.15rem' }}>
-                  <input type="number" step="0.1" placeholder="Leth" value={row.infantryLethality} onChange={e => updateRow(row.id, 'infantryLethality', e.target.value)} style={numInput} />
-                </td>
-                {/* Cavalry */}
-                <td style={{ padding: '0.3rem 0.15rem' }}>
                   <select value={row.cavalryHero} onChange={e => updateRow(row.id, 'cavalryHero', e.target.value)} style={cellSelect}>
                     <option value="" disabled>—</option>
                     {cavalryHeroes.map(h => <option key={h.name} value={h.name}>{h.name}</option>)}
@@ -408,13 +414,6 @@ const BearBulkEdit: React.FC<BearBulkEditProps> = ({ existingPlayers, unscoredNa
                   </select>
                 </td>
                 <td style={{ padding: '0.3rem 0.15rem' }}>
-                  <input type="number" step="0.1" placeholder="Atk" value={row.cavalryAttack} onChange={e => updateRow(row.id, 'cavalryAttack', e.target.value)} style={numInput} />
-                </td>
-                <td style={{ padding: '0.3rem 0.15rem' }}>
-                  <input type="number" step="0.1" placeholder="Leth" value={row.cavalryLethality} onChange={e => updateRow(row.id, 'cavalryLethality', e.target.value)} style={numInput} />
-                </td>
-                {/* Archer */}
-                <td style={{ padding: '0.3rem 0.15rem' }}>
                   <select value={row.archerHero} onChange={e => updateRow(row.id, 'archerHero', e.target.value)} style={cellSelect}>
                     <option value="" disabled>—</option>
                     {archerHeroes.map(h => <option key={h.name} value={h.name}>{h.name}</option>)}
@@ -425,6 +424,19 @@ const BearBulkEdit: React.FC<BearBulkEditProps> = ({ existingPlayers, unscoredNa
                     <option value={-1} disabled>—</option>
                     {EG_LEVELS.map(l => <option key={l} value={l}>Lv{l}</option>)}
                   </select>
+                </td>
+                {/* ── Troop Bonuses: INF → CAV → ARC ── */}
+                <td style={{ padding: '0.3rem 0.15rem' }}>
+                  <input type="number" step="0.1" placeholder="Atk" value={row.infantryAttack} onChange={e => updateRow(row.id, 'infantryAttack', e.target.value)} style={numInput} />
+                </td>
+                <td style={{ padding: '0.3rem 0.15rem' }}>
+                  <input type="number" step="0.1" placeholder="Leth" value={row.infantryLethality} onChange={e => updateRow(row.id, 'infantryLethality', e.target.value)} style={numInput} />
+                </td>
+                <td style={{ padding: '0.3rem 0.15rem' }}>
+                  <input type="number" step="0.1" placeholder="Atk" value={row.cavalryAttack} onChange={e => updateRow(row.id, 'cavalryAttack', e.target.value)} style={numInput} />
+                </td>
+                <td style={{ padding: '0.3rem 0.15rem' }}>
+                  <input type="number" step="0.1" placeholder="Leth" value={row.cavalryLethality} onChange={e => updateRow(row.id, 'cavalryLethality', e.target.value)} style={numInput} />
                 </td>
                 <td style={{ padding: '0.3rem 0.15rem' }}>
                   <input type="number" step="0.1" placeholder="Atk" value={row.archerAttack} onChange={e => updateRow(row.id, 'archerAttack', e.target.value)} style={numInput} />

@@ -3828,7 +3828,18 @@
     "addData": "Adicionar Dados",
     "formSectionHeroes": "① Heróis e Equipamento Exclusivo",
     "formSectionStats": "② Bônus de Tropas",
-    "gearShort": "Equip."
+    "gearShort": "Equip.",
+    "sectionHeroesGear": "Heróis e Equipamento",
+    "sectionTroopBonuses": "Bônus de Tropas",
+    "incompleteSection": "Não classificado — Dados incompletos",
+    "rankedOfTotal": "{{ranked}} classificados / {{total}} total",
+    "share": "Compartilhar",
+    "shareScreenshot": "Compartilhar como imagem",
+    "shareAction": "Compartilhar",
+    "download": "Baixar",
+    "copyLink": "Copiar link",
+    "link": "Link",
+    "sharePreviewAlt": "Pré-visualização da lista"
   },
   "bearRallyLanding": {
     "pageTitle": "Lista de Níveis do Rally do Urso",
