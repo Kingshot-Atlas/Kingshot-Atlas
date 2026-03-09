@@ -115,7 +115,7 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
     if (manualTimeSlots.length < 4) {
       const lastSlot = manualTimeSlots[manualTimeSlots.length - 1];
       const lastToIdx = lastSlot ? TIME_SLOTS.indexOf(lastSlot.to) : -1;
-      const newFromIdx = lastToIdx > 0 && lastToIdx < TIME_SLOTS.length - 2 ? lastToIdx : 24;
+      const newFromIdx = lastToIdx > 0 && lastToIdx < TIME_SLOTS.length - 1 ? lastToIdx : 0;
       const newToIdx = Math.min(newFromIdx + 4, TIME_SLOTS.length - 1);
       setManualTimeSlots(prev => [...prev, { from: TIME_SLOTS[newFromIdx] ?? '12:00', to: TIME_SLOTS[newToIdx] ?? '14:00' }]);
     }
@@ -407,13 +407,13 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
                       <span style={{ color: colors.textMuted, fontSize: '0.65rem', fontWeight: 600, width: '16px', flexShrink: 0 }}>{idx + 1}.</span>
                       <select value={slot.from} onChange={e => { updateManualSlot(idx, 'from', e.target.value); if (TIME_SLOTS.indexOf(e.target.value) > TIME_SLOTS.indexOf(slot.to)) updateManualSlot(idx, 'to', e.target.value); }}
                         style={{ flex: 1, padding: '0.4rem 0.5rem', backgroundColor: colors.bg, border: `1px solid ${colors.border}`, borderRadius: '6px', color: colors.text, fontSize: '0.75rem', cursor: 'pointer', boxSizing: 'border-box' }}>
-                        {TIME_SLOTS.filter(s => s !== '24:00').map(s => <option key={s} value={s}>{s} UTC</option>)}
+                        {TIME_SLOTS.map(s => <option key={s} value={s}>{s} UTC</option>)}
                       </select>
                       <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>→</span>
                       <select value={slot.to} onChange={e => updateManualSlot(idx, 'to', e.target.value)}
                         title={t('battleRegistry.toTooltip', 'End time — your availability runs up to this time')}
                         style={{ flex: 1, padding: '0.4rem 0.5rem', backgroundColor: colors.bg, border: `1px solid ${isZeroDuration ? '#f97316' : colors.border}`, borderRadius: '6px', color: colors.text, fontSize: '0.75rem', cursor: 'pointer', boxSizing: 'border-box' }}>
-                        {TIME_SLOTS.filter((_, i) => i >= TIME_SLOTS.indexOf(slot.from)).map(s => <option key={s} value={s}>{s === '24:00' ? '00:00 UTC (Midnight)' : `${s} UTC`}</option>)}
+                        {TIME_SLOTS.filter((_, i) => i >= TIME_SLOTS.indexOf(slot.from)).map(s => <option key={s} value={s}>{s} UTC</option>)}
                       </select>
                       {duration && <span style={{ color: '#22d3ee', fontSize: '0.6rem', fontWeight: 600, whiteSpace: 'nowrap' }}>{duration}</span>}
                       {manualTimeSlots.length > 1 && (

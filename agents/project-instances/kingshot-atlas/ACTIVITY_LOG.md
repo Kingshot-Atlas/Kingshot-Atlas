@@ -4,17 +4,16 @@
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
 ## 2026-03-09 | Product Engineer | COMPLETED
-Task: Extend Battle Registry TIME_SLOTS to full day + fix overlap false positive deployment
-Files: types.ts, BattleRegistryForm.tsx, BattleRegistryDashboard.tsx, RegistryAnalytics.tsx, useBattleRegistry.ts
+Task: Revert Battle Registry TIME_SLOTS to 12:00-17:00 UTC (KvK battle window)
+Files: types.ts, BattleRegistryForm.tsx, BattleRegistryDashboard.tsx, RegistryAnalytics.tsx
 Changes:
-- Extended TIME_SLOTS from 12:00-17:00 to full day (00:00-23:30) + 24:00 midnight sentinel
-- 24:00 is exclusive "To" boundary only — excluded from "From" dropdowns
-- Updated formatSlotLabel to display 24:00 as "00:00 UTC (Midnight)"
-- Made HOURLY_FRAMES in RegistryAnalytics dynamic (24h), only renders frames with data
-- Fixed smart defaults for new slots to default to 12:00-14:00 (not 00:00-24:00)
-- Updated all hardcoded TIME_SLOTS[0]/[length-1] references in form/dashboard defaults
-- i18n translations for UX polish keys added to all 9 locales
-Result: Build passes. 18 unit tests pass. Adjacent slots (12:00→13:00 + 13:00→14:00) no longer falsely flagged.
+- Reverted TIME_SLOTS from full-day back to 12:00-17:00 UTC (11 entries) — KvK battles only last 5 hours
+- Removed 24:00 midnight sentinel and all related handling (formatSlotLabel, dropdown filters)
+- Restored HOURLY_FRAMES to 5 hardcoded battle-hour frames
+- Restored smart defaults for 11-entry array (index 0 fallback, length-1 guard)
+- Kept overlap fix (strict `<` operator) and all UX polish from previous session
+- Event Coordinator keeps its own full-day TIME_SLOTS_30MIN (00:00-23:30) — unaffected
+Result: Build passes. 18 unit tests pass. Overlap fix deployed.
 
 ## 2026-03-09 | Product Engineer | COMPLETED
 Task: Time Range UX Polish + Data Audit + Sophia Cavalry Hero

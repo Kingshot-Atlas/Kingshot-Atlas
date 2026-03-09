@@ -30,7 +30,6 @@ function utcToLocalLabel(utcTime: string): string {
 }
 
 function formatSlotLabel(slot: string): string {
-  if (slot === '24:00') return '00:00 UTC (Midnight)';
   return `${slot} UTC (${utcToLocalLabel(slot)})`;
 }
 
@@ -61,7 +60,7 @@ const TimeSlotDropdown: React.FC<TimeSlotDropdownProps> = ({ value, onChange, di
   const ref = useRef<HTMLDivElement>(null);
 
   const minIndex = minSlot ? TIME_SLOTS.indexOf(minSlot) : 0;
-  const availableSlots = TIME_SLOTS.filter((s, i) => i >= (minIndex >= 0 ? minIndex : 0) && (minSlot || s !== '24:00'));
+  const availableSlots = TIME_SLOTS.filter((_, i) => i >= (minIndex >= 0 ? minIndex : 0));
 
   const filtered = availableSlots.filter(slot =>
     formatSlotLabel(slot).toLowerCase().includes(search.toLowerCase())
@@ -360,7 +359,7 @@ const BattleRegistryForm: React.FC<BattleRegistryFormProps> = ({
                   <button onClick={() => {
                     const lastSlot = formTimeSlots[formTimeSlots.length - 1];
                     const lastToIdx = lastSlot ? TIME_SLOTS.indexOf(lastSlot.to) : -1;
-                    const newFromIdx = lastToIdx > 0 && lastToIdx < TIME_SLOTS.length - 2 ? lastToIdx : 24;
+                    const newFromIdx = lastToIdx > 0 && lastToIdx < TIME_SLOTS.length - 1 ? lastToIdx : 0;
                     const newToIdx = Math.min(newFromIdx + 4, TIME_SLOTS.length - 1);
                     setFormTimeSlots([...formTimeSlots, { from: TIME_SLOTS[newFromIdx] ?? '12:00', to: TIME_SLOTS[newToIdx] ?? '14:00' }]);
                   }}
