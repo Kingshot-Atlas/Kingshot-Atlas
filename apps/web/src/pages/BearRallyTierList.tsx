@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags } from '../hooks/useMetaTags';
-import { neonGlow, FONT_DISPLAY } from '../utils/styles';
+import { FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 import {
   isPlayerComplete,
@@ -80,22 +80,18 @@ const BearRallyTierList: React.FC = () => {
 
         {/* ── Header ── */}
         <div style={{ textAlign: 'center', marginBottom: isMobile ? '1.5rem' : '2rem' }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            gap: '0.5rem', marginBottom: '0.5rem',
+          <h1 style={{
+            fontSize: isMobile ? '1.6rem' : '2.2rem',
+            fontWeight: 800,
+            fontFamily: FONT_DISPLAY,
+            marginBottom: '0.5rem',
+            letterSpacing: '0.02em',
           }}>
-            <span style={{ fontSize: isMobile ? '1.5rem' : '1.8rem' }}>🐻</span>
-            <h1 style={{
-              fontSize: isMobile ? '1.5rem' : '2rem',
-              fontWeight: 800,
-              fontFamily: FONT_DISPLAY,
-              ...neonGlow(ACCENT),
-            }}>
-              {t('bearRally.title', 'Bear Rally Tier List')}
-            </h1>
-          </div>
-          <p style={{ fontSize: isMobile ? '0.75rem' : '0.85rem', color: '#6b7280', maxWidth: '600px', margin: '0 auto' }}>
-            {t('bearRally.subtitle', 'Rank alliance members by their Bear Rally potential. Scores factor in troop bonuses, hero selection, and Exclusive Gear.')}
+            <span style={{ color: '#fff' }}>{t('bearRally.title1', 'BEAR RALLY')}</span>{' '}
+            <span style={{ color: '#d4a017' }}>{t('bearRally.title2', 'TIER LIST')}</span>
+          </h1>
+          <p style={{ fontSize: isMobile ? '0.75rem' : '0.85rem', color: '#6b7280', maxWidth: '600px', margin: '0 auto', lineHeight: 1.5 }}>
+            {t('bearRally.subtitle', 'Rank your alliance by Bear Hunt rally power. Input scouted stats — Atlas handles the math.')}
           </p>
           {state.ac.alliance && (
             <div style={{ marginTop: '0.5rem' }}>
