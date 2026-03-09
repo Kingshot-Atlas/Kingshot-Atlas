@@ -14,6 +14,7 @@ import {
   calculateBearScore,
   assignBearTier,
   isPlayerComplete,
+  recalculateAllScores,
   BEAR_TIER_COLORS,
   BEAR_LISTS_INDEX_KEY,
   BEAR_LIST_DATA_PREFIX,
@@ -303,7 +304,7 @@ const BearRallyTierList: React.FC = () => {
             setActiveListIdState(pickId);
             setActiveListId(pickId);
             const activeRow = data.find(d => d.id === pickId);
-            setPlayers((activeRow?.players as BearPlayerEntry[]) ?? []);
+            setPlayers(recalculateAllScores((activeRow?.players as BearPlayerEntry[]) ?? []));
             // Track cloud timestamp + editor for conflict resolution
             cloudUpdatedAt.current = (activeRow as Record<string, unknown>)?.updated_at as string ?? null;
             const editedById = (activeRow as Record<string, unknown>)?.updated_by as string | null;
@@ -339,7 +340,7 @@ const BearRallyTierList: React.FC = () => {
                 saveListsIndex(migrated);
                 setActiveListIdState(migrated[0]!.id);
                 setActiveListId(migrated[0]!.id);
-                setPlayers(loadListPlayers(migrated[0]!.id));
+                setPlayers(recalculateAllScores(loadListPlayers(migrated[0]!.id)));
               }
             }
           }
@@ -350,11 +351,11 @@ const BearRallyTierList: React.FC = () => {
           setListsIndex(lists);
           if (activeId && lists.some(l => l.id === activeId)) {
             setActiveListIdState(activeId);
-            setPlayers(loadListPlayers(activeId));
+            setPlayers(recalculateAllScores(loadListPlayers(activeId)));
           } else if (lists.length > 0 && lists[0]) {
             setActiveListIdState(lists[0].id);
             setActiveListId(lists[0].id);
-            setPlayers(loadListPlayers(lists[0].id));
+            setPlayers(recalculateAllScores(loadListPlayers(lists[0].id)));
           }
         }
         if (!cancelled) initializedRef.current = true;
@@ -366,11 +367,11 @@ const BearRallyTierList: React.FC = () => {
       setListsIndex(lists);
       if (activeId && lists.some(l => l.id === activeId)) {
         setActiveListIdState(activeId);
-        setPlayers(loadListPlayers(activeId));
+        setPlayers(recalculateAllScores(loadListPlayers(activeId)));
       } else if (lists.length > 0 && lists[0]) {
         setActiveListIdState(lists[0].id);
         setActiveListId(lists[0].id);
-        setPlayers(loadListPlayers(lists[0].id));
+        setPlayers(recalculateAllScores(loadListPlayers(lists[0].id)));
       }
       initializedRef.current = true;
       return undefined;
@@ -625,17 +626,17 @@ const BearRallyTierList: React.FC = () => {
           .eq('id', listId)
           .single();
         if (data) {
-          const cloudPlayers = data.players as BearPlayerEntry[];
+          const cloudPlayers = recalculateAllScores(data.players as BearPlayerEntry[]);
           setPlayers(cloudPlayers);
           saveListPlayers(listId, cloudPlayers);
         } else {
-          setPlayers(loadListPlayers(listId));
+          setPlayers(recalculateAllScores(loadListPlayers(listId)));
         }
       } catch {
-        setPlayers(loadListPlayers(listId));
+        setPlayers(recalculateAllScores(loadListPlayers(listId)));
       }
     } else {
-      setPlayers(loadListPlayers(listId));
+      setPlayers(recalculateAllScores(loadListPlayers(listId)));
     }
 
     setShowForm(false);
@@ -670,7 +671,7 @@ const BearRallyTierList: React.FC = () => {
         if (updated.length > 0 && updated[0]) {
           setActiveListIdState(updated[0].id);
           setActiveListId(updated[0].id);
-          setPlayers(loadListPlayers(updated[0].id));
+          setPlayers(recalculateAllScores(loadListPlayers(updated[0].id)));
         } else {
           setActiveListIdState(null);
           setPlayers([]);

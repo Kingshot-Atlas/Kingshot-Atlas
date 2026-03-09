@@ -4,6 +4,16 @@
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
 ## 2026-03-09 | Product Engineer | COMPLETED
+Task: Bear Rally — Fix stale scores not reflecting new 1/9/90 formula weights
+Files: apps/web/src/data/bearHuntData.ts, apps/web/src/pages/BearRallyTierList.tsx
+Changes:
+- Root cause: `calculateBearScore` weights were updated but stored scores in localStorage/Supabase were never recalculated — scores only computed at submission time
+- Added `recalculateAllScores()` function to bearHuntData.ts (two-pass: recalculate scores then reassign tiers)
+- Applied recalculation at all 10 player-loading paths in BearRallyTierList.tsx (Supabase load, localStorage load, list switch, list delete fallback, migration)
+- Ensures current AND future lists always display scores using the active formula weights
+Result: All existing bear rally tier lists now show updated scores with 1/9/90 weighting on page load. Future formula changes will also auto-apply.
+
+## 2026-03-09 | Product Engineer | COMPLETED
 Task: Access Viewer redesign — tool-centric categories with role badges
 Files: apps/web/src/components/admin/AccessViewerTab.tsx, agents/project-instances/kingshot-atlas/FEATURES_IMPLEMENTED.md
 Changes:

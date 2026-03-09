@@ -337,6 +337,36 @@ export function assignBearTierSingle(score: number): BearTier {
   return 'D';
 }
 
+// ─── Score Recalculation (apply current formula to stored data) ──────────────
+
+/**
+ * Recalculates bearScore and tier for every player using the current formula.
+ * Call this whenever loading players from storage/cloud to ensure scores
+ * reflect the latest weight configuration.
+ */
+export function recalculateAllScores(players: BearPlayerEntry[]): BearPlayerEntry[] {
+  if (players.length === 0) return players;
+
+  // First pass: recalculate raw scores
+  const withScores = players.map(p => {
+    if (!isPlayerComplete(p)) return p; // skip incomplete players
+    const newScore = calculateBearScore(
+      p.infantryHero, p.infantryEGLevel, p.infantryAttack, p.infantryLethality,
+      p.cavalryHero, p.cavalryEGLevel, p.cavalryAttack, p.cavalryLethality,
+      p.archerHero, p.archerEGLevel, p.archerAttack, p.archerLethality,
+    );
+    return { ...p, bearScore: newScore };
+  });
+
+  // Second pass: reassign tiers based on recalculated scores
+  const completePlayers = withScores.filter(isPlayerComplete);
+  const allScores = completePlayers.map(p => p.bearScore);
+  return withScores.map(p => {
+    if (!isPlayerComplete(p)) return p;
+    return { ...p, tier: assignBearTier(p.bearScore, allScores) };
+  });
+}
+
 // ─── Multi-List Storage ─────────────────────────────────────────────────────
 
 /** Master index key — stores the list of saved tier list metadata */
