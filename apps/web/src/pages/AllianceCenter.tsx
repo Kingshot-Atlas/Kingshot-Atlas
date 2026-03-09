@@ -1174,21 +1174,13 @@ const ApplicationsInbox: React.FC<{
   if (!canManage) return null;
 
   return (
-    <div style={{
-      backgroundColor: '#111111', borderRadius: '12px', border: '1px solid #a855f720',
-      padding: isMobile ? '0.75rem' : '1rem', marginBottom: '1rem',
-    }}>
-      {/* Header */}
+    <div style={{ padding: isMobile ? '0 0.75rem 0.75rem' : '0 1rem 1rem' }}>
+      {/* Sub-header: count + history toggle */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem', flexWrap: 'wrap' }}>
-        <span style={{ fontSize: '0.9rem' }}>📩</span>
-        <h3 style={{ color: '#fff', fontSize: '0.85rem', fontWeight: 700, margin: 0, fontFamily: FONT_DISPLAY }}>
-          {t('allianceCenter.applicationsTitle', 'Applications')}
-        </h3>
         {apps.length > 0 && (
-          <span style={{
-            fontSize: '0.6rem', fontWeight: 700, padding: '0.1rem 0.4rem', borderRadius: '10px',
-            backgroundColor: '#a855f720', color: '#a855f7', fontFamily: 'monospace',
-          }}>{apps.length}</span>
+          <span style={{ color: '#9ca3af', fontSize: '0.7rem' }}>
+            {apps.length} {t('allianceCenter.pendingLabel', 'pending')}
+          </span>
         )}
         <button
           onClick={() => setShowHistory(!showHistory)}
@@ -1382,9 +1374,9 @@ const AllianceDashboard: React.FC = () => {
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
-  const appsRef = useRef<HTMLDivElement>(null);
+  const [appsExpanded, setAppsExpanded] = useState(false);
 
-  // Pending application count for the tools row badge
+  // Pending application count for the collapsible header badge
   const { data: pendingAppCount = 0 } = useQuery({
     queryKey: ['alliance-pending-apps-count', ac.alliance?.id],
     queryFn: async () => {
@@ -1615,44 +1607,52 @@ const AllianceDashboard: React.FC = () => {
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#3b82f625'; }}>
             🐻 {t('allianceCenter.bearRallyLink', 'Bear Rally Tier List')}
           </Link>
-          {ac.canManage && (
-            <button
-              onClick={() => appsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-                padding: '0.4rem 0.75rem', backgroundColor: '#a855f710', border: '1px solid #a855f725',
-                borderRadius: '8px', color: '#a855f7', fontSize: '0.75rem', fontWeight: 600, transition: 'border-color 0.15s',
-                minHeight: isMobile ? '44px' : undefined, WebkitTapHighlightColor: 'transparent',
-                cursor: 'pointer', position: 'relative',
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#a855f7'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#a855f725'; }}
-            >
-              📩 {t('allianceCenter.applicationsLink', 'Applications')}
-              {pendingAppCount > 0 && (
-                <span style={{
-                  fontSize: '0.6rem', fontWeight: 700, padding: '0.1rem 0.4rem', borderRadius: '10px',
-                  backgroundColor: '#a855f730', color: '#a855f7', fontFamily: 'monospace',
-                  minWidth: '16px', textAlign: 'center',
-                }}>{pendingAppCount}</span>
-              )}
-            </button>
-          )}
         </div>
       </div>
 
-      {/* Applications Inbox (managers only) */}
-      {ac.alliance && (
-        <div ref={appsRef} style={{ scrollMarginTop: '1rem' }}>
-          <ApplicationsInbox
-            allianceId={ac.alliance.id}
-            canManage={ac.canManage}
-            isMobile={isMobile}
-            onResolved={() => {
-              queryClient.invalidateQueries({ queryKey: ['alliance-members', ac.alliance?.id] });
-              queryClient.invalidateQueries({ queryKey: ['alliance-pending-apps-count', ac.alliance?.id] });
+      {/* Applications Inbox (managers only — collapsible) */}
+      {ac.alliance && ac.canManage && (
+        <div style={{
+          backgroundColor: '#111111', borderRadius: '12px', border: '1px solid #a855f720',
+          marginBottom: '1rem', overflow: 'hidden',
+        }}>
+          <button
+            onClick={() => setAppsExpanded(prev => !prev)}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
+              padding: isMobile ? '0.75rem' : '0.85rem 1rem',
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: '#fff', fontFamily: FONT_DISPLAY, WebkitTapHighlightColor: 'transparent',
+              minHeight: isMobile ? '44px' : undefined,
             }}
-          />
+          >
+            <span style={{ fontSize: '0.9rem' }}>📩</span>
+            <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>
+              {t('allianceCenter.applicationsTitle', 'Applications')}
+            </span>
+            {pendingAppCount > 0 && (
+              <span style={{
+                fontSize: '0.6rem', fontWeight: 700, padding: '0.1rem 0.4rem', borderRadius: '10px',
+                backgroundColor: '#a855f720', color: '#a855f7', fontFamily: 'monospace',
+              }}>{pendingAppCount}</span>
+            )}
+            <span style={{
+              marginLeft: 'auto', fontSize: '0.7rem', color: '#6b7280',
+              transform: appsExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform 0.2s',
+            }}>▼</span>
+          </button>
+          {appsExpanded && (
+            <ApplicationsInbox
+              allianceId={ac.alliance.id}
+              canManage={ac.canManage}
+              isMobile={isMobile}
+              onResolved={() => {
+                queryClient.invalidateQueries({ queryKey: ['alliance-members', ac.alliance?.id] });
+                queryClient.invalidateQueries({ queryKey: ['alliance-pending-apps-count', ac.alliance?.id] });
+              }}
+            />
+          )}
         </div>
       )}
 
