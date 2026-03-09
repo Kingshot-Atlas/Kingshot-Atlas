@@ -95,7 +95,22 @@ export interface AuditLogEntry {
   target_name?: string;
 }
 
-export type SubTab = 'overview' | 'editors' | 'co-editors' | 'funds' | 'profiles' | 'audit-log';
+export type SubTab = 'overview' | 'editors' | 'co-editors' | 'funds' | 'profiles' | 'audit-log' | 'season';
+
+export interface TransferEvent {
+  event_number: number;
+  event_date: string;
+  total_groups: number;
+  is_current: boolean;
+  created_at: string;
+  // Computed analytics
+  kingdoms_count?: number;
+  apps_count?: number;
+  accepted_count?: number;
+  transferred_count?: number;
+  invites_count?: number;
+  active_profiles_count?: number;
+}
 
 // =============================================
 // CONSTANTS

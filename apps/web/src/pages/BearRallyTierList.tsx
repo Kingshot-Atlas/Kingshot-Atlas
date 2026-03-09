@@ -22,6 +22,7 @@ import {
   BEAR_DISCLAIMER_KEY,
   BEAR_DISCLAIMER_DEFAULT,
   getDefaultListName,
+  validateBearPlayers,
   type BearPlayerEntry,
   type BearListMeta,
   type BearTier,
@@ -228,6 +229,10 @@ const BearRallyTierList: React.FC = () => {
   const supabaseSync = !!(ac.alliance && isSupabaseConfigured && supabase);
   const allianceId = ac.alliance?.id;
   const supabaseSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cloudUpdatedAt = useRef<string | null>(null); // optimistic locking
+  const [lastEditedBy, setLastEditedBy] = useState<string | null>(null);
+  const undoStack = useRef<BearPlayerEntry[][]>([]);
+  const MAX_UNDO = 20;
 
   // ── Multi-list state ──
   const [listsIndex, setListsIndex] = useState<BearListMeta[]>([]);
@@ -245,6 +250,7 @@ const BearRallyTierList: React.FC = () => {
   const shareCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const [sharePreview, setSharePreview] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [showUndoToast, setShowUndoToast] = useState(false);
 
   // ── Form state ──
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -273,7 +279,7 @@ const BearRallyTierList: React.FC = () => {
         try {
           const { data, error } = await supabase
             .from('bear_rally_lists')
-            .select('id, name, players, created_at')
+            .select('id, name, players, created_at, updated_at, updated_by')
             .eq('alliance_id', aid)
             .order('created_at', { ascending: true });
 
@@ -295,7 +301,17 @@ const BearRallyTierList: React.FC = () => {
             const pickId = (savedActive && data.some(d => d.id === savedActive)) ? savedActive : data[0]!.id;
             setActiveListIdState(pickId);
             setActiveListId(pickId);
-            setPlayers((data.find(d => d.id === pickId)?.players as BearPlayerEntry[]) ?? []);
+            const activeRow = data.find(d => d.id === pickId);
+            setPlayers((activeRow?.players as BearPlayerEntry[]) ?? []);
+            // Track cloud timestamp + editor for conflict resolution
+            cloudUpdatedAt.current = (activeRow as Record<string, unknown>)?.updated_at as string ?? null;
+            const editedById = (activeRow as Record<string, unknown>)?.updated_by as string | null;
+            if (editedById && supabase) {
+              supabase.from('profiles').select('linked_username, username').eq('id', editedById).single()
+                .then(({ data: profile }) => {
+                  if (!cancelled && profile) setLastEditedBy(profile.linked_username || profile.username || null);
+                });
+            }
 
             // Cache all lists to localStorage
             data.forEach(row => saveListPlayers(row.id, row.players as BearPlayerEntry[]));
@@ -356,6 +372,7 @@ const BearRallyTierList: React.FC = () => {
         setPlayers(loadListPlayers(lists[0].id));
       }
       initializedRef.current = true;
+      return undefined;
     }
   }, [ac.allianceLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -383,6 +400,32 @@ const BearRallyTierList: React.FC = () => {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  // ── Undo helper ──
+  const pushUndo = useCallback((snapshot: BearPlayerEntry[]) => {
+    undoStack.current = [...undoStack.current.slice(-(MAX_UNDO - 1)), snapshot];
+  }, [MAX_UNDO]);
+
+  const handleUndo = useCallback(() => {
+    if (undoStack.current.length === 0) return;
+    const prev = undoStack.current.pop()!;
+    setPlayers(prev);
+    triggerHaptic('medium');
+    setShowUndoToast(true);
+    setTimeout(() => setShowUndoToast(false), 2000);
+  }, []);
+
+  // Keyboard shortcut: Ctrl/Cmd+Z for undo
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey && canEdit) {
+        e.preventDefault();
+        handleUndo();
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [handleUndo, canEdit]);
+
   // Persist players to active list (guarded: skip until init is done)
   useEffect(() => {
     if (!activeListId || !initializedRef.current) return;
@@ -394,21 +437,58 @@ const BearRallyTierList: React.FC = () => {
       return updated;
     });
 
-    // Debounced Supabase save (1s after last change)
+    // Debounced Supabase save (1s after last change) with validation + conflict resolution
     if (supabaseSync) {
       if (supabaseSaveTimer.current) clearTimeout(supabaseSaveTimer.current);
       const sb = supabase!;
       const lid = activeListId;
-      supabaseSaveTimer.current = setTimeout(() => {
-        sb.from('bear_rally_lists')
-          .update({ players })
+      const uid = user?.id;
+      supabaseSaveTimer.current = setTimeout(async () => {
+        // Client-side validation
+        const validationErr = validateBearPlayers(players);
+        if (validationErr) {
+          logger.error('Bear rally validation failed (skipping save):', validationErr);
+          return;
+        }
+
+        // Conflict resolution: check if another user modified since our last known timestamp
+        if (cloudUpdatedAt.current) {
+          const { data: current } = await sb
+            .from('bear_rally_lists')
+            .select('updated_at')
+            .eq('id', lid)
+            .single();
+          if (current && current.updated_at !== cloudUpdatedAt.current) {
+            logger.error('Bear rally conflict detected — another user modified this list. Refetching...');
+            // Refetch and merge: last-write-wins but log the conflict
+            const { data: fresh } = await sb
+              .from('bear_rally_lists')
+              .select('players, updated_at, updated_by')
+              .eq('id', lid)
+              .single();
+            if (fresh) {
+              cloudUpdatedAt.current = fresh.updated_at;
+              // Resolve: our local version wins (user is actively editing)
+              // but we update our timestamp reference
+            }
+          }
+        }
+
+        const { data: saved, error } = await sb
+          .from('bear_rally_lists')
+          .update({ players, updated_by: uid })
           .eq('id', lid)
-          .then(({ error }) => {
-            if (error) logger.error('Bear rally cloud save failed:', error);
-          });
+          .select('updated_at')
+          .single();
+        if (error) {
+          logger.error('Bear rally cloud save failed:', error);
+        } else if (saved) {
+          cloudUpdatedAt.current = saved.updated_at;
+          setLastEditedBy(user?.user_metadata?.full_name || user?.email || null);
+        }
       }, 1000);
     }
-  }, [players, activeListId, supabaseSync]);
+  }, [players, activeListId, supabaseSync, user]);
 
   // Cleanup debounce timer on unmount
   useEffect(() => {
@@ -659,6 +739,7 @@ const BearRallyTierList: React.FC = () => {
       tier: 'D', // placeholder — recalculated below with all scores
     };
 
+    pushUndo(players); // snapshot for undo
     setPlayers(prev => {
       let updated: BearPlayerEntry[];
       if (editingId) {
@@ -688,7 +769,7 @@ const BearRallyTierList: React.FC = () => {
     setEditingId(null);
     setShowForm(false);
     setFormError('');
-  }, [form, editingId, t, ac, rosterNames]);
+  }, [form, editingId, t, ac, rosterNames, players, pushUndo]);
 
   const handleEdit = useCallback((player: BearPlayerEntry) => {
     setForm({
@@ -712,6 +793,7 @@ const BearRallyTierList: React.FC = () => {
   }, []);
 
   const handleDelete = useCallback((id: string) => {
+    pushUndo(players); // snapshot for undo
     setPlayers(prev => {
       const remaining = prev.filter(p => p.id !== id);
       if (remaining.length === 0) return remaining;
@@ -725,7 +807,7 @@ const BearRallyTierList: React.FC = () => {
       setForm(emptyForm);
       setShowForm(false);
     }
-  }, [editingId]);
+  }, [editingId, players, pushUndo]);
 
   const handleCancelForm = useCallback(() => {
     setForm(emptyForm);
@@ -1174,9 +1256,24 @@ const BearRallyTierList: React.FC = () => {
                 )
               )}
 
-              {/* Share / Link buttons */}
+              {/* Undo / Share / Link buttons */}
               {players.length > 0 && (
                 <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', marginLeft: canEdit ? '0' : 'auto' }}>
+                  {canEdit && undoStack.current.length > 0 && (
+                    <button
+                      onClick={handleUndo}
+                      title={t('bearRally.undo', 'Undo (Ctrl+Z)')}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                        padding: '0.3rem 0.55rem', backgroundColor: '#1a1a1a',
+                        border: '1px solid #f59e0b30', borderRadius: '6px',
+                        color: '#f59e0b', fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer',
+                      }}
+                    >
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                      {!isMobile && t('bearRally.undo', 'Undo')}
+                    </button>
+                  )}
                   <button
                     onClick={handleSharePreview}
                     disabled={isCapturing}
@@ -1349,6 +1446,7 @@ const BearRallyTierList: React.FC = () => {
           <BearBulkInput
             existingPlayers={players}
             onSave={(allPlayers) => {
+              pushUndo(players);
               setPlayers(allPlayers);
               setShowBulkInput(false);
             }}
@@ -1364,6 +1462,7 @@ const BearRallyTierList: React.FC = () => {
             existingPlayers={players}
             unscoredNames={unscoredRosterMembers}
             onSave={(updatedPlayers) => {
+              pushUndo(players);
               setPlayers(updatedPlayers);
               setShowBulkEdit(false);
             }}
@@ -2012,6 +2111,24 @@ const BearRallyTierList: React.FC = () => {
                 })}
               </div>
             </div>
+
+            {/* Screenshot watermark — always rendered, subtle branding */}
+            <div style={{
+              padding: '0.35rem 0.75rem',
+              backgroundColor: '#0a0a0a',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <span style={{ fontSize: '0.5rem', color: '#333', fontWeight: 600, letterSpacing: '0.05em' }}>
+                Kingshot Atlas • ks-atlas.com
+              </span>
+              {lastEditedBy && (
+                <span style={{ fontSize: '0.5rem', color: '#333', fontStyle: 'italic' }}>
+                  {t('bearRally.lastEditedBy', 'Last edited by {{name}}', { name: lastEditedBy })}
+                </span>
+              )}
+            </div>
           </div>
         ) : (
           /* Empty State — prominent creation prompt */
@@ -2222,6 +2339,22 @@ const BearRallyTierList: React.FC = () => {
                 ✕ {t('common.close', 'Close')}
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Undo toast notification */}
+        {showUndoToast && (
+          <div style={{
+            position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)',
+            backgroundColor: '#1a1a1a', border: '1px solid #f59e0b40', borderRadius: '10px',
+            padding: '0.6rem 1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 10001,
+            animation: 'fadeIn 0.2s ease',
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            <span style={{ fontSize: '0.8rem', color: '#f59e0b', fontWeight: 600 }}>
+              {t('bearRally.undone', 'Change undone')}
+            </span>
           </div>
         )}
       </div>

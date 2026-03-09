@@ -364,6 +364,59 @@ export function getDefaultListName(): string {
   return now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
 
+// ─── Client-Side Validation ─────────────────────────────────────────────────
+
+const VALID_TIERS: readonly string[] = ['SS', 'S', 'A', 'B', 'C', 'D'];
+const MAX_PLAYERS_PER_LIST = 200;
+
+/** Validates an array of BearPlayerEntry objects before Supabase save.
+ *  Returns null if valid, or an error message string if invalid. */
+export function validateBearPlayers(players: unknown): string | null {
+  if (!Array.isArray(players)) return 'players must be an array';
+  if (players.length > MAX_PLAYERS_PER_LIST) return `Too many players (max ${MAX_PLAYERS_PER_LIST})`;
+
+  for (let i = 0; i < players.length; i++) {
+    const p = players[i];
+    if (!p || typeof p !== 'object') return `Player #${i + 1} is not an object`;
+    const entry = p as Record<string, unknown>;
+
+    // Required string fields
+    if (typeof entry.id !== 'string' || !entry.id) return `Player #${i + 1} missing id`;
+    if (typeof entry.playerName !== 'string') return `Player #${i + 1} missing playerName`;
+
+    // Required numeric fields
+    const numFields = [
+      'infantryEGLevel', 'cavalryEGLevel', 'archerEGLevel',
+      'infantryAttack', 'infantryLethality',
+      'cavalryAttack', 'cavalryLethality',
+      'archerAttack', 'archerLethality',
+      'bearScore',
+    ] as const;
+    for (const f of numFields) {
+      if (typeof entry[f] !== 'number' || isNaN(entry[f] as number)) {
+        return `Player #${i + 1} (${entry.playerName}) has invalid ${f}`;
+      }
+    }
+
+    // EG levels 0-10
+    for (const eg of ['infantryEGLevel', 'cavalryEGLevel', 'archerEGLevel'] as const) {
+      const v = entry[eg] as number;
+      if (v < 0 || v > 10) return `Player #${i + 1} (${entry.playerName}) has ${eg} out of range (0-10)`;
+    }
+
+    // Stats non-negative
+    for (const s of ['infantryAttack', 'infantryLethality', 'cavalryAttack', 'cavalryLethality', 'archerAttack', 'archerLethality', 'bearScore'] as const) {
+      if ((entry[s] as number) < 0) return `Player #${i + 1} (${entry.playerName}) has negative ${s}`;
+    }
+
+    // Tier validation
+    if (entry.tier !== undefined && !VALID_TIERS.includes(entry.tier as string)) {
+      return `Player #${i + 1} (${entry.playerName}) has invalid tier "${entry.tier}"`;
+    }
+  }
+  return null;
+}
+
 // ─── Disclaimer ─────────────────────────────────────────────────────────────
 
 export const BEAR_DISCLAIMER_KEY = 'bearRally.disclaimer';

@@ -9,6 +9,7 @@ import {
 import {
   OverviewTab, EditorsTab, CoEditorsTab, FundsTab, ProfilesTab, AuditLogTab,
 } from './TransferHubSubTabs';
+import { SeasonTab } from './SeasonTab';
 
 // =============================================
 // COMPONENT
@@ -532,6 +533,7 @@ export const TransferHubAdminTab: React.FC = () => {
     { id: 'funds', label: 'Kingdom Funds', icon: '💰' },
     { id: 'profiles', label: 'Transfer Profiles', icon: '🔄' },
     { id: 'audit-log', label: 'Audit Log', icon: '📋' },
+    { id: 'season', label: 'Season Mgmt', icon: '📅' },
   ];
 
   return (
@@ -609,6 +611,8 @@ export const TransferHubAdminTab: React.FC = () => {
         <ProfilesTab profiles={profiles} timeAgo={timeAgo} />
       ) : subTab === 'audit-log' ? (
         <AuditLogTab entries={auditLog} timeAgo={timeAgo} loading={loading} onRefresh={fetchAuditLog} />
+      ) : subTab === 'season' ? (
+        <SeasonTab onRefreshAll={fetchAll} />
       ) : null}
     </div>
   );

@@ -4,6 +4,18 @@
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
 ## 2026-03-09 | Product Engineer | COMPLETED
+Task: Transfer Hub — Season Management admin tab + chronological history order
+Files: apps/web/src/components/admin/SeasonTab.tsx (new), apps/web/src/components/admin/TransferHubAdminTab.tsx, apps/web/src/components/admin/transferHubTypes.ts, apps/web/src/components/KingdomListingCard.tsx
+Changes:
+- Fixed transfer history pills to display chronologically (E#1→E#2→E#3→E#4) left-to-right
+- New Season Mgmt admin sub-tab with: transfer events table, per-event analytics (kingdoms, apps, accepted, transferred, invites), toggle is_current per event, add new event form
+- Season Reset button: expires pending apps, marks accepted→transferred, deactivates profiles, expires invites, resets special invite caps, sets all events inactive
+- Auto-notify all active editors when a new season is activated via toggle
+- Analytics summary grid: total events, kingdoms, apps, transferred, invites, avg apps/event
+- Added TransferEvent interface to transferHubTypes.ts with computed analytics fields
+Result: Admins can fully manage transfer seasons from UI instead of manual SQL. Analytics visible per event.
+
+## 2026-03-09 | Product Engineer | COMPLETED
 Task: Transfer Hub — Fix status colors, remove stale green border, equalize performance boxes
 Files: apps/web/src/components/KingdomListingCard.tsx, apps/web/src/components/kingdom-profile/TransferStatusHistory.tsx
 Changes:
@@ -12,6 +24,21 @@ Changes:
 - Performance info boxes: increased minHeight to 62px, normalized value font to 0.85rem for uniform box height
 - Fixed isLeading → entry.status === 'Leading' reference in TransferStatusHistory tooltip
 Result: Consistent transfer status colors, no stale active borders, visually uniform performance grid
+
+## 2026-03-09 | Product Engineer | COMPLETED
+Task: Bear Rally Tier List — Screenshot polish + Data validation hardening
+Files: apps/web/src/pages/BearRallyTierList.tsx, apps/web/src/data/bearHuntData.ts, Supabase migration
+Changes:
+- Screenshot Polish: verified html2canvas captures new table layout, .toFixed(1), % row, dark background (#0a0a0a) correctly
+- Screenshot Polish: added subtle watermark footer ("Kingshot Atlas • ks-atlas.com") inside tierListRef for branded screenshots
+- Screenshot Polish: added "last edited by" indicator in watermark footer (resolved from profiles table)
+- Data Validation (server): PostgreSQL trigger `trg_validate_bear_rally_players` validates JSONB schema on INSERT/UPDATE — checks array type, max 200 players, required fields, EG level range 0-10, non-negative stats, valid tier values
+- Data Validation (server): added `updated_by` column to `bear_rally_lists` for edit tracking
+- Data Validation (client): `validateBearPlayers()` function in bearHuntData.ts mirrors server validation before Supabase save
+- Conflict Resolution: optimistic locking via `updated_at` comparison before save — detects concurrent edits, logs conflicts, last-write-wins with timestamp refresh
+- Undo Mechanism: `undoStack` ref (max 20 snapshots) with `pushUndo()` before all mutations (submit, delete, bulk input, bulk edit); Ctrl/Cmd+Z keyboard shortcut; undo button in action bar; toast notification on undo
+- Updated Supabase save to include `updated_by` and return `updated_at` for conflict tracking
+Result: Screenshots branded and polished; data integrity enforced at both client and server; undo available for all edit operations; concurrent edit conflicts detected and logged
 
 ## 2026-03-09 | Product Engineer | COMPLETED
 Task: Bear Rally Tier List — UI polish: consistent % headers, 1dp numbers, rank white, mobile reorder + table

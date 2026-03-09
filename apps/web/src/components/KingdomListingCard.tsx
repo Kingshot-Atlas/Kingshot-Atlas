@@ -92,7 +92,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
         .from('transfer_status_history')
         .select('event_number, group_number, status, is_unofficial')
         .eq('kingdom_number', kingdom.kingdom_number)
-        .order('event_number', { ascending: false });
+        .order('event_number', { ascending: true });
       setTransferHistory(data || []);
     } catch (err) {
       logger.error('Error loading transfer history:', err);
