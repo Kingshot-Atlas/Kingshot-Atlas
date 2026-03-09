@@ -13,6 +13,7 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
+import { BEAR_TIER_COLORS } from '../data/bearHuntData';
 import { Button } from '../components/shared';
 
 const ACCENT = '#3b82f6';
@@ -653,16 +654,67 @@ const TransferOwnershipModal: React.FC<{
   );
 };
 
+// ─── Bear Tier Bar Chart (color-coded per tier) ───
+const BearTierBarChart: React.FC<{ data: [string, number][]; isMobile: boolean }> = ({ data, isMobile }) => {
+  const max = Math.max(...data.map(d => d[1]), 1);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+      {data.map(([label, count]) => {
+        const color = BEAR_TIER_COLORS[label as keyof typeof BEAR_TIER_COLORS] ?? '#6b7280';
+        return (
+          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <span style={{ color, fontSize: '0.65rem', fontWeight: 800, width: isMobile ? '52px' : '60px', textAlign: 'right', flexShrink: 0 }}>{label}</span>
+            <div style={{ flex: 1, height: '14px', backgroundColor: '#1a1a20', borderRadius: '3px', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${(count / max) * 100}%`, backgroundColor: color, borderRadius: '3px', opacity: 0.75, minWidth: '2px', transition: 'width 0.3s' }} />
+            </div>
+            <span style={{ color: '#e5e7eb', fontSize: '0.65rem', fontWeight: 700, width: '22px', textAlign: 'right', flexShrink: 0 }}>{count}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 // ─── Alliance Charts Section (Distribution Analytics) ───
 const AllianceChartsSection: React.FC<{
   members: AllianceMember[];
   profilesMap: Map<string, import('../hooks/useAllianceCenter').PlayerProfileData>;
   apiPlayerData: Map<string, import('../hooks/useAllianceCenter').ApiPlayerData>;
   registryTroopData: Map<string, { infantry_tier: number; infantry_tg: number; cavalry_tier: number; cavalry_tg: number; archers_tier: number; archers_tg: number; updated_at: string }>;
+  allianceId: string;
   isMobile: boolean;
   t: (key: string, fallback: string, opts?: Record<string, unknown>) => string;
-}> = ({ members, profilesMap, apiPlayerData, registryTroopData, isMobile, t }) => {
+}> = ({ members, profilesMap, apiPlayerData, registryTroopData, allianceId, isMobile, t }) => {
   const [expanded, setExpanded] = useState(false);
+
+  // ── Bear Rally Tier Distribution (from Supabase bear_rally_lists) ──
+  const { data: bearTierDist = [] } = useQuery<[string, number][]>({
+    queryKey: ['alliance-bear-tier-dist', allianceId],
+    queryFn: async () => {
+      if (!isSupabaseConfigured || !supabase) return [];
+      const { data, error } = await supabase
+        .from('bear_rally_lists')
+        .select('players, updated_at')
+        .eq('alliance_id', allianceId)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single();
+      if (error || !data?.players) return [];
+      const players = data.players as Array<{ tier?: string; bearScore?: number }>;
+      const TIER_ORDER = ['SS', 'S', 'A', 'B', 'C', 'D'] as const;
+      const counts = new Map<string, number>();
+      for (const p of players) {
+        if (p.tier && TIER_ORDER.includes(p.tier as typeof TIER_ORDER[number])) {
+          counts.set(p.tier, (counts.get(p.tier) || 0) + 1);
+        }
+      }
+      return TIER_ORDER
+        .filter(t => counts.has(t))
+        .map(t => [t, counts.get(t)!] as [string, number]);
+    },
+    enabled: !!allianceId,
+    staleTime: 5 * 60 * 1000,
+  });
 
   // ── TC Level / TG Distribution (descending) ──
   const tgDist = useMemo(() => {
@@ -725,7 +777,7 @@ const AllianceChartsSection: React.FC<{
     return [...counts.entries()].sort((a, b) => b[1] - a[1]);
   }, [members, profilesMap]);
 
-  const hasData = tgDist.length > 0 || infantryDist.length > 0 || cavalryDist.length > 0 || archersDist.length > 0 || langDist.length > 0;
+  const hasData = tgDist.length > 0 || infantryDist.length > 0 || cavalryDist.length > 0 || archersDist.length > 0 || langDist.length > 0 || bearTierDist.length > 0;
   if (!hasData) return null;
 
   const BarChart: React.FC<{ data: [string, number][]; color: string; maxVal?: number }> = ({ data, color, maxVal }) => {
@@ -824,6 +876,16 @@ const AllianceChartsSection: React.FC<{
                     🌐 {t('allianceCenter.chartsLangDist', 'Languages Spoken')}
                   </h4>
                   <BarChart data={langDist} color="#a855f7" />
+                </div>
+              )}
+
+              {/* Bear Rally Tier Distribution */}
+              {bearTierDist.length > 0 && (
+                <div style={{ backgroundColor: '#0d1117', borderRadius: '10px', border: '1px solid #1e1e24', padding: '0.75rem' }}>
+                  <h4 style={{ color: '#e5e7eb', fontSize: '0.75rem', fontWeight: 700, margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    🐻 {t('allianceCenter.chartsBearTier', 'Bear Rally Tiers')}
+                  </h4>
+                  <BearTierBarChart data={bearTierDist} isMobile={isMobile} />
                 </div>
               )}
             </div>
@@ -1490,7 +1552,7 @@ const AllianceDashboard: React.FC = () => {
 
       {/* Alliance Charts — Distribution Analytics */}
       {ac.memberCount >= 3 && (
-        <AllianceChartsSection members={filtered} profilesMap={profilesMap} apiPlayerData={ac.apiPlayerData} registryTroopData={ac.registryTroopData} isMobile={isMobile} t={t} />
+        <AllianceChartsSection members={filtered} profilesMap={profilesMap} apiPlayerData={ac.apiPlayerData} registryTroopData={ac.registryTroopData} allianceId={alliance.id} isMobile={isMobile} t={t} />
       )}
 
       {/* Alliance Roster — Full Width */}

@@ -18,12 +18,16 @@ export const DAYS_OF_WEEK = [
   { value: 6, label: 'Saturday', short: 'Sat' },
 ] as const;
 
-/** Generate 48 half-hour time slots: 00:00, 00:30, 01:00 … 23:30 */
-export const TIME_SLOTS_30MIN: string[] = Array.from({ length: 48 }, (_, i) => {
-  const h = Math.floor(i / 2);
-  const m = i % 2 === 0 ? '00' : '30';
-  return `${String(h).padStart(2, '0')}:${m}`;
-});
+/** Generate 48 half-hour time slots (00:00–23:30) + 24:00 midnight sentinel.
+ *  24:00 is only valid as an exclusive "To" boundary (end-of-day). */
+export const TIME_SLOTS_30MIN: string[] = [
+  ...Array.from({ length: 48 }, (_, i) => {
+    const h = Math.floor(i / 2);
+    const m = i % 2 === 0 ? '00' : '30';
+    return `${String(h).padStart(2, '0')}:${m}`;
+  }),
+  '24:00',
+];
 
 // ─── Types ───
 
@@ -111,7 +115,7 @@ export function useAllianceEventCoordinator() {
       });
     });
 
-    const slots: SlotTally[] = TIME_SLOTS_30MIN.map(slot => ({
+    const slots: SlotTally[] = TIME_SLOTS_30MIN.filter(s => s !== '24:00').map(slot => ({
       slot,
       count: slotCounts.get(slot)?.length ?? 0,
       members: slotCounts.get(slot) ?? [],

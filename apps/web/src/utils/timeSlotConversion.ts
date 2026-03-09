@@ -1,12 +1,16 @@
 // Shared time slot conversion utilities
 // Extracted from AllianceEventCoordinator for testability and reuse
 
-// 30-minute slots covering the full day (00:00 to 23:30)
-export const TIME_SLOTS_30MIN: string[] = Array.from({ length: 48 }, (_, i) => {
-  const h = Math.floor(i / 2).toString().padStart(2, '0');
-  const m = (i % 2 === 0) ? '00' : '30';
-  return `${h}:${m}`;
-});
+// 30-minute slots covering the full day (00:00 to 23:30) + 24:00 midnight sentinel
+// 24:00 is only valid as an exclusive "To" boundary (end-of-day)
+export const TIME_SLOTS_30MIN: string[] = [
+  ...Array.from({ length: 48 }, (_, i) => {
+    const h = Math.floor(i / 2).toString().padStart(2, '0');
+    const m = (i % 2 === 0) ? '00' : '30';
+    return `${h}:${m}`;
+  }),
+  '24:00',
+];
 
 export interface TimeRange {
   from: string;

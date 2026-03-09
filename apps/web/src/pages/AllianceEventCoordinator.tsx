@@ -128,6 +128,7 @@ function utcToLocalLabel(utcTime: string): string {
 }
 
 function formatSlotLabel(slot: string): string {
+  if (slot === '24:00') return '00:00 UTC (Midnight)';
   return `${slot} UTC (${utcToLocalLabel(slot)})`;
 }
 
@@ -154,9 +155,20 @@ const ECTimeSlotDropdown: React.FC<{
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const ref = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  // Scroll selected item into view when dropdown opens
+  useEffect(() => {
+    if (open && listRef.current) {
+      requestAnimationFrame(() => {
+        const el = listRef.current?.querySelector('[data-selected="true"]');
+        if (el) el.scrollIntoView({ block: 'nearest' });
+      });
+    }
+  }, [open]);
 
   const minIndex = minSlot ? TIME_SLOTS_30MIN.indexOf(minSlot) : 0;
-  const availableSlots = TIME_SLOTS_30MIN.filter((_, i) => i >= (minIndex >= 0 ? minIndex : 0));
+  const availableSlots = TIME_SLOTS_30MIN.filter((s, i) => i >= (minIndex >= 0 ? minIndex : 0) && (minSlot || s !== '24:00'));
 
   const filtered = availableSlots.filter(slot =>
     formatSlotLabel(slot).toLowerCase().includes(search.toLowerCase())
@@ -190,7 +202,7 @@ const ECTimeSlotDropdown: React.FC<{
   };
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
+    <div ref={ref} style={{ position: 'relative' }} role="combobox" aria-expanded={open} aria-haspopup="listbox">
       <input
         readOnly={!open}
         value={open ? search : formatSlotLabel(value)}
@@ -199,16 +211,19 @@ const ECTimeSlotDropdown: React.FC<{
         onFocus={() => { if (!disabled) { setOpen(true); setSearch(''); } }}
         onClick={() => { if (!disabled) { setOpen(true); setSearch(''); } }}
         style={dropdownInputStyle}
+        aria-label={minSlot ? 'End time' : 'Start time'}
+        inputMode={open ? 'search' : 'none'}
       />
       <span style={{
         position: 'absolute', right: '0.65rem', top: '50%', transform: `translateY(-50%) rotate(${open ? '180' : '0'}deg)`,
         color: '#6b7280', fontSize: '0.55rem', pointerEvents: 'none', transition: 'transform 0.2s ease',
       }}>▼</span>
       {open && (
-        <div style={{
+        <div ref={listRef} role="listbox" style={{
           position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '4px', zIndex: 50,
           backgroundColor: '#111111', border: '1px solid #2a2a2a', borderRadius: '10px',
-          maxHeight: '200px', overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+          maxHeight: isMobile ? '300px' : '200px', overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+          WebkitOverflowScrolling: 'touch',
         }}>
           {filtered.length === 0 ? (
             <div style={{ padding: '0.75rem', color: '#6b7280', fontSize: '0.8rem', textAlign: 'center' }}>
@@ -216,15 +231,19 @@ const ECTimeSlotDropdown: React.FC<{
             </div>
           ) : filtered.map(slot => (
             <button key={slot} onClick={() => handleSelect(slot)}
+              role="option" aria-selected={slot === value} data-selected={slot === value ? 'true' : undefined}
               style={{
-                display: 'block', width: '100%', padding: '0.5rem 0.75rem', border: 'none',
+                display: 'block', width: '100%', padding: isMobile ? '0.65rem 0.75rem' : '0.5rem 0.75rem', border: 'none',
                 backgroundColor: slot === value ? ACCENT + '18' : 'transparent',
                 color: slot === value ? ACCENT : '#e5e7eb', fontSize: isMobile ? '0.9rem' : '0.78rem',
                 fontWeight: slot === value ? 700 : 400, cursor: 'pointer', textAlign: 'left',
-                minHeight: '44px', transition: 'background-color 0.1s ease',
+                minHeight: isMobile ? '48px' : '44px', transition: 'background-color 0.1s ease',
+                WebkitTapHighlightColor: 'transparent',
               }}
-              onMouseEnter={e => { if (slot !== value) e.currentTarget.style.backgroundColor = '#1a1a20'; }}
-              onMouseLeave={e => { e.currentTarget.style.backgroundColor = slot === value ? ACCENT + '18' : 'transparent'; }}>
+              onPointerEnter={e => { if (slot !== value) e.currentTarget.style.backgroundColor = '#1a1a20'; }}
+              onPointerLeave={e => { e.currentTarget.style.backgroundColor = slot === value ? ACCENT + '18' : 'transparent'; }}
+              onPointerDown={e => { e.currentTarget.style.backgroundColor = ACCENT + '25'; }}
+              onPointerUp={e => { e.currentTarget.style.backgroundColor = slot === value ? ACCENT + '18' : 'transparent'; }}>
               {formatSlotLabel(slot)}
             </button>
           ))}
@@ -264,9 +283,9 @@ const TimeRangeRow: React.FC<{
           </span>
           {!disabled && (
             <button onClick={onRemove}
-              style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer', padding: '0.1rem 0.3rem', borderRadius: '4px', opacity: 0.7 }}
-              onMouseEnter={e => { e.currentTarget.style.opacity = '1'; }}
-              onMouseLeave={e => { e.currentTarget.style.opacity = '0.7'; }}>
+              style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer', padding: isMobile ? '0.35rem 0.6rem' : '0.1rem 0.3rem', borderRadius: '4px', opacity: 0.7, minHeight: isMobile ? '36px' : 'auto', WebkitTapHighlightColor: 'transparent' }}
+              onPointerEnter={e => { e.currentTarget.style.opacity = '1'; }}
+              onPointerLeave={e => { e.currentTarget.style.opacity = '0.7'; }}>
               ✕ {t('eventCoordinator.removeSlot', 'Remove')}
             </button>
           )}
@@ -490,10 +509,11 @@ const MyAvailabilityForm: React.FC<{
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                             padding: '0.5rem', borderRadius: '8px', border: `1px dashed ${ranges.length === 0 ? ACCENT + '60' : '#2a2a2a'}`,
                             backgroundColor: 'transparent', color: ranges.length === 0 ? ACCENT : '#6b7280',
-                            fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', minHeight: '40px',
+                            fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', minHeight: isMobile ? '48px' : '40px',
+                            WebkitTapHighlightColor: 'transparent',
                           }}
-                          onMouseEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
-                          onMouseLeave={e => { e.currentTarget.style.borderColor = ranges.length === 0 ? ACCENT + '60' : '#2a2a2a'; e.currentTarget.style.color = ranges.length === 0 ? ACCENT : '#6b7280'; }}>
+                          onPointerEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
+                          onPointerLeave={e => { e.currentTarget.style.borderColor = ranges.length === 0 ? ACCENT + '60' : '#2a2a2a'; e.currentTarget.style.color = ranges.length === 0 ? ACCENT : '#6b7280'; }}>
                           + {t('eventCoordinator.addTimeRange', 'Add Time Range')}
                         </button>
                       )}
@@ -758,7 +778,7 @@ const ManualInputModal: React.FC<{
               )}
               {(dayRanges[activeDayTab] || []).length > 0 && (
                 <button onClick={() => setDayRanges(prev => ({ ...prev, [activeDayTab]: [] }))}
-                  style={{ padding: '0.15rem 0.3rem', border: 'none', backgroundColor: 'transparent', color: '#ef4444', fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer' }}>
+                  style={{ padding: isMobile ? '0.35rem 0.5rem' : '0.15rem 0.3rem', border: 'none', backgroundColor: 'transparent', color: '#ef4444', fontSize: '0.6rem', fontWeight: 600, cursor: 'pointer', minHeight: isMobile ? '36px' : 'auto', WebkitTapHighlightColor: 'transparent' }}>
                   Clear
                 </button>
               )}
@@ -779,10 +799,11 @@ const ManualInputModal: React.FC<{
                   border: `1px dashed ${(dayRanges[activeDayTab] || []).length === 0 ? ACCENT + '60' : '#2a2a2a'}`,
                   backgroundColor: 'transparent',
                   color: (dayRanges[activeDayTab] || []).length === 0 ? ACCENT : '#6b7280',
-                  fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', minHeight: '40px',
+                  fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', minHeight: isMobile ? '48px' : '40px',
+                  WebkitTapHighlightColor: 'transparent',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
-                onMouseLeave={e => {
+                onPointerEnter={e => { e.currentTarget.style.borderColor = ACCENT; e.currentTarget.style.color = ACCENT; }}
+                onPointerLeave={e => {
                   const empty = (dayRanges[activeDayTab] || []).length === 0;
                   e.currentTarget.style.borderColor = empty ? ACCENT + '60' : '#2a2a2a';
                   e.currentTarget.style.color = empty ? ACCENT : '#6b7280';

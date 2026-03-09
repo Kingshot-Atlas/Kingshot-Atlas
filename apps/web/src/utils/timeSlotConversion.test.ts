@@ -37,11 +37,23 @@ describe('rangesToSlots', () => {
     expect(slots).toEqual([]);
   });
 
-  it('handles full day range', () => {
+  it('handles full day range up to 23:30', () => {
     const slots = rangesToSlots([{ from: '00:00', to: '23:30' }]);
     expect(slots).toHaveLength(47); // 00:00 through 23:00, exclusive of 23:30
     expect(slots[0]).toBe('00:00');
     expect(slots[slots.length - 1]).toBe('23:00');
+  });
+
+  it('handles full day range up to 24:00 (midnight sentinel)', () => {
+    const slots = rangesToSlots([{ from: '00:00', to: '24:00' }]);
+    expect(slots).toHaveLength(48); // all 48 half-hour slots
+    expect(slots[0]).toBe('00:00');
+    expect(slots[slots.length - 1]).toBe('23:30');
+  });
+
+  it('handles last slot 23:30→24:00', () => {
+    const slots = rangesToSlots([{ from: '23:30', to: '24:00' }]);
+    expect(slots).toEqual(['23:30']);
   });
 
   it('single 30-min slot', () => {
@@ -81,11 +93,15 @@ describe('slotsToRanges', () => {
     ]);
   });
 
-  it('handles the last slot (23:30) — to falls back to same slot', () => {
+  it('handles the last slot (23:30) — to resolves to 24:00 midnight sentinel', () => {
     const ranges = slotsToRanges(['23:00', '23:30']);
-    // 23:30 is the last slot (index 47), so to = TIME_SLOTS_30MIN[48] which is undefined
-    // fallback: to = TIME_SLOTS_30MIN[47] = '23:30'
-    expect(ranges).toEqual([{ from: '23:00', to: '23:30' }]);
+    // 23:30 is index 47, so to = TIME_SLOTS_30MIN[48] = '24:00'
+    expect(ranges).toEqual([{ from: '23:00', to: '24:00' }]);
+  });
+
+  it('handles single last slot (23:30) → 23:30–24:00', () => {
+    const ranges = slotsToRanges(['23:30']);
+    expect(ranges).toEqual([{ from: '23:30', to: '24:00' }]);
   });
 });
 
@@ -127,6 +143,14 @@ describe('round-trip: rangesToSlots → slotsToRanges', () => {
       // Slots should be identical after round-trip
       expect(slotsAgain).toEqual(slots);
     });
+  });
+
+  it('round-trips correctly for last slot (23:30→24:00)', () => {
+    const ranges: TimeRange[] = [{ from: '23:30', to: '24:00' }];
+    const slots = rangesToSlots(ranges);
+    expect(slots).toEqual(['23:30']);
+    const reconstructed = slotsToRanges(slots);
+    expect(reconstructed).toEqual([{ from: '23:30', to: '24:00' }]);
   });
 
   it('adjacent ranges merge into one after round-trip', () => {

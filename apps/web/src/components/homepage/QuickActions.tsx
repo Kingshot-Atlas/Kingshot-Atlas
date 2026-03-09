@@ -44,12 +44,13 @@ const AtlasBotIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
   </svg>
 );
 
-const RankingsIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
+const AllianceCenterIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="3" y="14" width="5" height="7" rx="1" stroke="currentColor" strokeWidth="2" />
-    <rect x="9.5" y="3" width="5" height="18" rx="1" stroke="currentColor" strokeWidth="2" />
-    <rect x="16" y="9" width="5" height="12" rx="1" stroke="currentColor" strokeWidth="2" />
-    <path d="M12 6.5L13 5L12 3L11 5L12 6.5Z" fill="currentColor" />
+    <circle cx="12" cy="8" r="3" stroke="currentColor" strokeWidth="2" />
+    <circle cx="5" cy="14" r="2.5" stroke="currentColor" strokeWidth="2" />
+    <circle cx="19" cy="14" r="2.5" stroke="currentColor" strokeWidth="2" />
+    <path d="M12 11v2M8 13l-2 1.5M16 13l2 1.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    <path d="M3 20c0-2 1.5-3.5 3.5-3.5M21 20c0-2-1.5-3.5-3.5-3.5M8 21c0-2.5 2-4 4-4s4 1.5 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
   </svg>
 );
 
@@ -91,7 +92,7 @@ const QuickActions: React.FC = () => {
     { label: 'KvK Battle Registry', line1: t('quickAction.battleRegistry_1', 'KvK Battle'), line2: t('quickAction.battleRegistry_2', 'Registry'), path: '/tools/battle-registry-info', color: '#f97316', icon: <BattleRegistryIcon size={iconSize} /> },
     { label: 'KvK Prep Scheduler', line1: t('quickAction.prepScheduler_1', 'KvK Prep'), line2: t('quickAction.prepScheduler_2', 'Scheduler'), path: '/tools/prep-scheduler-info', color: '#eab308', icon: <PrepSchedulerIcon size={iconSize} /> },
     { label: 'Atlas Discord Bot', line1: t('quickAction.atlasBot_1', 'Atlas'), line2: t('quickAction.atlasBot_2', 'Discord Bot'), path: '/atlas-bot', color: '#5865F2', icon: <AtlasBotIcon size={iconSize} /> },
-    { label: 'Kingdom Rankings', line1: t('quickAction.rankings_1', 'Kingdom'), line2: t('quickAction.rankings_2', 'Rankings'), path: '/rankings', color: '#22d3ee', icon: <RankingsIcon size={iconSize} /> },
+    { label: 'Alliance Center', line1: t('quickAction.allianceCenter_1', 'Alliance'), line2: t('quickAction.allianceCenter_2', 'Center'), path: '/alliance', color: '#22d3ee', icon: <AllianceCenterIcon size={iconSize} /> },
   ];
 
   return (

@@ -4,6 +4,33 @@
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
 ## 2026-03-09 | Product Engineer | COMPLETED
+Task: Event Coordinator data audit + mobile UX polish
+Files: AllianceEventCoordinator.tsx
+Changes:
+- Data audit: queried alliance_event_availability — 0 rows with 23:30, no zero-duration artifacts. No migration needed.
+- ECTimeSlotDropdown: added scroll-to-selected on open (requestAnimationFrame + scrollIntoView)
+- ECTimeSlotDropdown: increased maxHeight on mobile (200px → 300px), item touch targets (44px → 48px)
+- ECTimeSlotDropdown: added ARIA attributes (combobox, listbox, option, aria-selected, aria-label)
+- ECTimeSlotDropdown: added inputMode="search"/"none" for mobile keyboard control
+- Converted all onMouseEnter/onMouseLeave → onPointerEnter/onPointerLeave across entire component
+- Added onPointerDown/onPointerUp for immediate touch feedback on dropdown items
+- Increased touch targets for Remove (36px), Clear (36px), Add Time Range (48px) buttons on mobile
+- Added WebkitOverflowScrolling and WebkitTapHighlightColor for iOS polish
+Result: Build passes. 22 unit tests pass. No data migration needed.
+
+## 2026-03-09 | Product Engineer | COMPLETED
+Task: Event Coordinator full-day coverage — add 24:00 midnight sentinel to TIME_SLOTS_30MIN
+Files: timeSlotConversion.ts, useAllianceEventCoordinator.ts, AllianceEventCoordinator.tsx, timeSlotConversion.test.ts
+Changes:
+- Added 24:00 sentinel to TIME_SLOTS_30MIN in both timeSlotConversion.ts and useAllianceEventCoordinator.ts
+- slotsToRanges now correctly resolves last slot (23:30) to {from: '23:30', to: '24:00'} instead of falling back
+- Updated ECTimeSlotDropdown: 24:00 excluded from "From", included in "To" with "00:00 UTC (Midnight)" label
+- Filtered 24:00 from tally grid in hook (not a real slot, just a boundary)
+- Added 4 new unit tests for 24:00 edge cases (22 total, all passing)
+- Timeline bar, smart defaults, duration calc all verified correct with 49-entry array
+Result: Build passes. 22 unit tests pass. Users can now select 23:30→24:00 to cover the last slot of the day.
+
+## 2026-03-09 | Product Engineer | COMPLETED
 Task: Revert Battle Registry TIME_SLOTS to 12:00-17:00 UTC (KvK battle window)
 Files: types.ts, BattleRegistryForm.tsx, BattleRegistryDashboard.tsx, RegistryAnalytics.tsx
 Changes:
