@@ -88,7 +88,7 @@ const BearRallyTierList: React.FC = () => {
             letterSpacing: '0.02em',
           }}>
             <span style={{ color: '#fff' }}>{t('bearRally.title1', 'BEAR RALLY')}</span>{' '}
-            <span style={{ color: '#d4a017' }}>{t('bearRally.title2', 'TIER LIST')}</span>
+            <span style={{ color: ACCENT }}>{t('bearRally.title2', 'TIER LIST')}</span>
           </h1>
           <p style={{ fontSize: isMobile ? '0.75rem' : '0.85rem', color: '#6b7280', maxWidth: '600px', margin: '0 auto', lineHeight: 1.5 }}>
             {t('bearRally.subtitle', 'Rank your alliance by Bear Hunt rally power. Input scouted stats — Atlas handles the math.')}
@@ -153,8 +153,8 @@ const BearRallyTierList: React.FC = () => {
           <div style={{
             position: 'fixed', bottom: '5rem', left: '50%', transform: 'translateX(-50%)',
             zIndex: 100, padding: '0.6rem 1.2rem', backgroundColor: '#1a1a1a',
-            border: '1px solid #f59e0b30', borderRadius: '10px',
-            color: '#f59e0b', fontSize: '0.8rem', fontWeight: 600,
+            border: `1px solid ${ACCENT}30`, borderRadius: '10px',
+            color: ACCENT, fontSize: '0.8rem', fontWeight: 600,
             boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
             animation: 'fadeInUp 0.2s ease-out',
           }}>
@@ -165,8 +165,9 @@ const BearRallyTierList: React.FC = () => {
         {/* ── Action Buttons ── */}
         {state.canEdit && state.listsIndex.length > 0 && (
           <div style={{
-            display: 'flex', gap: '0.5rem', flexWrap: 'wrap',
+            display: 'flex', gap: isMobile ? '0.35rem' : '0.5rem', flexWrap: 'nowrap',
             marginBottom: '1rem',
+            justifyContent: isMobile ? 'flex-start' : 'center',
           }}>
             {!state.showForm && (
               <>
@@ -179,10 +180,10 @@ const BearRallyTierList: React.FC = () => {
                     state.setShowBulkEdit(false);
                   }}
                   style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-                    padding: '0.5rem 1rem', backgroundColor: ACCENT,
+                    display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                    padding: isMobile ? '0.45rem 0.7rem' : '0.5rem 1rem', backgroundColor: ACCENT,
                     border: 'none', borderRadius: '8px',
-                    color: '#fff', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer',
+                    color: '#fff', fontSize: isMobile ? '0.75rem' : '0.85rem', fontWeight: 700, cursor: 'pointer',
                   }}
                 >
                   + {t('bearRally.addPlayer', 'Add Player')}
@@ -190,10 +191,10 @@ const BearRallyTierList: React.FC = () => {
                 <button
                   onClick={() => { state.setShowBulkInput(true); state.setShowBulkEdit(false); state.setShowForm(false); }}
                   style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-                    padding: '0.5rem 1rem', backgroundColor: '#1a1a1a',
+                    display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                    padding: isMobile ? '0.45rem 0.7rem' : '0.5rem 1rem', backgroundColor: '#1a1a1a',
                     border: '1px solid #333', borderRadius: '8px',
-                    color: '#d1d5db', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
+                    color: '#d1d5db', fontSize: isMobile ? '0.75rem' : '0.85rem', fontWeight: 600, cursor: 'pointer',
                   }}
                 >
                   📋 {t('bearRally.bulkAdd', 'Bulk Add')}
@@ -202,13 +203,13 @@ const BearRallyTierList: React.FC = () => {
                   <button
                     onClick={() => { state.setShowBulkEdit(true); state.setShowBulkInput(false); state.setShowForm(false); }}
                     style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-                      padding: '0.5rem 1rem', backgroundColor: '#1a1a1a',
+                      display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                      padding: isMobile ? '0.45rem 0.7rem' : '0.5rem 1rem', backgroundColor: '#1a1a1a',
                       border: '1px solid #333', borderRadius: '8px',
-                      color: '#d1d5db', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
+                      color: '#d1d5db', fontSize: isMobile ? '0.75rem' : '0.85rem', fontWeight: 600, cursor: 'pointer',
                     }}
                   >
-                    ✏️ {t('bearRally.bulkEdit', 'Bulk Edit')}
+                    ✏️ {t('bearRally.editAll', 'Edit All')}
                   </button>
                 )}
               </>

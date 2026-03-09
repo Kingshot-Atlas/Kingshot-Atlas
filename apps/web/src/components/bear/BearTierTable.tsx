@@ -195,28 +195,28 @@ const BearTierTable: React.FC<BearTierTableProps> = ({
           {/* Incomplete players */}
           {incompletePlayers.length > 0 && (
             <>
-              <div style={{ padding: '0.5rem 0.75rem 0.25rem', fontSize: '0.6rem', fontWeight: 700, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.05em', borderTop: rankedPlayers.length > 0 ? '1px solid #2a2a2a' : 'none' }}>
+              <div style={{ padding: '0.5rem 0.75rem 0.25rem', fontSize: '0.6rem', fontWeight: 700, color: ACCENT, textTransform: 'uppercase', letterSpacing: '0.05em', borderTop: rankedPlayers.length > 0 ? '1px solid #2a2a2a' : 'none' }}>
                 {t('bearRally.incompleteSection', 'Unranked — Missing Data')} ({incompletePlayers.length})
               </div>
               {incompletePlayers.map((player) => (
                 <div key={player.id} style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   padding: '0.5rem 0.75rem', borderBottom: '1px solid #1a1a1a',
-                  backgroundColor: '#f59e0b06',
+                  backgroundColor: `${ACCENT}06`,
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flex: 1, minWidth: 0 }}>
-                    <span style={{ fontSize: '0.7rem', color: '#f59e0b80', fontWeight: 700 }}>—</span>
+                    <span style={{ fontSize: '0.7rem', color: `${ACCENT}80`, fontWeight: 700 }}>—</span>
                     <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.playerName}</span>
                   </div>
                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0 }}>
-                    <span style={{ fontSize: '0.55rem', color: '#f59e0b80', fontStyle: 'italic' }}>{t('bearRally.needsData', 'needs data')}</span>
+                    <span style={{ fontSize: '0.55rem', color: `${ACCENT}80`, fontStyle: 'italic' }}>{t('bearRally.needsData', 'needs data')}</span>
                     {canEdit && (
                       <button
                         onClick={() => handleEdit(player)}
                         style={{
-                          padding: '0.2rem 0.6rem', backgroundColor: '#f59e0b15',
-                          border: '1px solid #f59e0b30', borderRadius: '6px',
-                          color: '#f59e0b', fontSize: '0.6rem', fontWeight: 700, cursor: 'pointer',
+                          padding: '0.2rem 0.6rem', backgroundColor: `${ACCENT}15`,
+                          border: `1px solid ${ACCENT}30`, borderRadius: '6px',
+                          color: ACCENT, fontSize: '0.6rem', fontWeight: 700, cursor: 'pointer',
                           minHeight: '28px',
                         }}
                       >
@@ -430,27 +430,27 @@ const BearTierTable: React.FC<BearTierTableProps> = ({
               {/* Incomplete players */}
               {incompletePlayers.length > 0 && (
                 <>
-                  <tr><td colSpan={canEdit ? 17 : 16} style={{ padding: '0.35rem 0.6rem 0.15rem', fontSize: '0.55rem', fontWeight: 700, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #1a1a1a', borderTop: rankedPlayers.length > 0 ? '1px solid #2a2a2a' : 'none' }}>
+                  <tr><td colSpan={canEdit ? 17 : 16} style={{ padding: '0.35rem 0.6rem 0.15rem', fontSize: '0.55rem', fontWeight: 700, color: ACCENT, textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #1a1a1a', borderTop: rankedPlayers.length > 0 ? '1px solid #2a2a2a' : 'none' }}>
                     {t('bearRally.incompleteSection', 'Unranked — Missing Data')} ({incompletePlayers.length})
                   </td></tr>
                   {incompletePlayers.map((player) => {
                     const tdBase: React.CSSProperties = { padding: '0.4rem 0.15rem', fontSize: '0.72rem', borderBottom: '1px solid #1a1a1a' };
                     return (
-                      <tr key={player.id} style={{ backgroundColor: '#f59e0b06' }}>
-                        <td style={{ ...tdBase, color: '#f59e0b60', paddingLeft: '0.6rem', fontWeight: 700 }}>—</td>
-                        <td style={{ ...tdBase, color: '#f59e0b60', textAlign: 'center', fontStyle: 'italic', fontSize: '0.6rem' }}>—</td>
+                      <tr key={player.id} style={{ backgroundColor: `${ACCENT}06` }}>
+                        <td style={{ ...tdBase, color: `${ACCENT}60`, paddingLeft: '0.6rem', fontWeight: 700 }}>—</td>
+                        <td style={{ ...tdBase, color: `${ACCENT}60`, textAlign: 'center', fontStyle: 'italic', fontSize: '0.6rem' }}>—</td>
                         <td style={{ ...tdBase, textAlign: 'center' }}>
                           <span style={{
                             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                             minWidth: '28px', height: '22px', padding: '0 0.35rem',
-                            backgroundColor: '#f59e0b10', border: '1px solid #f59e0b25',
-                            borderRadius: '6px', color: '#f59e0b80', fontSize: '0.55rem',
+                            backgroundColor: `${ACCENT}10`, border: `1px solid ${ACCENT}25`,
+                            borderRadius: '6px', color: `${ACCENT}80`, fontSize: '0.55rem',
                             fontWeight: 700, letterSpacing: '0.03em',
                           }}>?</span>
                         </td>
                         <td style={{ ...tdBase, fontWeight: 600, color: '#9ca3af' }}>{player.playerName}</td>
                         {Array.from({ length: 12 }).map((_, i) => (
-                          <td key={i} style={{ ...tdBase, color: '#f59e0b30', textAlign: 'center', fontSize: '0.6rem' }}>—</td>
+                          <td key={i} style={{ ...tdBase, color: `${ACCENT}30`, textAlign: 'center', fontSize: '0.6rem' }}>—</td>
                         ))}
                         {canEdit && (
                           <td style={{ ...tdBase, textAlign: 'center' }}>
@@ -458,8 +458,8 @@ const BearTierTable: React.FC<BearTierTableProps> = ({
                               onClick={() => handleEdit(player)}
                               title={t('bearRally.addData', 'Add Data')}
                               style={{
-                                background: 'none', border: '1px solid #f59e0b30', borderRadius: '4px',
-                                color: '#f59e0b', cursor: 'pointer', padding: '0.1rem 0.3rem', fontSize: '0.55rem', fontWeight: 700,
+                                background: 'none', border: `1px solid ${ACCENT}30`, borderRadius: '4px',
+                                color: ACCENT, cursor: 'pointer', padding: '0.1rem 0.3rem', fontSize: '0.55rem', fontWeight: 700,
                               }}
                             >
                               +

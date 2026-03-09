@@ -204,7 +204,7 @@ const BearListManager: React.FC<BearListManagerProps> = ({
             showNewListPrompt ? (
               <form
                 onSubmit={(e) => { e.preventDefault(); handleCreateList(newListNameDraft); }}
-                style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', marginLeft: 'auto' }}
+                style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}
               >
                 <input
                   autoFocus
@@ -239,7 +239,6 @@ const BearListManager: React.FC<BearListManagerProps> = ({
                   padding: '0.3rem 0.6rem', backgroundColor: `${ACCENT}15`,
                   border: `1px solid ${ACCENT}30`, borderRadius: '6px',
                   color: ACCENT, fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer',
-                  marginLeft: 'auto',
                 }}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -250,7 +249,7 @@ const BearListManager: React.FC<BearListManagerProps> = ({
 
           {/* Undo / Share buttons */}
           {players.length > 0 && (
-            <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', marginLeft: canEdit ? '0' : 'auto' }}>
+            <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', marginLeft: 'auto' }}>
               {canEdit && undoStackLength > 0 && (
                 <button
                   onClick={handleUndo}
@@ -258,8 +257,8 @@ const BearListManager: React.FC<BearListManagerProps> = ({
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
                     padding: '0.3rem 0.55rem', backgroundColor: '#1a1a1a',
-                    border: '1px solid #f59e0b30', borderRadius: '6px',
-                    color: '#f59e0b', fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer',
+                    border: `1px solid ${ACCENT}30`, borderRadius: '6px',
+                    color: ACCENT, fontSize: '0.65rem', fontWeight: 600, cursor: 'pointer',
                   }}
                 >
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
