@@ -3926,7 +3926,14 @@
     "share": "Compartir",
     "copyImage": "Copiar imagen",
     "copyLink": "Copiar enlace",
-    "exportCSV": "Exportar CSV"
+    "exportCSV": "Exportar CSV",
+    "tierCutoffs": "Límites de Nivel",
+    "customLabel": "PERSONALIZADO",
+    "tierCutoffsDesc": "Establece la Puntuación Oso mínima para cada nivel. Los jugadores por debajo del umbral C se colocan en nivel D.",
+    "belowC": "Por debajo del umbral C",
+    "resetToAuto": "Restablecer a Auto",
+    "applyCutoffs": "Aplicar Límites",
+    "howScore5": "Los niveles usan un algoritmo de quiebres naturales que encuentra las mayores brechas de puntuación entre jugadores para crear límites de nivel significativos. Los gerentes también pueden establecer límites personalizados."
   },
   "bearRallyLanding": {
     "pageTitle": "Lista de Niveles de Rally del Oso",
@@ -3953,8 +3960,10 @@
     "featEGDesc": "Atlas sabe qué héroes tienen Equipo Exclusivo ofensivo vs defensivo. Los bonos defensivos se eliminan de las estadísticas exploradas. Los bonos ofensivos se aplican para precisión en rally.",
     "featScore": "Clasificación por Puntuación Oso",
     "featScoreDesc": "Cada jugador recibe una Puntuación Oso basada en sus bonos de tropas ajustados. La lista se ordena automáticamente de mayor a menor.",
-    "featTiers": "Clasificación por Niveles",
-    "featTiersDesc": "Los jugadores se ordenan en niveles: SS, S, A, B, C, D — codificados por color de cian a rojo. Ve instantáneamente quién pertenece a tu alineación de rally.",
+    "featTiers": "Clasificación Inteligente por Niveles",
+    "featTiersDesc": "Los jugadores se ordenan en niveles SS a D usando un algoritmo de quiebres naturales que encuentra las mayores brechas de puntuación en tu plantel. Los niveles representan diferencias reales de poder — no percentiles arbitrarios.",
+    "featCustomCutoffs": "Límites de Nivel Personalizados",
+    "featCustomCutoffsDesc": "Los gerentes de alianza pueden ajustar manualmente los límites de nivel si los calculados automáticamente no coinciden con su criterio. Establece tus propios umbrales — o deja que Atlas decida.",
     "featBear": "Hecho para Caza del Oso",
     "featBearDesc": "La Caza del Oso es un evento de rally — solo las estadísticas ofensivas importan. Esta herramienta elimina el ruido y te da los números reales para el daño de rally.",
     "featAccess": "Control de Acceso de Alianza",

@@ -112,6 +112,15 @@ export const getHeroByName = (name: string): HeroData | undefined =>
 
 export type BearTier = 'SS' | 'S' | 'A' | 'B' | 'C' | 'D';
 
+/** Optional manual tier score cutoffs set by alliance managers */
+export interface BearTierOverrides {
+  SS: number;
+  S: number;
+  A: number;
+  B: number;
+  C: number;
+}
+
 export const BEAR_TIER_COLORS: Record<BearTier, string> = {
   SS: '#22d3ee', // Cyan
   S:  '#22c55e', // Green
@@ -313,9 +322,19 @@ const TIERS: BearTier[] = ['SS', 'S', 'A', 'B', 'C', 'D'];
  *
  * With < 6 players, each player gets a unique tier top-down.
  */
-export function assignBearTier(score: number, allScores: number[]): BearTier {
+export function assignBearTier(score: number, allScores: number[], overrides?: BearTierOverrides | null): BearTier {
   if (allScores.length === 0) return 'D';
   if (allScores.length === 1) return 'SS';
+
+  // Manual overrides take precedence
+  if (overrides) {
+    if (score >= overrides.SS) return 'SS';
+    if (score >= overrides.S) return 'S';
+    if (score >= overrides.A) return 'A';
+    if (score >= overrides.B) return 'B';
+    if (score >= overrides.C) return 'C';
+    return 'D';
+  }
 
   const boundaries = computeTierBoundaries(allScores);
   for (let i = 0; i < boundaries.length; i++) {
@@ -362,7 +381,7 @@ export function computeTierBoundaries(allScores: number[]): number[] {
 
   // Min/max players per tier (at least 1)
   const minPct = [0.02, 0.05, 0.10, 0.10, 0.05, 0.02]; // SS..D
-  const maxPct = [0.15, 0.25, 0.30, 0.30, 0.25, 0.15];
+  const maxPct = [0.20, 0.30, 0.30, 0.30, 0.25, 0.20];
   const minC = minPct.map(p => Math.max(1, Math.floor(p * n)));
   const maxC = maxPct.map(p => Math.max(2, Math.ceil(p * n)));
 
@@ -439,7 +458,7 @@ export function assignBearTierSingle(score: number): BearTier {
  * Bump this version whenever the bear score formula weights change.
  * The UI compares stored version vs current to decide whether recalculation is needed.
  */
-export const BEAR_FORMULA_VERSION = 2; // v1 = 10/10/80, v2 = 1/9/90
+export const BEAR_FORMULA_VERSION = 3; // v1 = 10/10/80, v2 = 1/9/90, v3 = natural breaks + tier overrides
 export const BEAR_FORMULA_VERSION_KEY = 'kingshot_bear_formula_version';
 
 /**
@@ -447,7 +466,7 @@ export const BEAR_FORMULA_VERSION_KEY = 'kingshot_bear_formula_version';
  * Call this whenever loading players from storage/cloud to ensure scores
  * reflect the latest weight configuration.
  */
-export function recalculateAllScores(players: BearPlayerEntry[]): BearPlayerEntry[] {
+export function recalculateAllScores(players: BearPlayerEntry[], overrides?: BearTierOverrides | null): BearPlayerEntry[] {
   if (players.length === 0) return players;
 
   // First pass: recalculate raw scores
@@ -466,7 +485,7 @@ export function recalculateAllScores(players: BearPlayerEntry[]): BearPlayerEntr
   const allScores = completePlayers.map(p => p.bearScore);
   return withScores.map(p => {
     if (!isPlayerComplete(p)) return p;
-    return { ...p, tier: assignBearTier(p.bearScore, allScores) };
+    return { ...p, tier: assignBearTier(p.bearScore, allScores, overrides) };
   });
 }
 

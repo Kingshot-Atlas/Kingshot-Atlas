@@ -3927,7 +3927,14 @@
     "share": "Partager",
     "copyImage": "Copier l'image",
     "copyLink": "Copier le lien",
-    "exportCSV": "Exporter CSV"
+    "exportCSV": "Exporter CSV",
+    "tierCutoffs": "Seuils de Niveau",
+    "customLabel": "PERSONNALISÉ",
+    "tierCutoffsDesc": "Définissez le Score Ours minimum pour chaque niveau. Les joueurs en dessous du seuil C sont placés en niveau D.",
+    "belowC": "En dessous du seuil C",
+    "resetToAuto": "Réinitialiser en Auto",
+    "applyCutoffs": "Appliquer les Seuils",
+    "howScore5": "Les niveaux utilisent un algorithme de ruptures naturelles qui trouve les plus grands écarts de score entre les joueurs pour créer des limites de niveau significatives. Les managers peuvent également définir des seuils personnalisés."
   },
   "bearRallyLanding": {
     "pageTitle": "Liste de Niveaux du Rally de l'Ours",
@@ -3954,8 +3961,10 @@
     "featEGDesc": "Atlas sait quels héros ont un Équipement Exclusif offensif vs défensif. Les bonus défensifs sont retirés des stats scoutées. Les bonus offensifs sont appliqués pour la précision du rally.",
     "featScore": "Classement par Score Ours",
     "featScoreDesc": "Chaque joueur reçoit un Score Ours basé sur ses bonus de troupes ajustés. La liste se classe automatiquement du plus haut au plus bas.",
-    "featTiers": "Classification par Niveaux",
-    "featTiersDesc": "Les joueurs sont triés en niveaux : SS, S, A, B, C, D — codés par couleur du cyan au rouge. Voyez instantanément qui appartient à votre lineup de rally.",
+    "featTiers": "Classification Intelligente par Niveaux",
+    "featTiersDesc": "Les joueurs sont triés en niveaux SS à D à l'aide d'un algorithme de ruptures naturelles qui trouve les plus grands écarts de score. Les niveaux représentent de vraies différences de puissance — pas des percentiles arbitraires.",
+    "featCustomCutoffs": "Seuils de Niveau Personnalisés",
+    "featCustomCutoffsDesc": "Les managers d'alliance peuvent ajuster manuellement les limites de niveau si les seuils auto-calculés ne correspondent pas à leur jugement. Définissez vos propres seuils — ou laissez Atlas décider.",
     "featBear": "Conçu pour la Chasse à l'Ours",
     "featBearDesc": "La Chasse à l'Ours est un événement de rally — seules les stats offensives comptent. Cet outil élimine le bruit et vous donne les vrais chiffres pour les dégâts de rally.",
     "featAccess": "Contrôle d'Accès d'Alliance",

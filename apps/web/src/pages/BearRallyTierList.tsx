@@ -18,6 +18,7 @@ import BearBulkEdit from '../components/bear/BearBulkEdit';
 import BearListManager from '../components/bear/BearListManager';
 import BearPlayerForm from '../components/bear/BearPlayerForm';
 import BearTierTable from '../components/bear/BearTierTable';
+import BearTierCutoffEditor from '../components/bear/BearTierCutoffEditor';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -57,7 +58,7 @@ const BearRallyTierList: React.FC = () => {
       const merged = [...prev, ...newPlayers];
       const complete = merged.filter(isPlayerComplete);
       const allScores = complete.map(p => p.bearScore);
-      return merged.map(p => isPlayerComplete(p) ? { ...p, tier: assignBearTier(p.bearScore, allScores) } : p);
+      return merged.map(p => isPlayerComplete(p) ? { ...p, tier: assignBearTier(p.bearScore, allScores, state.tierOverrides) } : p);
     });
     state.setShowBulkInput(false);
   }, [state]);
@@ -313,6 +314,16 @@ const BearRallyTierList: React.FC = () => {
           </div>
         ) : null}
 
+        {/* ── Tier Cutoff Editor ── */}
+        <BearTierCutoffEditor
+          rankedPlayers={state.rankedPlayers}
+          tierOverrides={state.tierOverrides}
+          autoBoundaries={state.autoBoundaries}
+          onSetOverrides={state.handleSetTierOverrides}
+          canEdit={state.canEdit}
+          isMobile={isMobile}
+        />
+
         {/* ── Info Card ── */}
         <div style={{
           marginTop: '1.5rem',
@@ -329,7 +340,7 @@ const BearRallyTierList: React.FC = () => {
             <li>{t('bearRally.howScore2', 'Hero Exclusive Gear (EG) levels add bonus multipliers.')}</li>
             <li>{t('bearRally.howScore3', 'Cross-hero stacking bonuses are applied automatically.')}</li>
             <li>{t('bearRally.howScore4', 'Archers are weighted highest (90%), followed by Cavalry (9%), then Infantry (1%).')}</li>
-            <li>{t('bearRally.howScore5', 'Tiers are assigned by percentile: SS (top 5%), S (top 15%), A (top 35%), B (top 60%), C (top 80%), D (rest).')}</li>
+            <li>{t('bearRally.howScore5', 'Tiers use a natural-breaks algorithm that finds the largest score gaps between players to create meaningful tier boundaries. Managers can also set custom cutoffs.')}</li>
           </ul>
         </div>
 

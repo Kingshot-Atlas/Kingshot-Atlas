@@ -16,9 +16,11 @@ import {
   BEAR_ACTIVE_LIST_KEY,
   getDefaultListName,
   validateBearPlayers,
+  computeTierBoundaries,
   type BearPlayerEntry,
   type BearListMeta,
   type BearTier,
+  type BearTierOverrides,
 } from '../data/bearHuntData';
 import { useAllianceCenter } from '../hooks/useAllianceCenter';
 import { useAuth } from '../contexts/AuthContext';
@@ -118,9 +120,36 @@ function migrateLegacyIfNeeded(): { lists: BearListMeta[]; activeId: string | nu
 // ─── Version-gated recalculation wrapper ─────────────────────────────────────
 
 /** Recalculates scores only if the formula version changed; otherwise returns as-is. */
-function maybeRecalculate(players: BearPlayerEntry[]): BearPlayerEntry[] {
+function maybeRecalculate(players: BearPlayerEntry[], overrides?: BearTierOverrides | null): BearPlayerEntry[] {
   if (!needsRecalculation()) return players;
-  return recalculateAllScores(players);
+  return recalculateAllScores(players, overrides);
+}
+
+// ─── Tier Override Storage Helpers ────────────────────────────────────────────
+
+const BEAR_TIER_OVERRIDES_PREFIX = 'kingshot_bear_tier_overrides_';
+
+function loadTierOverrides(listId: string): BearTierOverrides | null {
+  try {
+    const raw = localStorage.getItem(BEAR_TIER_OVERRIDES_PREFIX + listId);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed.SS === 'number' && typeof parsed.S === 'number' &&
+        typeof parsed.A === 'number' && typeof parsed.B === 'number' && typeof parsed.C === 'number') {
+      return parsed as BearTierOverrides;
+    }
+  } catch { /* ignore */ }
+  return null;
+}
+
+function saveTierOverrides(listId: string, overrides: BearTierOverrides | null): void {
+  try {
+    if (overrides) {
+      localStorage.setItem(BEAR_TIER_OVERRIDES_PREFIX + listId, JSON.stringify(overrides));
+    } else {
+      localStorage.removeItem(BEAR_TIER_OVERRIDES_PREFIX + listId);
+    }
+  } catch { /* ignore */ }
 }
 
 // ─── Empty Form State ───────────────────────────────────────────────────────
@@ -198,6 +227,9 @@ export function useBearRallyState() {
   const [showShareMenu, setShowShareMenu] = useState(false);
   const shareMenuRef = useRef<HTMLDivElement>(null);
 
+  // ── Tier override state ──
+  const [tierOverrides, setTierOverridesState] = useState<BearTierOverrides | null>(null);
+
   // ── Form state ──
   const [form, setForm] = useState<FormState>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -223,7 +255,7 @@ export function useBearRallyState() {
         try {
           const { data, error } = await supabase
             .from('bear_rally_lists')
-            .select('id, name, players, created_at, updated_at, updated_by')
+            .select('id, name, players, tier_overrides, created_at, updated_at, updated_by')
             .eq('alliance_id', aid)
             .order('created_at', { ascending: true });
 
@@ -245,7 +277,10 @@ export function useBearRallyState() {
             setActiveListIdState(pickId);
             setActiveListId(pickId);
             const activeRow = data.find(d => d.id === pickId);
-            const loaded = maybeRecalculate((activeRow?.players as BearPlayerEntry[]) ?? []);
+            const cloudOverrides = (activeRow as Record<string, unknown>)?.tier_overrides as BearTierOverrides | null ?? null;
+            if (cloudOverrides) { setTierOverridesState(cloudOverrides); saveTierOverrides(pickId, cloudOverrides); }
+            else { setTierOverridesState(loadTierOverrides(pickId)); }
+            const loaded = maybeRecalculate((activeRow?.players as BearPlayerEntry[]) ?? [], cloudOverrides ?? loadTierOverrides(pickId));
             setPlayers(loaded);
             cloudUpdatedAt.current = (activeRow as Record<string, unknown>)?.updated_at as string ?? null;
             const editedById = (activeRow as Record<string, unknown>)?.updated_by as string | null;
@@ -416,7 +451,7 @@ export function useBearRallyState() {
 
         const { data: saved, error } = await sb
           .from('bear_rally_lists')
-          .update({ players, updated_by: uid })
+          .update({ players, tier_overrides: tierOverrides, updated_by: uid })
           .eq('id', lid)
           .select('updated_at')
           .single();
@@ -428,7 +463,7 @@ export function useBearRallyState() {
         }
       }, 1000);
     }
-  }, [players, activeListId, supabaseSync, user]);
+  }, [players, activeListId, supabaseSync, user, tierOverrides]);
 
   // Cleanup debounce timer on unmount
   useEffect(() => {
@@ -553,21 +588,30 @@ export function useBearRallyState() {
       try {
         const { data } = await supabase!
           .from('bear_rally_lists')
-          .select('players')
+          .select('players, tier_overrides')
           .eq('id', listId)
           .single();
         if (data) {
-          const cloudPlayers = maybeRecalculate(data.players as BearPlayerEntry[]);
+          const ov = (data as Record<string, unknown>).tier_overrides as BearTierOverrides | null ?? null;
+          setTierOverridesState(ov ?? loadTierOverrides(listId));
+          if (ov) saveTierOverrides(listId, ov);
+          const cloudPlayers = maybeRecalculate(data.players as BearPlayerEntry[], ov ?? loadTierOverrides(listId));
           setPlayers(cloudPlayers);
           saveListPlayers(listId, cloudPlayers);
         } else {
-          setPlayers(maybeRecalculate(loadListPlayers(listId)));
+          const localOv = loadTierOverrides(listId);
+          setTierOverridesState(localOv);
+          setPlayers(maybeRecalculate(loadListPlayers(listId), localOv));
         }
       } catch {
-        setPlayers(maybeRecalculate(loadListPlayers(listId)));
+        const localOv = loadTierOverrides(listId);
+        setTierOverridesState(localOv);
+        setPlayers(maybeRecalculate(loadListPlayers(listId), localOv));
       }
     } else {
-      setPlayers(maybeRecalculate(loadListPlayers(listId)));
+      const localOv = loadTierOverrides(listId);
+      setTierOverridesState(localOv);
+      setPlayers(maybeRecalculate(loadListPlayers(listId), localOv));
     }
 
     setShowForm(false);
@@ -625,6 +669,27 @@ export function useBearRallyState() {
     const ranked = [...complete].sort((a, b) => b.bearScore - a.bearScore).map((p, i) => ({ ...p, rank: i + 1 }));
     return { rankedPlayers: ranked, incompletePlayers: incomplete };
   }, [players]);
+
+  // ── Auto-computed tier boundaries (for display in cutoff editor) ──
+  const autoBoundaries = useMemo(() => {
+    const complete = players.filter(isPlayerComplete);
+    if (complete.length < 2) return null;
+    const allScores = complete.map(p => p.bearScore);
+    const b = computeTierBoundaries(allScores);
+    return { SS: b[0] ?? 0, S: b[1] ?? 0, A: b[2] ?? 0, B: b[3] ?? 0, C: b[4] ?? 0 };
+  }, [players]);
+
+  // ── Tier override handler ──
+  const handleSetTierOverrides = useCallback((overrides: BearTierOverrides | null) => {
+    setTierOverridesState(overrides);
+    if (activeListId) saveTierOverrides(activeListId, overrides);
+    // Recalculate all tiers with new overrides
+    setPlayers(prev => {
+      const complete = prev.filter(isPlayerComplete);
+      const allScores = complete.map(p => p.bearScore);
+      return prev.map(p => isPlayerComplete(p) ? { ...p, tier: assignBearTier(p.bearScore, allScores, overrides) } : p);
+    });
+  }, [activeListId]);
 
   // ── Unscored roster members ──
   const unscoredRosterMembers = useMemo(() => {
@@ -699,7 +764,7 @@ export function useBearRallyState() {
       }
       const completePlayers = updated.filter(isPlayerComplete);
       const allScores = completePlayers.map(p => p.bearScore);
-      return updated.map(p => isPlayerComplete(p) ? { ...p, tier: assignBearTier(p.bearScore, allScores) } : p);
+      return updated.map(p => isPlayerComplete(p) ? { ...p, tier: assignBearTier(p.bearScore, allScores, tierOverrides) } : p);
     });
 
     const trimmedName = form.playerName.trim();
@@ -717,7 +782,7 @@ export function useBearRallyState() {
     setEditingId(null);
     setShowForm(false);
     setFormError('');
-  }, [form, editingId, t, ac, rosterNames, players, pushUndo]);
+  }, [form, editingId, t, ac, rosterNames, players, pushUndo, tierOverrides]);
 
   const handleEdit = useCallback((player: BearPlayerEntry) => {
     setForm({
@@ -747,7 +812,7 @@ export function useBearRallyState() {
       if (remaining.length === 0) return remaining;
       const completePlayers = remaining.filter(isPlayerComplete);
       const allScores = completePlayers.map(p => p.bearScore);
-      return remaining.map(p => isPlayerComplete(p) ? { ...p, tier: assignBearTier(p.bearScore, allScores) } : p);
+      return remaining.map(p => isPlayerComplete(p) ? { ...p, tier: assignBearTier(p.bearScore, allScores, tierOverrides) } : p);
     });
     setDeleteConfirm(null);
     if (editingId === id) {
@@ -755,7 +820,7 @@ export function useBearRallyState() {
       setForm(emptyForm);
       setShowForm(false);
     }
-  }, [editingId, players, pushUndo]);
+  }, [editingId, players, pushUndo, tierOverrides]);
 
   const handleCancelForm = useCallback(() => {
     setForm(emptyForm);
@@ -884,6 +949,11 @@ export function useBearRallyState() {
     rankedPlayers,
     incompletePlayers,
     unscoredRosterMembers,
+
+    // Tier overrides
+    tierOverrides,
+    autoBoundaries,
+    handleSetTierOverrides,
 
     // Form state
     form,

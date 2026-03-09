@@ -4044,7 +4044,14 @@
     "share": "Share",
     "copyImage": "Copy Image",
     "copyLink": "Copy Link",
-    "exportCSV": "Export CSV"
+    "exportCSV": "Export CSV",
+    "tierCutoffs": "Tier Cutoffs",
+    "customLabel": "CUSTOM",
+    "tierCutoffsDesc": "Set the minimum Bear Score for each tier. Players below the C threshold are placed in D tier.",
+    "belowC": "Below C threshold",
+    "resetToAuto": "Reset to Auto",
+    "applyCutoffs": "Apply Cutoffs",
+    "howScore5": "Tiers use a natural-breaks algorithm that finds the largest score gaps between players to create meaningful tier boundaries. Managers can also set custom cutoffs."
   },
   "bearRallyLanding": {
     "pageTitle": "Bear Rally Tier List",
@@ -4071,8 +4078,10 @@
     "featEGDesc": "Atlas knows which heroes have offensive vs defensive Exclusive Gear. Defensive bonuses are removed from scouted stats. Offensive bonuses are applied for rally accuracy.",
     "featScore": "Bear Score Ranking",
     "featScoreDesc": "Every player gets a Bear Score based on their adjusted troop bonuses. The list auto-ranks from highest to lowest — your strongest hitters at the top.",
-    "featTiers": "Tier Classification",
-    "featTiersDesc": "Players are sorted into tiers: SS, S, A, B, C, D — color-coded from cyan to red. Instantly see who belongs in your rally lineup.",
+    "featTiers": "Smart Tier Classification",
+    "featTiersDesc": "Players are sorted into tiers SS through D using a natural-breaks algorithm that finds the biggest score gaps in your roster. Tiers represent real power differences — not arbitrary percentiles.",
+    "featCustomCutoffs": "Custom Tier Cutoffs",
+    "featCustomCutoffsDesc": "Alliance managers can manually adjust tier boundaries if the auto-calculated tiers don't match their judgment. Set your own score thresholds — or let Atlas decide.",
     "featBear": "Built for Bear Hunt",
     "featBearDesc": "Bear Hunt is a rally event — only offensive stats matter. This tool strips away the noise and gives you the real numbers for rally damage.",
     "featAccess": "Alliance Access Control",

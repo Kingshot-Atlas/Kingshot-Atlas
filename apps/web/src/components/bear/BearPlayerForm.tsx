@@ -78,7 +78,7 @@ const SearchableSelect: React.FC<{
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Escape') { setOpen(false); setSearch(''); }
-                if (e.key === 'Enter' && filtered.length === 1) {
+                if (e.key === 'Enter' && filtered.length === 1 && filtered[0]) {
                   onChange(filtered[0].value); setOpen(false); setSearch('');
                 }
               }}

@@ -3927,7 +3927,14 @@
     "share": "Teilen",
     "copyImage": "Bild kopieren",
     "copyLink": "Link kopieren",
-    "exportCSV": "CSV exportieren"
+    "exportCSV": "CSV exportieren",
+    "tierCutoffs": "Stufengrenzen",
+    "customLabel": "BENUTZERDEFINIERT",
+    "tierCutoffsDesc": "Legen Sie den Mindest-Bärenpunktwert für jede Stufe fest. Spieler unterhalb der C-Schwelle werden in Stufe D eingeordnet.",
+    "belowC": "Unterhalb der C-Schwelle",
+    "resetToAuto": "Auf Auto zurücksetzen",
+    "applyCutoffs": "Grenzen anwenden",
+    "howScore5": "Stufen verwenden einen Natural-Breaks-Algorithmus, der die größten Punktelücken zwischen Spielern findet, um aussagekräftige Stufengrenzen zu erstellen. Manager können auch benutzerdefinierte Grenzen festlegen."
   },
   "bearRallyLanding": {
     "pageTitle": "Bären-Rally Stufenliste",
@@ -3954,8 +3961,10 @@
     "featEGDesc": "Atlas weiß, welche Helden offensive vs. defensive Exklusiv-Ausrüstung haben. Defensive Boni werden aus erspähten Werten entfernt. Offensive Boni werden für Rally-Genauigkeit angewendet.",
     "featScore": "Bären-Punktzahl-Ranking",
     "featScoreDesc": "Jeder Spieler erhält eine Bären-Punktzahl basierend auf seinen angepassten Truppenboni. Die Liste ordnet sich automatisch von hoch nach niedrig.",
-    "featTiers": "Stufenklassifizierung",
-    "featTiersDesc": "Spieler werden in Stufen sortiert: SS, S, A, B, C, D — farbcodiert von Cyan bis Rot. Sieh sofort, wer in deine Rally-Aufstellung gehört.",
+    "featTiers": "Intelligente Stufenklassifizierung",
+    "featTiersDesc": "Spieler werden in Stufen SS bis D sortiert, mit einem Natural-Breaks-Algorithmus, der die größten Punktelücken in deinem Kader findet. Stufen repräsentieren echte Stärkeunterschiede — keine willkürlichen Perzentile.",
+    "featCustomCutoffs": "Benutzerdefinierte Stufengrenzen",
+    "featCustomCutoffsDesc": "Allianzmanager können Stufengrenzen manuell anpassen, wenn die automatisch berechneten Stufen nicht ihrem Urteil entsprechen. Legen Sie Ihre eigenen Schwellenwerte fest — oder lassen Sie Atlas entscheiden.",
     "featBear": "Gemacht für Bärenjagd",
     "featBearDesc": "Bärenjagd ist ein Rally-Event — nur offensive Werte zählen. Dieses Tool filtert das Rauschen und gibt dir die echten Zahlen für Rally-Schaden.",
     "featAccess": "Allianz-Zugangskontrolle",

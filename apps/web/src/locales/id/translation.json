@@ -3853,7 +3853,14 @@
     "share": "Bagikan",
     "copyImage": "Salin gambar",
     "copyLink": "Salin tautan",
-    "exportCSV": "Ekspor CSV"
+    "exportCSV": "Ekspor CSV",
+    "tierCutoffs": "Batas Tier",
+    "customLabel": "KUSTOM",
+    "tierCutoffsDesc": "Tetapkan Skor Beruang minimum untuk setiap tier. Pemain di bawah ambang C ditempatkan di tier D.",
+    "belowC": "Di bawah ambang C",
+    "resetToAuto": "Reset ke Otomatis",
+    "applyCutoffs": "Terapkan Batas",
+    "howScore5": "Tier menggunakan algoritma natural breaks yang menemukan celah skor terbesar antar pemain untuk membuat batas tier yang bermakna. Manajer juga bisa menetapkan batas kustom."
   },
   "bearRallyLanding": {
     "pageTitle": "Daftar Tier Rally Beruang",
@@ -3880,8 +3887,10 @@
     "featEGDesc": "Atlas tahu pahlawan mana yang punya Perlengkapan Eksklusif ofensif vs defensif. Bonus defensif dihilangkan dari statistik intai. Bonus ofensif diterapkan untuk akurasi rally.",
     "featScore": "Peringkat Skor Beruang",
     "featScoreDesc": "Setiap pemain mendapat Skor Beruang berdasarkan bonus pasukan yang disesuaikan. Daftar otomatis terurut dari tertinggi ke terendah.",
-    "featTiers": "Klasifikasi Tier",
-    "featTiersDesc": "Pemain diurutkan ke tier: SS, S, A, B, C, D — berkode warna dari sian ke merah. Lihat seketika siapa yang masuk lineup rally-mu.",
+    "featTiers": "Klasifikasi Tier Cerdas",
+    "featTiersDesc": "Pemain diurutkan ke tier SS hingga D menggunakan algoritma natural breaks yang menemukan celah skor terbesar di roster-mu. Tier mewakili perbedaan kekuatan nyata — bukan persentil sembarang.",
+    "featCustomCutoffs": "Batas Tier Kustom",
+    "featCustomCutoffsDesc": "Manajer aliansi bisa menyesuaikan batas tier secara manual jika tier otomatis tidak sesuai penilaian mereka. Tetapkan ambang skor sendiri — atau biarkan Atlas yang memutuskan.",
     "featBear": "Dibuat untuk Berburu Beruang",
     "featBearDesc": "Berburu Beruang adalah event rally — hanya statistik ofensif yang penting. Alat ini memfilter noise dan memberimu angka nyata untuk damage rally.",
     "featAccess": "Kontrol Akses Aliansi",

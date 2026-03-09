@@ -35,8 +35,8 @@ const BearRallyTierListLanding: React.FC = () => {
     },
     {
       icon: '🏅',
-      title: t('bearRallyLanding.featTiers', 'Tier Classification'),
-      desc: t('bearRallyLanding.featTiersDesc', 'Players are sorted into tiers: SS, S, A, B, C, D — color-coded from cyan to red. Instantly see who belongs in your rally lineup.'),
+      title: t('bearRallyLanding.featTiers', 'Smart Tier Classification'),
+      desc: t('bearRallyLanding.featTiersDesc', 'Players are sorted into tiers SS through D using a natural-breaks algorithm that finds the biggest score gaps in your roster. Tiers represent real power differences — not arbitrary percentiles.'),
     },
     {
       icon: '🐻',
@@ -47,6 +47,11 @@ const BearRallyTierListLanding: React.FC = () => {
       icon: '�',
       title: t('bearRallyLanding.featAccess', 'Alliance Access Control'),
       desc: t('bearRallyLanding.featAccessDesc', 'Supporters, Ambassadors, and Boosters can create and manage the tier list. Up to 2 delegates can also edit. The rest of your alliance gets read-only access.'),
+    },
+    {
+      icon: '🎛️',
+      title: t('bearRallyLanding.featCustomCutoffs', 'Custom Tier Cutoffs'),
+      desc: t('bearRallyLanding.featCustomCutoffsDesc', 'Alliance managers can manually adjust tier boundaries if the auto-calculated tiers don\'t match their judgment. Set your own score thresholds — or let Atlas decide.'),
     },
     {
       icon: '⚠️',
@@ -294,7 +299,7 @@ const BearRallyTierListLanding: React.FC = () => {
                 {t('bearRallyLanding.defensiveEG', 'Defensive EG (Removed from Scout)')}
               </div>
               <p style={{ color: '#9ca3af', fontSize: '0.75rem', lineHeight: 1.5 }}>
-                Zoe, Eric, Alcar, Long Fei, Triton, Jabel, Hilde, Margot, Saul, Jaeger, Vivian
+                Zoe, Eric, Alcar, Long Fei, Triton, Jabel, Hilde, Margot, Sophia, Saul, Jaeger, Vivian
               </p>
             </div>
           </div>
