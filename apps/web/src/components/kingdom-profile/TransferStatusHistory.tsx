@@ -71,13 +71,14 @@ const TransferStatusHistory: React.FC<TransferStatusHistoryProps> = ({ kingdomNu
           const event = eventMap.get(entry.event_number);
           const eventDate = event?.event_date ? parseEventDate(event.event_date) : '';
           const isActive = event?.is_current ?? false;
-          const isLeading = entry.status === 'Leading';
-          const statusColor = isLeading ? colors.primary : colors.text;
+          const statusColor = entry.status === 'Leading' ? '#22d3ee'
+            : entry.status === 'Unannounced' ? '#6b7280'
+            : colors.text;
 
           return (
             <SmartTooltip
               key={entry.event_number}
-              accentColor={isLeading ? colors.primary : colors.textMuted}
+              accentColor={entry.status === 'Leading' ? '#22d3ee' : colors.textMuted}
               content={
                 <div style={{ fontSize: '0.75rem', lineHeight: '1.5' }}>
                   <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>
@@ -89,8 +90,10 @@ const TransferStatusHistory: React.FC<TransferStatusHistoryProps> = ({ kingdomNu
                     {entry.is_unofficial ? ` (${t('kingdomProfile.unofficial', 'Unofficial')})` : ''}
                   </div>
                   <div style={{ marginTop: '0.25rem' }}>
-                    {isLeading
+                    {entry.status === 'Leading'
                       ? t('transferStatuses.leadingDesc', 'This kingdom is leading its transfer group.')
+                      : entry.status === 'Unannounced'
+                      ? t('transferStatuses.unannouncedDesc', 'Transfer status has not been announced yet.')
                       : t('transferStatuses.ordinaryDesc', 'This kingdom is an ordinary member of its transfer group.')}
                   </div>
                 </div>

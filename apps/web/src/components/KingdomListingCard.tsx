@@ -455,11 +455,11 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
         {/* Transfer Status below name — with SmartTooltip */}
         <div style={{ marginBottom: '0.6rem', ...(isPremium ? { backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: '6px', padding: '0.2rem 0.5rem', display: 'inline-block' } : {}) }}>
           <SmartTooltip
-            accentColor={transferStatus === 'Leading' ? colors.gold : transferStatus === 'Ordinary' ? '#c0c0c0' : '#6b7280'}
+            accentColor={transferStatus === 'Leading' ? '#22d3ee' : transferStatus === 'Ordinary' ? '#e5e7eb' : '#6b7280'}
             maxWidth={260}
             content={
               <div style={{ fontSize: '0.7rem' }}>
-                <span style={{ color: transferStatus === 'Leading' ? colors.gold : transferStatus === 'Ordinary' ? '#c0c0c0' : '#9ca3af', fontWeight: 'bold' }}>
+                <span style={{ color: transferStatus === 'Leading' ? '#22d3ee' : transferStatus === 'Ordinary' ? '#e5e7eb' : '#6b7280', fontWeight: 'bold' }}>
                   {t(`transferStatuses.${transferStatus}`, transferStatus)}
                 </span>
                 <span style={{ color: '#9ca3af', marginLeft: '0.3rem' }}>
@@ -478,9 +478,9 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
               </span>
               <span style={{
                 fontSize: '0.7rem',
-                color: transferStatus === 'Leading' ? colors.gold
-                  : transferStatus === 'Ordinary' ? (isSilver ? '#e5e7eb' : '#c0c0c0')
-                  : (isSilver ? '#d1d5db' : colors.textSecondary),
+                color: transferStatus === 'Leading' ? '#22d3ee'
+                  : transferStatus === 'Ordinary' ? '#e5e7eb'
+                  : '#6b7280',
                 fontWeight: '600',
               }}>
                 {t(`transferStatuses.${transferStatus}`, transferStatus)}
@@ -592,7 +592,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                     padding: '0.4rem 0.2rem',
                     border: `1px solid ${colors.border}`,
                     borderRadius: '6px',
-                    minHeight: '52px',
+                    minHeight: '62px',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center',
@@ -602,7 +602,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                     <div style={{ fontSize: '0.55rem', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.05rem' }}>
                       {stat.emoji} {stat.label} {stat.emoji}
                     </div>
-                    <div style={{ fontSize: stat.label === 'Atlas Score' ? '0.7rem' : '0.85rem', fontWeight: '600', color: stat.color, lineHeight: 1.2 }}>
+                    <div style={{ fontSize: '0.85rem', fontWeight: '600', color: stat.color, lineHeight: 1.2 }}>
                       {stat.value}
                     </div>
                   </div>
@@ -872,7 +872,7 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
                   {transferHistory.map((h) => {
                     const statusColors: Record<string, string> = {
-                      Ordinary: '#9ca3af', Heroic: '#3b82f6', Legendary: '#a855f7', Mythic: '#f59e0b',
+                      Ordinary: '#e5e7eb', Leading: '#22d3ee', Unannounced: '#6b7280',
                     };
                     const statusColor = statusColors[h.status] || colors.textMuted;
                     return (

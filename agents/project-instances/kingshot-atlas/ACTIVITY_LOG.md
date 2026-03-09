@@ -4,6 +4,16 @@
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
 ## 2026-03-09 | Product Engineer | COMPLETED
+Task: Transfer Hub — Fix status colors, remove stale green border, equalize performance boxes
+Files: apps/web/src/components/KingdomListingCard.tsx, apps/web/src/components/kingdom-profile/TransferStatusHistory.tsx
+Changes:
+- Transfer status colors: Ordinary=white (#e5e7eb), Leading=cyan (#22d3ee), Unannounced=gray (#6b7280) across listing card and profile history
+- Set transfer_events.is_current=false for Event #4 (ended Mar 8) — removes green border from all history entries
+- Performance info boxes: increased minHeight to 62px, normalized value font to 0.85rem for uniform box height
+- Fixed isLeading → entry.status === 'Leading' reference in TransferStatusHistory tooltip
+Result: Consistent transfer status colors, no stale active borders, visually uniform performance grid
+
+## 2026-03-09 | Product Engineer | COMPLETED
 Task: Bear Rally Tier List — UI polish: consistent % headers, 1dp numbers, rank white, mobile reorder + table
 Files: apps/web/src/pages/BearRallyTierList.tsx, all 11 locale translation.json files
 Changes:
