@@ -52,6 +52,7 @@ const KvKErrorsTab = lazy(() => import('../components/admin/KvKErrorsTab').then(
 const ReviewReportsTab = lazy(() => import('../components/admin/ReviewReportsTab').then(m => ({ default: m.ReviewReportsTab })));
 const TransferStatusTab = lazy(() => import('../components/admin/TransferStatusTab').then(m => ({ default: m.TransferStatusTab })));
 const BotTelemetryTab = lazy(() => import('../components/admin/BotTelemetryTab').then(m => ({ default: m.BotTelemetryTab })));
+const AccessViewerTab = lazy(() => import('../components/admin/AccessViewerTab').then(m => ({ default: m.AccessViewerTab })));
 const ToolAccessTab = lazy(() => import('../components/admin/ToolAccessTab').then(m => ({ default: m.ToolAccessTab })));
 const TrustedSubmittersTab = lazy(() => import('../components/admin/TrustedSubmittersTab').then(m => ({ default: m.TrustedSubmittersTab })));
 const SpotlightTab = lazy(() => import('../components/admin/SpotlightTab').then(m => ({ default: m.SpotlightTab })));
@@ -944,6 +945,8 @@ const AdminDashboard: React.FC = () => {
         <EmailTab />
       ) : activeTab === 'bot-telemetry' ? (
         <BotTelemetryTab />
+      ) : activeTab === 'access-viewer' ? (
+        <AccessViewerTab />
       ) : activeTab === 'tool-access' ? (
         <ToolAccessTab />
       ) : activeTab === 'trusted-submitters' ? (

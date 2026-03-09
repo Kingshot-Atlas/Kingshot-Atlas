@@ -117,7 +117,7 @@ const BrowseTransfereesTab: React.FC<BrowseTransfereesTabProps> = ({ fund, edito
         ignoreDuplicates: true,
       }).then(() => {});
     }
-  }, [infiniteData?.pages.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [infiniteData?.pages.length, editorInfo?.kingdom_number, user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Real-time subscription for new transferee profiles — invalidate cache
   useEffect(() => {

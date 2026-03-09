@@ -17,6 +17,7 @@ export { KvKErrorsTab } from './KvKErrorsTab';
 export { TransferStatusTab } from './TransferStatusTab';
 export { BotTelemetryTab } from './BotTelemetryTab';
 export { BattlePlannerAccessTab } from './BattlePlannerAccessTab';
+export { AccessViewerTab } from './AccessViewerTab';
 export { ToolAccessTab } from './ToolAccessTab';
 export { SpotlightTab } from './SpotlightTab';
 export { default as ImportTab } from './ImportTab';
