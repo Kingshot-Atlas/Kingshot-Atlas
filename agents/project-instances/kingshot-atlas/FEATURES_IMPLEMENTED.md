@@ -39,6 +39,7 @@
 | Kingdom Communities | `/kingdoms/communities` | ✅ Live | Product | Ranks kingdoms by # of linked TC20+ Atlas users. Incentivizes kingdom-wide signup. Shows fund tier badges, Atlas Score, rank. (2026-02-14) |
 | Kingdom Settlers Campaign | `/campaigns/kingdom-settlers` | ✅ Live | Product | Campaign hub with About (hero, countdown, prize pool, qualification checker, rules), Settlers Leaderboard (qualifying/rising kingdoms, expandable settler details), Winners tabs. i18n 9 langs. Campaign #1 completed; banner removed from homepage; system kept for future campaigns. (2026-02-25, updated 2026-03-03) |
 | Admin Campaign Draw | `/admin/campaign-draw` | 🔨 Local | Product | Slot machine winner picker with weighted random selection, prize queue sidebar, confetti, sound effects, fullscreen, test mode, duration slider 1-20s, upgrade/re-roll detection, Discord export. Admin-gated. (2026-02-25) |
+| Alliance Event Coordinator Landing | `/tools/event-coordinator/about` | ✅ Live | Product | Blue-themed landing page with hero, features (6), steps (3), problem/solution, access explainer. Links to tool + tools page. Supporters/Ambassadors/Boosters can activate. i18n 11 langs. Tools card + nav links point here. (2026-03) |
 
 ---
 
