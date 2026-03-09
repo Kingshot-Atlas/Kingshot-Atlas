@@ -209,7 +209,7 @@ const BearRallyTierList: React.FC = () => {
                       color: '#d1d5db', fontSize: isMobile ? '0.75rem' : '0.85rem', fontWeight: 600, cursor: 'pointer',
                     }}
                   >
-                    ✏️ {t('bearRally.editAll', 'Edit All')}
+                    ✏️ {t('bearRally.bulkEdit', 'Edit All')}
                   </button>
                 )}
               </>

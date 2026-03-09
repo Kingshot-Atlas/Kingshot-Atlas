@@ -293,39 +293,134 @@ export function calculateBearScore(
   return Math.round(rawScore * amadeusMultiplier * 100) / 100;
 }
 
-// ─── Tier Assignment (Percentile-based) ─────────────────────────────────────
+// ─── Tier Assignment (Natural Breaks + Hybrid Caps) ─────────────────────────
+
+const TIERS: BearTier[] = ['SS', 'S', 'A', 'B', 'C', 'D'];
 
 /**
- * Assigns tiers using percentile-based ranking with strategic cutoffs.
- * With < 6 players, falls back to simpler distribution.
- * 
- * Distribution:
- *   SS = top 5%   — Elite hitters, your rally leads
- *   S  = next 15% — Strong hitters, solid rally fillers
- *   A  = next 25% — Above average, dependable
- *   B  = next 25% — Average, adequate backup
- *   C  = next 20% — Below average, last resort
- *   D  = bottom 10% — Weakest, bench
+ * Assigns tiers using a natural-breaks algorithm that finds the largest gaps
+ * between consecutive scores, placing tier boundaries where players are most
+ * separated. This ensures players within a tier are similar in strength and
+ * different tiers represent meaningful power differences.
  *
- * Ties at cutoff boundaries share the higher tier.
+ * Hybrid caps prevent extreme distributions:
+ *   - SS: 2–15% of roster (at least 1 player, at most ~15%)
+ *   - S:  5–25%
+ *   - A:  10–30%
+ *   - B:  10–30%
+ *   - C:  5–25%
+ *   - D:  2–15%
+ *
+ * With < 6 players, each player gets a unique tier top-down.
  */
 export function assignBearTier(score: number, allScores: number[]): BearTier {
   if (allScores.length === 0) return 'D';
   if (allScores.length === 1) return 'SS';
 
-  // Sort descending to compute percentile rank
-  const sorted = [...allScores].sort((a, b) => b - a);
-  // Percentile = % of players this score is >= (higher = better)
-  const rank = sorted.filter(s => score >= s).length;
-  const percentile = (rank / sorted.length) * 100;
+  const boundaries = computeTierBoundaries(allScores);
+  for (let i = 0; i < boundaries.length; i++) {
+    const tier = TIERS[i];
+    const boundary = boundaries[i];
+    if (tier !== undefined && boundary !== undefined && score >= boundary) return tier;
+  }
+  return 'D';
+}
 
-  // Strategic cutoffs
-  if (percentile >= 95) return 'SS'; // top 5%
-  if (percentile >= 80) return 'S';  // next 15%
-  if (percentile >= 55) return 'A';  // next 25%
-  if (percentile >= 30) return 'B';  // next 25%
-  if (percentile >= 10) return 'C';  // next 20%
-  return 'D';                        // bottom 10%
+/**
+ * Computes the score threshold for each tier using natural breaks.
+ * Returns an array of 6 minimum-score boundaries: [SS_min, S_min, A_min, B_min, C_min, D_min].
+ * A player with score >= boundary[i] belongs to TIERS[i].
+ *
+ * Algorithm:
+ * 1. Sort scores descending and compute gaps between consecutive scores
+ * 2. Take the top 15 largest gaps as candidates
+ * 3. Try all C(15,5) = 3003 combinations to find the one that maximises
+ *    total gap while keeping each tier within min/max player-count caps
+ * 4. If no valid combination exists, fall back to percentile-based cutoffs
+ */
+export function computeTierBoundaries(allScores: number[]): number[] {
+  const sorted = [...allScores].sort((a, b) => b - a); // descending
+  const n = sorted.length;
+
+  // Small rosters: one player per tier, top-down
+  if (n <= 6) {
+    const b = sorted.slice();
+    while (b.length < 6) b.push(-Infinity);
+    return b;
+  }
+
+  // ── Compute gaps between consecutive scores ──
+  const gaps: { pos: number; gap: number }[] = [];
+  for (let i = 0; i < n - 1; i++) {
+    gaps.push({ pos: i, gap: (sorted[i] ?? 0) - (sorted[i + 1] ?? 0) });
+  }
+
+  // Take top 15 largest-gap positions as candidates
+  const ranked = [...gaps].sort((a, b) => b.gap - a.gap);
+  const K = Math.min(ranked.length, 15);
+  const cands = ranked.slice(0, K);
+
+  // Min/max players per tier (at least 1)
+  const minPct = [0.02, 0.05, 0.10, 0.10, 0.05, 0.02]; // SS..D
+  const maxPct = [0.15, 0.25, 0.30, 0.30, 0.25, 0.15];
+  const minC = minPct.map(p => Math.max(1, Math.floor(p * n)));
+  const maxC = maxPct.map(p => Math.max(2, Math.ceil(p * n)));
+
+  // ── Search all C(K,5) combinations for best valid set ──
+  let bestBreaks: number[] | null = null;
+  let bestGapSum = -1;
+
+  for (let a = 0; a < K - 4; a++) {
+    for (let b = a + 1; b < K - 3; b++) {
+      for (let c = b + 1; c < K - 2; c++) {
+        for (let d = c + 1; d < K - 1; d++) {
+          for (let e = d + 1; e < K; e++) {
+            const positions = [
+              cands[a]!.pos, cands[b]!.pos, cands[c]!.pos,
+              cands[d]!.pos, cands[e]!.pos,
+            ].sort((x, y) => x - y);
+
+            if (tierSizesValid(positions, n, minC, maxC)) {
+              const gapSum = cands[a]!.gap + cands[b]!.gap + cands[c]!.gap +
+                             cands[d]!.gap + cands[e]!.gap;
+              if (gapSum > bestGapSum) {
+                bestGapSum = gapSum;
+                bestBreaks = positions;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // ── Fallback: percentile-based cutoffs ──
+  if (!bestBreaks) {
+    const cumPct = [0.08, 0.22, 0.48, 0.72, 0.90];
+    bestBreaks = cumPct.map(p => Math.min(Math.floor(p * n) - 1, n - 2));
+  }
+
+  // ── Build score boundaries ──
+  const boundaries: number[] = [sorted[0] ?? 0];
+  for (const pos of bestBreaks) {
+    const val = sorted[pos + 1];
+    if (val !== undefined) boundaries.push(val);
+  }
+  while (boundaries.length < 6) boundaries.push(-Infinity);
+  return boundaries;
+}
+
+/** Checks that the 6 tier sizes produced by 5 break positions respect min/max caps */
+function tierSizesValid(breaks: number[], n: number, minC: number[], maxC: number[]): boolean {
+  let prev = -1;
+  for (let i = 0; i < 5; i++) {
+    const size = (breaks[i] ?? 0) - prev;
+    if (size < (minC[i] ?? 1) || size > (maxC[i] ?? n)) return false;
+    prev = breaks[i] ?? 0;
+  }
+  // Last tier (D)
+  const lastSize = n - prev - 1;
+  return lastSize >= (minC[5] ?? 1) && lastSize <= (maxC[5] ?? n);
 }
 
 /** Single-score fallback (used when recalculating without full list) */
