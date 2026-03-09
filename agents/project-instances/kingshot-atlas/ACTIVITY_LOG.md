@@ -3,6 +3,23 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-09 17:45 | Product Engineer | COMPLETED
+Task: Bear Rally Tier List — blue theme, UI controls layout, natural breaks tier algorithm
+Files: BearRallyTierList.tsx, BearListManager.tsx, BearTierTable.tsx, bearHuntData.ts
+Changes:
+- Blue theme: title "TIER LIST" now uses ACCENT (#3b82f6), undo toast/button blue, incomplete section blue
+- Mobile controls: Add Player, Bulk Add, Edit All fit in single row (compact padding/font, nowrap)
+- Desktop controls: centered with justifyContent: 'center'
+- New List button repositioned next to edit/rename button (removed marginLeft: 'auto')
+- Undo/Share pushed to right side of list manager bar
+- **New tier algorithm**: replaced percentile-based cutoffs with natural breaks + hybrid caps
+  - Finds largest gaps between consecutive scores to place tier boundaries
+  - Tries C(15,5)=3003 candidate combinations for optimal gap-maximizing placement
+  - Hybrid caps: SS 2-15%, S 5-25%, A 10-30%, B 10-30%, C 5-25%, D 2-15%
+  - Falls back to percentile-based cutoffs if no valid combination found
+- Fixed i18n key: editAll → bulkEdit (existing key)
+Result: Deployed to Cloudflare via push to main
+
 ## 2026-03-09 | Product Engineer | COMPLETED
 Task: Event Coordinator data audit + mobile UX polish
 Files: AllianceEventCoordinator.tsx
