@@ -4,6 +4,19 @@
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
 ## 2026-03-09 | Product Engineer | COMPLETED
+Task: Bear Rally — Score persistence optimization + component refactor
+Files: bearHuntData.ts, BearRallyTierList.tsx (2365→420 lines), useBearRallyState.ts (new), BearShareMenu.tsx (new), BearListManager.tsx (new), BearPlayerForm.tsx (new), BearTierTable.tsx (new)
+Changes:
+- Added BEAR_FORMULA_VERSION tracking with needsRecalculation()/markFormulaVersionCurrent() — recalculation only runs when formula changes, not every load
+- Extracted useBearRallyState hook (936 lines) — all state, effects, handlers, Supabase sync
+- Extracted BearShareMenu component — copy image/link, export CSV
+- Extracted BearListManager component — list selection, rename, delete, new list creation
+- Extracted BearPlayerForm component — add/edit player form with hero selection and roster autocomplete
+- Extracted BearTierTable component — mobile card layout + desktop table with tier badges
+- BearRallyTierList.tsx reduced from 2365 to 420 lines (82% reduction), no longer triggers consistency-lint size warning
+Result: Eliminated redundant recalculation on every load. Component is now maintainable with clear separation of concerns.
+
+## 2026-03-09 | Product Engineer | COMPLETED
 Task: Bear Rally — Fix stale scores not reflecting new 1/9/90 formula weights
 Files: apps/web/src/data/bearHuntData.ts, apps/web/src/pages/BearRallyTierList.tsx
 Changes:

@@ -340,6 +340,13 @@ export function assignBearTierSingle(score: number): BearTier {
 // ─── Score Recalculation (apply current formula to stored data) ──────────────
 
 /**
+ * Bump this version whenever the bear score formula weights change.
+ * The UI compares stored version vs current to decide whether recalculation is needed.
+ */
+export const BEAR_FORMULA_VERSION = 2; // v1 = 10/10/80, v2 = 1/9/90
+export const BEAR_FORMULA_VERSION_KEY = 'kingshot_bear_formula_version';
+
+/**
  * Recalculates bearScore and tier for every player using the current formula.
  * Call this whenever loading players from storage/cloud to ensure scores
  * reflect the latest weight configuration.
@@ -368,6 +375,24 @@ export function recalculateAllScores(players: BearPlayerEntry[]): BearPlayerEntr
 }
 
 // ─── Multi-List Storage ─────────────────────────────────────────────────────
+
+/**
+ * Returns true if a recalculation is needed based on stored formula version.
+ * After recalculating, call `markFormulaVersionCurrent()` to persist.
+ */
+export function needsRecalculation(): boolean {
+  try {
+    const stored = localStorage.getItem(BEAR_FORMULA_VERSION_KEY);
+    return stored !== String(BEAR_FORMULA_VERSION);
+  } catch { return true; }
+}
+
+/** Persist the current formula version to localStorage so future loads skip recalculation. */
+export function markFormulaVersionCurrent(): void {
+  try {
+    localStorage.setItem(BEAR_FORMULA_VERSION_KEY, String(BEAR_FORMULA_VERSION));
+  } catch { /* ignore */ }
+}
 
 /** Master index key — stores the list of saved tier list metadata */
 export const BEAR_LISTS_INDEX_KEY = 'kingshot_bear_rally_lists_index';
