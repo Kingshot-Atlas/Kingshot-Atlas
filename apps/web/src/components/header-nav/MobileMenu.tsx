@@ -305,7 +305,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
                   </span>
                 )}
               </Link>
-              <Link to="/tools/event-coordinator" style={{ color: isActive('/tools/event-coordinator') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Link to="/tools/event-coordinator/about" style={{ color: (isActive('/tools/event-coordinator') || isActive('/tools/event-coordinator/about')) ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ color: '#3b82f6', fontSize: '0.7rem' }}>●</span> {t('nav.eventCoordinator', 'Alliance Event Coordinator')}
               </Link>
               <Link to="/tools/base-designer/about" style={{ color: (isActive('/tools/base-designer') || isActive('/tools/base-designer/about')) ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
