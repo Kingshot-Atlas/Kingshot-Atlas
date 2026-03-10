@@ -1755,7 +1755,8 @@
     "steppedDownUnmanaged": "Você renunciou. O reino {{kingdom}} agora está aberto para novas candidaturas de editor.",
     "kingdomMismatch": "Você está vinculado ao Reino {{linked}} mas ainda é editor do Reino {{editor}}. Considere renunciar.",
     "autoStepDownPromoted": "Você foi automaticamente removido como editor. {{name}} foi promovido.",
-    "autoStepDownUnmanaged": "Você foi automaticamente removido como editor. O reino agora está aberto para novas candidaturas."
+    "autoStepDownUnmanaged": "Você foi automaticamente removido como editor. O reino agora está aberto para novas candidaturas.",
+    "autoClaimsCancelled": "Suas candidaturas de editor do seu reino anterior foram canceladas automaticamente."
   },
   "recruiter": {
     "loading": "Cargando panel...",

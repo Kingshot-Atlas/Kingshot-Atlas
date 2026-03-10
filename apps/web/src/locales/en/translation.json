@@ -1814,7 +1814,8 @@
     "steppedDownUnmanaged": "You stepped down. Kingdom {{kingdom}} is now open for new editor claims.",
     "kingdomMismatch": "You're linked to Kingdom {{linked}} but still editor of Kingdom {{editor}}. Consider stepping down.",
     "autoStepDownPromoted": "You were automatically stepped down as editor. {{name}} has been promoted.",
-    "autoStepDownUnmanaged": "You were automatically stepped down as editor. The kingdom is now open for new claims."
+    "autoStepDownUnmanaged": "You were automatically stepped down as editor. The kingdom is now open for new claims.",
+    "autoClaimsCancelled": "Your editor claims from your previous kingdom were automatically cancelled."
   },
   "recruiter": {
     "loading": "Loading dashboard...",

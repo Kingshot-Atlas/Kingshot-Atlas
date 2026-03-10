@@ -1799,7 +1799,8 @@
     "steppedDownUnmanaged": "Görevden ayrıldınız. Krallık {{kingdom}} artık yeni editör başvurularına açıktır.",
     "kingdomMismatch": "Krallık {{linked}}'e bağlısınız ama hala Krallık {{editor}}'in editörüsünüz. Görevden ayrılmayı düşünün.",
     "autoStepDownPromoted": "Editör olarak otomatik olarak görevden alındınız. {{name}} terfi ettirildi.",
-    "autoStepDownUnmanaged": "Editör olarak otomatik olarak görevden alındınız. Krallık artık yeni başvurulara açıktır."
+    "autoStepDownUnmanaged": "Editör olarak otomatik olarak görevden alındınız. Krallık artık yeni başvurulara açıktır.",
+    "autoClaimsCancelled": "Önceki krallığınızdaki editör başvurularınız otomatik olarak iptal edildi."
   },
   "recruiter": {
     "loading": "Panel yükleniyor...",

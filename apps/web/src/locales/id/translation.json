@@ -1757,7 +1757,8 @@
     "steppedDownUnmanaged": "Anda mundur. Kerajaan {{kingdom}} sekarang terbuka untuk klaim editor baru.",
     "kingdomMismatch": "Anda terhubung ke Kerajaan {{linked}} tetapi masih editor Kerajaan {{editor}}. Pertimbangkan untuk mundur.",
     "autoStepDownPromoted": "Anda secara otomatis mundur sebagai editor. {{name}} telah dipromosikan.",
-    "autoStepDownUnmanaged": "Anda secara otomatis mundur sebagai editor. Kerajaan sekarang terbuka untuk klaim baru."
+    "autoStepDownUnmanaged": "Anda secara otomatis mundur sebagai editor. Kerajaan sekarang terbuka untuk klaim baru.",
+    "autoClaimsCancelled": "Klaim editor Anda dari kerajaan sebelumnya telah dibatalkan secara otomatis."
   },
   "recruiter": {
     "loading": "Memuat dasbor...",

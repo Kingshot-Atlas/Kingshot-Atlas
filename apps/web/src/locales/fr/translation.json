@@ -1799,7 +1799,8 @@
     "steppedDownUnmanaged": "Vous vous êtes retiré. Le royaume {{kingdom}} est maintenant ouvert aux nouvelles candidatures d'éditeur.",
     "kingdomMismatch": "Vous êtes lié au Royaume {{linked}} mais toujours éditeur du Royaume {{editor}}. Envisagez de vous retirer.",
     "autoStepDownPromoted": "Vous avez été automatiquement retiré en tant qu'éditeur. {{name}} a été promu.",
-    "autoStepDownUnmanaged": "Vous avez été automatiquement retiré en tant qu'éditeur. Le royaume est maintenant ouvert aux nouvelles candidatures."
+    "autoStepDownUnmanaged": "Vous avez été automatiquement retiré en tant qu'éditeur. Le royaume est maintenant ouvert aux nouvelles candidatures.",
+    "autoClaimsCancelled": "Vos candidatures d'éditeur de votre ancien royaume ont été automatiquement annulées."
   },
   "recruiter": {
     "loading": "Chargement du tableau de bord...",

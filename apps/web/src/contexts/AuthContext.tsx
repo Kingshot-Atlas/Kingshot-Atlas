@@ -6,6 +6,7 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { userDataService } from '../services/userDataService';
 import { generateRandomUsername } from '../utils/randomUsername';
 import { resilientFetch } from '../utils/resilientFetch';
+import { checkAndAutoStepDown } from '../services/editorSuccessionService';
 
 export interface UserProfile {
   id: string;
@@ -786,7 +787,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               }
             });
 
-          // 4. Signal transfer detection for toast notification
+          // 4. Auto-cancel editor claims/positions for the old kingdom
+          checkAndAutoStepDown(user.id, newKingdom).catch(err => {
+            logger.error('Failed to auto-cancel editor claims after transfer:', err);
+          });
+
+          // 5. Signal transfer detection for toast notification
           setDetectedTransfer({ fromKingdom: oldKingdom, toKingdom: newKingdom });
         }
 

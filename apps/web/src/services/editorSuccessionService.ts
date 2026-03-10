@@ -6,12 +6,16 @@ export interface SuccessionResult {
   promotedUserId?: string;
   promotedName?: string;
   error?: string;
-  action: 'transferred' | 'auto_promoted' | 'kingdom_unmanaged' | 'stepped_down' | 'no_action' | 'error';
+  action: 'transferred' | 'auto_promoted' | 'kingdom_unmanaged' | 'stepped_down' | 'claims_cancelled' | 'no_action' | 'error';
 }
 
 /**
- * Check if a user is an active editor of a kingdom that differs from their new linked kingdom.
- * If so, automatically trigger stepDownAsEditor to handle succession.
+ * Check if a user has any editor claims/positions for a kingdom that differs from their new linked kingdom.
+ * Handles ALL claim types:
+ *   - Active editor → trigger succession via stepDownAsEditor
+ *   - Pending editor claim (gathering endorsements) → cancel
+ *   - Active co-editor → deactivate
+ *   - Pending co-editor request → cancel
  * Called after linked_kingdom changes (account switch, new link, refresh).
  * Returns null if no action was needed.
  */
@@ -22,45 +26,94 @@ export async function checkAndAutoStepDown(
   if (!supabase || !userId) return null;
 
   try {
-    // Find user's active editor claim
-    const { data: editorClaim } = await supabase
+    // Find ALL active/pending claims for this user
+    const { data: claims } = await supabase
       .from('kingdom_editors')
       .select('id, kingdom_number, role, status')
       .eq('user_id', userId)
-      .eq('role', 'editor')
-      .eq('status', 'active')
-      .maybeSingle();
+      .in('status', ['active', 'pending']);
 
-    if (!editorClaim) return null; // Not an active editor — nothing to do
+    if (!claims || claims.length === 0) return null;
 
-    // If new linked kingdom matches editor kingdom, no mismatch
-    if (newLinkedKingdom && editorClaim.kingdom_number === newLinkedKingdom) return null;
+    // Filter to claims that don't match the new kingdom
+    const mismatched = claims.filter(c =>
+      !newLinkedKingdom || c.kingdom_number !== newLinkedKingdom
+    );
 
-    // Kingdom mismatch detected — auto step down
-    logger.info(`[AutoStepDown] User ${userId} transferred to K${newLinkedKingdom}, auto-stepping down from K${editorClaim.kingdom_number}`);
+    if (mismatched.length === 0) return null;
 
-    const result = await stepDownAsEditor(editorClaim.id, userId, editorClaim.kingdom_number);
+    let result: SuccessionResult | null = null;
+    const cancelledKingdoms: number[] = [];
 
-    // Override audit log source to indicate this was an automatic transfer-triggered step-down
-    if (result.success && supabase) {
-      await supabase
-        .from('editor_audit_log')
-        .update({
-          details: {
-            source: 'kingdom_transfer_auto_step_down',
-            new_kingdom: newLinkedKingdom,
-            auto_promoted: result.action === 'auto_promoted',
-            ...(result.promotedUserId ? { promoted_user_id: result.promotedUserId } : {}),
-          },
-        })
-        .eq('kingdom_number', editorClaim.kingdom_number)
-        .eq('performed_by', userId)
-        .eq('action', 'step_down')
-        .order('created_at', { ascending: false })
-        .limit(1);
+    for (const claim of mismatched) {
+      if (claim.status === 'active' && claim.role === 'editor') {
+        // Active editor — trigger full succession
+        logger.info(`[AutoStepDown] User ${userId} transferred to K${newLinkedKingdom}, auto-stepping down from K${claim.kingdom_number}`);
+        result = await stepDownAsEditor(claim.id, userId, claim.kingdom_number);
+
+        // Override audit log source
+        if (result.success) {
+          await supabase
+            .from('editor_audit_log')
+            .update({
+              details: {
+                source: 'kingdom_transfer_auto_step_down',
+                new_kingdom: newLinkedKingdom,
+                auto_promoted: result.action === 'auto_promoted',
+                ...(result.promotedUserId ? { promoted_user_id: result.promotedUserId } : {}),
+              },
+            })
+            .eq('kingdom_number', claim.kingdom_number)
+            .eq('performed_by', userId)
+            .eq('action', 'step_down')
+            .order('created_at', { ascending: false })
+            .limit(1);
+        }
+      } else if (claim.status === 'pending' && claim.role === 'editor') {
+        // Pending editor claim (gathering endorsements) — cancel
+        logger.info(`[AutoCancel] User ${userId} transferred to K${newLinkedKingdom}, cancelling pending editor claim for K${claim.kingdom_number}`);
+        await supabase.from('kingdom_editors').update({ status: 'cancelled' }).eq('id', claim.id);
+        cancelledKingdoms.push(claim.kingdom_number);
+
+        await supabase.from('editor_audit_log').insert({
+          editor_id: claim.id,
+          kingdom_number: claim.kingdom_number,
+          action: 'cancel',
+          performed_by: userId,
+          target_user_id: null,
+          details: { source: 'kingdom_transfer_auto_cancel', new_kingdom: newLinkedKingdom },
+        });
+      } else if (claim.status === 'active' && claim.role === 'co-editor') {
+        // Active co-editor — deactivate
+        logger.info(`[AutoCancel] User ${userId} transferred to K${newLinkedKingdom}, deactivating co-editor for K${claim.kingdom_number}`);
+        await supabase.from('kingdom_editors').update({ status: 'inactive' }).eq('id', claim.id);
+        cancelledKingdoms.push(claim.kingdom_number);
+
+        await supabase.from('editor_audit_log').insert({
+          editor_id: claim.id,
+          kingdom_number: claim.kingdom_number,
+          action: 'step_down',
+          performed_by: userId,
+          target_user_id: null,
+          details: { source: 'kingdom_transfer_auto_cancel', new_kingdom: newLinkedKingdom, role: 'co-editor' },
+        });
+      } else if (claim.status === 'pending' && claim.role === 'co-editor') {
+        // Pending co-editor request — cancel
+        logger.info(`[AutoCancel] User ${userId} transferred to K${newLinkedKingdom}, cancelling pending co-editor request for K${claim.kingdom_number}`);
+        await supabase.from('kingdom_editors').update({ status: 'cancelled' }).eq('id', claim.id);
+        cancelledKingdoms.push(claim.kingdom_number);
+      }
     }
 
-    return result;
+    // If we had an active editor step-down, that result takes priority
+    if (result) return result;
+
+    // Otherwise, report that claims were cancelled
+    if (cancelledKingdoms.length > 0) {
+      return { success: true, action: 'claims_cancelled' };
+    }
+
+    return null;
   } catch (err) {
     logger.error('[AutoStepDown] Failed:', err);
     return null; // Silently fail — don't block the kingdom transfer

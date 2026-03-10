@@ -907,6 +907,8 @@ const Profile: React.FC = () => {
                             showToast(t('editor.autoStepDownPromoted', 'You were automatically stepped down as editor. {{name}} has been promoted.', { name: stepDownResult.promotedName }), 'info');
                           } else if (stepDownResult.action === 'kingdom_unmanaged') {
                             showToast(t('editor.autoStepDownUnmanaged', 'You were automatically stepped down as editor. The kingdom is now open for new claims.'), 'info');
+                          } else if (stepDownResult.action === 'claims_cancelled') {
+                            showToast(t('editor.autoClaimsCancelled', 'Your editor claims from your previous kingdom were automatically cancelled.'), 'info');
                           }
                         }
                       }).catch(() => {});
