@@ -28,3 +28,4 @@ export { default as TransferOutcomesTab } from './TransferOutcomesTab';
 export { ReviewReportsTab } from './ReviewReportsTab';
 export { NotificationSenderTab } from './NotificationSenderTab';
 export { PageAnalyticsTab } from './PageAnalyticsTab';
+export { KingdomTransfersTab } from './KingdomTransfersTab';

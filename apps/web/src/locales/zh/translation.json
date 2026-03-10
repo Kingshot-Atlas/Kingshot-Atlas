@@ -756,6 +756,8 @@
     "unlinkConfirm": "确定要解除 Kingshot 账号关联吗？",
     "kingshotUnlinked": "Kingshot 账号已解除关联",
     "playerDataSynced": "玩家数据已同步！",
+    "kingdomTransferDetected": "检测到王国迁移！您已从 K{{from}} 迁移到 K{{to}}。您的资料已更新。",
+    "kingdomTransferHistory": "王国迁移记录",
     "lastSynced": "上次同步：{{date}}",
     "kingdom": "王国",
     "alliance": "联盟",

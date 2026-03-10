@@ -3,6 +3,28 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-10 09:30 | Platform Engineer | COMPLETED
+Task: Kingdom Transfer Awareness Hardening
+Files: AuthContext.tsx, App.tsx, Profile.tsx, TransferDetectionToast.tsx, KingdomTransferHistory.tsx, KingdomTransfersTab.tsx, AdminTabNav.tsx, AdminDashboard.tsx, types.ts, index.ts, 11 locale files
+Changes:
+- Created `kingdom_transfers` Supabase table (RLS: users read/insert own, admins read all)
+- Auto-detect kingdom mismatch in `refreshLinkedPlayer()` when `linked_kingdom ≠ home_kingdom`
+- On transfer: log to DB, clear stale coordinates, auto-remove from old kingdom's alliance, show toast
+- Added self-removal RLS policy on `alliance_members` (members can leave their own alliance)
+- New `TransferDetectionToast` component mounted in App.tsx (i18n-aware info toast, 8s duration)
+- New `KingdomTransferHistory` component on user profile (shows K234→K276 with dates)
+- New `KingdomTransfersTab` admin tab under Transfers category (7d/30d/90d filter, user enrichment)
+- i18n: `kingdomTransferDetected` + `kingdomTransferHistory` keys in all 11 locales
+Security: RLS enforced on all new tables/operations, append-only audit trail, self-removal scoped to own player_id
+
+## 2026-03-10 08:15 | Platform Engineer | COMPLETED
+Task: Fix Alliance Center showing old kingdom for transferred users (K234→K276)
+Files: apps/web/src/contexts/AuthContext.tsx, apps/web/src/pages/Profile.tsx
+Root Cause: `refreshLinkedPlayer()` only synced `home_kingdom` from API when null (`!profile?.home_kingdom`). After kingdom transfer, `linked_kingdom` updated but `home_kingdom` stayed stale. All features using `home_kingdom ?? linked_kingdom` showed old kingdom.
+Fix: Changed condition from `!profile?.home_kingdom` to `data.kingdom !== profile?.home_kingdom` — always syncs when API reports a different kingdom. Also added `home_kingdom` sync to initial player linking flow in Profile.tsx.
+Impact: Fixes Alliance Center, Battle Layout, Tool Access, KvK submissions, and all other kingdom-dependent features for transferred users.
+Reported by: DOMA (K276, transferred from K234)
+
 ## 2026-03-09 17:45 | Product Engineer | COMPLETED
 Task: Bear Rally Tier List — blue theme, UI controls layout, natural breaks tier algorithm
 Files: BearRallyTierList.tsx, BearListManager.tsx, BearTierTable.tsx, bearHuntData.ts

@@ -756,6 +756,8 @@
     "unlinkConfirm": "Kingshot hesap bağlantısını kesmek istediğinizden emin misiniz?",
     "kingshotUnlinked": "Kingshot hesap bağlantısı kesildi",
     "playerDataSynced": "Oyuncu verileri senkronize edildi!",
+    "kingdomTransferDetected": "Krallık transferi tespit edildi! K{{from}}'den K{{to}}'ye taşındınız. Profiliniz güncellendi.",
+    "kingdomTransferHistory": "Krallık Transfer Geçmişi",
     "lastSynced": "Son senkronizasyon: {{date}}",
     "kingdom": "Krallık",
     "alliance": "İttifak",

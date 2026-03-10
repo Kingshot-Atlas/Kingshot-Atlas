@@ -756,6 +756,8 @@
     "unlinkConfirm": "Kingshotアカウントの連携を解除してもよろしいですか？",
     "kingshotUnlinked": "Kingshotアカウントの連携が解除されました",
     "playerDataSynced": "プレイヤーデータが同期されました！",
+    "kingdomTransferDetected": "王国移転が検出されました！K{{from}}からK{{to}}に移動しました。プロフィールが更新されました。",
+    "kingdomTransferHistory": "王国移転履歴",
     "lastSynced": "最終同期: {{date}}",
     "kingdom": "王国",
     "alliance": "同盟",

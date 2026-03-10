@@ -19,6 +19,7 @@ import ProfileCompletionProgress from '../components/ProfileCompletionProgress';
 import WelcomeToAtlas from '../components/WelcomeToAtlas';
 import TransferReadinessScore from '../components/TransferReadinessScore';
 import KingdomLeaderboardPosition from '../components/KingdomLeaderboardPosition';
+import KingdomTransferHistory from '../components/KingdomTransferHistory';
 import { ReferralTier, getHighestTierColor, SUBSCRIPTION_COLORS, getDisplayTier } from '../utils/constants';
 import { useAuth, UserProfile, getDisplayName } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
@@ -830,6 +831,15 @@ const Profile: React.FC = () => {
               })()}
             </div>
           </div>
+        )}
+
+        {/* Kingdom Transfer History - show for linked users */}
+        {viewedProfile?.linked_player_id && (
+          <KingdomTransferHistory
+            userId={viewedProfile.id}
+            themeColor={themeColor}
+            isMobile={isMobile}
+          />
         )}
 
         {/* Welcome to Atlas screen - shown after first account linking */}

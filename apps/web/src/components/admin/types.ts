@@ -150,7 +150,8 @@ export type AdminTab =
   | 'gift-codes'
   | 'notifications'
   | 'access-viewer'
-  | 'page-analytics';
+  | 'page-analytics'
+  | 'kingdom-transfers';
 
 export type AdminCategory = 'overview' | 'review' | 'transfer' | 'finance' | 'operations';
 

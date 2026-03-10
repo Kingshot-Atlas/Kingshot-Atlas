@@ -756,6 +756,8 @@
     "unlinkConfirm": "هل أنت متأكد من إلغاء ربط حساب Kingshot؟",
     "kingshotUnlinked": "تم إلغاء ربط حساب Kingshot",
     "playerDataSynced": "تمت مزامنة بيانات اللاعب!",
+    "kingdomTransferDetected": "تم اكتشاف انتقال المملكة! انتقلت من K{{from}} إلى K{{to}}. تم تحديث ملفك الشخصي.",
+    "kingdomTransferHistory": "سجل انتقال المملكة",
     "lastSynced": "آخر مزامنة: {{date}}",
     "kingdom": "المملكة",
     "alliance": "التحالف",

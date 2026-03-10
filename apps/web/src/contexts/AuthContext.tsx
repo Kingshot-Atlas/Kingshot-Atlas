@@ -60,6 +60,9 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<{ success: boolean; error?: string }>;
   refreshLinkedPlayer: () => Promise<void>;
+  /** Set after a kingdom transfer is detected during auto-refresh. Consumed by TransferDetectionToast. */
+  detectedTransfer: { fromKingdom: number; toKingdom: number } | null;
+  clearDetectedTransfer: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -705,6 +708,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return { success: true };
   };
 
+  // Kingdom transfer detection state
+  const [detectedTransfer, setDetectedTransfer] = useState<{ fromKingdom: number; toKingdom: number } | null>(null);
+  const clearDetectedTransfer = () => setDetectedTransfer(null);
+
   const refreshLinkedPlayer = async () => {
     if (!profile?.linked_player_id) return;
     
@@ -729,11 +736,60 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           linked_tc_level: data.town_center_level,
           linked_last_synced: new Date().toISOString(),
         };
+
+        // ── Kingdom transfer detection ──────────────────────────────
+        const oldKingdom = profile?.home_kingdom;
+        const newKingdom = data.kingdom;
+        const isTransfer = newKingdom && oldKingdom && newKingdom !== oldKingdom;
+
         // Always sync home_kingdom from linked_kingdom — handles kingdom transfers
-        // (e.g. user moved from K234→K276, linked_kingdom updates but home_kingdom was stale)
-        if (data.kingdom && data.kingdom !== profile?.home_kingdom) {
-          updates.home_kingdom = data.kingdom;
+        if (newKingdom && newKingdom !== oldKingdom) {
+          updates.home_kingdom = newKingdom;
         }
+
+        if (isTransfer && supabase && user) {
+          logger.info(`Kingdom transfer detected: K${oldKingdom} → K${newKingdom}`);
+
+          // 1. Log transfer to kingdom_transfers table
+          supabase.from('kingdom_transfers').insert({
+            user_id: user.id,
+            from_kingdom: oldKingdom,
+            to_kingdom: newKingdom,
+            linked_player_id: profile.linked_player_id,
+            linked_username: data.username,
+          }).then(({ error }) => {
+            if (error) logger.error('Failed to log kingdom transfer:', error);
+          });
+
+          // 2. Clear stale coordinates (old kingdom location is no longer valid)
+          if (profile?.coordinates) {
+            updates.coordinates = null;
+          }
+
+          // 3. Auto-remove from old kingdom's alliance membership
+          // Remove from alliance_members where the alliance is in the old kingdom
+          supabase.from('alliance_members')
+            .select('id, alliance_id')
+            .eq('player_id', profile.linked_player_id)
+            .then(async ({ data: memberships }) => {
+              if (!memberships?.length) return;
+              for (const m of memberships) {
+                // Check if the alliance is in the old kingdom
+                const { data: alliance } = await supabase!.from('alliances')
+                  .select('kingdom_number')
+                  .eq('id', m.alliance_id)
+                  .single();
+                if (alliance && alliance.kingdom_number === oldKingdom) {
+                  await supabase!.from('alliance_members').delete().eq('id', m.id);
+                  logger.info(`Removed from alliance ${m.alliance_id} (K${oldKingdom}) after transfer`);
+                }
+              }
+            });
+
+          // 4. Signal transfer detection for toast notification
+          setDetectedTransfer({ fromKingdom: oldKingdom, toKingdom: newKingdom });
+        }
+
         await updateProfile(updates);
         logger.info('Auto-refreshed linked player data:', data.username);
       }
@@ -767,7 +823,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     signInWithDiscord,
     signOut,
     updateProfile,
-    refreshLinkedPlayer
+    refreshLinkedPlayer,
+    detectedTransfer,
+    clearDetectedTransfer,
   };
 
   return (

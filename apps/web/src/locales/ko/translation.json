@@ -753,6 +753,8 @@
     "unlinkConfirm": "Kingshot 계정 연결을 해제하시겠습니까?",
     "kingshotUnlinked": "Kingshot 계정 연결 해제됨",
     "playerDataSynced": "플레이어 데이터 동기화 완료!",
+    "kingdomTransferDetected": "왕국 이전이 감지되었습니다! K{{from}}에서 K{{to}}로 이동했습니다. 프로필이 업데이트되었습니다.",
+    "kingdomTransferHistory": "왕국 이전 기록",
     "lastSynced": "마지막 동기화: {{date}}",
     "kingdom": "왕국",
     "alliance": "동맹",

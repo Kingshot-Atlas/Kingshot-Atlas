@@ -11,6 +11,7 @@ const KeyboardShortcutsModal = lazy(() => import('./components/KeyboardShortcuts
 const FeedbackWidget = lazy(() => import('./components/FeedbackWidget'));
 import SignupNudgeBar from './components/SignupNudgeBar';
 import SiteFooter from './components/SiteFooter';
+import TransferDetectionToast from './components/TransferDetectionToast';
 import KvKPhaseBanner from './components/KvKPhaseBanner';
 import { useKeyboardShortcuts, useKeyboardHelp } from './hooks/useKeyboardShortcuts';
 import { usePageTracking } from './hooks/useAnalytics';
@@ -218,6 +219,7 @@ function App() {
               <PremiumProvider>
                 <ToastProvider>
                   <FavoritesProvider>
+                    <TransferDetectionToast />
                     <Router>
                       <AppContent />
                     </Router>

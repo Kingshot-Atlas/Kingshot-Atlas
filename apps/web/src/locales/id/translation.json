@@ -714,6 +714,8 @@
     "unlinkConfirm": "Yakin ingin memutuskan akun Kingshot Anda?",
     "kingshotUnlinked": "Akun Kingshot terputus",
     "playerDataSynced": "Data pemain disinkronkan!",
+    "kingdomTransferDetected": "Transfer kerajaan terdeteksi! Anda pindah dari K{{from}} ke K{{to}}. Profil Anda telah diperbarui.",
+    "kingdomTransferHistory": "Riwayat Transfer Kerajaan",
     "lastSynced": "Terakhir disinkron: {{date}}",
     "kingdom": "Kingdom",
     "alliance": "Aliansi",

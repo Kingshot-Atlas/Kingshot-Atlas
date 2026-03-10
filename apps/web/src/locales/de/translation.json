@@ -756,6 +756,8 @@
     "unlinkConfirm": "Bist du sicher, dass du dein Kingshot-Konto trennen möchtest?",
     "kingshotUnlinked": "Kingshot-Konto getrennt",
     "playerDataSynced": "Spielerdaten synchronisiert!",
+    "kingdomTransferDetected": "Königreichstransfer erkannt! Du bist von K{{from}} nach K{{to}} umgezogen. Dein Profil wurde aktualisiert.",
+    "kingdomTransferHistory": "Königreichstransfer-Verlauf",
     "lastSynced": "Zuletzt synchronisiert: {{date}}",
     "kingdom": "Königreich",
     "alliance": "Allianz",

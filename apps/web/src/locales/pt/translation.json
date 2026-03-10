@@ -712,6 +712,8 @@
     "unlinkConfirm": "Tem certeza de que deseas desvincular seu conta de Kingshot?",
     "kingshotUnlinked": "Cuenta de Kingshot desvinculada",
     "playerDataSynced": "Datos do jogador sincronizados!",
+    "kingdomTransferDetected": "Transferência de reino detectada! Você se mudou de K{{from}} para K{{to}}. Seu perfil foi atualizado.",
+    "kingdomTransferHistory": "Histórico de Transferências de Reino",
     "lastSynced": "Última sincronización: {{date}}",
     "kingdom": "Reino",
     "alliance": "Aliança",

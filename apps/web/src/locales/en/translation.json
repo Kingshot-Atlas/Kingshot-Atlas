@@ -771,6 +771,8 @@
     "unlinkConfirm": "Are you sure you want to unlink your Kingshot account?",
     "kingshotUnlinked": "Kingshot account unlinked",
     "playerDataSynced": "Player data synced!",
+    "kingdomTransferDetected": "Kingdom transfer detected! You moved from K{{from}} to K{{to}}. Your profile has been updated.",
+    "kingdomTransferHistory": "Kingdom Transfer History",
     "lastSynced": "Last synced: {{date}}",
     "kingdom": "Kingdom",
     "alliance": "Alliance",

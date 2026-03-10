@@ -65,6 +65,7 @@ const BotDashboardTransferGroups = lazy(() => import('./BotDashboardTransferGrou
 const GiftCodeAnalyticsTab = lazy(() => import('../components/admin/GiftCodeAnalyticsTab'));
 const NotificationSenderTab = lazy(() => import('../components/admin/NotificationSenderTab'));
 const PageAnalyticsTab = lazy(() => import('../components/admin/PageAnalyticsTab'));
+const KingdomTransfersTab = lazy(() => import('../components/admin/KingdomTransfersTab').then(m => ({ default: m.KingdomTransfersTab })));
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 const ADMIN_LOG_KEY = 'kingshot_admin_log';
@@ -787,7 +788,7 @@ const AdminDashboard: React.FC = () => {
   const getActiveCategory = () => {
     if (['analytics', 'page-analytics', 'engagement', 'user-heatmap'].includes(activeTab)) return 'overview';
     if (['submissions', 'corrections', 'kvk-errors', 'matchup-conflicts', 'kvk-bulk', 'kvk-spreadsheet', 'review-reports'].includes(activeTab)) return 'review';
-    if (['transfer-hub', 'transfer-status', 'transfer-apps', 'transfer-outcomes'].includes(activeTab)) return 'transfer';
+    if (['transfer-hub', 'transfer-status', 'transfer-apps', 'transfer-outcomes', 'kingdom-transfers'].includes(activeTab)) return 'transfer';
     if (['finance'].includes(activeTab)) return 'finance';
     return 'operations';
   };
@@ -944,6 +945,8 @@ const AdminDashboard: React.FC = () => {
         <TransferApplicationsTab />
       ) : activeTab === 'transfer-outcomes' ? (
         <TransferOutcomesTab />
+      ) : activeTab === 'kingdom-transfers' ? (
+        <KingdomTransfersTab />
       ) : activeTab === 'email' ? (
         <EmailTab />
       ) : activeTab === 'bot-telemetry' ? (
