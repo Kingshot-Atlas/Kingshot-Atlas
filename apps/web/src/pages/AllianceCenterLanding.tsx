@@ -24,19 +24,29 @@ const AllianceCenterLanding: React.FC = () => {
       desc: t('allianceCenterLanding.featEventCoordinatorDesc', 'Find the best times for alliance events. Members submit their available play times — managers see the most active time slots at a glance.'),
     },
     {
+      icon: '🐻',
+      title: t('allianceCenterLanding.featBearRally', 'Bear Rally Tier List'),
+      desc: t('allianceCenterLanding.featBearRallyDesc', 'Rank your alliance members by Bear Hunt rally power. Scout stats go in, tier rankings come out. Know exactly who your strongest hitters are.'),
+    },
+    {
       icon: '👥',
       title: t('allianceCenterLanding.featRoster', 'Alliance Roster'),
-      desc: t('allianceCenterLanding.featRosterDesc', 'See every member of your alliance in one place. Track who\'s active, who\'s contributing, and who has access to your alliance tools.'),
+      desc: t('allianceCenterLanding.featRosterDesc', 'Up to 100 members in one place. Import by player ID, search Atlas users, track troop tiers, TC levels, and availability — all auto-resolved from game data.'),
+    },
+    {
+      icon: '📩',
+      title: t('allianceCenterLanding.featApplications', 'Alliance Applications'),
+      desc: t('allianceCenterLanding.featApplicationsDesc', 'Players can apply to join your alliance directly through Atlas. Review applications, approve or reject in bulk, and keep a full history.'),
+    },
+    {
+      icon: '📊',
+      title: t('allianceCenterLanding.featCharts', 'Alliance Analytics'),
+      desc: t('allianceCenterLanding.featChartsDesc', 'See your alliance at a glance with distribution charts for TC levels, troop tiers, and member activity. Data-driven decisions, not gut feelings.'),
     },
     {
       icon: '🔑',
       title: t('allianceCenterLanding.featAccess', 'Delegated Access Control'),
-      desc: t('allianceCenterLanding.featAccessDesc', 'Alliance leaders control who can manage tools and settings. Delegate responsibilities without losing oversight.'),
-    },
-    {
-      icon: '🚀',
-      title: t('allianceCenterLanding.featMore', 'More Tools Coming Soon'),
-      desc: t('allianceCenterLanding.featMoreDesc', 'The Alliance Center is growing. New coordination tools are being built based on what alliances actually need. Your hub gets stronger over time.'),
+      desc: t('allianceCenterLanding.featAccessDesc', 'Alliance leaders control who can manage tools and settings. Delegate responsibilities to up to 5 managers without losing oversight.'),
     },
     {
       icon: '🔗',
@@ -62,7 +72,7 @@ const AllianceCenterLanding: React.FC = () => {
       num: '3',
       icon: '⚡',
       title: t('allianceCenterLanding.step3Title', 'Coordinate Everything'),
-      desc: t('allianceCenterLanding.step3Desc', 'Design your base, schedule events, manage your roster — all from one dashboard. Your alliance, organized.'),
+      desc: t('allianceCenterLanding.step3Desc', 'Design your base, schedule events, rank rally hitters, manage your roster — all from one dashboard. Your alliance, organized.'),
     },
   ];
 
@@ -98,7 +108,7 @@ const AllianceCenterLanding: React.FC = () => {
             color: '#9ca3af', fontSize: isMobile ? '0.95rem' : '1.1rem',
             maxWidth: '520px', margin: '0 auto 1.5rem', lineHeight: 1.6,
           }}>
-            {t('allianceCenterLanding.heroSubtitle', 'Your alliance deserves more than a group chat. One hub to design your base, coordinate events, and manage your team — built for alliances that mean business.')}
+            {t('allianceCenterLanding.heroSubtitle', 'The must-have hub for alliance leaders who want to be efficient. Design your base, coordinate events, rank your rally hitters, and manage your roster — all from one dashboard.')}
           </p>
 
           {/* CTA */}
@@ -238,7 +248,7 @@ const AllianceCenterLanding: React.FC = () => {
             {t('allianceCenterLanding.problemDesc', "Base plans in a Google Doc. Event times in a spreadsheet. Roster in a Discord channel. Nobody knows where anything is. Half the alliance misses the memo because it was posted in the wrong place.")}
           </p>
           <p style={{ color: '#d1d5db', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.7, marginBottom: '1rem' }}>
-            {t('allianceCenterLanding.solutionDesc', "The Alliance Center puts everything in one place. Design your base, find the best event times, manage your roster — all from a single dashboard that everyone in the alliance can access. No more hunting for links. No more outdated spreadsheets.")}
+            {t('allianceCenterLanding.solutionDesc', "The Alliance Center puts everything in one place. Design your base, find the best event times, rank your Bear Hunt ralliers, manage your roster — all from a single dashboard that everyone in the alliance can access. No more hunting for links. No more outdated spreadsheets.")}
           </p>
           <p style={{ color: '#3b82f6', fontSize: isMobile ? '0.8rem' : '0.85rem', fontWeight: 600, fontStyle: 'italic' }}>
             {t('allianceCenterLanding.punchline', "One hub. Full control. Zero chaos.")}
@@ -282,9 +292,9 @@ const AllianceCenterLanding: React.FC = () => {
             maxWidth: '500px', margin: '0 auto 1.5rem',
           }}>
             {[
-              { label: t('allianceCenterLanding.roleSupporter', 'Supporters'), icon: '�' },
-              { label: t('allianceCenterLanding.roleAmbassador', 'Ambassadors'), icon: '�️' },
-              { label: t('allianceCenterLanding.roleBooster', 'Boosters'), icon: '�' },
+              { label: t('allianceCenterLanding.roleSupporter', 'Supporters'), icon: '💎' },
+              { label: t('allianceCenterLanding.roleAmbassador', 'Ambassadors'), icon: '🏛️' },
+              { label: t('allianceCenterLanding.roleBooster', 'Boosters'), icon: '🚀' },
             ].map((role) => (
               <div key={role.label} style={{
                 backgroundColor: '#0a0a0a', borderRadius: '10px', border: '1px solid #2a2a2a',

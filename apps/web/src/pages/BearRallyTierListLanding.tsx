@@ -44,7 +44,7 @@ const BearRallyTierListLanding: React.FC = () => {
       desc: t('bearRallyLanding.featBearDesc', 'Bear Hunt is a rally event — only offensive stats matter. This tool strips away the noise and gives you the real numbers for rally damage.'),
     },
     {
-      icon: '�',
+      icon: '🔒',
       title: t('bearRallyLanding.featAccess', 'Alliance Access Control'),
       desc: t('bearRallyLanding.featAccessDesc', 'Supporters, Ambassadors, and Boosters can create and manage the tier list. Up to 2 delegates can also edit. The rest of your alliance gets read-only access.'),
     },
