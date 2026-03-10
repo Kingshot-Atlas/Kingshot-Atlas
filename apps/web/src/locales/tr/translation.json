@@ -3674,6 +3674,11 @@
     "notifRejectedTitle": "Başvuru Güncellemesi",
     "notifApprovedMsg": "İttifaka kabul edildiniz! Hoş geldiniz.",
     "notifRejectedMsg": "İttifak başvurunuz şu anda kabul edilmedi.",
+    "editMyTroops": "Birliklerimi Düzenle",
+    "bulkEditTroops": "Toplu Birlik Düzenleme",
+    "bulkEditDesc": "Seçilen {{count}} üye için birlik seviyelerini ayarlayın. Yalnızca değiştirilen alanlar güncellenecektir.",
+    "bulkUpdated": "{{count}} üye güncellendi",
+    "applyToSelected": "{{count}} kişiye uygula",
     "onboarding": {
       "title": "İttifak Merkezi",
       "subtitle": "İttifak kadronuzu yönetin, etkinlikleri koordine edin ve birlik yapılarını takip edin — hepsi tek bir yerde.",

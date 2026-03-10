@@ -3783,6 +3783,11 @@
     "notifRejectedTitle": "Application Update",
     "notifApprovedMsg": "You've been accepted into the alliance! Welcome aboard.",
     "notifRejectedMsg": "Your alliance application was not accepted at this time.",
+    "editMyTroops": "Edit My Troops",
+    "bulkEditTroops": "Batch Edit Troops",
+    "bulkEditDesc": "Set troop tiers for {{count}} selected members. Only changed fields will be updated.",
+    "bulkUpdated": "{{count}} members updated",
+    "applyToSelected": "Apply to {{count}}",
     "onboarding": {
       "title": "Alliance Center",
       "subtitle": "Manage your alliance roster, coordinate events, and track troop compositions — all in one place.",

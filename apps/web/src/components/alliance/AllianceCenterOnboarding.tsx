@@ -32,6 +32,15 @@ interface PendingApp {
   created_at: string;
 }
 
+interface ResolvedApp {
+  id: string;
+  alliance_tag?: string;
+  alliance_name?: string;
+  status: 'approved' | 'rejected';
+  created_at: string;
+  updated_at: string;
+}
+
 interface AllianceCenterOnboardingProps {
   hasAccess: boolean;
   reason: 'admin' | 'supporter' | 'ambassador' | 'booster' | 'delegate' | 'none';
@@ -45,6 +54,7 @@ const AllianceCenterOnboarding: React.FC<AllianceCenterOnboardingProps> = ({ has
   const isMobile = useIsMobile();
 
   const [pendingApp, setPendingApp] = useState<PendingApp | null>(null);
+  const [recentResolvedApp, setRecentResolvedApp] = useState<ResolvedApp | null>(null);
   const [kingdomAlliances, setKingdomAlliances] = useState<KingdomAlliance[]>([]);
   const [loading, setLoading] = useState(true);
   const [applyingTo, setApplyingTo] = useState<string | null>(null);
@@ -52,70 +62,43 @@ const AllianceCenterOnboarding: React.FC<AllianceCenterOnboardingProps> = ({ has
   const [submitting, setSubmitting] = useState(false);
   const [withdrawing, setWithdrawing] = useState(false);
   const [view, setView] = useState<'main' | 'apply'>('main');
+  const [resolvedDismissed, setResolvedDismissed] = useState(false);
 
   const userKingdom = profile?.home_kingdom ?? (profile as { linked_kingdom?: number | null } | null)?.linked_kingdom ?? null;
   const linkedPlayerId = (profile as { linked_player_id?: string | null } | null)?.linked_player_id;
   const linkedUsername = (profile as { linked_username?: string | null } | null)?.linked_username;
 
-  // Fetch pending application + kingdom alliances
+  // Fetch all onboarding data in a single RPC call
   const fetchData = useCallback(async () => {
     if (!isSupabaseConfigured || !supabase || !user) return;
     setLoading(true);
 
-    // 1. Check for pending application
-    const { data: appData } = await supabase
-      .from('alliance_applications')
-      .select('id, alliance_id, status, message, created_at')
-      .eq('applicant_user_id', user.id)
-      .eq('status', 'pending')
-      .maybeSingle();
+    const { data, error } = await supabase.rpc('get_onboarding_data', {
+      p_user_id: user.id,
+      p_kingdom_number: userKingdom,
+    });
 
-    if (appData) {
-      // Resolve alliance name
-      const { data: allianceInfo } = await supabase
-        .from('alliances')
-        .select('tag, name')
-        .eq('id', appData.alliance_id)
-        .maybeSingle();
+    if (error || !data) {
+      logger.error('Failed to fetch onboarding data:', error);
+      setLoading(false);
+      return;
+    }
 
-      setPendingApp({
-        ...appData,
-        alliance_tag: allianceInfo?.tag,
-        alliance_name: allianceInfo?.name,
-      });
+    const result = data as {
+      pending_app: PendingApp | null;
+      resolved_app: ResolvedApp | null;
+      kingdom_alliances: KingdomAlliance[];
+    };
+
+    if (result.pending_app) {
+      setPendingApp(result.pending_app);
+      setRecentResolvedApp(null);
     } else {
       setPendingApp(null);
+      setRecentResolvedApp(result.resolved_app ?? null);
     }
 
-    // 2. Fetch alliances in user's kingdom
-    if (userKingdom) {
-      const { data: alliances } = await supabase
-        .from('alliances')
-        .select('id, tag, name, kingdom_number, description')
-        .eq('kingdom_number', userKingdom);
-
-      if (alliances && alliances.length > 0) {
-        // Get member counts
-        const allianceIds = alliances.map(a => a.id);
-        const { data: memberRows } = await supabase
-          .from('alliance_members')
-          .select('alliance_id')
-          .in('alliance_id', allianceIds);
-
-        const countMap = new Map<string, number>();
-        (memberRows || []).forEach((r: { alliance_id: string }) => {
-          countMap.set(r.alliance_id, (countMap.get(r.alliance_id) || 0) + 1);
-        });
-
-        setKingdomAlliances(alliances.map(a => ({
-          ...a,
-          member_count: countMap.get(a.id) || 0,
-        })));
-      } else {
-        setKingdomAlliances([]);
-      }
-    }
-
+    setKingdomAlliances(result.kingdom_alliances || []);
     setLoading(false);
   }, [user, userKingdom]);
 
@@ -240,8 +223,15 @@ const AllianceCenterOnboarding: React.FC<AllianceCenterOnboardingProps> = ({ has
           <div style={{
             width: '56px', height: '56px', borderRadius: '50%', backgroundColor: '#a855f715',
             border: '2px solid #a855f730', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 1rem', fontSize: '1.5rem',
-          }}>⏳</div>
+            margin: '0 auto 1rem',
+          }}>
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 4h12v3c0 3-3 5-6 7 3 2 6 4 6 7v3H8v-3c0-3 3-5 6-7-3-2-6-4-6-7V4z" stroke="#a855f7" strokeWidth="1.5" fill="none" />
+              <rect x="7" y="3" width="14" height="2" rx="1" fill="#a855f7" opacity="0.5" />
+              <rect x="7" y="23" width="14" height="2" rx="1" fill="#a855f7" opacity="0.5" />
+              <circle cx="14" cy="14" r="1.5" fill="#a855f7" opacity="0.6" />
+            </svg>
+          </div>
           <h2 style={{ color: '#fff', fontFamily: FONT_DISPLAY, fontSize: '1.15rem', marginBottom: '0.4rem' }}>
             {t('allianceCenter.onboarding.pendingTitle', 'Application Pending')}
           </h2>
@@ -319,8 +309,14 @@ const AllianceCenterOnboarding: React.FC<AllianceCenterOnboardingProps> = ({ has
             <div style={{
               width: '56px', height: '56px', borderRadius: '50%', backgroundColor: ACCENT_DIM,
               border: `2px solid ${ACCENT_BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 0.75rem', fontSize: '1.5rem',
-            }}>📨</div>
+              margin: '0 auto 0.75rem',
+            }}>
+              <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="6" width="20" height="14" rx="3" stroke="#a855f7" strokeWidth="1.5" fill="none" />
+                <path d="M3 9l10 6 10-6" stroke="#a855f7" strokeWidth="1.5" fill="none" />
+                <circle cx="20" cy="7" r="3" fill="#22c55e" />
+              </svg>
+            </div>
             <h2 style={{ color: '#fff', fontFamily: FONT_DISPLAY, fontSize: '1.1rem', marginBottom: '0.3rem' }}>
               {t('allianceCenter.onboarding.applyTitle', 'Apply to Join')}
             </h2>
@@ -399,8 +395,17 @@ const AllianceCenterOnboarding: React.FC<AllianceCenterOnboardingProps> = ({ has
           <div style={{
             width: '64px', height: '64px', borderRadius: '50%', backgroundColor: ACCENT_DIM,
             border: `2px solid ${ACCENT_BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 1rem', fontSize: '1.75rem',
-          }}>🏰</div>
+            margin: '0 auto 1rem',
+          }}>
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="6" y="14" width="6" height="14" rx="1" stroke="#a855f7" strokeWidth="1.5" fill="none" />
+              <rect x="13" y="8" width="6" height="20" rx="1" stroke="#a855f7" strokeWidth="1.5" fill="none" />
+              <rect x="20" y="14" width="6" height="14" rx="1" stroke="#a855f7" strokeWidth="1.5" fill="none" />
+              <rect x="14.5" y="4" width="3" height="4" rx="0.5" fill="#a855f7" opacity="0.6" />
+              <path d="M16 2l2 2h-4l2-2z" fill="#a855f7" opacity="0.8" />
+              <line x1="4" y1="28" x2="28" y2="28" stroke="#a855f7" strokeWidth="1.5" opacity="0.4" />
+            </svg>
+          </div>
           <h2 style={{ color: '#fff', fontFamily: FONT_DISPLAY, fontSize: isMobile ? '1.15rem' : '1.35rem', marginBottom: '0.4rem' }}>
             {t('allianceCenter.onboarding.title', 'Alliance Center')}
           </h2>
@@ -408,6 +413,44 @@ const AllianceCenterOnboarding: React.FC<AllianceCenterOnboardingProps> = ({ has
             {t('allianceCenter.onboarding.subtitle', 'Manage your alliance roster, coordinate events, and track troop compositions — all in one place.')}
           </p>
         </div>
+
+        {/* Recently resolved application banner */}
+        {recentResolvedApp && !resolvedDismissed && (
+          <div style={{
+            marginBottom: '1rem', padding: '0.75rem 1rem', borderRadius: '10px',
+            backgroundColor: recentResolvedApp.status === 'approved' ? '#22c55e10' : '#ef444410',
+            border: `1px solid ${recentResolvedApp.status === 'approved' ? '#22c55e25' : '#ef444425'}`,
+            display: 'flex', alignItems: 'center', gap: '0.6rem',
+          }}>
+            <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>
+              {recentResolvedApp.status === 'approved' ? '✅' : '❌'}
+            </span>
+            <div style={{ flex: 1 }}>
+              <div style={{ color: recentResolvedApp.status === 'approved' ? '#22c55e' : '#ef4444', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.15rem' }}>
+                {recentResolvedApp.status === 'approved'
+                  ? t('allianceCenter.onboarding.appApproved', 'Application Approved!')
+                  : t('allianceCenter.onboarding.appRejected', 'Application Declined')}
+              </div>
+              <div style={{ color: '#9ca3af', fontSize: '0.7rem', lineHeight: 1.4 }}>
+                {recentResolvedApp.status === 'approved'
+                  ? t('allianceCenter.onboarding.appApprovedDesc', 'Your application to {{alliance}} was approved. You should now have access as a member.', {
+                      alliance: recentResolvedApp.alliance_name ? `[${recentResolvedApp.alliance_tag}] ${recentResolvedApp.alliance_name}` : 'the alliance',
+                    })
+                  : t('allianceCenter.onboarding.appRejectedDesc', 'Your application to {{alliance}} was declined. You can apply to another alliance below.', {
+                      alliance: recentResolvedApp.alliance_name ? `[${recentResolvedApp.alliance_tag}] ${recentResolvedApp.alliance_name}` : 'the alliance',
+                    })}
+              </div>
+              <div style={{ color: '#4b5563', fontSize: '0.6rem', marginTop: '0.2rem' }}>
+                {new Date(recentResolvedApp.updated_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+              </div>
+            </div>
+            <button onClick={() => setResolvedDismissed(true)}
+              style={{ background: 'none', border: 'none', color: '#4b5563', fontSize: '0.8rem', cursor: 'pointer', padding: '0.2rem', flexShrink: 0 }}
+              aria-label="Dismiss">
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Option Cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -525,7 +568,11 @@ const AllianceCenterOnboarding: React.FC<AllianceCenterOnboardingProps> = ({ has
               backgroundColor: '#111111', borderRadius: '12px', border: '1px solid #f59e0b20',
               padding: '1.25rem', textAlign: 'center',
             }}>
-              <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🔍</div>
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ margin: '0 auto 0.5rem', display: 'block', opacity: 0.6 }}>
+                <circle cx="18" cy="18" r="8" stroke="#f59e0b" strokeWidth="2" fill="none" />
+                <line x1="24" y1="24" x2="32" y2="32" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
+                <path d="M15 18h6M18 15v6" stroke="#f59e0b" strokeWidth="1.5" opacity="0.5" />
+              </svg>
               <h3 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.3rem' }}>
                 {t('allianceCenter.onboarding.noCentersTitle', 'No Alliance Centers in K{{kingdom}} Yet', { kingdom: userKingdom })}
               </h3>
@@ -552,7 +599,12 @@ const AllianceCenterOnboarding: React.FC<AllianceCenterOnboardingProps> = ({ has
               backgroundColor: '#111111', borderRadius: '12px', border: '1px solid #f59e0b20',
               padding: '1.25rem', textAlign: 'center',
             }}>
-              <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🗺️</div>
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ margin: '0 auto 0.5rem', display: 'block', opacity: 0.6 }}>
+                <rect x="4" y="8" width="32" height="24" rx="3" stroke="#f59e0b" strokeWidth="2" fill="none" />
+                <path d="M4 16l10-4 12 6 10-4" stroke="#f59e0b" strokeWidth="1.5" opacity="0.4" />
+                <circle cx="20" cy="20" r="4" stroke="#f59e0b" strokeWidth="1.5" fill="none" />
+                <circle cx="20" cy="20" r="1.5" fill="#f59e0b" opacity="0.6" />
+              </svg>
               <h3 style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.3rem' }}>
                 {t('allianceCenter.onboarding.setKingdomTitle', 'Set Your Kingdom First')}
               </h3>

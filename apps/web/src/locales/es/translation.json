@@ -3673,6 +3673,11 @@
     "notifRejectedTitle": "Actualización de Solicitud",
     "notifApprovedMsg": "¡Has sido aceptado en la alianza! Bienvenido.",
     "notifRejectedMsg": "Tu solicitud de alianza no fue aceptada en este momento.",
+    "editMyTroops": "Editar Mis Tropas",
+    "bulkEditTroops": "Edición Masiva de Tropas",
+    "bulkEditDesc": "Establecer niveles de tropas para {{count}} miembros seleccionados. Solo se actualizarán los campos modificados.",
+    "bulkUpdated": "{{count}} miembros actualizados",
+    "applyToSelected": "Aplicar a {{count}}",
     "onboarding": {
       "title": "Centro de Alianza",
       "subtitle": "Gestiona el roster de tu alianza, coordina eventos y rastrea composiciones de tropas — todo en un solo lugar.",

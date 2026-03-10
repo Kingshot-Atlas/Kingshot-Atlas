@@ -1,10 +1,10 @@
-import React, { useRef, useCallback, useEffect, useState, useMemo } from 'react';
+import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useBaseDesigner } from '../hooks/useBaseDesigner';
-import { useAllianceCenter } from '../hooks/useAllianceCenter';
+import { useAllianceRoster } from '../hooks/useAllianceRoster';
 import { useToolAccess } from '../hooks/useToolAccess';
 import { getBuildingType } from '../config/allianceBuildings';
 import { useAuth } from '../contexts/AuthContext';
@@ -31,13 +31,13 @@ const AllianceBaseDesigner: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
 
-  // Alliance roster names for city label autocomplete
-  const ac = useAllianceCenter();
+  // Alliance roster names for city label autocomplete (lightweight — no profile/troop waterfall)
+  const roster = useAllianceRoster();
   const { hasAccess } = useToolAccess();
 
   // Load the alliance owner's design so all members see the same base
   // For the owner, this equals their own ID; for delegates/members, it loads the owner's design
-  const designOwnerId = ac.alliance?.owner_id || null;
+  const designOwnerId = roster.ownerId;
   const designer = useBaseDesigner(undefined, designOwnerId);
   const containerRef = useRef<HTMLDivElement>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 600, height: 600 });
@@ -53,11 +53,8 @@ const AllianceBaseDesigner: React.FC = () => {
   const [shareToast, setShareToast] = useState<string | null>(null);
 
   // Determine edit permission: owner/manager can edit all; delegates only if they have base_designer access
-  const canEdit = hasAccess && (ac.accessRole === 'owner' || ac.accessRole === 'manager' || (ac.accessRole === 'delegate' && ac.hasDelegateAccessTo('base_designer')));
-  const rosterNames = useMemo(() => {
-    if (!ac.members || ac.members.length === 0) return [];
-    return ac.sortedMembers.map(m => m.player_name);
-  }, [ac.members, ac.sortedMembers]);
+  const canEdit = hasAccess && (roster.accessRole === 'owner' || roster.accessRole === 'manager' || (roster.accessRole === 'delegate' && roster.hasDelegateAccessTo('base_designer')));
+  const rosterNames = roster.sortedNames;
   const [labelSuggestions, setLabelSuggestions] = useState<string[]>([]);
   const [selectedSuggestionIdx, setSelectedSuggestionIdx] = useState(-1);
 

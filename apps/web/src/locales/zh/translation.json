@@ -3674,6 +3674,11 @@
     "notifRejectedTitle": "申请更新",
     "notifApprovedMsg": "您已被联盟接受！欢迎加入。",
     "notifRejectedMsg": "您的联盟申请暂未通过。",
+    "editMyTroops": "编辑我的兵种",
+    "bulkEditTroops": "批量编辑兵种",
+    "bulkEditDesc": "为 {{count}} 名选中成员设置兵种等级。仅修改的字段会被更新。",
+    "bulkUpdated": "已更新 {{count}} 名成员",
+    "applyToSelected": "应用于 {{count}} 人",
     "onboarding": {
       "title": "联盟中心",
       "subtitle": "管理联盟名单、协调活动、追踪部队配置——一站式完成。",

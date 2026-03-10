@@ -3674,6 +3674,11 @@
     "notifRejectedTitle": "Mise à jour de candidature",
     "notifApprovedMsg": "Vous avez été accepté dans l'alliance ! Bienvenue.",
     "notifRejectedMsg": "Votre candidature n'a pas été acceptée pour le moment.",
+    "editMyTroops": "Modifier Mes Troupes",
+    "bulkEditTroops": "Modification Groupée des Troupes",
+    "bulkEditDesc": "Définir les niveaux de troupes pour {{count}} membres sélectionnés. Seuls les champs modifiés seront mis à jour.",
+    "bulkUpdated": "{{count}} membres mis à jour",
+    "applyToSelected": "Appliquer à {{count}}",
     "onboarding": {
       "title": "Centre d'Alliance",
       "subtitle": "Gérez le roster de votre alliance, coordonnez les événements et suivez les compositions de troupes — tout en un seul endroit.",

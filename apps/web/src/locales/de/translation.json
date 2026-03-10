@@ -3674,6 +3674,11 @@
     "notifRejectedTitle": "Bewerbungs-Update",
     "notifApprovedMsg": "Du wurdest in die Allianz aufgenommen! Willkommen.",
     "notifRejectedMsg": "Deine Allianz-Bewerbung wurde diesmal nicht angenommen.",
+    "editMyTroops": "Meine Truppen bearbeiten",
+    "bulkEditTroops": "Truppen-Massenbearbeitung",
+    "bulkEditDesc": "Truppenstufen für {{count}} ausgewählte Mitglieder festlegen. Nur geänderte Felder werden aktualisiert.",
+    "bulkUpdated": "{{count}} Mitglieder aktualisiert",
+    "applyToSelected": "Auf {{count}} anwenden",
     "onboarding": {
       "title": "Allianz-Zentrum",
       "subtitle": "Verwalte dein Allianz-Roster, koordiniere Events und verfolge Truppenzusammensetzungen — alles an einem Ort.",

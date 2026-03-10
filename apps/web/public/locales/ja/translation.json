@@ -3674,6 +3674,11 @@
     "notifRejectedTitle": "申請の更新",
     "notifApprovedMsg": "同盟に受け入れられました！ようこそ。",
     "notifRejectedMsg": "同盟への申請は現在受理されませんでした。",
+    "editMyTroops": "自分の兵種を編集",
+    "bulkEditTroops": "兵種一括編集",
+    "bulkEditDesc": "選択した{{count}}名のメンバーの兵種レベルを設定します。変更されたフィールドのみ更新されます。",
+    "bulkUpdated": "{{count}}名のメンバーを更新しました",
+    "applyToSelected": "{{count}}名に適用",
     "onboarding": {
       "title": "同盟センター",
       "subtitle": "同盟の名簿管理、イベント調整、部隊構成の追跡をすべて一か所で。",

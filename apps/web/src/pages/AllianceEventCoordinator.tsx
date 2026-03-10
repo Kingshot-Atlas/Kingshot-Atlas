@@ -1062,6 +1062,7 @@ const AllianceEventCoordinator: React.FC = () => {
     type: 'BreadcrumbList',
     data: [
       ...(PAGE_BREADCRUMBS.tools || []),
+      { name: 'Alliance Center', url: 'https://ks-atlas.com/alliance-center' },
       { name: 'Alliance Event Coordinator', url: 'https://ks-atlas.com/tools/event-coordinator' },
     ],
   });

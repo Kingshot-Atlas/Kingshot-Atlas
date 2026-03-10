@@ -3671,6 +3671,11 @@
     "notifRejectedTitle": "신청 업데이트",
     "notifApprovedMsg": "동맹에 수락되었습니다! 환영합니다.",
     "notifRejectedMsg": "동맹 신청이 현재 수락되지 않았습니다.",
+    "editMyTroops": "내 병종 수정",
+    "bulkEditTroops": "병종 일괄 수정",
+    "bulkEditDesc": "선택한 {{count}}명의 멤버에 대해 병종 등급을 설정합니다. 변경된 항목만 업데이트됩니다.",
+    "bulkUpdated": "{{count}}명 멤버 업데이트 완료",
+    "applyToSelected": "{{count}}명에 적용",
     "onboarding": {
       "title": "동맹 센터",
       "subtitle": "동맹 명단 관리, 이벤트 조율, 병력 구성 추적 — 한 곳에서 모두 가능합니다.",

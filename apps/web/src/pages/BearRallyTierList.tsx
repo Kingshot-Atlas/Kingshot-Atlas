@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 import {
@@ -33,6 +34,14 @@ const BearRallyTierList: React.FC = () => {
   useMetaTags({
     title: t('bearRally.pageTitle', 'Bear Rally Tier List — Kingshot Atlas'),
     description: t('bearRally.metaDesc', 'Rank your alliance members for Bear Rally events with our tier list tool. Score players based on troop bonuses, heroes, and Exclusive Gear.'),
+  });
+  useStructuredData({
+    type: 'BreadcrumbList',
+    data: [
+      ...(PAGE_BREADCRUMBS.tools || []),
+      { name: 'Alliance Center', url: 'https://ks-atlas.com/alliance-center' },
+      { name: 'Bear Rally Tier List', url: 'https://ks-atlas.com/tools/bear-rally' },
+    ],
   });
 
   const state = useBearRallyState();
@@ -394,7 +403,7 @@ const BearRallyTierList: React.FC = () => {
         {/* ── Back Links ── */}
         <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           <Link
-            to="/alliance"
+            to="/alliance-center"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
               padding: '0.5rem 1rem', backgroundColor: '#1a1a1a',

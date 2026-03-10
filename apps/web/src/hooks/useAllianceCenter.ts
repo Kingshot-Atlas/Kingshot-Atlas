@@ -107,7 +107,7 @@ export interface UseAllianceCenterResult {
   addMember: (data: { player_name: string; player_id?: string; notes?: string }) => Promise<MutResult>;
   updateMember: (memberId: string, data: { player_name?: string; player_id?: string; notes?: string; infantry_tier?: number | null; infantry_tg?: number | null; cavalry_tier?: number | null; cavalry_tg?: number | null; archers_tier?: number | null; archers_tg?: number | null }) => Promise<MutResult>;
   removeMember: (memberId: string) => Promise<MutResult>;
-  importByPlayerIds: (playerIds: string[]) => Promise<{ success: number; failed: number; errors: string[] }>;
+  importByPlayerIds: (playerIds: string[], onProgress?: (done: number, total: number) => void) => Promise<{ success: number; failed: number; errors: string[] }>;
 
   // Helpers
   sortedMembers: AllianceMember[];
@@ -143,82 +143,31 @@ export function useAllianceCenter(): UseAllianceCenterResult {
   const { user, profile, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
 
-  // ─── Fetch alliance (owner → manager → delegate path) ───
+  // ─── Fetch alliance via single RPC (owner → manager → delegate → member) ───
+  const linkedPid = (profile as { linked_player_id?: string | null } | null)?.linked_player_id ?? null;
   const { data: allianceData = { alliance: null, accessRole: 'none' as const, delegateTools: undefined as ('all' | AllianceTool)[] | undefined }, isLoading: queryLoading } = useQuery({
     queryKey: ['alliance-center', user?.id],
     queryFn: async (): Promise<{ alliance: Alliance | null; accessRole: 'owner' | 'manager' | 'delegate' | 'member' | 'none'; delegateTools?: ('all' | AllianceTool)[] }> => {
       if (!isSupabaseConfigured || !supabase || !user) return { alliance: null, accessRole: 'none' };
 
-      // 1. Check if user owns an alliance
-      const { data: ownAlliance, error: ownError } = await supabase
-        .from('alliances')
-        .select('*')
-        .eq('owner_id', user.id)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc('get_user_alliance_access', {
+        p_user_id: user.id,
+        p_linked_player_id: linkedPid,
+      });
 
-      if (ownAlliance) return { alliance: ownAlliance as Alliance, accessRole: 'owner' };
-      if (ownError && ownError.code !== 'PGRST116') {
-        logger.error('Failed to fetch own alliance:', ownError);
+      if (error) {
+        logger.error('Failed to fetch alliance access:', error);
+        return { alliance: null, accessRole: 'none' };
       }
 
-      // 2. Check if user is a manager
-      const { data: mgrRow } = await supabase
-        .from('alliance_managers')
-        .select('alliance_id')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      const result = data as { alliance: Alliance | null; access_role: string; delegate_tools: string[] | null } | null;
+      if (!result || !result.alliance) return { alliance: null, accessRole: result?.access_role as 'none' ?? 'none' };
 
-      if (mgrRow) {
-        const { data: mgrAlliance } = await supabase
-          .from('alliances')
-          .select('*')
-          .eq('id', mgrRow.alliance_id)
-          .maybeSingle();
-        if (mgrAlliance) return { alliance: mgrAlliance as Alliance, accessRole: 'manager' };
-      }
-
-      // 3. Check if user is a delegate (may have multiple rows for different tools)
-      const { data: delegateRows } = await supabase
-        .from('tool_delegates')
-        .select('owner_id, tool')
-        .eq('delegate_id', user.id);
-
-      if (delegateRows && delegateRows.length > 0) {
-        // Group by owner and find one whose alliance exists
-        const ownerIds = [...new Set(delegateRows.map(r => r.owner_id))];
-        for (const ownerId of ownerIds) {
-          const { data: ownerAlliance } = await supabase
-            .from('alliances')
-            .select('*')
-            .eq('owner_id', ownerId)
-            .maybeSingle();
-          if (ownerAlliance) {
-            const tools = delegateRows.filter(r => r.owner_id === ownerId).map(r => (r as { tool: string }).tool as ('all' | AllianceTool));
-            return { alliance: ownerAlliance as Alliance, accessRole: 'delegate', delegateTools: tools };
-          }
-        }
-      }
-
-      // 4. Check if user is a member of an alliance (via linked_player_id)
-      const linkedPid = (profile as { linked_player_id?: string | null } | null)?.linked_player_id;
-      if (linkedPid) {
-        const { data: memberRow } = await supabase
-          .from('alliance_members')
-          .select('alliance_id')
-          .eq('player_id', linkedPid)
-          .maybeSingle();
-
-        if (memberRow) {
-          const { data: memberAlliance } = await supabase
-            .from('alliances')
-            .select('*')
-            .eq('id', memberRow.alliance_id)
-            .maybeSingle();
-          if (memberAlliance) return { alliance: memberAlliance as Alliance, accessRole: 'member' };
-        }
-      }
-
-      return { alliance: null, accessRole: 'none' };
+      return {
+        alliance: result.alliance,
+        accessRole: result.access_role as 'owner' | 'manager' | 'delegate' | 'member' | 'none',
+        delegateTools: result.delegate_tools as ('all' | AllianceTool)[] | undefined,
+      };
     },
     enabled: !!user,
     staleTime: 2 * 60 * 1000,
@@ -355,6 +304,14 @@ export function useAllianceCenter(): UseAllianceCenterResult {
       .map(m => m.player_id!);
   }, [members, playerProfiles, playerProfilesLoading, alliance]);
 
+  // IDs that have never been resolved (no cached_at) — these auto-fetch
+  const uncachedPlayerIds = useMemo(() => {
+    if (!alliance || playerProfilesLoading) return [];
+    return members
+      .filter(m => m.player_id && !playerProfiles.has(m.player_id) && !m.cached_at)
+      .map(m => m.player_id!);
+  }, [members, playerProfiles, playerProfilesLoading, alliance]);
+
   // Seed from cached columns on alliance_members (instant, avoids re-fetch every session)
   const cachedApiData = useMemo(() => {
     const map = new Map<string, ApiPlayerData>();
@@ -371,13 +328,17 @@ export function useAllianceCenter(): UseAllianceCenterResult {
     return map;
   }, [members]);
 
+  // Track whether the user manually triggered a full refresh
+  const manualRefreshRef = useRef(false);
+
   const { data: apiPlayerData = cachedApiData, isLoading: apiPlayerDataLoading, isError: apiPlayerDataError, refetch: refetchApiPlayerData } = useQuery({
     queryKey: ['alliance-api-players', alliance?.id, nonAtlasPlayerIds.join(',')],
     queryFn: async (): Promise<Map<string, ApiPlayerData>> => {
       const map = new Map<string, ApiPlayerData>();
       const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
-      // Fetch ALL non-Atlas IDs (manual trigger — no uncached filter)
-      const batch = nonAtlasPlayerIds.slice(0, 50);
+      // Manual refresh fetches ALL non-Atlas IDs; auto-fetch only uncached ones
+      const batch = (manualRefreshRef.current ? nonAtlasPlayerIds : uncachedPlayerIds).slice(0, 50);
+      manualRefreshRef.current = false;
       if (batch.length === 0) return cachedApiData;
 
       let fetchedFromApi = false;
@@ -417,14 +378,15 @@ export function useAllianceCenter(): UseAllianceCenterResult {
 
       return map;
     },
-    // Manual-only: never auto-fetch. User clicks Refresh to trigger.
-    enabled: false,
-    staleTime: Infinity,
+    // Auto-fetch when there are truly unresolved members (no cached data at all)
+    enabled: !!alliance && uncachedPlayerIds.length > 0,
+    staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     retry: 1,
   });
 
   const refreshApiPlayerData = useCallback(() => {
+    manualRefreshRef.current = true;
     refetchApiPlayerData();
   }, [refetchApiPlayerData]);
 
@@ -876,7 +838,7 @@ export function useAllianceCenter(): UseAllianceCenterResult {
   });
 
   // ─── Import members by player IDs ───
-  const importByPlayerIds = async (playerIds: string[]): Promise<{ success: number; failed: number; errors: string[] }> => {
+  const importByPlayerIds = async (playerIds: string[], onProgress?: (done: number, total: number) => void): Promise<{ success: number; failed: number; errors: string[] }> => {
     if (!isSupabaseConfigured || !supabase || !user || !alliance) {
       return { success: 0, failed: playerIds.length, errors: ['No alliance found'] };
     }
@@ -908,7 +870,9 @@ export function useAllianceCenter(): UseAllianceCenterResult {
     const unresolvedIds = toAdd.filter(pid => !profileMap.has(pid));
     if (unresolvedIds.length > 0) {
       const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
-      for (const pid of unresolvedIds.slice(0, 50)) {
+      const batch = unresolvedIds.slice(0, 50);
+      for (let i = 0; i < batch.length; i++) {
+        const pid = batch[i]!;
         try {
           const res = await fetch(`${API_BASE}/api/v1/player-link/verify`, {
             method: 'POST',
@@ -920,6 +884,7 @@ export function useAllianceCenter(): UseAllianceCenterResult {
             if (apiData.username) profileMap.set(pid, apiData.username);
           }
         } catch { /* skip */ }
+        onProgress?.(profileMap.size + i + 1, toAdd.length);
         await new Promise(r => setTimeout(r, 250));
       }
     }
