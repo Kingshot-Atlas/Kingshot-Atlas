@@ -603,7 +603,7 @@
     "savePercent": "%17 TASARRUF",
     "yearlySavings": "Ayda $4,17 — aylığa kıyasla $9,89 tasarruf",
     "cancelAnytime": "İstediğiniz zaman iptal edin • Stripe üzerinden yönetin",
-    "getPerks": "Rozet, Savaş Planlayıcı, sınırsız bot komutları, toplu kod kullanımı — ve gerçekten kullandığınız araçları finanse etmenin memnuniyeti.",
+    "getPerks": "Rozet, Krallık Araçları, sınırsız bot komutları, tam liderlik tablosu — ve gerçekten kullandığınız araçları finanse etmenin memnuniyeti.",
     "becomeSupporter": "Destekçi Ol",
     "signInToSubscribe": "Abone Olmak İçin Giriş Yap",
     "giveMore": "Daha fazla vermek mi istiyorsunuz? Abone olduktan sonra Stripe portalında miktarınızı artırabilirsiniz.",
@@ -646,7 +646,15 @@
     "perk8Title": "Toplu Kod Kullanımı",
     "perk8Desc": "Tüm alt hesaplarınız için hediye kodlarını tek tıkla kullanın",
     "perk10Title": "Atlas Bot Kontrol Paneli",
-    "perk10Desc": "Komuta merkeziniz. Hatırlatıcıları, hediye kodu uyarılarını yapılandırın ve birden fazla sunucuyu yönetin — tek ekrandan."
+    "perk10Desc": "Komuta merkeziniz. Hatırlatıcıları, hediye kodu uyarılarını yapılandırın ve birden fazla sunucuyu yönetin — tek ekrandan.",
+    "perk11Title": "İttifak Üs Tasarımcısı",
+    "perk11Desc": "İnşa etmeden önce kale düzeninizi planlayın. Sürükle, yerleştir ve optimize et — hızlandırma israfı yok.",
+    "perk12Title": "Krallık Araçları",
+    "perk12Desc": "Savaş Planlayıcı, Savaş Kaydı, Hazırlık Planlayıcı, Etkinlik Koordinatörü ve daha fazlasına tam erişim.",
+    "perk13Title": "Tam Liderlik Tablosu",
+    "perk13Desc": "Krallık sıralamalarının tamamını görün — sınırsız. Ücretsiz kullanıcılar yalnızca ilk 25'i görür.",
+    "perk14Title": "Araç Delegasyonu",
+    "perk14Desc": "Krallık araçlarınızı en fazla 2 arkadaşınızla paylaşın — sizin sayenizde tam erişim elde ederler."
   },
   "changelog": {
     "new": "Yeni",
