@@ -27,3 +27,4 @@ export { default as KvKSpreadsheetTab } from './KvKSpreadsheetTab';
 export { default as TransferOutcomesTab } from './TransferOutcomesTab';
 export { ReviewReportsTab } from './ReviewReportsTab';
 export { NotificationSenderTab } from './NotificationSenderTab';
+export { PageAnalyticsTab } from './PageAnalyticsTab';

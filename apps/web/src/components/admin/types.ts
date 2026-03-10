@@ -149,7 +149,8 @@ export type AdminTab =
   | 'transfer-groups'
   | 'gift-codes'
   | 'notifications'
-  | 'access-viewer';
+  | 'access-viewer'
+  | 'page-analytics';
 
 export type AdminCategory = 'overview' | 'review' | 'transfer' | 'finance' | 'operations';
 

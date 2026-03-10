@@ -3,9 +3,26 @@
  * Used throughout the app to collect usage data for Admin Dashboard
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { analyticsService } from '../services/analyticsService';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
+
+const VISITOR_ID_KEY = 'atlas_visitor_id';
+
+function getVisitorId(): string {
+  try {
+    let id = localStorage.getItem(VISITOR_ID_KEY);
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem(VISITOR_ID_KEY, id);
+    }
+    return id;
+  } catch {
+    return `anon_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+  }
+}
 
 // Map route paths to readable page names
 const getPageName = (pathname: string): string => {
@@ -28,11 +45,31 @@ const getPageName = (pathname: string): string => {
  */
 export function usePageTracking(): void {
   const location = useLocation();
+  const { user } = useAuth();
+  const lastTrackedRef = useRef<string>('');
 
   useEffect(() => {
     const pageName = getPageName(location.pathname);
     analyticsService.trackPageView(pageName);
-  }, [location.pathname]);
+
+    // Debounce: skip if same path tracked in this render cycle
+    const trackKey = `${location.pathname}`;
+    if (trackKey === lastTrackedRef.current) return;
+    lastTrackedRef.current = trackKey;
+
+    // Record page view to Supabase for accurate analytics
+    if (supabase) {
+      const visitorId = getVisitorId();
+      supabase
+        .from('page_views')
+        .insert({
+          visitor_id: visitorId,
+          page_path: location.pathname,
+          user_id: user?.id || null,
+        })
+        .then(() => {}, () => {});
+    }
+  }, [location.pathname, user?.id]);
 }
 
 /**

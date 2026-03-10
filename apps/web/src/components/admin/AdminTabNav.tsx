@@ -125,6 +125,7 @@ export const AdminTabNav: React.FC<AdminTabNavProps> = ({
       {activeCategory === 'overview' && <>
         {[
           { id: 'analytics', label: 'Dashboard' },
+          { id: 'page-analytics', label: 'Page Analytics' },
           { id: 'engagement', label: 'Engagement' },
           { id: 'user-heatmap', label: 'User Heatmap' },
         ].map(tab => (

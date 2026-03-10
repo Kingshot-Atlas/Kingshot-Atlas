@@ -64,6 +64,7 @@ const TransferOutcomesTab = lazy(() => import('../components/admin/TransferOutco
 const BotDashboardTransferGroups = lazy(() => import('./BotDashboardTransferGroups'));
 const GiftCodeAnalyticsTab = lazy(() => import('../components/admin/GiftCodeAnalyticsTab'));
 const NotificationSenderTab = lazy(() => import('../components/admin/NotificationSenderTab'));
+const PageAnalyticsTab = lazy(() => import('../components/admin/PageAnalyticsTab'));
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 const ADMIN_LOG_KEY = 'kingshot_admin_log';
@@ -784,7 +785,7 @@ const AdminDashboard: React.FC = () => {
 
   // Determine active category based on current tab
   const getActiveCategory = () => {
-    if (['analytics', 'engagement', 'user-heatmap'].includes(activeTab)) return 'overview';
+    if (['analytics', 'page-analytics', 'engagement', 'user-heatmap'].includes(activeTab)) return 'overview';
     if (['submissions', 'corrections', 'kvk-errors', 'matchup-conflicts', 'kvk-bulk', 'kvk-spreadsheet', 'review-reports'].includes(activeTab)) return 'review';
     if (['transfer-hub', 'transfer-status', 'transfer-apps', 'transfer-outcomes'].includes(activeTab)) return 'transfer';
     if (['finance'].includes(activeTab)) return 'finance';
@@ -871,6 +872,8 @@ const AdminDashboard: React.FC = () => {
             <AdminActivityFeed />
           </div>
         </>
+      ) : activeTab === 'page-analytics' ? (
+        <PageAnalyticsTab />
       ) : activeTab === 'finance' ? (
         <FinanceTab
           syncingSubscriptions={syncingSubscriptions}

@@ -1,7 +1,6 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AnalyticsData } from './types';
-import { analyticsService } from '../../services/analyticsService';
 import { colors } from '../../utils/styles';
 import { supabase } from '../../lib/supabase';
 
@@ -81,25 +80,16 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
   onIncrementKvK,
 }) => {
   const { t } = useTranslation();
-  const homepageCTR = useMemo(() => analyticsService.getHomepageCTR(), []);
 
-  // Fetch real sparkline data from Supabase (daily active users + daily signups)
-  const [sparkData, setSparkData] = useState<{ dau: number[]; signups: number[] }>({ dau: [], signups: [] });
+  // Fetch real sparkline data from Supabase (daily signups)
+  const [sparkData, setSparkData] = useState<{ signups: number[] }>({ signups: [] });
   useEffect(() => {
     if (!supabase) return;
     (async () => {
       try {
-        const { data } = await supabase.rpc('get_engagement_metrics');
-        if (data?.daily_activity) {
-          const daily = (data.daily_activity as Array<{ day: string; users: number }>);
-          setSparkData(prev => ({ ...prev, dau: daily.map(d => d.users) }));
-        }
-      } catch { /* silent */ }
-      // Daily signups for user growth sparkline
-      try {
         const { data: signupData } = await supabase.rpc('get_daily_signups');
         if (Array.isArray(signupData)) {
-          setSparkData(prev => ({ ...prev, signups: signupData.map((d: { count: number }) => d.count) }));
+          setSparkData({ signups: signupData.map((d: { count: number }) => d.count) });
         }
       } catch { /* silent - function may not exist yet */ }
     })();
@@ -119,9 +109,7 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
       {/* Key Metrics with S3.4 Sparklines */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
         {[
-          { label: analytics.bounceRate ? t('admin.visitors30d', 'Visitors (30d)') : t('admin.totalEvents', 'Total Events'), value: (analytics.bounceRate ? analytics.uniqueVisitors : analytics.totalVisits).toLocaleString(), color: colors.primary, icon: '👁️', sparkData: sparkData.dau.length >= 2 ? sparkData.dau : (Array.isArray(analytics.eventsByDay) ? analytics.eventsByDay.map(d => d.count) : []) },
-          { label: analytics.bounceRate ? 'Page Views (30d)' : 'Page Views', value: (analytics.totalPageViews ?? (Array.isArray(analytics.pageViews) ? analytics.pageViews.reduce((sum, p) => sum + p.views, 0) : 0)).toLocaleString(), color: colors.purple, icon: '📄', sparkData: sparkData.dau.length >= 2 ? sparkData.dau.map(v => Math.round(v * 6.5)) : [] },
-          { label: t('admin.totalUsers', 'Total Users'), value: analytics.userStats.total.toLocaleString(), color: colors.success, icon: '👥', sparkData: sparkData.signups.length >= 2 ? sparkData.signups : sparkData.dau.length >= 2 ? sparkData.dau : [] },
+          { label: t('admin.totalUsers', 'Total Users'), value: analytics.userStats.total.toLocaleString(), color: colors.success, icon: '👥', sparkData: sparkData.signups.length >= 2 ? sparkData.signups : [] },
           { label: t('admin.monthlyRevenue', 'Monthly Revenue'), value: `$${analytics.revenue.monthly.toFixed(2)}`, color: colors.gold, icon: '💰', sparkData: revenueSparkData },
         ].map((metric, i) => (
           <div key={i} style={{
@@ -242,112 +230,6 @@ export const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({
 
       {/* Prep Scheduler Usage */}
       <PrepSchedulerStats />
-
-      {/* Top Pages */}
-      <div style={{ backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1.5rem', border: `1px solid ${colors.border}` }}>
-        <h3 style={{ color: colors.text, marginBottom: '1rem', fontSize: '1rem' }}>📊 Top Pages</h3>
-        {Array.isArray(analytics.pageViews) && analytics.pageViews.length > 0 ? analytics.pageViews.map((page, i) => (
-          <div key={i} style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            padding: '0.5rem 0',
-            borderBottom: i < analytics.pageViews.length - 1 ? `1px solid ${colors.borderSubtle}` : 'none'
-          }}>
-            <span style={{ color: colors.text }}>{page.page}</span>
-            <span style={{ color: colors.primary, fontWeight: '600' }}>{page.views.toLocaleString()}</span>
-          </div>
-        )) : (
-          <div style={{ color: colors.textMuted, fontSize: '0.85rem', fontStyle: 'italic' }}>No page view data available</div>
-        )}
-      </div>
-
-      {/* Homepage Click-Through Rates */}
-      <div style={{ backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1.5rem', border: `1px solid ${colors.success}30` }}>
-        <h3 style={{ color: colors.text, marginBottom: '1rem', fontSize: '1rem' }}>🏠 Homepage CTR (30d)</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
-
-          {/* Quick Actions */}
-          <div style={{ backgroundColor: colors.bg, borderRadius: '10px', padding: '1rem', border: `1px solid ${colors.border}` }}>
-            <div style={{ fontSize: '0.85rem', color: colors.textSecondary, marginBottom: '0.75rem', fontWeight: 600 }}>Quick Action Tiles</div>
-            {homepageCTR.quickActions.length > 0 ? homepageCTR.quickActions.map((qa, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.35rem 0', borderBottom: i < homepageCTR.quickActions.length - 1 ? `1px solid ${colors.borderSubtle}` : 'none' }}>
-                <span style={{ color: colors.textSecondary, fontSize: '0.85rem' }}>{qa.label}</span>
-                <span style={{ color: colors.primary, fontWeight: 600, fontSize: '0.85rem' }}>{qa.clicks} clicks</span>
-              </div>
-            )) : (
-              <div style={{ color: colors.textMuted, fontSize: '0.8rem', fontStyle: 'italic' }}>No clicks yet</div>
-            )}
-          </div>
-
-          {/* Transfer Banner */}
-          <div style={{ backgroundColor: colors.bg, borderRadius: '10px', padding: '1rem', border: `1px solid ${colors.border}` }}>
-            <div style={{ fontSize: '0.85rem', color: colors.textSecondary, marginBottom: '0.75rem', fontWeight: 600 }}>Transfer Hub Banner</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', textAlign: 'center' }}>
-              <div>
-                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: colors.success }}>{homepageCTR.transferBanner.ctaClicks}</div>
-                <div style={{ fontSize: '0.7rem', color: colors.textMuted }}>CTA Clicks</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: colors.error }}>{homepageCTR.transferBanner.dismissals}</div>
-                <div style={{ fontSize: '0.7rem', color: colors.textMuted }}>Dismissed</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: colors.gold }}>{homepageCTR.transferBanner.ctr}%</div>
-                <div style={{ fontSize: '0.7rem', color: colors.textMuted }}>CTR</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Transfer Banner - keep in grid */}
-        </div>
-
-        {/* Scroll Depth Per Page */}
-        <div style={{ marginTop: '1rem' }}>
-          <div style={{ fontSize: '0.85rem', color: colors.textSecondary, marginBottom: '0.75rem', fontWeight: 600 }}>Scroll Depth by Page</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '0.75rem' }}>
-            {homepageCTR.scrollDepthByPage.map((pageData, pi) => {
-              const maxCount = Math.max(...pageData.depths.map(d => d.count), 1);
-              const totalHits = pageData.depths.reduce((s, d) => s + d.count, 0);
-              return (
-                <div key={pi} style={{ backgroundColor: colors.bg, borderRadius: '10px', padding: '0.85rem', border: `1px solid ${colors.border}` }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                    <span style={{ color: colors.textSecondary, fontSize: '0.8rem', fontWeight: 600 }}>{pageData.page}</span>
-                    <span style={{ color: colors.textMuted, fontSize: '0.65rem' }}>{totalHits} events</span>
-                  </div>
-                  {pageData.depths.map((sd, i) => {
-                    const barWidth = Math.max((sd.count / maxCount) * 100, 2);
-                    const barColor = sd.threshold <= 25 ? '#22d3ee' : sd.threshold <= 50 ? '#22c55e' : sd.threshold <= 75 ? '#fbbf24' : '#f97316';
-                    return (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.3rem' }}>
-                        <span style={{ color: colors.textSecondary, fontSize: '0.7rem', width: '28px', textAlign: 'right' }}>{sd.threshold}%</span>
-                        <div style={{ flex: 1, height: '12px', backgroundColor: colors.surfaceHover, borderRadius: '3px', overflow: 'hidden' }}>
-                          <div style={{ width: `${barWidth}%`, height: '100%', backgroundColor: barColor, borderRadius: '3px', transition: 'width 0.3s' }} />
-                        </div>
-                        <span style={{ color: colors.textSecondary, fontSize: '0.7rem', width: '24px' }}>{sd.count}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Worst Drop-off Alert */}
-        {homepageCTR.worstDropoffs.length > 0 && (
-          <div style={{ marginTop: '0.75rem', padding: '0.75rem 1rem', backgroundColor: `${colors.error}10`, border: `1px solid ${colors.error}30`, borderRadius: '10px' }}>
-            <div style={{ fontSize: '0.85rem', color: colors.error, fontWeight: 600, marginBottom: '0.4rem' }}>⚠️ Drop-off Alert</div>
-            <div style={{ fontSize: '0.8rem', color: colors.textSecondary }}>
-              {homepageCTR.worstDropoffs.map((d, i) => (
-                <div key={i} style={{ marginBottom: '0.2rem' }}>
-                  <span style={{ color: colors.textSecondary, fontWeight: 500 }}>{d.page}</span>: {d.dropoffPercent}% of users drop off before 50% scroll ({d.at25} reached 25%, only {d.at50} reached 50%)
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 };
