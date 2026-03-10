@@ -867,6 +867,8 @@ const Profile: React.FC = () => {
                       linked_kingdom: playerData.kingdom,
                       linked_tc_level: playerData.town_center_level,
                       linked_last_synced: new Date().toISOString(),
+                      // Always sync home_kingdom from linked data — ensures Alliance Center, tools, etc. use current kingdom
+                      ...(playerData.kingdom ? { home_kingdom: playerData.kingdom } : {}),
                     });
                     if (!result.success) {
                       showToast(result.error || 'Failed to link account', 'error');
