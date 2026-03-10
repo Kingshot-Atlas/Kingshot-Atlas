@@ -1,13 +1,53 @@
 // ─── KvK Battle Registry — Main Component ──────────────────────────────
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useBattleRegistry } from './useBattleRegistry';
 import BattleRegistryList from './BattleRegistryList';
 import BattleRegistryForm from './BattleRegistryForm';
 import BattleRegistryDashboard from './BattleRegistryDashboard';
 import { colors } from '../../utils/styles';
+import { supabase } from '../../lib/supabase';
+import type { BattleTier } from '../../data/battleTierData';
+
+export interface TierMapEntry {
+  offenseTier: BattleTier;
+  defenseTier: BattleTier;
+  offenseScore: number;
+  defenseScore: number;
+}
 
 const BattleRegistryMain: React.FC = () => {
   const hook = useBattleRegistry();
+  const [tierMap, setTierMap] = useState<Record<string, TierMapEntry>>({});
+
+  // Fetch tier list data for the registry's kingdom
+  useEffect(() => {
+    if (!hook.registry || !supabase) return;
+    const kingdomNumber = hook.registry.kingdom_number;
+    supabase.from('battle_tier_lists')
+      .select('players')
+      .eq('kingdom_number', kingdomNumber)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        if (!data?.[0]?.players) { setTierMap({}); return; }
+        const players = data[0].players as Array<{
+          playerName: string; offenseTier: BattleTier; defenseTier: BattleTier;
+          offenseScore: number; defenseScore: number;
+        }>;
+        const map: Record<string, TierMapEntry> = {};
+        for (const p of players) {
+          if (p.playerName && p.offenseTier) {
+            map[p.playerName.toLowerCase()] = {
+              offenseTier: p.offenseTier,
+              defenseTier: p.defenseTier,
+              offenseScore: p.offenseScore,
+              defenseScore: p.defenseScore,
+            };
+          }
+        }
+        setTierMap(map);
+      });
+  }, [hook.registry]);
 
   if (hook.loading) {
     return (
@@ -72,6 +112,7 @@ const BattleRegistryMain: React.FC = () => {
         registry={hook.registry}
         entries={hook.entries}
         managers={hook.managers}
+        tierMap={tierMap}
         isEditorOrCoEditor={hook.isEditorOrCoEditor}
         isManager={hook.isManager}
         assignManagerInput={hook.assignManagerInput}

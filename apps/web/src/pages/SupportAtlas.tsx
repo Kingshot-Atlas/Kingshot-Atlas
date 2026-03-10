@@ -49,11 +49,14 @@ const SupportAtlas: React.FC = () => {
   const supporterPerks = [
     { icon: '⭐', text: t('support.perk1Title', 'Supporter Badge'), desc: t('support.perk1Desc', 'Pink badge on your profile — flex on the leaderboards') },
     { icon: '💜', text: t('support.perk2Title', 'Discord Supporter Role'), desc: t('support.perk2Desc', 'Exclusive pink role in Discord — stand out in chat') },
+    { icon: '⚔️', text: t('support.perk12Title', 'Kingdom Tools'), desc: t('support.perk12Desc', 'Full access to Battle Planner, Battle Registry, Prep Scheduler, Event Coordinator, and more.') },
     { icon: '🤖', text: t('support.perk4Title', 'Unlimited Bot Commands'), desc: t('support.perk4Desc', 'Unlimited /multirally and premium Discord bot commands (free: 5/day)') },
     { icon: '🎛️', text: t('support.perk10Title', 'Atlas Bot Dashboard'), desc: t('support.perk10Desc', 'Your command center. Configure reminders, gift code alerts, and manage multiple servers — all from one screen.') },
-    { icon: '🎙️', text: t('support.perk5Title', 'Exclusive Discord Channel'), desc: t('support.perk5Desc', 'Access to supporter-only discussions and early previews') },
+    { icon: '�', text: t('support.perk13Title', 'Full Leaderboard'), desc: t('support.perk13Desc', 'See the complete kingdom rankings — no limits. Free users see the top 25.') },
+    { icon: '�️', text: t('support.perk5Title', 'Exclusive Discord Channel'), desc: t('support.perk5Desc', 'Access to supporter-only discussions and early previews') },
     { icon: '🚀', text: t('support.perk6Title', 'Early Access'), desc: t('support.perk6Desc', 'First to try new features before public release') },
     { icon: '🏰', text: t('support.perk11Title', 'Alliance Base Designer'), desc: t('support.perk11Desc', 'Plan your alliance fortress layout before you build. Drag, place, and optimize — no wasted speedups.') },
+    { icon: '🤝', text: t('support.perk14Title', 'Tool Delegation'), desc: t('support.perk14Desc', 'Share your kingdom tools with up to 2 friends — they get full access, on you.') },
   ];
 
   const handleStripeCheckout = () => {
@@ -353,7 +356,7 @@ const SupportAtlas: React.FC = () => {
             {t('support.cancelAnytime', 'Cancel anytime • Manage via Stripe')}
           </p>
           <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.6, marginBottom: '1.5rem', maxWidth: '500px', margin: '0 auto 1.5rem' }}>
-            {t('support.getPerks', 'Badge, Battle Planner, unlimited bot commands, bulk gift code redeem — and the satisfaction of funding the tools you actually use.')}
+            {t('support.getPerks', 'Badge, Kingdom Tools, unlimited bot commands, full leaderboard access — and the satisfaction of funding the tools you actually use.')}
           </p>
 
           {/* Animated Supporter Badge Preview */}

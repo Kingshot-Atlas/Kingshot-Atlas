@@ -485,6 +485,24 @@ const Tools: React.FC = () => {
     goldTierBadge: true,
   };
 
+  const battleTierListCard: ToolCardProps = {
+    title: t('tools.battleTierTitle', 'KvK Battle Tier List'),
+    description: t('tools.battleTierDesc', 'Rank your kingdom\'s players by offensive and defensive power. Scout-based stats with EG adjustments — know exactly who to rally with and who to garrison.'),
+    tagline: t('tools.battleTierTagline', 'Data-driven dominance. Every castle hit.'),
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+        <line x1="12" y1="22" x2="12" y2="12"/>
+      </svg>
+    ),
+    href: '/tools/battle-tier-list/about',
+    accentColor: '#f97316',
+    ctaLabel: t('tools.learnMore', 'Learn More'),
+    goldTierBadge: true,
+  };
+
   const bearRallyTierListCard: ToolCardProps = {
     title: t('tools.bearRallyTitle', 'Bear Rally Tier List'),
     description: t('tools.bearRallyDesc', 'Rank your alliance members by Bear Hunt rally power. Input scouted stats, adjust for Exclusive Gear, and see who hits the hardest.'),
@@ -568,6 +586,7 @@ const Tools: React.FC = () => {
             <ToolCard key="k-transfer" {...transferHubCard} />
             <ToolCard key="k-planner" {...battlePlannerCard} />
             <ToolCard key="k-battle-layout" {...battleLayoutCard} />
+            <ToolCard key="k-battle-tier" {...battleTierListCard} />
             <ToolCard key="k-registry" {...battleRegistryCard} />
             <ToolCard key="k-scheduler" {...prepSchedulerCard} />
           </div>

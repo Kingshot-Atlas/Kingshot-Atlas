@@ -11,6 +11,8 @@ import {
 } from './types';
 import { getEntryTimeSlots } from './useBattleRegistry';
 import RegistryAnalytics from './RegistryAnalytics';
+import { BATTLE_TIER_COLORS } from '../../data/battleTierData';
+import type { TierMapEntry } from './BattleRegistryMain';
 
 function getSlotDuration(from: string, to: string, slots: string[]): string {
   const fi = slots.indexOf(from);
@@ -29,6 +31,7 @@ interface BattleRegistryDashboardProps {
   registry: BattleRegistry;
   entries: BattleRegistryEntry[];
   managers: ManagerEntry[];
+  tierMap?: Record<string, TierMapEntry>;
   isEditorOrCoEditor: boolean;
   isManager: boolean;
   // Manager assignment
@@ -68,7 +71,7 @@ interface BattleRegistryDashboardProps {
 }
 
 const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
-  isMobile, registry, entries, managers,
+  isMobile, registry, entries, managers, tierMap,
   isEditorOrCoEditor, isManager,
   assignManagerInput, setAssignManagerInput,
   managerSearchResults, showManagerDropdown, setShowManagerDropdown: _setShowManagerDropdown,
@@ -561,6 +564,9 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
                     <th onClick={() => handleSort('infantry')} style={{ textAlign: 'center', padding: '0.5rem 0.35rem', color: sortColumn === 'infantry' ? '#ef4444' : TROOP_COLORS.infantry, fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}>🛡️{sortColumn === 'infantry' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
                     <th onClick={() => handleSort('cavalry')} style={{ textAlign: 'center', padding: '0.5rem 0.35rem', color: sortColumn === 'cavalry' ? '#ef4444' : TROOP_COLORS.cavalry, fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}>🐴{sortColumn === 'cavalry' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
                     <th onClick={() => handleSort('archers')} style={{ textAlign: 'center', padding: '0.5rem 0.35rem', color: sortColumn === 'archers' ? '#ef4444' : TROOP_COLORS.archers, fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}>🏹{sortColumn === 'archers' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
+                    {tierMap && Object.keys(tierMap).length > 0 && (
+                      <th style={{ textAlign: 'center', padding: '0.5rem 0.35rem', color: '#f97316', fontWeight: 600, fontSize: '0.65rem' }}>⚔️/🛡️</th>
+                    )}
                     <th style={{ textAlign: 'center', padding: '0.5rem 0.35rem', color: colors.textMuted, fontWeight: 600, width: '40px' }}></th>
                   </tr>
                 </thead>
@@ -591,6 +597,30 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
                         {entry.archers_tier != null ? `T${entry.archers_tier}` : '—'}
                         {entry.archers_tg != null ? <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>/TG{entry.archers_tg}</span> : ''}
                       </td>
+                      {tierMap && Object.keys(tierMap).length > 0 && (() => {
+                        const tierData = tierMap[entry.username.toLowerCase()];
+                        return (
+                          <td style={{ padding: '0.5rem 0.35rem', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                            {tierData ? (
+                              <div style={{ display: 'flex', gap: '0.15rem', justifyContent: 'center' }}>
+                                <span title={`Offense: ${tierData.offenseScore.toFixed(1)}`} style={{
+                                  fontSize: '0.6rem', fontWeight: 700, padding: '0.1rem 0.3rem',
+                                  borderRadius: '3px', backgroundColor: `${BATTLE_TIER_COLORS[tierData.offenseTier]}20`,
+                                  color: BATTLE_TIER_COLORS[tierData.offenseTier],
+                                }}>{tierData.offenseTier}</span>
+                                <span style={{ color: colors.textMuted, fontSize: '0.5rem', lineHeight: '1.6' }}>/</span>
+                                <span title={`Defense: ${tierData.defenseScore.toFixed(1)}`} style={{
+                                  fontSize: '0.6rem', fontWeight: 700, padding: '0.1rem 0.3rem',
+                                  borderRadius: '3px', backgroundColor: `${BATTLE_TIER_COLORS[tierData.defenseTier]}20`,
+                                  color: BATTLE_TIER_COLORS[tierData.defenseTier],
+                                }}>{tierData.defenseTier}</span>
+                              </div>
+                            ) : (
+                              <span style={{ color: colors.textMuted, fontSize: '0.6rem' }}>—</span>
+                            )}
+                          </td>
+                        );
+                      })()}
                       <td style={{ padding: '0.5rem 0.35rem', textAlign: 'center' }}>
                         {(isManager || (entry.added_by && !entry.user_id)) && (
                           confirmDelete === entry.id ? (

@@ -73,6 +73,8 @@ const AllianceEventCoordinator = lazy(() => import('./pages/AllianceEventCoordin
 const AllianceEventCoordinatorLanding = lazy(() => import('./pages/AllianceEventCoordinatorLanding'));
 const KvKBattleLayout = lazy(() => import('./pages/KvKBattleLayout'));
 const KvKBattleLayoutLanding = lazy(() => import('./pages/KvKBattleLayoutLanding'));
+const KvKBattleTierList = lazy(() => import('./pages/KvKBattleTierList'));
+const KvKBattleTierListLanding = lazy(() => import('./pages/KvKBattleTierListLanding'));
 const BearRallyTierList = lazy(() => import('./pages/BearRallyTierList'));
 const BearRallyTierListLanding = lazy(() => import('./pages/BearRallyTierListLanding'));
 
@@ -195,6 +197,8 @@ function AppContent() {
               <Route path="/tools/event-coordinator/about" element={<ErrorBoundary><AllianceEventCoordinatorLanding /></ErrorBoundary>} />
               <Route path="/tools/battle-layout" element={<ErrorBoundary><KvKBattleLayout /></ErrorBoundary>} />
               <Route path="/tools/battle-layout/about" element={<ErrorBoundary><KvKBattleLayoutLanding /></ErrorBoundary>} />
+              <Route path="/tools/battle-tier-list" element={<ErrorBoundary><KvKBattleTierList /></ErrorBoundary>} />
+              <Route path="/tools/battle-tier-list/about" element={<ErrorBoundary><KvKBattleTierListLanding /></ErrorBoundary>} />
               <Route path="/tools/bear-rally-tier-list" element={<ErrorBoundary><BearRallyTierList /></ErrorBoundary>} />
               <Route path="/tools/bear-rally-tier-list/about" element={<ErrorBoundary><BearRallyTierListLanding /></ErrorBoundary>} />
               <Route path="*" element={<NotFound />} />
