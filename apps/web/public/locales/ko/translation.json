@@ -1097,6 +1097,11 @@
     "nextTransfer": "다음 이적",
     "browseHub": "이적 허브 탐색 →"
   },
+  "allianceBanner": {
+    "title": "프로처럼 동맹을 관리하세요",
+    "subtitle": "멤버를 추적하고, 이벤트를 조율하고, 동맹을 체계적으로 관리하세요 — 한 곳에서 모두.",
+    "cta": "동맹 센터 열기 →"
+  },
   "dataLoadError": {
     "title": "데이터 없음",
     "persistMessage": "왕국 데이터는 데이터베이스에서 가져옵니다. 계속 문제가 발생하면 나중에 다시 시도하세요."
@@ -3641,6 +3646,9 @@
     "updateFailed": "업데이트 실패",
     "deleteFailed": "삭제 실패",
     "removeFailed": "제거 실패",
+    "removeMemberTitle": "멤버를 제거하시겠습니까?",
+    "removeMemberDesc": "{{name}}을(를) 로스터에서 제거하시겠습니까? 부대 데이터가 삭제됩니다.",
+    "memberRemoved": "{{name}} 제거됨",
     "managerAdded": "{{name}}님이 관리자가 되었습니다",
     "managerRemoved": "{{name}} 제거됨",
     "managersLabel": "관리자",

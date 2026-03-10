@@ -26,7 +26,7 @@ import { neonGlow, colors } from '../utils/styles';
 import { countActiveFilters, DEFAULT_FILTERS } from '../utils/kingdomStats';
 import { DataSyncIndicator } from '../components/DataSyncIndicator';
 import QuickActions from '../components/homepage/QuickActions';
-import TransferHubBanner from '../components/homepage/TransferHubBanner';
+import AllianceCenterBanner from '../components/homepage/AllianceCenterBanner';
 import ConversionBanner from '../components/ConversionBanner';
 // TransferGroupUpdateBanner removed (campaign ended)
 import SupporterSpotlight from '../components/homepage/SupporterSpotlight';
@@ -261,8 +261,8 @@ const KingdomDirectory: React.FC = () => {
       {/* Transfer Group Update Notification — removed (campaign ended) */}
 
 
-      {/* Transfer Hub Banner - dismissable CTA */}
-      <TransferHubBanner />
+      {/* Alliance Center Banner - dismissable CTA */}
+      <AllianceCenterBanner />
 
       {/* Stage 4: Conversion banner for active free users */}
       <ConversionBanner />

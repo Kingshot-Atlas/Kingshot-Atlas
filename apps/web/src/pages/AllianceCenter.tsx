@@ -1372,6 +1372,7 @@ const AllianceDashboard: React.FC = () => {
   const [memberFilter, setMemberFilter] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
+  const [confirmRemoveMember, setConfirmRemoveMember] = useState<AllianceMember | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [appsExpanded, setAppsExpanded] = useState(false);
@@ -1864,13 +1865,7 @@ const AllianceDashboard: React.FC = () => {
                       {ac.canManage ? (
                         <>
                           <button onClick={() => setEditingMember(m)} style={{ padding: '0.4rem 0.6rem', backgroundColor: '#1a1a24', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#6b7280', fontSize: '0.7rem', cursor: 'pointer', minHeight: '44px', minWidth: '44px', WebkitTapHighlightColor: 'transparent' }} title="Edit">✏️</button>
-                          <button onClick={async () => {
-                            setRemovingMemberId(m.id);
-                            const result = await ac.removeMember(m.id);
-                            setRemovingMemberId(null);
-                            if (result.success) showToast(t('allianceCenter.memberRemoved', '{{name}} removed', { name: m.player_name }), 'success');
-                            else showToast(result.error || t('allianceCenter.removeFailed', 'Failed to remove'), 'error');
-                          }} disabled={isRemoving} style={{ padding: '0.4rem 0.6rem', backgroundColor: '#1a1a24', border: '1px solid #ef444430', borderRadius: '6px', color: '#ef4444', fontSize: '0.7rem', cursor: isRemoving ? 'wait' : 'pointer', opacity: isRemoving ? 0.5 : 1, minHeight: '44px', minWidth: '44px', WebkitTapHighlightColor: 'transparent' }} title={t('common.remove', 'Remove')}>🗑️</button>
+                          <button onClick={() => setConfirmRemoveMember(m)} disabled={isRemoving} style={{ padding: '0.4rem 0.6rem', backgroundColor: '#1a1a24', border: '1px solid #ef444430', borderRadius: '6px', color: '#ef4444', fontSize: '0.7rem', cursor: isRemoving ? 'wait' : 'pointer', opacity: isRemoving ? 0.5 : 1, minHeight: '44px', minWidth: '44px', WebkitTapHighlightColor: 'transparent' }} title={t('common.remove', 'Remove')}>🗑️</button>
                         </>
                       ) : isOwnRow ? (
                         <button onClick={() => setEditingMember(m)} style={{ padding: '0.4rem 0.6rem', backgroundColor: '#1a1a24', border: `1px solid ${ACCENT}30`, borderRadius: '6px', color: ACCENT, fontSize: '0.7rem', cursor: 'pointer', minHeight: '44px', minWidth: '44px', WebkitTapHighlightColor: 'transparent' }} title="Edit my troops">✏️</button>
@@ -1996,13 +1991,7 @@ const AllianceDashboard: React.FC = () => {
                             {ac.canManage ? (
                               <>
                                 <button onClick={() => setEditingMember(m)} style={{ padding: '0.15rem 0.3rem', backgroundColor: 'transparent', border: 'none', color: '#6b7280', fontSize: '0.7rem', cursor: 'pointer' }} title="Edit">✏️</button>
-                                <button onClick={async () => {
-                                  setRemovingMemberId(m.id);
-                                  const result = await ac.removeMember(m.id);
-                                  setRemovingMemberId(null);
-                                  if (result.success) showToast(t('allianceCenter.memberRemoved', '{{name}} removed', { name: m.player_name }), 'success');
-                                  else showToast(result.error || t('allianceCenter.removeFailed', 'Failed to remove'), 'error');
-                                }} disabled={isRemoving} style={{ padding: '0.15rem 0.3rem', backgroundColor: 'transparent', border: 'none', color: '#ef4444', fontSize: '0.7rem', cursor: isRemoving ? 'wait' : 'pointer', opacity: isRemoving ? 0.5 : 1 }} title="Remove">🗑️</button>
+                                <button onClick={() => setConfirmRemoveMember(m)} disabled={isRemoving} style={{ padding: '0.15rem 0.3rem', backgroundColor: 'transparent', border: 'none', color: '#ef4444', fontSize: '0.7rem', cursor: isRemoving ? 'wait' : 'pointer', opacity: isRemoving ? 0.5 : 1 }} title="Remove">🗑️</button>
                               </>
                             ) : isOwnRow ? (
                               <button onClick={() => setEditingMember(m)} style={{ padding: '0.15rem 0.3rem', backgroundColor: 'transparent', border: 'none', color: '#3b82f6', fontSize: '0.7rem', cursor: 'pointer' }} title="Edit my troops">✏️</button>
@@ -2055,6 +2044,36 @@ const AllianceDashboard: React.FC = () => {
                   {t('common.save', 'Save')}
                 </Button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Remove member confirm modal */}
+      {confirmRemoveMember && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', zIndex: 1000, padding: isMobile ? '0' : '1rem' }}
+          onClick={() => setConfirmRemoveMember(null)}>
+          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '380px', backgroundColor: '#111111', borderRadius: isMobile ? '16px 16px 0 0' : '16px', border: '1px solid #ef444430', padding: isMobile ? '1.25rem 1rem' : '1.5rem', boxShadow: '0 16px 64px rgba(0,0,0,0.5)', textAlign: 'center', paddingBottom: isMobile ? 'max(1.5rem, env(safe-area-inset-bottom))' : '1.5rem' }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>🗑️</div>
+            <h3 style={{ color: '#fff', fontSize: '1.05rem', fontWeight: '700', marginBottom: '0.5rem' }}>
+              {t('allianceCenter.removeMemberTitle', 'Remove Member?')}
+            </h3>
+            <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+              {t('allianceCenter.removeMemberDesc', 'Are you sure you want to remove {{name}} from the roster? Their troop data will be lost.', { name: confirmRemoveMember.player_name })}
+            </p>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <Button variant="ghost" onClick={() => setConfirmRemoveMember(null)} style={{ flex: 1 }}>{t('common.cancel', 'Cancel')}</Button>
+              <Button variant="danger" onClick={async () => {
+                const member = confirmRemoveMember;
+                setConfirmRemoveMember(null);
+                setRemovingMemberId(member.id);
+                const result = await ac.removeMember(member.id);
+                setRemovingMemberId(null);
+                if (result.success) showToast(t('allianceCenter.memberRemoved', '{{name}} removed', { name: member.player_name }), 'success');
+                else showToast(result.error || t('allianceCenter.removeFailed', 'Failed to remove'), 'error');
+              }} loading={removingMemberId === confirmRemoveMember.id} style={{ flex: 1 }}>
+                {t('common.remove', 'Remove')}
+              </Button>
             </div>
           </div>
         </div>

@@ -1056,6 +1056,11 @@
     "nextTransfer": "Próxima Transferência",
     "browseHub": "Explorar Centro de Transferências →"
   },
+  "allianceBanner": {
+    "title": "Gerencie sua aliança como um profissional",
+    "subtitle": "Acompanhe membros, coordene eventos e mantenha sua aliança organizada — tudo em um só lugar.",
+    "cta": "Abrir Centro de Aliança →"
+  },
   "dataLoadError": {
     "title": "Datos No Disponívels",
     "persistMessage": "Los dados do reino se obtêm de nossa base de dados. Si o problema persiste, inténtalo mais tarde."
@@ -3573,6 +3578,9 @@
     "updateFailed": "Falha ao atualizar",
     "deleteFailed": "Falha ao excluir",
     "removeFailed": "Falha ao remover",
+    "removeMemberTitle": "Remover Membro?",
+    "removeMemberDesc": "Tem certeza de que deseja remover {{name}} do roster? Os dados de tropas serão perdidos.",
+    "memberRemoved": "{{name}} removido",
     "managerAdded": "{{name}} agora é gerente",
     "managerRemoved": "{{name}} removido",
     "managersLabel": "Gerentes",

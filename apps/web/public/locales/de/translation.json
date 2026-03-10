@@ -1100,6 +1100,11 @@
     "nextTransfer": "Nächster Transfer",
     "browseHub": "Transfer-Zentrum durchsuchen →"
   },
+  "allianceBanner": {
+    "title": "Verwalte deine Allianz wie ein Profi",
+    "subtitle": "Verfolge Mitglieder, koordiniere Events und halte deine Allianz organisiert — alles an einem Ort.",
+    "cta": "Allianz-Zentrum öffnen →"
+  },
   "dataLoadError": {
     "title": "Daten nicht verfügbar",
     "persistMessage": "Königreich-Daten werden aus unserer Datenbank abgerufen. Wenn das Problem bestehen bleibt, versuche es später erneut."
@@ -3644,6 +3649,9 @@
     "updateFailed": "Aktualisierung fehlgeschlagen",
     "deleteFailed": "Löschen fehlgeschlagen",
     "removeFailed": "Entfernen fehlgeschlagen",
+    "removeMemberTitle": "Mitglied entfernen?",
+    "removeMemberDesc": "Bist du sicher, dass du {{name}} aus dem Roster entfernen möchtest? Die Truppendaten gehen verloren.",
+    "memberRemoved": "{{name}} entfernt",
     "managerAdded": "{{name}} ist jetzt Manager",
     "managerRemoved": "{{name}} entfernt",
     "managersLabel": "Manager",

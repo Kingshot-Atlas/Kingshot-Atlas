@@ -1100,6 +1100,11 @@
     "nextTransfer": "下一次转服",
     "browseHub": "浏览转服中心 →"
   },
+  "allianceBanner": {
+    "title": "像专业人士一样管理你的联盟",
+    "subtitle": "追踪成员、协调活动，让你的联盟井然有序——一站式管理。",
+    "cta": "打开联盟中心 →"
+  },
   "dataLoadError": {
     "title": "数据不可用",
     "persistMessage": "王国数据从我们的数据库获取。如果问题持续存在，请稍后重试。"
@@ -3644,6 +3649,9 @@
     "updateFailed": "更新失败",
     "deleteFailed": "删除失败",
     "removeFailed": "移除失败",
+    "removeMemberTitle": "移除成员？",
+    "removeMemberDesc": "确定要将 {{name}} 从花名册中移除吗？其部队数据将会丢失。",
+    "memberRemoved": "{{name}} 已移除",
     "managerAdded": "{{name}} 现已成为管理员",
     "managerRemoved": "{{name}} 已移除",
     "managersLabel": "管理员",

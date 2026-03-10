@@ -1100,6 +1100,11 @@
     "nextTransfer": "Prochain Transfert",
     "browseHub": "Parcourir le Centre de Transferts →"
   },
+  "allianceBanner": {
+    "title": "Gérez votre alliance comme un pro",
+    "subtitle": "Suivez les membres, coordonnez les événements et gardez votre alliance organisée — tout en un seul endroit.",
+    "cta": "Ouvrir le Centre d'Alliance →"
+  },
   "dataLoadError": {
     "title": "Données Indisponibles",
     "persistMessage": "Les données des royaumes proviennent de notre base de données. Si le problème persiste, veuillez réessayer plus tard."
@@ -3644,6 +3649,9 @@
     "updateFailed": "Échec de la mise à jour",
     "deleteFailed": "Échec de la suppression",
     "removeFailed": "Échec de la suppression",
+    "removeMemberTitle": "Supprimer le membre ?",
+    "removeMemberDesc": "Êtes-vous sûr de vouloir supprimer {{name}} du roster ? Ses données de troupes seront perdues.",
+    "memberRemoved": "{{name}} supprimé",
     "managerAdded": "{{name}} est maintenant gestionnaire",
     "managerRemoved": "{{name}} supprimé",
     "managersLabel": "Gestionnaires",

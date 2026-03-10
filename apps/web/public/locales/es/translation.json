@@ -1099,6 +1099,11 @@
     "nextTransfer": "Próxima Transferencia",
     "browseHub": "Explorar Centro de Transferencias →"
   },
+  "allianceBanner": {
+    "title": "Gestiona tu alianza como un profesional",
+    "subtitle": "Controla miembros, coordina eventos y mantén tu alianza organizada — todo en un solo lugar.",
+    "cta": "Abrir Centro de Alianza →"
+  },
   "dataLoadError": {
     "title": "Datos No Disponibles",
     "persistMessage": "Los datos del reino se obtienen de nuestra base de datos. Si el problema persiste, inténtalo más tarde."
@@ -3643,6 +3648,9 @@
     "updateFailed": "Error al actualizar",
     "deleteFailed": "Error al eliminar",
     "removeFailed": "Error al eliminar",
+    "removeMemberTitle": "¿Eliminar miembro?",
+    "removeMemberDesc": "¿Estás seguro de que quieres eliminar a {{name}} del roster? Sus datos de tropas se perderán.",
+    "memberRemoved": "{{name}} eliminado",
     "managerAdded": "{{name}} ahora es administrador",
     "managerRemoved": "{{name}} eliminado",
     "managersLabel": "Administradores",

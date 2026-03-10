@@ -1100,6 +1100,11 @@
     "nextTransfer": "次のトランスファー",
     "browseHub": "トランスファーハブを見る →"
   },
+  "allianceBanner": {
+    "title": "プロのようにアライアンスを管理しよう",
+    "subtitle": "メンバーを追跡し、イベントを調整し、アライアンスを整理整頓 — すべてを一か所で。",
+    "cta": "アライアンスセンターを開く →"
+  },
   "dataLoadError": {
     "title": "データ利用不可",
     "persistMessage": "王国データはデータベースから取得しています。問題が続く場合は、後でもう一度お試しください。"
@@ -3644,7 +3649,10 @@
     "updateFailed": "更新に失敗しました",
     "deleteFailed": "削除に失敗しました",
     "removeFailed": "削除に失敗しました",
-    "managerAdded": "{{name}}が管理者になりました",
+    "removeMemberTitle": "メンバーを削除しますか？",
+    "removeMemberDesc": "{{name}}をロスターから削除してもよろしいですか？部隊データは失われます。",
+    "memberRemoved": "{{name}}を削除しました",
+    "managerAdded": "{{name}}がマネージャーになりました",
     "managerRemoved": "{{name}}を削除しました",
     "managersLabel": "管理者",
     "searchManagerPlaceholder": "追加するAtlasユーザーを検索...",

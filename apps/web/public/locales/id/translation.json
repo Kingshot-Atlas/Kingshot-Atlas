@@ -1058,6 +1058,11 @@
     "nextTransfer": "Transfer Berikutnya",
     "browseHub": "Jelajahi Transfer Hub →"
   },
+  "allianceBanner": {
+    "title": "Kelola aliansimu seperti profesional",
+    "subtitle": "Lacak anggota, koordinasikan acara, dan jaga aliansimu tetap terorganisir — semua di satu tempat.",
+    "cta": "Buka Pusat Aliansi →"
+  },
   "dataLoadError": {
     "title": "Data Tidak Tersedia",
     "persistMessage": "Data kingdom diambil dari database kami. Jika berlanjut, silakan coba lagi nanti."
@@ -3575,6 +3580,9 @@
     "updateFailed": "Gagal memperbarui",
     "deleteFailed": "Gagal menghapus",
     "removeFailed": "Gagal menghapus",
+    "removeMemberTitle": "Hapus Anggota?",
+    "removeMemberDesc": "Apakah Anda yakin ingin menghapus {{name}} dari roster? Data pasukan akan hilang.",
+    "memberRemoved": "{{name}} dihapus",
     "managerAdded": "{{name}} sekarang menjadi manajer",
     "managerRemoved": "{{name}} dihapus",
     "managersLabel": "Manajer",

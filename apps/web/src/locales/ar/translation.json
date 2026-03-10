@@ -1100,6 +1100,11 @@
     "nextTransfer": "الانتقال القادم",
     "browseHub": "تصفح مركز الانتقال ←"
   },
+  "allianceBanner": {
+    "title": "أدِر تحالفك باحترافية",
+    "subtitle": "تتبع الأعضاء، نسّق الأحداث، وحافظ على تنظيم تحالفك — كل شيء في مكان واحد.",
+    "cta": "← فتح مركز التحالف"
+  },
   "dataLoadError": {
     "title": "البيانات غير متاحة",
     "persistMessage": "يتم جلب بيانات المملكة من قاعدة بياناتنا. إذا استمرت المشكلة، يرجى المحاولة لاحقًا."
@@ -3644,6 +3649,9 @@
     "updateFailed": "فشل في التحديث",
     "deleteFailed": "فشل في الحذف",
     "removeFailed": "فشل في الإزالة",
+    "removeMemberTitle": "إزالة العضو؟",
+    "removeMemberDesc": "هل أنت متأكد من إزالة {{name}} من القائمة؟ سيتم فقدان بيانات القوات.",
+    "memberRemoved": "تمت إزالة {{name}}",
     "managerAdded": "{{name}} أصبح مديراً الآن",
     "managerRemoved": "تمت إزالة {{name}}",
     "managersLabel": "المدراء",

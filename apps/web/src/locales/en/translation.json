@@ -1115,6 +1115,11 @@
     "nextTransfer": "Next Transfer",
     "browseHub": "Browse Transfer Hub →"
   },
+  "allianceBanner": {
+    "title": "Manage your alliance like a pro",
+    "subtitle": "Track members, coordinate events, and keep your alliance organized — all in one place.",
+    "cta": "Open Alliance Center →"
+  },
   "dataLoadError": {
     "title": "Data Unavailable",
     "persistMessage": "Kingdom data is fetched from our database. If this persists, please try again later."
@@ -3746,6 +3751,9 @@
     "updateFailed": "Failed to update",
     "deleteFailed": "Failed to delete",
     "removeFailed": "Failed to remove",
+    "removeMemberTitle": "Remove Member?",
+    "removeMemberDesc": "Are you sure you want to remove {{name}} from the roster? Their troop data will be lost.",
+    "memberRemoved": "{{name}} removed",
     "managerAdded": "{{name}} is now a manager",
     "managerRemoved": "{{name}} removed",
     "managersLabel": "Managers",

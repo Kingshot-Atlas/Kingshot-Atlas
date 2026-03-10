@@ -1100,6 +1100,11 @@
     "nextTransfer": "Sonraki Transfer",
     "browseHub": "Transfer Merkezine Göz At →"
   },
+  "allianceBanner": {
+    "title": "İttifakını profesyonelce yönet",
+    "subtitle": "Üyeleri takip et, etkinlikleri koordine et ve ittifakını düzenli tut — hepsi tek yerde.",
+    "cta": "İttifak Merkezini Aç →"
+  },
   "dataLoadError": {
     "title": "Veri Kullanılamıyor",
     "persistMessage": "Krallık verileri veritabanımızdan alınıyor. Bu devam ederse, lütfen daha sonra tekrar deneyin."
@@ -3644,6 +3649,9 @@
     "updateFailed": "Güncelleme başarısız",
     "deleteFailed": "Silme başarısız",
     "removeFailed": "Kaldırma başarısız",
+    "removeMemberTitle": "Üye Kaldırılsın mı?",
+    "removeMemberDesc": "{{name}} adlı üyeyi rosterdan kaldırmak istediğinizden emin misiniz? Birlik verileri kaybolacak.",
+    "memberRemoved": "{{name}} kaldırıldı",
     "managerAdded": "{{name}} artık yönetici",
     "managerRemoved": "{{name}} kaldırıldı",
     "managersLabel": "Yöneticiler",
