@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
 import { useGoldKingdoms } from './useGoldKingdoms';
+import { useAllianceCenter } from './useAllianceCenter';
 import { supabase } from '../lib/supabase';
 import { logger } from '../utils/logger';
 import {
@@ -90,6 +91,7 @@ export function useBattleTierList() {
   const { user, profile } = useAuth();
   const { isAdmin } = usePremium();
   const goldKingdoms = useGoldKingdoms();
+  const ac = useAllianceCenter();
 
   const kingdomNumber = profile?.linked_kingdom ?? null;
   const isGoldKingdom = !!(kingdomNumber && goldKingdoms.has(kingdomNumber));
@@ -142,6 +144,7 @@ export function useBattleTierList() {
   // ── UI State ──
   const [showForm, setShowForm] = useState(false);
   const [showBulkEdit, setShowBulkEdit] = useState(false);
+  const [showBulkInput, setShowBulkInput] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formError, setFormError] = useState('');
@@ -162,6 +165,22 @@ export function useBattleTierList() {
   const [showWeightsPanel, setShowWeightsPanel] = useState(false);
   const [offenseWeights, setOffenseWeights] = useState<BattleTroopWeights>(structuredClone(DEFAULT_TROOP_WEIGHTS));
   const [defenseWeights, setDefenseWeights] = useState<BattleTroopWeights>(structuredClone(DEFAULT_TROOP_WEIGHTS));
+
+  // ── Alliance Roster names for autocomplete ──
+  const rosterNames = useMemo(() =>
+    ac.members.map(m => m.player_name).filter(Boolean).sort((a, b) => a.localeCompare(b)),
+    [ac.members]
+  );
+
+  const nameSuggestions = useMemo(() => {
+    if (!form.playerName.trim() || rosterNames.length === 0) return [];
+    const q = form.playerName.trim().toLowerCase();
+    return rosterNames.filter(n => n.toLowerCase().includes(q) && n.toLowerCase() !== q).slice(0, 8);
+  }, [form.playerName, rosterNames]);
+
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const listMenuRef = useRef<HTMLDivElement>(null);
   const managerSearchRef = useRef<HTMLDivElement>(null);
@@ -649,6 +668,9 @@ export function useBattleTierList() {
     // Form
     form, setForm, editingId, setEditingId, formError, showForm, setShowForm,
     showBulkEdit, setShowBulkEdit,
+    showBulkInput, setShowBulkInput,
+    rosterNames, nameSuggestions, showSuggestions, setShowSuggestions,
+    nameInputRef, suggestionsRef,
     updateForm, handleSubmit, handleEdit, handleDelete, handleCancelForm,
     // List management
     showListMenu, setShowListMenu, listMenuRef,

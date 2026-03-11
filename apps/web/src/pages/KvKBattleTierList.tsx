@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -8,6 +8,7 @@ import { FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 import { useBattleTierList, emptyForm } from '../hooks/useBattleTierList';
 import BattleBulkEdit from '../components/battle-tier/BattleBulkEdit';
+import BattleBulkInput from '../components/battle-tier/BattleBulkInput';
 import {
   getHeroesByTroopType,
   EG_BONUS_BY_LEVEL,
@@ -333,11 +334,30 @@ const KvKBattleTierList: React.FC = () => {
 
   const rankedPlayers = state.activeSection === 'offense' ? state.offenseRanked : state.defenseRanked;
 
+  // ── Close suggestions on outside click ──
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (state.suggestionsRef.current && !state.suggestionsRef.current.contains(e.target as Node) &&
+          state.nameInputRef.current && !state.nameInputRef.current.contains(e.target as Node)) {
+        state.setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [state]);
+
   // ── Bulk Edit handler ──
   const handleBulkEdit = useCallback((updatedPlayers: BattlePlayerEntry[]) => {
     state.pushUndo(state.players);
     state.setPlayers(updatedPlayers);
     state.setShowBulkEdit(false);
+  }, [state]);
+
+  // ── Bulk Add handler ──
+  const handleBulkAdd = useCallback((allPlayers: BattlePlayerEntry[]) => {
+    state.pushUndo(state.players);
+    state.setPlayers(allPlayers);
+    state.setShowBulkInput(false);
   }, [state]);
 
   // Access gate
@@ -624,7 +644,7 @@ const KvKBattleTierList: React.FC = () => {
                 display: 'flex', gap: '0.35rem', marginBottom: '1rem',
                 justifyContent: isMobile ? 'flex-start' : 'center',
               }}>
-                {!state.showForm && !state.showBulkEdit && (
+                {!state.showForm && !state.showBulkEdit && !state.showBulkInput && (
                   <>
                     <button
                       onClick={() => {
@@ -632,6 +652,7 @@ const KvKBattleTierList: React.FC = () => {
                         state.setEditingId(null);
                         state.setShowForm(true);
                         state.setShowBulkEdit(false);
+                        state.setShowBulkInput(false);
                       }}
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
@@ -643,9 +664,21 @@ const KvKBattleTierList: React.FC = () => {
                     >
                       + {t('battleTier.addPlayer', 'Add Player')}
                     </button>
+                    <button
+                      onClick={() => { state.setShowBulkInput(true); state.setShowBulkEdit(false); state.setShowForm(false); }}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                        padding: isMobile ? '0.45rem 0.7rem' : '0.5rem 1rem',
+                        backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '8px',
+                        color: '#d1d5db', fontSize: isMobile ? '0.75rem' : '0.85rem',
+                        fontWeight: 600, cursor: 'pointer',
+                      }}
+                    >
+                      📋 {t('battleTier.bulkAdd', 'Bulk Add')}
+                    </button>
                     {state.players.length > 0 && (
                       <button
-                        onClick={() => { state.setShowBulkEdit(true); state.setShowForm(false); }}
+                        onClick={() => { state.setShowBulkEdit(true); state.setShowBulkInput(false); state.setShowForm(false); }}
                         style={{
                           display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
                           padding: isMobile ? '0.45rem 0.7rem' : '0.5rem 1rem',
@@ -950,6 +983,19 @@ const KvKBattleTierList: React.FC = () => {
               />
             )}
 
+            {/* Bulk Add */}
+            {state.showBulkInput && (
+              <BattleBulkInput
+                existingPlayers={state.players}
+                onSave={handleBulkAdd}
+                onClose={() => state.setShowBulkInput(false)}
+                isMobile={isMobile}
+                rosterNames={state.rosterNames}
+                tierOverridesOffense={state.tierOverridesOffense}
+                tierOverridesDefense={state.tierOverridesDefense}
+              />
+            )}
+
             {/* Player Form */}
             {state.showForm && (
               <div style={{
@@ -963,22 +1009,55 @@ const KvKBattleTierList: React.FC = () => {
                   {state.editingId ? '✏️ ' + t('battleTier.editPlayer', 'Edit Player') : '+ ' + t('battleTier.addPlayer', 'Add Player')}
                 </h3>
 
-                {/* Player Name */}
-                <div style={{ marginBottom: '0.75rem' }}>
+                {/* Player Name with Autocomplete */}
+                <div style={{ marginBottom: '0.75rem', position: 'relative' }}>
                   <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.2rem' }}>
                     {t('battleTier.playerName', 'Player Name')}
+                    {state.rosterNames.length > 0 && (
+                      <span style={{ color: '#6b7280', fontWeight: 400, fontSize: '0.6rem', marginLeft: '0.4rem', textTransform: 'none' }}>
+                        {t('battleTier.rosterHint', '(suggestions from alliance roster)')}
+                      </span>
+                    )}
                   </div>
                   <input
+                    ref={state.nameInputRef}
                     type="text"
                     placeholder={t('battleTier.enterName', 'Enter player name')}
                     value={state.form.playerName}
-                    onChange={(e) => state.updateForm('playerName', e.target.value)}
+                    onChange={(e) => { state.updateForm('playerName', e.target.value); state.setShowSuggestions(true); }}
+                    onFocus={() => state.setShowSuggestions(true)}
+                    autoComplete="off"
                     style={{
                       width: '100%', padding: '0.5rem', backgroundColor: '#1a1a1a',
                       border: '1px solid #2a2a2a', borderRadius: '8px',
                       color: '#fff', fontSize: '0.85rem', outline: 'none',
                     }}
                   />
+                  {state.showSuggestions && state.nameSuggestions.length > 0 && (
+                    <div ref={state.suggestionsRef} style={{
+                      position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
+                      backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '8px',
+                      marginTop: '2px', maxHeight: '180px', overflowY: 'auto',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
+                    }}>
+                      {state.nameSuggestions.map(name => (
+                        <button
+                          key={name}
+                          type="button"
+                          onClick={() => { state.updateForm('playerName', name); state.setShowSuggestions(false); }}
+                          style={{
+                            width: '100%', padding: '0.45rem 0.75rem', textAlign: 'left',
+                            background: 'none', border: 'none', borderBottom: '1px solid #2a2a2a',
+                            color: '#d1d5db', fontSize: '0.82rem', cursor: 'pointer',
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#2a2a2a'; }}
+                          onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                        >
+                          <span style={{ color: '#fff', fontWeight: 600 }}>{name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Troop Stat Inputs */}
