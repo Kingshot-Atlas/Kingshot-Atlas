@@ -43,7 +43,7 @@ interface ResolvedApp {
 
 interface AllianceCenterOnboardingProps {
   hasAccess: boolean;
-  reason: 'admin' | 'supporter' | 'ambassador' | 'booster' | 'delegate' | 'none';
+  reason: 'admin' | 'supporter' | 'referral' | 'booster' | 'delegate' | 'none';
   onShowCreate: () => void;
 }
 
@@ -631,7 +631,7 @@ const AllianceCenterOnboarding: React.FC<AllianceCenterOnboardingProps> = ({ has
                   {t('allianceCenter.onboarding.wantToCreate', 'Want to create your own Alliance Center?')}
                 </div>
                 <div style={{ color: '#6b7280', fontSize: '0.7rem', lineHeight: 1.4 }}>
-                  {t('allianceCenter.onboarding.upgradeDesc', 'Supporters, Ambassadors, and Discord Boosters can create and manage Alliance Centers.')}
+                  {t('allianceCenter.onboarding.upgradeDesc', 'Supporters, Consuls, and Discord Boosters can create and manage Alliance Centers.')}
                 </div>
               </div>
               <Link to="/support" style={{ textDecoration: 'none', flexShrink: 0 }}>

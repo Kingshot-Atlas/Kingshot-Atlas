@@ -26,7 +26,7 @@ export interface ToolDelegate {
 
 interface ToolAccessResult {
   hasAccess: boolean;
-  reason: 'admin' | 'supporter' | 'ambassador' | 'booster' | 'delegate' | 'none';
+  reason: 'admin' | 'supporter' | 'referral' | 'booster' | 'delegate' | 'none';
   grantedBy?: string; // username of the owner who granted delegate access
   loading: boolean;
 }
@@ -61,16 +61,16 @@ interface DelegateManagement {
 
 /**
  * Check if the current user has access to alliance management tools.
- * Access is granted to: Admins, Supporters, Ambassadors, or Delegates of any of these.
+ * Access is granted to: Admins, Supporters, Consul+ referrers, Discord Boosters, or Delegates of any of these.
  */
 export function useToolAccess(): ToolAccessResult {
   const { isAdmin, isSupporter } = usePremium();
   const { profile, user } = useAuth();
-  const isAmbassador = profile?.referral_tier === 'ambassador';
+  const hasReferralAccess = profile?.referral_tier === 'ambassador' || profile?.referral_tier === 'consul';
   const isBooster = !!profile?.is_discord_booster;
 
   // Direct access check (no DB query needed)
-  const hasDirectAccess = isAdmin || isSupporter || isAmbassador || isBooster;
+  const hasDirectAccess = isAdmin || isSupporter || hasReferralAccess || isBooster;
 
   // Check if user is a delegate of someone with access
   const { data: delegateGrant, isLoading } = useQuery({
@@ -96,7 +96,7 @@ export function useToolAccess(): ToolAccessResult {
       if (!owners?.length) return null;
 
       for (const owner of owners) {
-        if (owner.subscription_tier === 'supporter' || owner.referral_tier === 'ambassador' || owner.is_discord_booster) {
+        if (owner.subscription_tier === 'supporter' || owner.referral_tier === 'ambassador' || owner.referral_tier === 'consul' || owner.is_discord_booster) {
           return { grantedBy: owner.username || 'Unknown' };
         }
       }
@@ -107,7 +107,7 @@ export function useToolAccess(): ToolAccessResult {
   });
 
   if (hasDirectAccess) {
-    const reason = isAdmin ? 'admin' : isSupporter ? 'supporter' : isAmbassador ? 'ambassador' : 'booster';
+    const reason = isAdmin ? 'admin' : isSupporter ? 'supporter' : hasReferralAccess ? 'referral' : 'booster';
     return { hasAccess: true, reason, loading: false };
   }
 

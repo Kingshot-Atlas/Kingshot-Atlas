@@ -33,7 +33,7 @@ const AllianceBaseDesigner: React.FC = () => {
 
   // Alliance roster names for city label autocomplete (lightweight — no profile/troop waterfall)
   const roster = useAllianceRoster();
-  const { hasAccess } = useToolAccess();
+  const { hasAccess, reason } = useToolAccess();
 
   // Load the alliance owner's design so all members see the same base
   // For the owner, this equals their own ID; for delegates/members, it loads the owner's design
@@ -52,8 +52,8 @@ const AllianceBaseDesigner: React.FC = () => {
   const [shareMenu, setShareMenu] = useState(false);
   const [shareToast, setShareToast] = useState<string | null>(null);
 
-  // Determine edit permission: owner always edits (it's their design); manager needs tool access; delegates need tool access + base_designer grant
-  const canEdit = roster.accessRole === 'owner' || (hasAccess && (roster.accessRole === 'manager' || (roster.accessRole === 'delegate' && roster.hasDelegateAccessTo('base_designer'))));
+  // Determine edit permission: admin always edits; owner always edits; manager/delegate need tool access
+  const canEdit = reason === 'admin' || roster.accessRole === 'owner' || (user && roster.ownerId === user.id) || (hasAccess && (roster.accessRole === 'manager' || (roster.accessRole === 'delegate' && roster.hasDelegateAccessTo('base_designer'))));
   const rosterNames = roster.sortedNames;
   const [labelSuggestions, setLabelSuggestions] = useState<string[]>([]);
   const [selectedSuggestionIdx, setSelectedSuggestionIdx] = useState(-1);

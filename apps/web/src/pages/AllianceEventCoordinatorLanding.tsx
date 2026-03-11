@@ -44,7 +44,7 @@ const AllianceEventCoordinatorLanding: React.FC = () => {
     {
       icon: '🔒',
       title: t('eventCoordinatorLanding.featAccess', 'Alliance Access Control'),
-      desc: t('eventCoordinatorLanding.featAccessDesc', 'Supporters, Ambassadors, and Boosters can open the Event Coordinator for their alliance. All alliance members can then submit their availability.'),
+      desc: t('eventCoordinatorLanding.featAccessDesc', 'Supporters, Consuls, and Boosters can open the Event Coordinator for their alliance. All alliance members can then submit their availability.'),
     },
   ];
 
@@ -53,7 +53,7 @@ const AllianceEventCoordinatorLanding: React.FC = () => {
       num: '1',
       icon: '🗓️',
       title: t('eventCoordinatorLanding.step1Title', 'Open the Coordinator'),
-      desc: t('eventCoordinatorLanding.step1Desc', 'A Supporter, Ambassador, or Booster opens the Event Coordinator from the Alliance Center. Your alliance is automatically detected.'),
+      desc: t('eventCoordinatorLanding.step1Desc', 'A Supporter, Consul, or Booster opens the Event Coordinator from the Alliance Center. Your alliance is automatically detected.'),
     },
     {
       num: '2',
@@ -125,7 +125,7 @@ const AllianceEventCoordinatorLanding: React.FC = () => {
             </Link>
           </div>
           <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.75rem' }}>
-            {t('eventCoordinatorLanding.accessNote', 'Supporters, Ambassadors, and Boosters can open this for their alliance. All alliance members can then submit availability.')}
+            {t('eventCoordinatorLanding.accessNote', 'Supporters, Consuls, and Boosters can open this for their alliance. All alliance members can then submit availability.')}
           </p>
 
           {!isMobile && (
@@ -277,7 +277,7 @@ const AllianceEventCoordinatorLanding: React.FC = () => {
             color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.85rem',
             marginBottom: '1.25rem', maxWidth: '500px', margin: '0 auto 1.25rem', lineHeight: 1.6,
           }}>
-            {t('eventCoordinatorLanding.accessExplainer', 'Supporters, Ambassadors, and Boosters can open the Event Coordinator for their alliance. Once active, every member on the alliance roster can submit their available play times. One leader activates — the whole alliance participates.')}
+            {t('eventCoordinatorLanding.accessExplainer', 'Supporters, Consuls, and Boosters can open the Event Coordinator for their alliance. Once active, every member on the alliance roster can submit their available play times. One leader activates — the whole alliance participates.')}
           </p>
 
           <div style={{
@@ -286,7 +286,7 @@ const AllianceEventCoordinatorLanding: React.FC = () => {
           }}>
             {[
               { label: t('eventCoordinatorLanding.roleSupporter', 'Supporters'), icon: '💎' },
-              { label: t('eventCoordinatorLanding.roleAmbassador', 'Ambassadors'), icon: '🏛️' },
+              { label: t('eventCoordinatorLanding.roleConsul', 'Consuls'), icon: '🏛️' },
               { label: t('eventCoordinatorLanding.roleBooster', 'Boosters'), icon: '🚀' },
             ].map((role) => (
               <div key={role.label} style={{

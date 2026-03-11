@@ -63,7 +63,7 @@ const EventCoordinatorGate: React.FC<{ children: React.ReactNode }> = ({ childre
           {t('eventCoordinator.gateTitle', 'Alliance Event Coordinator')}
         </h2>
         <p style={{ color: '#9ca3af', maxWidth: '420px', marginBottom: '1.5rem', lineHeight: 1.6, fontSize: isMobile ? '0.85rem' : '0.9rem' }}>
-          {t('eventCoordinator.gateDesc', 'Available to Atlas Supporters, Ambassadors, Discord Server Boosters, and Admins. Coordinate the best times for your alliance events.')}
+          {t('eventCoordinator.gateDesc', 'Available to Atlas Supporters, Consuls, Discord Server Boosters, and Admins. Coordinate the best times for your alliance events.')}
         </p>
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
           <Link to="/support" style={{ textDecoration: 'none' }}>

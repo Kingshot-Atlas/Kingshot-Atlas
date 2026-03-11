@@ -46,7 +46,7 @@ const BearRallyTierListLanding: React.FC = () => {
     {
       icon: '🔒',
       title: t('bearRallyLanding.featAccess', 'Alliance Access Control'),
-      desc: t('bearRallyLanding.featAccessDesc', 'Supporters, Ambassadors, and Boosters can create and manage the tier list. Up to 2 delegates can also edit. The rest of your alliance gets read-only access.'),
+      desc: t('bearRallyLanding.featAccessDesc', 'Supporters, Consuls, and Boosters can create and manage the tier list. Up to 2 delegates can also edit. The rest of your alliance gets read-only access.'),
     },
     {
       icon: '🎛️',

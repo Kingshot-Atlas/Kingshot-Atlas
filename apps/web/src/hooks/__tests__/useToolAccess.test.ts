@@ -80,7 +80,19 @@ describe('useToolAccess — direct access', () => {
     const { result } = renderHook(() => useToolAccess(), { wrapper });
 
     expect(result.current.hasAccess).toBe(true);
-    expect(result.current.reason).toBe('ambassador');
+    expect(result.current.reason).toBe('referral');
+  });
+
+  it('grants access to consuls', async () => {
+    mockPremiumReturn = { isAdmin: false, isSupporter: false };
+    mockAuthReturn = { profile: { referral_tier: 'consul', is_discord_booster: false }, user: { id: 'consul-1' } };
+
+    const { useToolAccess } = await import('../useToolAccess');
+    const { wrapper } = createWrapper();
+    const { result } = renderHook(() => useToolAccess(), { wrapper });
+
+    expect(result.current.hasAccess).toBe(true);
+    expect(result.current.reason).toBe('referral');
   });
 
   it('grants access to discord boosters', async () => {

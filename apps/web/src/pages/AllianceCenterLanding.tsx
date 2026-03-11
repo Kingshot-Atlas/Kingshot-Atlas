@@ -60,7 +60,7 @@ const AllianceCenterLanding: React.FC = () => {
       num: '1',
       icon: '🏰',
       title: t('allianceCenterLanding.step1Title', 'Create Your Alliance Center'),
-      desc: t('allianceCenterLanding.step1Desc', 'Supporters, Ambassadors, or Boosters create the Alliance Center for their alliance. One click and your hub is live.'),
+      desc: t('allianceCenterLanding.step1Desc', 'Supporters, Consuls, or Boosters create the Alliance Center for their alliance. One click and your hub is live.'),
     },
     {
       num: '2',
@@ -132,7 +132,7 @@ const AllianceCenterLanding: React.FC = () => {
             </Link>
           </div>
           <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.75rem' }}>
-            {t('allianceCenterLanding.accessNote', 'Supporters, Ambassadors, and Boosters can create an Alliance Center. Once created, all alliance members can access it.')}
+            {t('allianceCenterLanding.accessNote', 'Supporters, Consuls, and Boosters can create an Alliance Center. Once created, all alliance members can access it.')}
           </p>
 
           {!isMobile && (
@@ -284,7 +284,7 @@ const AllianceCenterLanding: React.FC = () => {
             color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.85rem',
             marginBottom: '1.25rem', maxWidth: '500px', margin: '0 auto 1.25rem', lineHeight: 1.6,
           }}>
-            {t('allianceCenterLanding.accessDesc', 'Supporters, Ambassadors, and Boosters can create an Alliance Center for their respective alliance. Once it\'s set up, every member on the alliance roster gets access automatically. One person creates it — the whole alliance benefits.')}
+            {t('allianceCenterLanding.accessDesc', 'Supporters, Consuls, and Boosters can create an Alliance Center for their respective alliance. Once it\'s set up, every member on the alliance roster gets access automatically. One person creates it — the whole alliance benefits.')}
           </p>
 
           <div style={{
@@ -293,7 +293,7 @@ const AllianceCenterLanding: React.FC = () => {
           }}>
             {[
               { label: t('allianceCenterLanding.roleSupporter', 'Supporters'), icon: '💎' },
-              { label: t('allianceCenterLanding.roleAmbassador', 'Ambassadors'), icon: '🏛️' },
+              { label: t('allianceCenterLanding.roleConsul', 'Consuls'), icon: '🏛️' },
               { label: t('allianceCenterLanding.roleBooster', 'Boosters'), icon: '🚀' },
             ].map((role) => (
               <div key={role.label} style={{

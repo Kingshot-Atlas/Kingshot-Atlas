@@ -39,8 +39,14 @@ export function useAllianceRoster(): LightAllianceData {
         p_linked_player_id: linkedPid,
       });
       if (error || !data) return null;
-      const result = data as { alliance: { id: string; owner_id: string } | null; access_role: string; delegate_tools: string[] | null };
-      return result;
+      // The RPC returns snake_case but useAllianceCenter (same query key) transforms to camelCase.
+      // Handle both shapes since either queryFn may populate the cache first.
+      const raw = data as Record<string, unknown>;
+      return {
+        alliance: (raw.alliance ?? null) as { id: string; owner_id: string } | null,
+        accessRole: ((raw.accessRole ?? raw.access_role ?? 'none') as string),
+        delegateTools: ((raw.delegateTools ?? raw.delegate_tools ?? null) as string[] | null),
+      };
     },
     enabled: !!user,
     staleTime: 2 * 60 * 1000,
@@ -48,8 +54,8 @@ export function useAllianceRoster(): LightAllianceData {
 
   const allianceId = accessData?.alliance?.id ?? null;
   const ownerId = accessData?.alliance?.owner_id ?? null;
-  const accessRole = (accessData?.access_role ?? 'none') as LightAllianceData['accessRole'];
-  const delegateTools = accessData?.delegate_tools as ('all' | AllianceTool)[] | null | undefined;
+  const accessRole = (accessData?.accessRole ?? 'none') as LightAllianceData['accessRole'];
+  const delegateTools = accessData?.delegateTools as ('all' | AllianceTool)[] | null | undefined;
 
   // Fetch only member names + IDs (lightweight)
   const { data: members = [], isLoading: membersLoading } = useQuery({

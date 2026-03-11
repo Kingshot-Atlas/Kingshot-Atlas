@@ -132,7 +132,7 @@ const BaseDesignerLanding: React.FC = () => {
               ? t('baseDesigner.accessDelegate', 'Access granted by {{name}}', { name: grantedBy })
               : hasAccess
                 ? t('baseDesigner.accessConfirm', 'You have access to the Alliance Base Designer.')
-                : t('baseDesigner.accessNote', 'Available for Atlas Supporters, Ambassadors, and Admins.')}
+                : t('baseDesigner.accessNote', 'Available for Atlas Supporters, Consuls, and Admins.')}
           </p>
 
           {!isMobile && (
@@ -276,7 +276,7 @@ const BaseDesignerLanding: React.FC = () => {
           }}>
             {hasAccess
               ? t('baseDesigner.accessUnlocked', 'Access Unlocked')
-              : t('baseDesigner.supporterBadge', 'Supporter · Ambassador · Admin')}
+              : t('baseDesigner.supporterBadge', 'Supporter · Consul · Admin')}
           </span>
           <h3 style={{
             fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: 'bold',
@@ -292,7 +292,7 @@ const BaseDesignerLanding: React.FC = () => {
           }}>
             {hasAccess
               ? t('baseDesigner.accessThanksDesc', 'Jump into the designer and start planning your alliance fortress.')
-              : t('baseDesigner.accessDesc', 'The Alliance Base Designer is currently available for Atlas Supporters, Ambassadors, and Admins. Become a Supporter to unlock this and other premium tools.')}
+              : t('baseDesigner.accessDesc', 'The Alliance Base Designer is currently available for Atlas Supporters, Consuls, and Admins. Become a Supporter to unlock this and other premium tools.')}
           </p>
           <div style={{
             display: 'flex', flexDirection: isMobile ? 'column' : 'row',
