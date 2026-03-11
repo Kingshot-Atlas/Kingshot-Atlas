@@ -131,7 +131,6 @@ export type AdminTab =
   | 'corrections' 
   | 'kvk-errors' 
   | 'matchup-conflicts'
-  | 'import' 
   | 'transfer-status'
   | 'transfer-apps'
   | 'transfer-hub'

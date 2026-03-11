@@ -56,7 +56,6 @@ const AccessViewerTab = lazy(() => import('../components/admin/AccessViewerTab')
 const ToolAccessTab = lazy(() => import('../components/admin/ToolAccessTab').then(m => ({ default: m.ToolAccessTab })));
 const TrustedSubmittersTab = lazy(() => import('../components/admin/TrustedSubmittersTab').then(m => ({ default: m.TrustedSubmittersTab })));
 const SpotlightTab = lazy(() => import('../components/admin/SpotlightTab').then(m => ({ default: m.SpotlightTab })));
-const ImportTab = lazy(() => import('../components/admin/ImportTab'));
 const RejectModal = lazy(() => import('../components/admin/RejectModal'));
 const KvKBulkMatchupTab = lazy(() => import('../components/admin/KvKBulkMatchupTab'));
 const KvKSpreadsheetTab = lazy(() => import('../components/admin/KvKSpreadsheetTab'));
@@ -88,7 +87,7 @@ const AdminDashboard: React.FC = () => {
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [viewAsUser, setViewAsUser] = useState(false); // A4: View as user mode
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<string>('pending');
   // React Query hooks for polling data (ADR-022 migration)
   const { data: pendingCounts = { submissions: 0, claims: 0, corrections: 0, transfers: 0, kvkErrors: 0, feedback: 0, reviewReports: 0 } } = useAdminPendingCounts(!!isAdmin);
@@ -199,11 +198,10 @@ const AdminDashboard: React.FC = () => {
   const fetchAnalytics = async () => {
     setLoading(true);
     try {
-      // Get real analytics from local tracking service
+      // Get real analytics from local tracking service (sync, instant)
       const realAnalytics = analyticsService.getAnalyticsSummary();
       
       const realData: AnalyticsData = {
-        // Real visit data from local tracking
         totalVisits: realAnalytics.totalEvents,
         uniqueVisitors: realAnalytics.uniqueSessions,
         pageViews: realAnalytics.pageViews,
@@ -219,79 +217,70 @@ const AdminDashboard: React.FC = () => {
         eventsByDay: realAnalytics.eventsByDay,
       };
       
-      // Fetch real stats from admin API (Supabase + Stripe)
+      // Fire all 3 API calls in parallel instead of sequentially
+      const authHeaders = await getAuthHeaders({ requireAuth: false });
+      const [adminResult, countsResult, plausibleResult] = await Promise.allSettled([
+        fetchWithRetry(`${API_URL}/api/v1/admin/stats/overview`, { headers: authHeaders }),
+        fetch(`${API_URL}/api/v1/submissions/counts`, { headers: authHeaders }),
+        fetch(`${API_URL}/api/v1/admin/stats/plausible`, { headers: authHeaders }),
+      ]);
+
+      // Process admin stats
       const health: ApiHealth = { api: 'loading', supabase: 'loading', stripe: 'loading' };
-      try {
-        const adminAuthHeaders = await getAuthHeaders({ requireAuth: false });
-        const adminRes = await fetchWithRetry(`${API_URL}/api/v1/admin/stats/overview`, {
-          headers: adminAuthHeaders
-        });
-        if (adminRes.ok) {
-          health.api = 'ok';
-          const adminData = await adminRes.json();
-          realData.userStats = {
-            total: adminData.users?.total || 0,
-            free: adminData.users?.free || 0,
-            pro: adminData.users?.pro || 0,
-            recruiter: adminData.users?.recruiter || 0,
-            kingshot_linked: adminData.users?.kingshot_linked || 0,
-          };
-          // Supabase health: if we got user data, Supabase is working
-          health.supabase = adminData.users?.total !== undefined ? 'ok' : 'error';
-          realData.revenue = {
-            monthly: adminData.revenue?.mrr || 0,
-            total: adminData.revenue?.total || 0,
-            subscriptions: adminData.subscriptions || [],
-            activeSubscriptions: adminData.revenue?.active_subscriptions || 0,
-            recentPayments: adminData.recent_payments || [],
-          };
-          // Stripe health: if we got revenue data without error
-          health.stripe = adminData.revenue?.mrr !== undefined ? 'ok' : 'error';
-          realData.recentSubscribers = adminData.recent_subscribers || [];
-        } else {
-          health.api = 'error';
-          health.supabase = 'error';
-          health.stripe = 'error';
-          showToast(`Admin API: ${adminRes.status} ${adminRes.statusText}`, 'error');
-        }
-      } catch (e) {
+      if (adminResult.status === 'fulfilled' && adminResult.value.ok) {
+        health.api = 'ok';
+        const adminData = await adminResult.value.json();
+        realData.userStats = {
+          total: adminData.users?.total || 0,
+          free: adminData.users?.free || 0,
+          pro: adminData.users?.pro || 0,
+          recruiter: adminData.users?.recruiter || 0,
+          kingshot_linked: adminData.users?.kingshot_linked || 0,
+        };
+        health.supabase = adminData.users?.total !== undefined ? 'ok' : 'error';
+        realData.revenue = {
+          monthly: adminData.revenue?.mrr || 0,
+          total: adminData.revenue?.total || 0,
+          subscriptions: adminData.subscriptions || [],
+          activeSubscriptions: adminData.revenue?.active_subscriptions || 0,
+          recentPayments: adminData.recent_payments || [],
+        };
+        health.stripe = adminData.revenue?.mrr !== undefined ? 'ok' : 'error';
+        realData.recentSubscribers = adminData.recent_subscribers || [];
+      } else {
         health.api = 'error';
         health.supabase = 'error';
         health.stripe = 'error';
-        logger.log('Could not fetch admin stats from API');
+        if (adminResult.status === 'fulfilled') {
+          showToast(`Admin API: ${adminResult.value.status} ${adminResult.value.statusText}`, 'error');
+        } else {
+          logger.log('Could not fetch admin stats from API');
+        }
       }
       setApiHealth(health);
-      
-      // Fetch real submission counts from API (single batch call)
-      try {
-        const authHeaders = await getAuthHeaders({ requireAuth: false });
-        const countsRes = await fetch(`${API_URL}/api/v1/submissions/counts`, { headers: authHeaders });
-        if (countsRes.ok) {
-          const counts = await countsRes.json();
-          realData.submissions = {
-            pending: counts.pending || 0,
-            approved: counts.approved || 0,
-            rejected: counts.rejected || 0,
-          };
-        }
-      } catch (e) {
+
+      // Process submission counts
+      if (countsResult.status === 'fulfilled' && countsResult.value.ok) {
+        const counts = await countsResult.value.json();
+        realData.submissions = {
+          pending: counts.pending || 0,
+          approved: counts.approved || 0,
+          rejected: counts.rejected || 0,
+        };
+      } else {
         logger.log('Could not fetch submission counts from API');
       }
-      
-      // Fetch real Plausible analytics (replaces local-only browser sessions)
-      try {
-        const authHeaders = await getAuthHeaders({ requireAuth: false });
-        const plausibleRes = await fetch(`${API_URL}/api/v1/admin/stats/plausible`, { headers: authHeaders });
-        if (plausibleRes.ok) {
-          const pData = await plausibleRes.json();
-          if (pData.source === 'plausible') {
-            realData.uniqueVisitors = pData.visitors || realData.uniqueVisitors;
-            realData.totalPageViews = pData.pageviews || 0;
-            realData.bounceRate = pData.bounce_rate || 0;
-            realData.visitDuration = pData.visit_duration || 0;
-          }
+
+      // Process Plausible analytics
+      if (plausibleResult.status === 'fulfilled' && plausibleResult.value.ok) {
+        const pData = await plausibleResult.value.json();
+        if (pData.source === 'plausible') {
+          realData.uniqueVisitors = pData.visitors || realData.uniqueVisitors;
+          realData.totalPageViews = pData.pageviews || 0;
+          realData.bounceRate = pData.bounce_rate || 0;
+          realData.visitDuration = pData.visit_duration || 0;
         }
-      } catch (e) {
+      } else {
         logger.log('Could not fetch Plausible analytics');
       }
       
@@ -842,7 +831,7 @@ const AdminDashboard: React.FC = () => {
         )}
 
       <Suspense fallback={<SkeletonGrid cards={4} cardHeight="100px" />}>
-      {loading && activeTab !== 'import' ? (
+      {loading && ['analytics', 'submissions', 'corrections', 'kvk-errors', 'transfer-status'].includes(activeTab) ? (
         <SkeletonGrid cards={4} cardHeight="100px" />
       ) : activeTab === 'analytics' ? (
         <>
@@ -971,8 +960,6 @@ const AdminDashboard: React.FC = () => {
         />
       ) : activeTab === 'spotlight' ? (
         <SpotlightTab />
-      ) : activeTab === 'import' ? (
-        <ImportTab />
       ) : activeTab === 'transfer-groups' ? (
         <BotDashboardTransferGroups />
       ) : activeTab === 'gift-codes' ? (

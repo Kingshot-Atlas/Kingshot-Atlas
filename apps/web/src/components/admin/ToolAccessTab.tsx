@@ -7,9 +7,13 @@ import { logger } from '../../utils/logger';
 
 // ─── Tool Definitions ──────────────────────────────────────────────────
 const TOOLS = [
-  { id: 'battle_planner', icon: '⚔️', color: '#ef4444' },
+  { id: 'bot_dashboard', icon: '🤖', color: '#22d3ee' },
+  { id: 'alliance_center', icon: '🏰', color: '#a855f7' },
   { id: 'prep_scheduler', icon: '📅', color: '#3b82f6' },
   { id: 'battle_registry', icon: '📋', color: '#f97316' },
+  { id: 'battle_tier_list', icon: '🏆', color: '#eab308' },
+  { id: 'battle_layout', icon: '🗺️', color: '#f97316' },
+  { id: 'battle_planner', icon: '⚔️', color: '#ef4444' },
 ] as const;
 
 type ToolId = typeof TOOLS[number]['id'];
@@ -38,7 +42,7 @@ interface SearchResult {
 export const ToolAccessTab: React.FC = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const [activeTool, setActiveTool] = useState<ToolId>('battle_planner');
+  const [activeTool, setActiveTool] = useState<ToolId>('bot_dashboard');
   const [accessList, setAccessList] = useState<AccessEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');

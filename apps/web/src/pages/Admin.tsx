@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/Toast';
 import { logger } from '../utils/logger';
@@ -24,12 +24,10 @@ const CORRECTIONS_KEY = 'kingshot_data_corrections';
 const Admin: React.FC = () => {
   const { user } = useAuth();
   const { showToast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [activeTab, setActiveTab] = useState<'submissions' | 'claims' | 'corrections' | 'import'>('submissions');
+  const [activeTab, setActiveTab] = useState<'submissions' | 'claims' | 'corrections'>('submissions');
   const [corrections, setCorrections] = useState<DataCorrection[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('pending');
-  const [importData, setImportData] = useState<string>('');
 
   // React Query hooks (ADR-022 migration)
   const { data: rqPendingCounts } = useAdminPendingCounts(true);
@@ -67,46 +65,6 @@ const Admin: React.FC = () => {
     fetchCorrections();
   };
 
-  const handleBulkImport = () => {
-    if (!importData.trim()) {
-      showToast('Please paste CSV data', 'error');
-      return;
-    }
-    try {
-      const lines = importData.trim().split('\n');
-      if (lines.length < 2) {
-        showToast('CSV must have header and at least one data row', 'error');
-        return;
-      }
-      const headers = lines[0]?.split(',').map(h => h.trim().toLowerCase()) || [];
-      const records = lines.slice(1).map(line => {
-        const values = line.split(',');
-        const record: Record<string, string> = {};
-        headers.forEach((h, i) => record[h] = values[i]?.trim() || '');
-        return record;
-      });
-      // Store for processing
-      localStorage.setItem('kingshot_bulk_import', JSON.stringify({
-        records,
-        imported_at: new Date().toISOString(),
-        imported_by: user?.id
-      }));
-      showToast(`Imported ${records.length} records for processing`, 'success');
-      setImportData('');
-    } catch (error) {
-      showToast('Invalid CSV format', 'error');
-    }
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setImportData(event.target?.result as string || '');
-    };
-    reader.readAsText(file);
-  };
 
   const reviewSubmission = async (id: number, status: 'approved' | 'rejected') => {
     try {
@@ -180,7 +138,6 @@ const Admin: React.FC = () => {
           { id: 'submissions', label: 'KvK Results', icon: '⚔️', countKey: 'submissions' as const },
           { id: 'claims', label: 'Kingdom Claims', icon: '👑', countKey: 'claims' as const },
           { id: 'corrections', label: 'Data Corrections', icon: '📝', countKey: 'corrections' as const },
-          { id: 'import', label: 'Bulk Import', icon: '📤', countKey: null }
         ].map(tab => {
           const count = tab.countKey ? pendingCounts[tab.countKey] : 0;
           return (
@@ -544,75 +501,6 @@ const Admin: React.FC = () => {
               </div>
             ))
           )}
-        </div>
-      ) : activeTab === 'import' ? (
-        <div style={{ backgroundColor: '#111116', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2a2a' }}>
-          <h3 style={{ color: '#fff', marginBottom: '1rem' }}>Bulk Import KvK Results</h3>
-          <p style={{ color: '#6b7280', fontSize: '0.875rem', marginBottom: '1rem' }}>
-            Upload a CSV file or paste data directly. Required columns: kingdom_number, kvk_number, opponent_kingdom, prep_result, battle_result
-          </p>
-          
-          <div style={{ marginBottom: '1rem' }}>
-            <input
-              type="file"
-              accept=".csv"
-              ref={fileInputRef}
-              onChange={handleFileUpload}
-              style={{ display: 'none' }}
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              style={{
-                padding: '0.75rem 1.5rem',
-                backgroundColor: '#22d3ee20',
-                border: '1px solid #22d3ee50',
-                borderRadius: '8px',
-                color: '#22d3ee',
-                cursor: 'pointer',
-                fontWeight: 500
-              }}
-            >
-              📁 Choose CSV File
-            </button>
-          </div>
-
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', color: '#9ca3af', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
-              Or paste CSV data:
-            </label>
-            <textarea
-              value={importData}
-              onChange={(e) => setImportData(e.target.value)}
-              placeholder="kingdom_number,kvk_number,opponent_kingdom,prep_result,battle_result&#10;1234,5,5678,W,L&#10;1234,6,9012,W,W"
-              style={{
-                width: '100%',
-                height: '200px',
-                padding: '1rem',
-                backgroundColor: '#0a0a0a',
-                border: '1px solid #2a2a2a',
-                borderRadius: '8px',
-                color: '#fff',
-                fontFamily: 'monospace',
-                fontSize: '0.85rem',
-                resize: 'vertical'
-              }}
-            />
-          </div>
-
-          <button
-            onClick={handleBulkImport}
-            style={{
-              padding: '0.75rem 2rem',
-              backgroundColor: '#22c55e',
-              border: 'none',
-              borderRadius: '8px',
-              color: '#fff',
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            Import Data
-          </button>
         </div>
       ) : null}
     </div>

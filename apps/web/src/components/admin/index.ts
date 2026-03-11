@@ -20,7 +20,6 @@ export { BattlePlannerAccessTab } from './BattlePlannerAccessTab';
 export { AccessViewerTab } from './AccessViewerTab';
 export { ToolAccessTab } from './ToolAccessTab';
 export { SpotlightTab } from './SpotlightTab';
-export { default as ImportTab } from './ImportTab';
 export { default as RejectModal } from './RejectModal';
 export { default as KvKBulkMatchupTab } from './KvKBulkMatchupTab';
 export { default as KvKSpreadsheetTab } from './KvKSpreadsheetTab';
