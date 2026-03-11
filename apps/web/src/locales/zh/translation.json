@@ -4,7 +4,7 @@
     "retry": "重试",
     "save": "保存",
     "cancel": "取消",
-    "backToHome": "← 返回首页",
+    "backToHome": "返回首页",
     "filter": "筛选",
     "signIn": "登录",
     "signOut": "退出",
@@ -28,7 +28,7 @@
     "wins": "胜",
     "losses": "负",
     "clear": "清除",
-    "allTools": "← 所有工具",
+    "allTools": "所有工具",
     "copied": "已复制！",
     "failed": "失败",
     "remove": "移除"
@@ -242,7 +242,7 @@
     "colChange": "变动",
     "footerTotal": "共追踪 {{count}} 个王国",
     "footerRankChange": "排名变动反映最新KvK结果",
-    "backToRankings": "← 返回排行榜"
+    "backToRankings": "返回排行榜"
   },
   "seasons": {
     "selectSeason": "选择赛季",
@@ -392,7 +392,7 @@
     "supporterDesc": "战斗规划器包含在 Atlas Supporter 中——还有无限次 /multirally、Supporter 徽章、专属 Discord 频道等。每月仅 $4.99 起。",
     "becomeSupporter": "成为 Supporter",
     "tryPlanner": "试用规划器",
-    "allTools": "← 所有工具",
+    "allTools": "所有工具",
     "communityCredit": "特别感谢",
     "communityCreditSuffix": "推动了这个创意的诞生。由社区打造，为社区服务。",
     "accessUnlocked": "已解锁访问",
@@ -727,7 +727,7 @@
     "signInToContinue": "请登录以继续",
     "notFound": "未找到资料",
     "notFoundDesc": "该用户资料未找到或可能已被删除。",
-    "backToPlayers": "← 返回玩家列表",
+    "backToPlayers": "返回玩家列表",
     "subscription": "订阅",
     "syncing": "同步中...",
     "subscriptionNotShowing": "订阅未显示？",
@@ -793,7 +793,7 @@
     "becomeSupporter": "成为 Atlas Supporter",
     "portalError": "无法打开订阅管理。请发送邮件至 support@ks-atlas.com。",
     "referredBy": "推荐人",
-    "backToHome": "← 返回首页",
+    "backToHome": "返回首页",
     "welcomeToast": "欢迎来到 Atlas，{{name}}！🌍"
   },
   "discord": {
@@ -1168,7 +1168,7 @@
     "serverDeserves": "你的服务器值得更好的情报。",
     "playersUseBot": "数十个服务器中的 Kingshot 玩家使用 Atlas 机器人来侦察对手、对比王国和规划转服——无需离开 Discord。",
     "joinDiscord": "加入我们的 Discord",
-    "allTools": "← 所有工具",
+    "allTools": "所有工具",
     "dashboardSubtitle": "你的服务器，你做主。在一个地方配置一切。",
     "dashGiftCodes": "礼品码",
     "dashGiftCodesDesc": "新代码发布——你的服务器立即知道。自动发布到你的频道，可选角色提及。",
@@ -1202,7 +1202,7 @@
     "serverRegistered": "服务器已注册！",
     "alreadyRegistered": "服务器已注册。",
     "registrationFailed": "注册失败",
-    "backToBot": "← 返回 Atlas Bot",
+    "backToBot": "返回 Atlas Bot",
     "activeReminders": "活跃提醒",
     "configured": "已配置",
     "giftCodes": "礼品码",
@@ -2084,7 +2084,7 @@
     "titleAccent": "规划器",
     "subtitle": "同步毁灭，无需猜测。",
     "adminPreview": "管理员预览",
-    "backToTools": "← 返回工具",
+    "backToTools": "返回工具",
     "allies": "盟友",
     "enemies": "敌人",
     "addAlly": "+ 盟友",
@@ -2443,7 +2443,7 @@
     "undefeatedBattle": "战斗不败",
     "supremeRulers": "至高统治者",
     "more": "+{{count}} 更多",
-    "backToHome": "← 返回首页"
+    "backToHome": "返回首页"
   },
   "supportButton": {
     "supportAtlas": "支持Atlas",
@@ -2608,7 +2608,7 @@
     "ctaDesc": "无论你在寻找新家还是强力玩家——转移中心帮你找到最佳匹配。免费，无套路。",
     "ctaButton": "进入转移中心",
     "browseKingdoms": "浏览所有王国",
-    "allTools": "← 所有工具",
+    "allTools": "所有工具",
     "cmpAlliance": "联盟信息与日程",
     "cmpBadge": "王国所有用户的金色徽章",
     "cmpBasicListing": "包含Atlas评分和统计的基本列表",
@@ -3038,7 +3038,7 @@
     "activeSchedule": "活动计划",
     "activeScheduleDesc": "您的王国有一个活跃的备战计划。",
     "addTimeRange": "添加时间段",
-    "backToTools": "← 返回工具",
+    "backToTools": "返回工具",
     "beOnline": "在分配的时段内在线",
     "changeScreenshot": "更换截图",
     "copyFrom": "复制自",
@@ -3632,7 +3632,7 @@
     "goldDesc": "适用于金牌和银牌等级王国。",
     "reachGold": "达到金牌等级",
     "tryRegistry": "查看注册",
-    "allTools": "← 所有工具"
+    "allTools": "所有工具"
   },
   "allianceCenter": {
     "eventCoordinatorLink": "活动协调员",
@@ -3860,7 +3860,7 @@
     "goldDesc": "战斗布局是黄金等级功能。通过向王国基金捐款帮助你的王国达到黄金等级。",
     "reachGold": "达到黄金等级",
     "tryLayout": "试用布局",
-    "allTools": "← 所有工具"
+    "allTools": "所有工具"
   },
   "allianceCenterLanding": {
     "pageTitle": "联盟中心",
@@ -3909,7 +3909,7 @@
     "roleBooster": "助推者",
     "canCreate": "可以创建",
     "viewAllTools": "查看所有工具",
-    "allTools": "← 所有工具"
+    "allTools": "所有工具"
   },
   "eventCoordinatorLanding": {
     "pageTitle": "联盟活动协调器 — Kingshot Atlas",
@@ -3955,7 +3955,7 @@
     "roleBooster": "助推者",
     "canActivate": "可以激活",
     "viewAllTools": "查看所有工具",
-    "allTools": "← 所有工具"
+    "allTools": "所有工具"
   },
   "bearRally": {
     "pageTitle": "猎熊集结等级列表",
@@ -3993,7 +3993,7 @@
     "tip3": "Atlas 自动调整防御专属装备加成（侦察中虚高）并应用进攻专属装备加成（集结中激活）。",
     "tip4": "玩家按猎熊分数排名，分配从 SS（最高）到 D（最低）的等级。",
     "aboutTool": "关于此工具",
-    "allianceCenter": "← 联盟中心",
+    "allianceCenter": "联盟中心",
     "rosterHint": "（来自联盟花名册的建议）",
     "disclaimer": "此工具仅供参考。猎熊分数基于部队加成和专属装备调整 — 不考虑英雄技能和天赋树。请将其作为起点，而非最终定论。",
     "errorName": "玩家名称为必填项。",
@@ -4108,7 +4108,7 @@
     "freeBadge": "免费联盟工具",
     "ctaTitle": "了解你的输出。赢得猎熊。",
     "ctaDesc": "侦察你的联盟，输入数据，让Atlas排名你的玩家。每位玩家2分钟。节省数小时的争论。",
-    "allTools": "← 所有工具",
+    "allTools": "所有工具",
     "disclaimerTitle": "重要声明",
     "disclaimerText": "猎熊集结等级列表是指南 — 不是最终排名。它仅基于部队加成和专属装备调整计算猎熊分数。不考虑英雄技能、天赋树和其他变量。"
   },

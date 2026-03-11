@@ -4,7 +4,7 @@
     "retry": "Reintentar",
     "save": "Guardar",
     "cancel": "Cancelar",
-    "backToHome": "← Volver al Inicio",
+    "backToHome": "Volver al Inicio",
     "filter": "Filtrar",
     "signIn": "Iniciar Sesión",
     "signOut": "Cerrar Sesión",
@@ -28,7 +28,7 @@
     "wins": "Victorias",
     "losses": "Derrotas",
     "clear": "Limpiar",
-    "allTools": "← Todas las Herramientas",
+    "allTools": "Todas las Herramientas",
     "copied": "¡Copiado!",
     "failed": "Error",
     "remove": "Eliminar"
@@ -241,7 +241,7 @@
     "colChange": "Cambio",
     "footerTotal": "{{count}} reinos registrados",
     "footerRankChange": "Los cambios de rango reflejan los últimos resultados de KvK",
-    "backToRankings": "← Volver a Clasificación"
+    "backToRankings": "Volver a Clasificación"
   },
   "seasons": {
     "selectSeason": "Selecciona una temporada",
@@ -391,7 +391,7 @@
     "supporterDesc": "El Planificador de Batalla está incluido con Atlas Supporter — junto con /multirally ilimitado, la insignia de Supporter, acceso exclusivo a Discord y más. Desde $4.99/mes.",
     "becomeSupporter": "Conviértete en Supporter",
     "tryPlanner": "Probar el Planificador",
-    "allTools": "← Todas las Herramientas",
+    "allTools": "Todas las Herramientas",
     "communityCredit": "Un gran agradecimiento a",
     "communityCreditSuffix": "por impulsar esta idea. Creado por la comunidad, para la comunidad.",
     "accessUnlocked": "Acceso Desbloqueado",
@@ -726,7 +726,7 @@
     "signInToContinue": "Inicia Sesión para Continuar",
     "notFound": "Perfil No Encontrado",
     "notFoundDesc": "Este perfil de usuario no pudo ser encontrado o puede haber sido eliminado.",
-    "backToPlayers": "← Volver a Jugadores",
+    "backToPlayers": "Volver a Jugadores",
     "subscription": "Suscripción",
     "syncing": "Sincronizando...",
     "subscriptionNotShowing": "¿La suscripción no aparece?",
@@ -792,7 +792,7 @@
     "becomeSupporter": "Conviértete en Atlas Supporter",
     "portalError": "No se pudo abrir la gestión de suscripción. Por favor contacta a support@ks-atlas.com.",
     "referredBy": "Referido por",
-    "backToHome": "← Volver al Inicio",
+    "backToHome": "Volver al Inicio",
     "welcomeToast": "¡Bienvenido a Atlas, {{name}}! 🌍"
   },
   "discord": {
@@ -1167,7 +1167,7 @@
     "serverDeserves": "Tu servidor merece mejor inteligencia.",
     "playersUseBot": "Jugadores de Kingshot en docenas de servidores usan Atlas Bot para explorar oponentes, comparar reinos y planificar transferencias — sin salir de Discord.",
     "joinDiscord": "Únete a Nuestro Discord",
-    "allTools": "← Todas las Herramientas",
+    "allTools": "Todas las Herramientas",
     "dashboardSubtitle": "Tu servidor, tus reglas. Configura todo desde un solo lugar.",
     "dashGiftCodes": "Códigos de Regalo",
     "dashGiftCodesDesc": "Nuevos códigos aparecen — tu servidor lo sabe al instante. Publicados automáticamente en tu canal con menciones de rol opcionales.",
@@ -1201,7 +1201,7 @@
     "serverRegistered": "¡Servidor registrado!",
     "alreadyRegistered": "Servidor ya registrado.",
     "registrationFailed": "Registro fallido",
-    "backToBot": "← Volver al Bot Atlas",
+    "backToBot": "Volver al Bot Atlas",
     "activeReminders": "Recordatorios Activos",
     "configured": "Configurados",
     "giftCodes": "Códigos Regalo",
@@ -2083,7 +2083,7 @@
     "titleAccent": "PLANIFICADOR",
     "subtitle": "Destrucción sincronizada. Sin conjeturas.",
     "adminPreview": "VISTA PREVIA ADMIN",
-    "backToTools": "← Volver a Herramientas",
+    "backToTools": "Volver a Herramientas",
     "allies": "ALIADOS",
     "enemies": "ENEMIGOS",
     "addAlly": "+ Aliado",
@@ -2442,7 +2442,7 @@
     "undefeatedBattle": "Batalla Invicta",
     "supremeRulers": "Gobernantes Supremos",
     "more": "+{{count}} más",
-    "backToHome": "← Volver al Inicio"
+    "backToHome": "Volver al Inicio"
   },
   "supportButton": {
     "supportAtlas": "Apoyar Atlas",
@@ -2607,7 +2607,7 @@
     "ctaDesc": "Ya sea que busques un nuevo hogar o jugadores fuertes — el Transfer Hub te conecta con la opción correcta. Sin costo, sin trampa.",
     "ctaButton": "Entrar al Transfer Hub",
     "browseKingdoms": "Explorar Todos los Reinos",
-    "allTools": "← Todas las Herramientas",
+    "allTools": "Todas las Herramientas",
     "cmpAlliance": "Información de Alianza y Horarios",
     "cmpBadge": "Insignia dorada para todos los usuarios del reino",
     "cmpBasicListing": "Anuncio básico con Atlas Score y estadísticas",
@@ -3037,7 +3037,7 @@
     "activeSchedule": "Horario activo",
     "activeScheduleDesc": "Tu reino tiene un horario de prep activo.",
     "addTimeRange": "Agregar rango de tiempo",
-    "backToTools": "← Volver a herramientas",
+    "backToTools": "Volver a herramientas",
     "beOnline": "Estar en línea durante tu turno asignado",
     "changeScreenshot": "Cambiar captura",
     "copyFrom": "Copiar de",
@@ -3631,7 +3631,7 @@
     "goldDesc": "El Registro de Batalla está disponible para reinos Tier Oro y Plata. Contribuye al Fondo del Reino.",
     "reachGold": "Alcanzar Tier Oro",
     "tryRegistry": "Ver el Registro",
-    "allTools": "← Todas las Herramientas"
+    "allTools": "Todas las Herramientas"
   },
   "allianceCenter": {
     "eventCoordinatorLink": "Coordinador de Eventos",
@@ -3859,7 +3859,7 @@
     "goldDesc": "El Diseño de Batalla es una función Nivel Oro. Ayuda a tu reino a alcanzar el Oro contribuyendo al Fondo del Reino.",
     "reachGold": "Alcanzar Nivel Oro",
     "tryLayout": "Probar el Diseño",
-    "allTools": "← Todas las Herramientas"
+    "allTools": "Todas las Herramientas"
   },
   "allianceCenterLanding": {
     "pageTitle": "Centro de Alianza",
@@ -3908,7 +3908,7 @@
     "roleBooster": "Boosters",
     "canCreate": "Pueden crear",
     "viewAllTools": "Ver Todas las Herramientas",
-    "allTools": "← Todas las Herramientas"
+    "allTools": "Todas las Herramientas"
   },
   "eventCoordinatorLanding": {
     "pageTitle": "Coordinador de Eventos de Alianza — Kingshot Atlas",
@@ -3954,7 +3954,7 @@
     "roleBooster": "Boosters",
     "canActivate": "Pueden activar",
     "viewAllTools": "Ver Todas las Herramientas",
-    "allTools": "← Todas las Herramientas"
+    "allTools": "Todas las Herramientas"
   },
   "bearRally": {
     "pageTitle": "Lista de Niveles de Rally del Oso",
@@ -3992,7 +3992,7 @@
     "tip3": "Atlas ajusta automáticamente los bonos de EG defensivos (inflados en exploración) y aplica los bonos de EG ofensivos (activos en rally).",
     "tip4": "Los jugadores se clasifican por Puntuación Oso y se asignan niveles de SS (más alto) a D (más bajo).",
     "aboutTool": "Sobre esta herramienta",
-    "allianceCenter": "← Centro de Alianza",
+    "allianceCenter": "Centro de Alianza",
     "rosterHint": "(sugerencias del roster de alianza)",
     "disclaimer": "Esta herramienta es solo una guía. Las Puntuaciones Oso se basan en bonos de tropas y ajustes de Equipo Exclusivo — las habilidades de héroes y árboles de talentos no se consideran. Úsala como punto de partida, no como la última palabra.",
     "errorName": "El nombre del jugador es obligatorio.",
@@ -4108,7 +4108,7 @@
     "freeBadge": "Herramienta de Alianza Gratis",
     "ctaTitle": "Conoce a tus golpeadores. Gana la cacería.",
     "ctaDesc": "Explora tu alianza, ingresa las estadísticas y deja que Atlas clasifique a tus jugadores. Toma 2 minutos por jugador. Ahorra horas de debate.",
-    "allTools": "← Todas las Herramientas",
+    "allTools": "Todas las Herramientas",
     "disclaimerTitle": "Aviso Importante",
     "disclaimerText": "La Lista de Niveles de Rally del Oso es una guía — no una clasificación definitiva. Calcula Puntuaciones Oso basadas solo en bonos de tropas y ajustes de Equipo Exclusivo. Las habilidades de héroes, árboles de talentos y otras variables no se consideran."
   },

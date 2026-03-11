@@ -4,7 +4,7 @@
     "retry": "다시 시도",
     "save": "저장",
     "cancel": "취소",
-    "backToHome": "← 홈으로 돌아가기",
+    "backToHome": "홈으로 돌아가기",
     "filter": "필터",
     "signIn": "로그인",
     "signOut": "로그아웃",
@@ -28,7 +28,7 @@
     "wins": "승리",
     "losses": "패배",
     "clear": "지우기",
-    "allTools": "← 모든 도구",
+    "allTools": "모든 도구",
     "copied": "복사됨!",
     "failed": "실패",
     "remove": "제거"
@@ -242,7 +242,7 @@
     "colChange": "변동",
     "footerTotal": "{{count}}개 왕국 추적 중",
     "footerRankChange": "순위 변동은 최신 KvK 결과를 반영합니다",
-    "backToRankings": "← 랭킹으로 돌아가기"
+    "backToRankings": "랭킹으로 돌아가기"
   },
   "seasons": {
     "selectSeason": "시즌 선택",
@@ -389,7 +389,7 @@
     "supporterDesc": "전투 플래너는 Atlas Supporter에 포함되어 있습니다 — 무제한 /multirally, Supporter 배지, 전용 Discord 채널 등과 함께. 월 $4.99부터.",
     "becomeSupporter": "Supporter 되기",
     "tryPlanner": "플래너 체험",
-    "allTools": "← 모든 도구",
+    "allTools": "모든 도구",
     "communityCredit": "큰 감사를 드립니다",
     "communityCreditSuffix": "이 아이디어를 현실로 만들어 주셔서. 커뮤니티가 만들고, 커뮤니티를 위해.",
     "accessUnlocked": "접근 해제됨",
@@ -724,7 +724,7 @@
     "signInToContinue": "계속하려면 로그인하세요",
     "notFound": "프로필을 찾을 수 없음",
     "notFoundDesc": "이 사용자 프로필을 찾을 수 없거나 삭제되었을 수 있습니다.",
-    "backToPlayers": "← 플레이어로 돌아가기",
+    "backToPlayers": "플레이어로 돌아가기",
     "subscription": "구독",
     "syncing": "동기화 중...",
     "subscriptionNotShowing": "구독이 표시되지 않나요?",
@@ -790,7 +790,7 @@
     "becomeSupporter": "Atlas Supporter 되기",
     "portalError": "구독 관리를 열 수 없습니다. support@ks-atlas.com으로 문의해 주세요.",
     "referredBy": "추천인",
-    "backToHome": "← 홈으로 돌아가기",
+    "backToHome": "홈으로 돌아가기",
     "welcomeToast": "Atlas에 오신 것을 환영합니다, {{name}}! 🌍"
   },
   "discord": {
@@ -1165,7 +1165,7 @@
     "serverDeserves": "당신의 서버는 더 나은 정보를 받을 자격이 있습니다.",
     "playersUseBot": "수십 개의 서버에서 Kingshot 플레이어들이 Atlas 봇으로 상대를 정찰하고, 왕국을 비교하고, 이적을 계획합니다 — 디스코드를 떠나지 않고.",
     "joinDiscord": "디스코드 참여",
-    "allTools": "← 모든 도구",
+    "allTools": "모든 도구",
     "dashboardSubtitle": "당신의 서버, 당신의 규칙. 한 곳에서 모든 것을 설정하세요.",
     "dashGiftCodes": "기프트 코드",
     "dashGiftCodesDesc": "새 코드가 나오면 — 서버가 즉시 알립니다. 선택적 역할 멘션과 함께 채널에 자동 게시됩니다.",
@@ -1199,7 +1199,7 @@
     "serverRegistered": "서버 등록 완료!",
     "alreadyRegistered": "이미 등록된 서버입니다.",
     "registrationFailed": "등록 실패",
-    "backToBot": "← Atlas Bot으로 돌아가기",
+    "backToBot": "Atlas Bot으로 돌아가기",
     "activeReminders": "활성 알림",
     "configured": "구성됨",
     "giftCodes": "기프트 코드",
@@ -2081,7 +2081,7 @@
     "titleAccent": "플래너",
     "subtitle": "동기화된 파괴. 추측 제로.",
     "adminPreview": "관리자 미리보기",
-    "backToTools": "← 도구로 돌아가기",
+    "backToTools": "도구로 돌아가기",
     "allies": "아군",
     "enemies": "적군",
     "addAlly": "+ 아군",
@@ -2440,7 +2440,7 @@
     "undefeatedBattle": "전투 무패",
     "supremeRulers": "최고 지배자",
     "more": "+{{count}}개 더",
-    "backToHome": "← 홈으로 돌아가기"
+    "backToHome": "홈으로 돌아가기"
   },
   "supportButton": {
     "supportAtlas": "Atlas 후원",
@@ -2605,7 +2605,7 @@
     "ctaDesc": "새 보금자리를 찾든 강한 플레이어를 찾든 — 이적 허브가 최적의 매칭을 연결해 줍니다. 무료, 함정 없음.",
     "ctaButton": "이적 허브 입장",
     "browseKingdoms": "모든 왕국 탐색",
-    "allTools": "← 모든 도구",
+    "allTools": "모든 도구",
     "cmpAlliance": "동맹 정보 및 일정",
     "cmpBadge": "모든 왕국 사용자를 위한 골드 배지",
     "cmpBasicListing": "Atlas 점수와 통계가 포함된 기본 목록",
@@ -3035,7 +3035,7 @@
     "activeSchedule": "활성 스케줄",
     "activeScheduleDesc": "왕국에 활성 준비 스케줄이 있습니다.",
     "addTimeRange": "시간 범위 추가",
-    "backToTools": "← 도구로 돌아가기",
+    "backToTools": "도구로 돌아가기",
     "beOnline": "배정된 슬롯 동안 온라인 상태 유지",
     "changeScreenshot": "스크린샷 변경",
     "copyFrom": "복사 원본",
@@ -3629,7 +3629,7 @@
     "goldDesc": "골드 & 실버 티어 왕국에서 사용 가능.",
     "reachGold": "골드 티어 달성",
     "tryRegistry": "등록부 보기",
-    "allTools": "← 모든 도구"
+    "allTools": "모든 도구"
   },
   "allianceCenter": {
     "eventCoordinatorLink": "이벤트 코디네이터",
@@ -3856,7 +3856,7 @@
     "goldDesc": "전투 배치는 골드 등급 기능입니다. 왕국 기금에 기여하여 왕국이 골드에 도달하도록 도와주세요.",
     "reachGold": "골드 등급 달성",
     "tryLayout": "배치 사용해보기",
-    "allTools": "← 모든 도구"
+    "allTools": "모든 도구"
   },
   "allianceCenterLanding": {
     "pageTitle": "동맹 센터",
@@ -3905,7 +3905,7 @@
     "roleBooster": "부스터",
     "canCreate": "만들 수 있음",
     "viewAllTools": "모든 도구 보기",
-    "allTools": "← 모든 도구"
+    "allTools": "모든 도구"
   },
   "eventCoordinatorLanding": {
     "pageTitle": "동맹 이벤트 코디네이터 — Kingshot Atlas",
@@ -3951,7 +3951,7 @@
     "roleBooster": "부스터",
     "canActivate": "활성화 가능",
     "viewAllTools": "모든 도구 보기",
-    "allTools": "← 모든 도구"
+    "allTools": "모든 도구"
   },
   "bearRally": {
     "pageTitle": "곰 랠리 등급표",
@@ -3989,7 +3989,7 @@
     "tip3": "Atlas가 자동으로 방어 EG 보너스 (정찰에서 부풀린)를 조정하고 공격 EG 보너스 (랠리에서 활성)를 적용합니다.",
     "tip4": "플레이어는 곰 점수로 순위가 매겨지고 SS (최고)부터 D (최저)까지 등급이 부여됩니다.",
     "aboutTool": "이 도구에 대해",
-    "allianceCenter": "← 동맹 센터",
+    "allianceCenter": "동맹 센터",
     "rosterHint": "(동맹 명단에서 제안)",
     "disclaimer": "이 도구는 가이드일 뿐입니다. 곰 점수는 부대 보너스와 전용 장비 조정에 기반합니다 — 영웅 스킬과 재능 트리는 고려되지 않습니다. 시작점으로 사용하세요, 최종 결정이 아닙니다.",
     "errorName": "플레이어 이름은 필수입니다.",
@@ -4105,7 +4105,7 @@
     "freeBadge": "무료 동맹 도구",
     "ctaTitle": "공격수를 파악하세요. 사냥에서 승리하세요.",
     "ctaDesc": "동맹을 정찰하고 수치를 입력하면 Atlas가 플레이어를 순위 매깁니다. 플레이어당 2분. 수시간의 토론을 절약합니다.",
-    "allTools": "← 모든 도구",
+    "allTools": "모든 도구",
     "disclaimerTitle": "중요 안내",
     "disclaimerText": "곰 랠리 등급표는 가이드입니다 — 최종 순위가 아닙니다. 부대 보너스와 전용 장비 조정만으로 곰 점수를 계산합니다. 영웅 스킬, 재능 트리 및 기타 변수는 고려되지 않습니다."
   },

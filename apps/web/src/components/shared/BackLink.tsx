@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { colors, radius, transition } from '../../utils/styles';
-import { useIsMobile } from '../../hooks/useMediaQuery';
 
 interface BackLinkProps {
   to: string;
@@ -11,16 +10,14 @@ interface BackLinkProps {
 
 /**
  * Consistent back-navigation button used across all pages.
- * - `primary` (default): cyan-tinted ghost button — use for the main back action
- * - `secondary`: gray ghost button — use for less-prominent alternatives (e.g. "Back to Home" alongside "All Tools")
+ * Always cyan text with a single ← arrow. The variant only affects border prominence:
+ * - `primary` (default): cyan-tinted border
+ * - `secondary`: subtle border — use for less-prominent alternatives (e.g. "Home" alongside "All Tools")
  */
 const BackLink: React.FC<BackLinkProps> = ({ to, label, variant = 'primary' }) => {
-  const isMobile = useIsMobile();
   const [hovered, setHovered] = useState(false);
 
   const isPrimary = variant === 'primary';
-  const baseColor = isPrimary ? colors.primary : colors.textSecondary;
-  const hoverColor = colors.primary;
 
   return (
     <Link
@@ -28,15 +25,16 @@ const BackLink: React.FC<BackLinkProps> = ({ to, label, variant = 'primary' }) =
       style={{
         display: 'inline-flex',
         alignItems: 'center',
+        justifyContent: 'center',
         gap: '0.4rem',
-        padding: isMobile ? '0.55rem 1rem' : '0.45rem 0.9rem',
-        minHeight: isMobile ? '44px' : 'auto',
-        backgroundColor: hovered ? `${hoverColor}10` : 'transparent',
-        border: `1px solid ${hovered ? `${hoverColor}50` : isPrimary ? `${baseColor}30` : colors.border}`,
+        padding: '0.5rem 1rem',
+        minHeight: '44px',
+        backgroundColor: hovered ? `${colors.primary}10` : 'transparent',
+        border: `1px solid ${hovered ? `${colors.primary}50` : isPrimary ? `${colors.primary}30` : `${colors.primary}18`}`,
         borderRadius: radius.md,
-        color: hovered ? hoverColor : baseColor,
-        fontSize: isMobile ? '0.8rem' : '0.78rem',
-        fontWeight: 500,
+        color: colors.primary,
+        fontSize: '0.8rem',
+        fontWeight: 600,
         textDecoration: 'none',
         transition: transition.fast,
         cursor: 'pointer',
@@ -45,8 +43,7 @@ const BackLink: React.FC<BackLinkProps> = ({ to, label, variant = 'primary' }) =
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <span style={{ fontSize: '0.85em', lineHeight: 1 }}>←</span>
-      {label}
+      ← {label}
     </Link>
   );
 };

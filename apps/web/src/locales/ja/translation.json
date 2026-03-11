@@ -4,7 +4,7 @@
     "retry": "再試行",
     "save": "保存",
     "cancel": "キャンセル",
-    "backToHome": "← ホームに戻る",
+    "backToHome": "ホームに戻る",
     "filter": "フィルター",
     "signIn": "サインイン",
     "signOut": "サインアウト",
@@ -28,7 +28,7 @@
     "wins": "勝利",
     "losses": "敗北",
     "clear": "クリア",
-    "allTools": "← すべてのツール",
+    "allTools": "すべてのツール",
     "copied": "コピーしました！",
     "failed": "失敗",
     "remove": "削除"
@@ -242,7 +242,7 @@
     "colChange": "変動",
     "footerTotal": "{{count}}王国を追跡中",
     "footerRankChange": "順位変動は最新のKvK結果を反映",
-    "backToRankings": "← ランキングに戻る"
+    "backToRankings": "ランキングに戻る"
   },
   "seasons": {
     "selectSeason": "シーズンを選択",
@@ -392,7 +392,7 @@
     "supporterDesc": "バトルプランナーはAtlas Supporterに含まれています — 無制限の/multirally、Supporterバッジ、限定Discordアクセスなどと共に。月額$4.99から。",
     "becomeSupporter": "Supporterになる",
     "tryPlanner": "プランナーを試す",
-    "allTools": "← すべてのツール",
+    "allTools": "すべてのツール",
     "communityCredit": "大きな感謝を",
     "communityCreditSuffix": "このアイデアを実現してくれたことに。コミュニティによる、コミュニティのためのツール。",
     "accessUnlocked": "アクセス解除済み",
@@ -727,7 +727,7 @@
     "signInToContinue": "サインインして続行",
     "notFound": "プロフィールが見つかりません",
     "notFoundDesc": "このユーザープロフィールは見つからないか、削除された可能性があります。",
-    "backToPlayers": "← プレイヤー一覧に戻る",
+    "backToPlayers": "プレイヤー一覧に戻る",
     "subscription": "サブスクリプション",
     "syncing": "同期中...",
     "subscriptionNotShowing": "サブスクリプションが表示されない？",
@@ -793,7 +793,7 @@
     "becomeSupporter": "Atlas Supporterになる",
     "portalError": "サブスクリプション管理を開けません。support@ks-atlas.comまでお問い合わせください。",
     "referredBy": "紹介者",
-    "backToHome": "← ホームに戻る",
+    "backToHome": "ホームに戻る",
     "welcomeToast": "Atlasへようこそ、{{name}}！🌍"
   },
   "discord": {
@@ -1168,7 +1168,7 @@
     "serverDeserves": "あなたのサーバーにはもっと良い情報を。",
     "playersUseBot": "数十のサーバーのKingshotプレイヤーがAtlas Botで偵察、比較、移籍計画をDiscord内で行っています。",
     "joinDiscord": "Discordに参加",
-    "allTools": "← すべてのツール",
+    "allTools": "すべてのツール",
     "dashboardSubtitle": "あなたのサーバー、あなたのルール。一か所ですべてを設定。",
     "dashGiftCodes": "ギフトコード",
     "dashGiftCodesDesc": "新コードが出たら — サーバーが即座に通知。オプションのロールメンションでチャンネルに自動投稿。",
@@ -1202,7 +1202,7 @@
     "serverRegistered": "サーバーが登録されました！",
     "alreadyRegistered": "サーバーは既に登録されています。",
     "registrationFailed": "登録に失敗しました",
-    "backToBot": "← Atlas Botに戻る",
+    "backToBot": "Atlas Botに戻る",
     "activeReminders": "アクティブなリマインダー",
     "configured": "設定済み",
     "giftCodes": "ギフトコード",
@@ -2084,7 +2084,7 @@
     "titleAccent": "プランナー",
     "subtitle": "シンクロ攻撃。推測不要。",
     "adminPreview": "管理者プレビュー",
-    "backToTools": "← ツールに戻る",
+    "backToTools": "ツールに戻る",
     "allies": "味方",
     "enemies": "敵",
     "addAlly": "+ 味方",
@@ -2443,7 +2443,7 @@
     "undefeatedBattle": "Battle無敗",
     "supremeRulers": "最強の支配者",
     "more": "+{{count}}件",
-    "backToHome": "← ホームに戻る"
+    "backToHome": "ホームに戻る"
   },
   "supportButton": {
     "supportAtlas": "Atlasをサポート",
@@ -2608,7 +2608,7 @@
     "ctaDesc": "新しい拠点を探すにも、強いプレイヤーを探すにも — トランスファーハブが最適なマッチを実現。無料、罠なし。",
     "ctaButton": "トランスファーハブに入る",
     "browseKingdoms": "すべての王国を閲覧",
-    "allTools": "← すべてのツール",
+    "allTools": "すべてのツール",
     "cmpAlliance": "同盟情報とスケジュール",
     "cmpBadge": "王国全ユーザーのゴールドバッジ",
     "cmpBasicListing": "Atlasスコアと統計の基本リスティング",
@@ -3038,7 +3038,7 @@
     "activeSchedule": "アクティブスケジュール",
     "activeScheduleDesc": "王国にアクティブな準備スケジュールがあります。",
     "addTimeRange": "時間帯を追加",
-    "backToTools": "← ツールに戻る",
+    "backToTools": "ツールに戻る",
     "beOnline": "割り当てスロット中はオンラインに",
     "changeScreenshot": "スクリーンショットを変更",
     "copyFrom": "コピー元",
@@ -3632,7 +3632,7 @@
     "goldDesc": "ゴールド＆シルバーティア王国で利用可能。",
     "reachGold": "ゴールドティアを目指す",
     "tryRegistry": "登録を見る",
-    "allTools": "← 全ツール"
+    "allTools": "全ツール"
   },
   "allianceCenter": {
     "eventCoordinatorLink": "イベントコーディネーター",
@@ -3860,7 +3860,7 @@
     "goldDesc": "戦闘配置はゴールド等級機能です。王国基金への貢献で王国がゴールドに到達するのを助けましょう。",
     "reachGold": "ゴールド等級に到達",
     "tryLayout": "配置を試す",
-    "allTools": "← すべてのツール"
+    "allTools": "すべてのツール"
   },
   "allianceCenterLanding": {
     "pageTitle": "アライアンスセンター",
@@ -3909,7 +3909,7 @@
     "roleBooster": "ブースター",
     "canCreate": "作成可能",
     "viewAllTools": "すべてのツールを見る",
-    "allTools": "← すべてのツール"
+    "allTools": "すべてのツール"
   },
   "eventCoordinatorLanding": {
     "pageTitle": "アライアンスイベントコーディネーター — Kingshot Atlas",
@@ -3955,7 +3955,7 @@
     "roleBooster": "ブースター",
     "canActivate": "有効化可能",
     "viewAllTools": "すべてのツールを見る",
-    "allTools": "← すべてのツール"
+    "allTools": "すべてのツール"
   },
   "bearRally": {
     "pageTitle": "ベアラリーティアリスト",
@@ -3993,7 +3993,7 @@
     "tip3": "Atlasが自動的に防御EGボーナス（偵察で水増し）を調整し、攻撃EGボーナス（ラリーで有効）を適用。",
     "tip4": "プレイヤーはベアスコアでランク付けされ、SS（最高）からD（最低）のティアが割り当てられます。",
     "aboutTool": "このツールについて",
-    "allianceCenter": "← 同盟センター",
+    "allianceCenter": "同盟センター",
     "rosterHint": "（同盟名簿からの候補）",
     "disclaimer": "このツールはガイドです。ベアスコアは部隊ボーナスと専用装備の調整に基づいています — ヒーロースキルとタレントツリーは考慮されていません。出発点として使用し、最終判断としないでください。",
     "errorName": "プレイヤー名は必須です。",
@@ -4109,7 +4109,7 @@
     "freeBadge": "無料同盟ツール",
     "ctaTitle": "アタッカーを把握。ハントに勝利。",
     "ctaDesc": "同盟を偵察し、データを入力すれば、Atlasがプレイヤーをランク付け。プレイヤーごと2分。何時間もの議論を節約。",
-    "allTools": "← すべてのツール",
+    "allTools": "すべてのツール",
     "disclaimerTitle": "重要な注意事項",
     "disclaimerText": "ベアラリーティアリストはガイドです — 最終ランキングではありません。部隊ボーナスと専用装備調整のみでベアスコアを計算します。ヒーロースキル、タレントツリー、その他の変数は考慮されません。"
   },

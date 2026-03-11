@@ -4,7 +4,7 @@
     "retry": "Coba Lagi",
     "save": "Simpan",
     "cancel": "Batal",
-    "backToHome": "← Kembali ke Beranda",
+    "backToHome": "Kembali ke Beranda",
     "filter": "Filter",
     "signIn": "Masuk",
     "signOut": "Keluar",
@@ -28,7 +28,7 @@
     "wins": "Menang",
     "losses": "Kalah",
     "clear": "Hapus",
-    "allTools": "← Semua Alat",
+    "allTools": "Semua Alat",
     "copied": "Tersalin!",
     "failed": "Gagal",
     "remove": "Hapus"
@@ -257,7 +257,7 @@
     "colChange": "Perubahan",
     "footerTotal": "{{count}} kingdom dilacak",
     "footerRankChange": "Perubahan peringkat mencerminkan hasil KvK terbaru",
-    "backToRankings": "← Kembali ke Peringkat"
+    "backToRankings": "Kembali ke Peringkat"
   },
   "seasons": {
     "selectSeason": "Pilih musim",
@@ -407,7 +407,7 @@
     "supporterDesc": "Battle Planner termasuk dalam Atlas Supporter — bersama /multirally tak terbatas, lencana Supporter, akses Discord eksklusif, dan lainnya. Mulai dari $4.99/bulan.",
     "becomeSupporter": "Jadi Supporter",
     "tryPlanner": "Coba Planner",
-    "allTools": "← Semua Alat",
+    "allTools": "Semua Alat",
     "communityCredit": "Terima kasih besar untuk",
     "communityCreditSuffix": "karena menggalang ide ini menjadi kenyataan. Dibangun oleh komunitas, untuk komunitas.",
     "accessUnlocked": "Akses Terbuka",
@@ -675,7 +675,7 @@
     "signInToContinue": "Masuk untuk Melanjutkan",
     "notFound": "Profil Tidak Ditemukan",
     "notFoundDesc": "Profil pengguna ini tidak ditemukan atau mungkin telah dihapus.",
-    "backToPlayers": "← Kembali ke Pemain",
+    "backToPlayers": "Kembali ke Pemain",
     "subscription": "Langganan",
     "syncing": "Menyinkronkan...",
     "subscriptionNotShowing": "Langganan tidak muncul?",
@@ -741,7 +741,7 @@
     "becomeSupporter": "Jadi Atlas Supporter",
     "portalError": "Tidak bisa membuka manajemen langganan. Silakan email support@ks-atlas.com untuk bantuan.",
     "referredBy": "Direferensikan oleh",
-    "backToHome": "← Kembali ke Beranda",
+    "backToHome": "Kembali ke Beranda",
     "welcomeToast": "Selamat datang di Atlas, {{name}}! 🌍"
   },
   "discord": {
@@ -1116,7 +1116,7 @@
     "serverDeserves": "Server Anda layak mendapat intelijen lebih baik.",
     "playersUseBot": "Pemain Kingshot di puluhan server menggunakan Atlas Bot untuk mengintai lawan, membandingkan kingdom, dan merencanakan transfer — tanpa meninggalkan Discord.",
     "joinDiscord": "Gabung Discord Kami",
-    "allTools": "← Semua Alat",
+    "allTools": "Semua Alat",
     "dashboardSubtitle": "Server Anda, aturan Anda. Konfigurasi semuanya dari satu tempat.",
     "dashGiftCodes": "Kode Hadiah",
     "dashGiftCodesDesc": "New codes drop — your server knows instantly. Auto-posted to your channel with optional role pings.",
@@ -1150,7 +1150,7 @@
     "serverRegistered": "Server registered!",
     "alreadyRegistered": "Server sudah terdaftar.",
     "registrationFailed": "Registrasi gagal",
-    "backToBot": "← Kembali ke Atlas Bot",
+    "backToBot": "Kembali ke Atlas Bot",
     "activeReminders": "Pengingat Aktif",
     "configured": "Dikonfigurasi",
     "giftCodes": "Kode Hadiah",
@@ -2026,7 +2026,7 @@
     "titleAccent": "PLANNER",
     "subtitle": "Perusakan tersinkron. Tanpa tebak-tebakan.",
     "adminPreview": "PRATINJAU ADMIN",
-    "backToTools": "← Kembali ke Alat",
+    "backToTools": "Kembali ke Alat",
     "allies": "SEKUTU",
     "enemies": "MUSUH",
     "addAlly": "+ Sekutu",
@@ -2381,7 +2381,7 @@
     "undefeatedBattle": "Tak Terkalahkan Battle",
     "supremeRulers": "Penguasa Tertinggi",
     "more": "+{{count}} lagi",
-    "backToHome": "← Kembali ke Beranda"
+    "backToHome": "Kembali ke Beranda"
   },
   "supportButton": {
     "supportAtlas": "Dukung Atlas",
@@ -2546,7 +2546,7 @@
     "ctaDesc": "Apakah Anda mencari rumah baru atau mencari pemain kuat — Transfer Hub menghubungkan Anda dengan kecocokan yang tepat. Tanpa biaya, tanpa jebakan.",
     "ctaButton": "Masuk ke Transfer Hub",
     "browseKingdoms": "Jelajahi Semua Kingdom",
-    "allTools": "← Semua Alat",
+    "allTools": "Semua Alat",
     "cmpAlliance": "Informasi & Jadwal Aliansi",
     "cmpBadge": "Lencana emas untuk semua pengguna kingdom",
     "cmpBasicListing": "Daftar dasar dengan Skor Atlas & statistik",
@@ -2976,7 +2976,7 @@
     "activeSchedule": "Jadwal Aktif",
     "activeScheduleDesc": "Kingdom Anda memiliki jadwal prep aktif.",
     "addTimeRange": "Tambah Rentang Waktu",
-    "backToTools": "← Kembali ke Alat",
+    "backToTools": "Kembali ke Alat",
     "beOnline": "Online saat slot Anda yang ditetapkan",
     "changeScreenshot": "Ubah Tangkapan Layar",
     "copyFrom": "Salin dari",
@@ -3561,7 +3561,7 @@
     "goldDesc": "Battle Registry tersedia untuk kingdom Gold dan Silver Tier. Bantu kingdom Anda mencapai tier dengan berkontribusi ke Kingdom Fund.",
     "reachGold": "Capai Gold Tier",
     "tryRegistry": "Lihat Registrasi",
-    "allTools": "← Semua Alat"
+    "allTools": "Semua Alat"
   },
   "allianceCenter": {
     "eventCoordinatorLink": "Koordinator Acara",
@@ -3776,7 +3776,7 @@
     "goldDesc": "Tata Letak Pertempuran adalah fitur Tingkat Emas. Bantu kerajaan Anda mencapai Emas dengan berkontribusi ke Dana Kerajaan.",
     "reachGold": "Capai Tingkat Emas",
     "tryLayout": "Coba Tata Letak",
-    "allTools": "← Semua Alat"
+    "allTools": "Semua Alat"
   },
   "allianceCenterLanding": {
     "pageTitle": "Pusat Aliansi",
@@ -3825,7 +3825,7 @@
     "roleBooster": "Booster",
     "canCreate": "Dapat membuat",
     "viewAllTools": "Lihat Semua Alat",
-    "allTools": "← Semua Alat"
+    "allTools": "Semua Alat"
   },
   "eventCoordinatorLanding": {
     "pageTitle": "Koordinator Acara Aliansi — Kingshot Atlas",
@@ -3871,7 +3871,7 @@
     "roleBooster": "Booster",
     "canActivate": "Dapat mengaktifkan",
     "viewAllTools": "Lihat Semua Alat",
-    "allTools": "← Semua Alat"
+    "allTools": "Semua Alat"
   },
   "bearRally": {
     "pageTitle": "Daftar Tier Rally Beruang",
@@ -3909,7 +3909,7 @@
     "tip3": "Atlas otomatis menyesuaikan bonus EG defensif (membengkak saat intai) dan menerapkan bonus EG ofensif (aktif saat rally).",
     "tip4": "Pemain diperingkat berdasarkan Skor Beruang dan diberi tier dari SS (tertinggi) hingga D (terendah).",
     "aboutTool": "Tentang alat ini",
-    "allianceCenter": "← Pusat Aliansi",
+    "allianceCenter": "Pusat Aliansi",
     "rosterHint": "(saran dari daftar aliansi)",
     "disclaimer": "Alat ini hanya panduan. Skor Beruang didasarkan pada bonus pasukan dan penyesuaian Perlengkapan Eksklusif — skill pahlawan dan pohon bakat tidak diperhitungkan. Gunakan sebagai titik awal, bukan keputusan final.",
     "errorName": "Nama pemain wajib diisi.",
@@ -4020,7 +4020,7 @@
     "freeBadge": "Alat Aliansi Gratis",
     "ctaTitle": "Kenali pemukulmu. Menangkan perburuan.",
     "ctaDesc": "Intai aliansimu, masukkan statistik, dan biarkan Atlas memeringkat pemainmu. 2 menit per pemain. Hemat berjam-jam debat.",
-    "allTools": "← Semua Alat",
+    "allTools": "Semua Alat",
     "disclaimerTitle": "Pemberitahuan Penting",
     "disclaimerText": "Daftar Tier Rally Beruang adalah panduan — bukan peringkat definitif. Menghitung Skor Beruang hanya berdasarkan bonus pasukan dan penyesuaian Perlengkapan Eksklusif. Skill pahlawan, pohon bakat, dan variabel lainnya tidak diperhitungkan."
   },

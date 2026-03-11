@@ -4,7 +4,7 @@
     "retry": "Tekrar Dene",
     "save": "Kaydet",
     "cancel": "İptal",
-    "backToHome": "← Ana Sayfaya Dön",
+    "backToHome": "Ana Sayfaya Dön",
     "filter": "Filtrele",
     "signIn": "Giriş Yap",
     "signOut": "Çıkış Yap",
@@ -28,7 +28,7 @@
     "wins": "Galibiyet",
     "losses": "Mağlubiyet",
     "clear": "Temizle",
-    "allTools": "← Tüm Araçlar",
+    "allTools": "Tüm Araçlar",
     "copied": "Kopyalandı!",
     "failed": "Başarısız",
     "remove": "Kaldır"
@@ -242,7 +242,7 @@
     "colChange": "Değişim",
     "footerTotal": "{{count}} krallık takip ediliyor",
     "footerRankChange": "Sıra değişiklikleri en son KvK sonuçlarını yansıtır",
-    "backToRankings": "← Sıralamaya Dön"
+    "backToRankings": "Sıralamaya Dön"
   },
   "seasons": {
     "selectSeason": "Sezon seç",
@@ -392,7 +392,7 @@
     "supporterDesc": "Savaş Planlayıcı Atlas Supporter'a dahil — sınırsız /multirally, Supporter rozeti, özel Discord erişimi ve daha fazlasıyla birlikte. Ayda $4.99'dan başlayan fiyatlarla.",
     "becomeSupporter": "Supporter Ol",
     "tryPlanner": "Planlayıcıyı Dene",
-    "allTools": "← Tüm Araçlar",
+    "allTools": "Tüm Araçlar",
     "communityCredit": "Büyük teşekkürler",
     "communityCreditSuffix": "bu fikri hayata geçirdiği için. Topluluk tarafından yapıldı, topluluk için.",
     "accessUnlocked": "Erişim Açıldı",
@@ -727,7 +727,7 @@
     "signInToContinue": "Devam Etmek İçin Giriş Yap",
     "notFound": "Profil Bulunamadı",
     "notFoundDesc": "Bu kullanıcı profili bulunamadı veya kaldırılmış olabilir.",
-    "backToPlayers": "← Oyunculara Dön",
+    "backToPlayers": "Oyunculara Dön",
     "subscription": "Abonelik",
     "syncing": "Senkronize ediliyor...",
     "subscriptionNotShowing": "Abonelik görünmüyor mu?",
@@ -793,7 +793,7 @@
     "becomeSupporter": "Atlas Supporter Ol",
     "portalError": "Abonelik yönetimi açılamadı. Lütfen support@ks-atlas.com ile iletişime geçin.",
     "referredBy": "Referans veren",
-    "backToHome": "← Ana Sayfaya Dön",
+    "backToHome": "Ana Sayfaya Dön",
     "welcomeToast": "Atlas'a hoş geldin, {{name}}! 🌍"
   },
   "discord": {
@@ -1168,7 +1168,7 @@
     "serverDeserves": "Sunucunuz daha iyi istihbaratı hak ediyor.",
     "playersUseBot": "Düzinelerce sunucudaki Kingshot oyuncuları, rakipleri keşfetmek, krallıkları karşılaştırmak ve transferleri planlamak için Atlas Bot'u kullanıyor — Discord'dan ayrılmadan.",
     "joinDiscord": "Discord'umuza Katıl",
-    "allTools": "← Tüm Araçlar",
+    "allTools": "Tüm Araçlar",
     "dashboardSubtitle": "Senin sunucun, senin kuralların. Her şeyi tek yerden yapılandır.",
     "dashGiftCodes": "Hediye Kodları",
     "dashGiftCodesDesc": "Yeni kodlar çıkıyor — sunucun anında bilir. İsteğe bağlı rol etiketleriyle kanalına otomatik gönderilir.",
@@ -1202,7 +1202,7 @@
     "serverRegistered": "Sunucu kaydedildi!",
     "alreadyRegistered": "Sunucu zaten kayıtlı.",
     "registrationFailed": "Kayıt başarısız",
-    "backToBot": "← Atlas Bot'a Dön",
+    "backToBot": "Atlas Bot'a Dön",
     "activeReminders": "Aktif Hatırlatıcılar",
     "configured": "Yapılandırılmış",
     "giftCodes": "Hediye Kodları",
@@ -2084,7 +2084,7 @@
     "titleAccent": "PLANLAYICI",
     "subtitle": "Senkronize yıkım. Tahmin yok.",
     "adminPreview": "YÖNETİCİ ÖNİZLEME",
-    "backToTools": "← Araçlara Dön",
+    "backToTools": "Araçlara Dön",
     "allies": "MÜTTEFİKLER",
     "enemies": "DÜŞMANLAR",
     "addAlly": "+ Müttefik",
@@ -2443,7 +2443,7 @@
     "undefeatedBattle": "Yenilmez Savaş",
     "supremeRulers": "Mutlak Hükümdarlar",
     "more": "+{{count}} daha",
-    "backToHome": "← Ana Sayfaya Dön"
+    "backToHome": "Ana Sayfaya Dön"
   },
   "supportButton": {
     "supportAtlas": "Atlas'ı Destekle",
@@ -2608,7 +2608,7 @@
     "ctaDesc": "Yeni bir yuva arasan da güçlü oyuncular arasan da — Transfer Hub seni doğru eşleşmeyle buluşturur. Ücretsiz, tuzak yok.",
     "ctaButton": "Transfer Hub'a Gir",
     "browseKingdoms": "Tüm Krallıkları Keşfet",
-    "allTools": "← Tüm Araçlar",
+    "allTools": "Tüm Araçlar",
     "cmpAlliance": "İttifak Bilgileri ve Programlar",
     "cmpBadge": "Tüm krallık üyeleri için altın rozet",
     "cmpBasicListing": "Atlas Puanı ve istatistiklerle temel ilan",
@@ -3038,7 +3038,7 @@
     "activeSchedule": "Aktif Program",
     "activeScheduleDesc": "Krallığınızın aktif bir hazırlık programı var.",
     "addTimeRange": "Zaman Aralığı Ekle",
-    "backToTools": "← Araçlara Dön",
+    "backToTools": "Araçlara Dön",
     "beOnline": "Atanan slotunuzda çevrimiçi olun",
     "changeScreenshot": "Ekran Görüntüsünü Değiştir",
     "copyFrom": "Şuradan Kopyala",
@@ -3632,7 +3632,7 @@
     "goldDesc": "Altın ve Gümüş seviye krallıklar için.",
     "reachGold": "Altın Seviyeye Ulaş",
     "tryRegistry": "Kaydı Görüntüle",
-    "allTools": "← Tüm Araçlar"
+    "allTools": "Tüm Araçlar"
   },
   "allianceCenter": {
     "eventCoordinatorLink": "Etkinlik Koordinatörü",
@@ -3860,7 +3860,7 @@
     "goldDesc": "Savaş Düzeni bir Altın seviye özelliğidir. Krallık Fonuna katkıda bulunarak krallığınızın Altına ulaşmasına yardımcı olun.",
     "reachGold": "Altın Seviyeye Ulaş",
     "tryLayout": "Düzeni Dene",
-    "allTools": "← Tüm Araçlar"
+    "allTools": "Tüm Araçlar"
   },
   "allianceCenterLanding": {
     "pageTitle": "İttifak Merkezi",
@@ -3909,7 +3909,7 @@
     "roleBooster": "Güçlendiriciler",
     "canCreate": "Oluşturabilir",
     "viewAllTools": "Tüm Araçları Gör",
-    "allTools": "← Tüm Araçlar"
+    "allTools": "Tüm Araçlar"
   },
   "eventCoordinatorLanding": {
     "pageTitle": "İttifak Etkinlik Koordinatörü — Kingshot Atlas",
@@ -3955,7 +3955,7 @@
     "roleBooster": "Güçlendiriciler",
     "canActivate": "Etkinleştirebilir",
     "viewAllTools": "Tüm Araçları Gör",
-    "allTools": "← Tüm Araçlar"
+    "allTools": "Tüm Araçlar"
   },
   "bearRally": {
     "pageTitle": "Ayı Rallisi Seviye Listesi",
@@ -3993,7 +3993,7 @@
     "tip3": "Atlas otomatik olarak savunma ÖT bonuslarını (keşifte şişirilmiş) ayarlar ve saldırı ÖT bonuslarını (rallide aktif) uygular.",
     "tip4": "Oyuncular Ayı Puanına göre sıralanır ve SS (en yüksek) ile D (en düşük) arasında seviyeler atanır.",
     "aboutTool": "Bu araç hakkında",
-    "allianceCenter": "← İttifak Merkezi",
+    "allianceCenter": "İttifak Merkezi",
     "rosterHint": "(ittifak kadrosundan öneriler)",
     "disclaimer": "Bu araç yalnızca bir rehberdir. Ayı Puanları birlik bonuslarına ve Özel Teçhizat ayarlamalarına dayanır — kahraman becerileri ve yetenek ağaçları dahil değildir. Başlangıç noktası olarak kullanın, son söz olarak değil.",
     "errorName": "Oyuncu adı gereklidir.",
@@ -4109,7 +4109,7 @@
     "freeBadge": "Ücretsiz İttifak Aracı",
     "ctaTitle": "Vurucularınızı tanıyın. Avı kazanın.",
     "ctaDesc": "İttifakınızı keşfedin, istatistikleri girin ve Atlas'ın oyuncularınızı sıralamasına izin verin. Oyuncu başına 2 dakika. Saatlerce tartışmadan tasarruf.",
-    "allTools": "← Tüm Araçlar",
+    "allTools": "Tüm Araçlar",
     "disclaimerTitle": "Önemli Uyarı",
     "disclaimerText": "Ayı Rallisi Seviye Listesi bir rehberdir — kesin bir sıralama değil. Ayı Puanlarını yalnızca birlik bonuslarına ve Özel Teçhizat ayarlamalarına göre hesaplar. Kahraman becerileri, yetenek ağaçları ve diğer değişkenler dahil değildir."
   },

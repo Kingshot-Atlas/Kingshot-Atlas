@@ -4,7 +4,7 @@
     "retry": "Повторить",
     "save": "Сохранить",
     "cancel": "Отмена",
-    "backToHome": "← На главную",
+    "backToHome": "На главную",
     "filter": "Фильтр",
     "signIn": "Войти",
     "signOut": "Выйти",
@@ -25,7 +25,7 @@
     "wins": "Победы",
     "losses": "Поражения",
     "clear": "Очистить",
-    "allTools": "← Все инструменты",
+    "allTools": "Все инструменты",
     "copied": "Скопировано!"
   },
   "quickAction": {
@@ -369,7 +369,7 @@
     "supporterDesc": "Планировщик боя включён в Atlas Supporter — вместе с безлимитным /multirally, значком, эксклюзивным Discord и многим другим. От $4.99/мес.",
     "becomeSupporter": "Стать Supporter",
     "tryPlanner": "Попробовать планировщик",
-    "allTools": "← Все инструменты",
+    "allTools": "Все инструменты",
     "communityCredit": "Огромная благодарность",
     "communityCreditSuffix": "за воплощение этой идеи. Создано сообществом для сообщества.",
     "accessUnlocked": "Доступ открыт",
@@ -663,7 +663,7 @@
     "signInToContinue": "Войдите для продолжения",
     "notFound": "Профиль не найден",
     "notFoundDesc": "Этот профиль не найден или был удалён.",
-    "backToPlayers": "← Назад к игрокам",
+    "backToPlayers": "Назад к игрокам",
     "subscription": "Подписка",
     "syncing": "Синхронизация...",
     "subscriptionNotShowing": "Подписка не отображается?",
@@ -716,7 +716,7 @@
     "becomeSupporter": "Стать Atlas Supporter",
     "portalError": "Не удалось открыть управление подпиской. Напишите на support@ks-atlas.com.",
     "referredBy": "Приглашён",
-    "backToHome": "← На главную",
+    "backToHome": "На главную",
     "welcomeToast": "Добро пожаловать в Atlas, {{name}}! 🌍"
   },
   "discord": {
@@ -1086,7 +1086,7 @@
     "serverDeserves": "Ваш сервер заслуживает лучшей разведки.",
     "playersUseBot": "Игроки Kingshot на десятках серверов используют Atlas Bot для разведки, сравнения королевств и планирования трансферов — не выходя из Discord.",
     "joinDiscord": "Наш Discord",
-    "allTools": "← Все инструменты",
+    "allTools": "Все инструменты",
     "dashboardSubtitle": "Ваш сервер, ваши правила. Настройте всё из одного места.",
     "dashGiftCodes": "Подарочные коды",
     "dashGiftCodesDesc": "Новые коды — ваш сервер узнает мгновенно. Автопубликация с пингами ролей.",
@@ -1120,7 +1120,7 @@
     "serverRegistered": "Сервер зарегистрирован!",
     "alreadyRegistered": "Сервер уже зарегистрирован.",
     "registrationFailed": "Ошибка регистрации",
-    "backToBot": "← Назад к Atlas Bot",
+    "backToBot": "Назад к Atlas Bot",
     "activeReminders": "Активные напоминания",
     "configured": "Настроено",
     "giftCodes": "Подарочные коды",
@@ -1974,7 +1974,7 @@
     "titleAccent": "ПЛАНИРОВЩИК",
     "subtitle": "Синхронное уничтожение. Без догадок.",
     "adminPreview": "ПРЕВЬЮ АДМИНА",
-    "backToTools": "← Назад к инструментам",
+    "backToTools": "Назад к инструментам",
     "allies": "СОЮЗНИКИ",
     "enemies": "ВРАГИ",
     "addAlly": "+ Союзник",
@@ -2330,7 +2330,7 @@
     "undefeatedBattle": "Непобеждённые бой",
     "supremeRulers": "Верховные правители",
     "more": "+{{count}} ещё",
-    "backToHome": "← На главную"
+    "backToHome": "На главную"
   },
   "supportButton": {
     "supportAtlas": "Поддержать Atlas",
@@ -2479,7 +2479,7 @@
     "ctaDesc": "Ищете новый дом или сильных игроков — Трансфер-хаб соединит вас с правильным выбором. Без оплаты, без подвоха.",
     "ctaButton": "Войти в Трансфер-хаб",
     "browseKingdoms": "Просмотреть все королевства",
-    "allTools": "← Все инструменты",
+    "allTools": "Все инструменты",
     "cmpAlliance": "Информация об альянсах и расписания",
     "cmpBadge": "Золотой значок для всех пользователей королевства",
     "cmpBasicListing": "Базовый листинг с Atlas Score и статистикой",
@@ -2908,7 +2908,7 @@
     "activeSchedule": "Активное расписание",
     "activeScheduleDesc": "У королевства есть активное расписание подготовки.",
     "addTimeRange": "Добавить диапазон времени",
-    "backToTools": "← Назад к инструментам",
+    "backToTools": "Назад к инструментам",
     "beOnline": "Будьте онлайн во время назначенного слота",
     "changeScreenshot": "Сменить скриншот",
     "copyFrom": "Копировать из",
@@ -3508,7 +3508,7 @@
     "goldDesc": "Реестр боя доступен для золотых и серебряных королевств. Помогите королевству достичь уровня, пополнив фонд.",
     "reachGold": "Достичь золотого уровня",
     "tryRegistry": "Просмотреть реестр",
-    "allTools": "← Все инструменты"
+    "allTools": "Все инструменты"
   },
   "transferReadiness": {
     "title": "Готовность к трансферу",

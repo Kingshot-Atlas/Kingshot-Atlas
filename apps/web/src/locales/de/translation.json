@@ -4,7 +4,7 @@
     "retry": "Erneut versuchen",
     "save": "Speichern",
     "cancel": "Abbrechen",
-    "backToHome": "← Zurück zur Startseite",
+    "backToHome": "Zurück zur Startseite",
     "filter": "Filtern",
     "signIn": "Anmelden",
     "signOut": "Abmelden",
@@ -28,7 +28,7 @@
     "wins": "Siege",
     "losses": "Niederlagen",
     "clear": "Löschen",
-    "allTools": "← Alle Werkzeuge",
+    "allTools": "Alle Werkzeuge",
     "copied": "Kopiert!",
     "failed": "Fehlgeschlagen",
     "remove": "Entfernen"
@@ -242,7 +242,7 @@
     "colChange": "Änderung",
     "footerTotal": "{{count}} Königreiche erfasst",
     "footerRankChange": "Rangänderungen spiegeln die neuesten KvK-Ergebnisse wider",
-    "backToRankings": "← Zurück zu Ranglisten"
+    "backToRankings": "Zurück zu Ranglisten"
   },
   "seasons": {
     "selectSeason": "Saison wählen",
@@ -392,7 +392,7 @@
     "supporterDesc": "Der Kampfplaner ist bei Atlas Supporter enthalten — zusammen mit unbegrenztem /multirally, dem Supporter-Abzeichen, exklusivem Discord-Zugang und mehr. Ab $4,99/Monat.",
     "becomeSupporter": "Supporter Werden",
     "tryPlanner": "Planer Testen",
-    "allTools": "← Alle Werkzeuge",
+    "allTools": "Alle Werkzeuge",
     "communityCredit": "Großes Dankeschön an",
     "communityCreditSuffix": "für die Idee zu diesem Feature. Von der Community gebaut, für die Community.",
     "accessUnlocked": "Zugang Freigeschaltet",
@@ -727,7 +727,7 @@
     "signInToContinue": "Anmelden zum Fortfahren",
     "notFound": "Profil nicht gefunden",
     "notFoundDesc": "Dieses Benutzerprofil konnte nicht gefunden werden oder wurde möglicherweise entfernt.",
-    "backToPlayers": "← Zurück zu Spielern",
+    "backToPlayers": "Zurück zu Spielern",
     "subscription": "Abonnement",
     "syncing": "Synchronisieren...",
     "subscriptionNotShowing": "Abo wird nicht angezeigt?",
@@ -793,7 +793,7 @@
     "becomeSupporter": "Atlas Supporter werden",
     "portalError": "Abonnementverwaltung konnte nicht geöffnet werden. Bitte kontaktiere support@ks-atlas.com.",
     "referredBy": "Empfohlen von",
-    "backToHome": "← Zurück zur Startseite",
+    "backToHome": "Zurück zur Startseite",
     "welcomeToast": "Willkommen bei Atlas, {{name}}! 🌍"
   },
   "discord": {
@@ -1168,7 +1168,7 @@
     "serverDeserves": "Dein Server verdient bessere Informationen.",
     "playersUseBot": "Kingshot-Spieler auf Dutzenden Servern nutzen Atlas Bot, um Gegner zu erkunden, Königreiche zu vergleichen und Transfers zu planen – ohne Discord zu verlassen.",
     "joinDiscord": "Unserem Discord beitreten",
-    "allTools": "← Alle Werkzeuge",
+    "allTools": "Alle Werkzeuge",
     "dashboardSubtitle": "Dein Server, deine Regeln. Konfiguriere alles von einem Ort aus.",
     "dashGiftCodes": "Geschenkcodes",
     "dashGiftCodesDesc": "Neue Codes erscheinen — dein Server weiß es sofort. Automatisch in deinem Kanal gepostet mit optionalen Rollen-Erwähnungen.",
@@ -1202,7 +1202,7 @@
     "serverRegistered": "Server registriert!",
     "alreadyRegistered": "Server bereits registriert.",
     "registrationFailed": "Registrierung fehlgeschlagen",
-    "backToBot": "← Zurück zum Atlas Bot",
+    "backToBot": "Zurück zum Atlas Bot",
     "activeReminders": "Aktive Erinnerungen",
     "configured": "Konfiguriert",
     "giftCodes": "Geschenkcodes",
@@ -2084,7 +2084,7 @@
     "titleAccent": "PLANER",
     "subtitle": "Synchrone Zerstörung. Kein Rätselraten.",
     "adminPreview": "ADMIN-VORSCHAU",
-    "backToTools": "← Zurück zu Werkzeuge",
+    "backToTools": "Zurück zu Werkzeuge",
     "allies": "VERBÜNDETE",
     "enemies": "FEINDE",
     "addAlly": "+ Verbündeter",
@@ -2443,7 +2443,7 @@
     "undefeatedBattle": "Unbesiegte Schlacht",
     "supremeRulers": "Oberste Herrscher",
     "more": "+{{count}} weitere",
-    "backToHome": "← Zurück zur Startseite"
+    "backToHome": "Zurück zur Startseite"
   },
   "supportButton": {
     "supportAtlas": "Atlas unterstützen",
@@ -2608,7 +2608,7 @@
     "ctaDesc": "Ob du ein neues Zuhause oder starke Spieler suchst — der Transfer Hub verbindet dich mit dem richtigen Match. Kostenlos, ohne Haken.",
     "ctaButton": "Transfer Hub betreten",
     "browseKingdoms": "Alle Königreiche durchsuchen",
-    "allTools": "← Alle Werkzeuge",
+    "allTools": "Alle Werkzeuge",
     "cmpAlliance": "Allianz-Informationen & Zeitpläne",
     "cmpBadge": "Goldenes Abzeichen für alle Königreichsmitglieder",
     "cmpBasicListing": "Grundeintrag mit Atlas Score und Statistiken",
@@ -3038,7 +3038,7 @@
     "activeSchedule": "Aktiver Zeitplan",
     "activeScheduleDesc": "Ihr Königreich hat einen aktiven Vorbereitungsplan.",
     "addTimeRange": "Zeitbereich hinzufügen",
-    "backToTools": "← Zurück zu Werkzeugen",
+    "backToTools": "Zurück zu Werkzeugen",
     "beOnline": "Während Ihres zugewiesenen Slots online sein",
     "changeScreenshot": "Screenshot ändern",
     "copyFrom": "Kopieren von",
@@ -3632,7 +3632,7 @@
     "goldDesc": "Für Gold- & Silber-Tier Königreiche.",
     "reachGold": "Gold-Tier Erreichen",
     "tryRegistry": "Register Ansehen",
-    "allTools": "← Alle Werkzeuge"
+    "allTools": "Alle Werkzeuge"
   },
   "allianceCenter": {
     "eventCoordinatorLink": "Event-Koordinator",
@@ -3860,7 +3860,7 @@
     "goldDesc": "Der Schlachtplan ist eine Gold-Stufe Funktion. Hilf deinem Königreich Gold zu erreichen durch Beitrag zum Königreichsfonds.",
     "reachGold": "Gold-Stufe Erreichen",
     "tryLayout": "Plan Ausprobieren",
-    "allTools": "← Alle Werkzeuge"
+    "allTools": "Alle Werkzeuge"
   },
   "allianceCenterLanding": {
     "pageTitle": "Allianz-Zentrum",
@@ -3909,7 +3909,7 @@
     "roleBooster": "Booster",
     "canCreate": "Können erstellen",
     "viewAllTools": "Alle Werkzeuge Anzeigen",
-    "allTools": "← Alle Werkzeuge"
+    "allTools": "Alle Werkzeuge"
   },
   "eventCoordinatorLanding": {
     "pageTitle": "Allianz-Event-Koordinator — Kingshot Atlas",
@@ -3955,7 +3955,7 @@
     "roleBooster": "Booster",
     "canActivate": "Können aktivieren",
     "viewAllTools": "Alle Werkzeuge Anzeigen",
-    "allTools": "← Alle Werkzeuge"
+    "allTools": "Alle Werkzeuge"
   },
   "bearRally": {
     "pageTitle": "Bären-Rally Stufenliste",
@@ -3993,7 +3993,7 @@
     "tip3": "Atlas passt automatisch defensive EG-Boni an (im Scout aufgebläht) und wendet offensive EG-Boni an (im Rally aktiv).",
     "tip4": "Spieler werden nach Bären-Punktzahl eingestuft und erhalten Stufen von SS (höchste) bis D (niedrigste).",
     "aboutTool": "Über dieses Tool",
-    "allianceCenter": "← Allianzzentrum",
+    "allianceCenter": "Allianzzentrum",
     "rosterHint": "(Vorschläge aus dem Allianz-Roster)",
     "disclaimer": "Dieses Tool ist nur ein Leitfaden. Bären-Punktzahlen basieren auf Truppenboni und Exklusiv-Ausrüstungsanpassungen — Heldenfähigkeiten und Talentbäume werden nicht berücksichtigt. Nutze es als Ausgangspunkt, nicht als letztes Wort.",
     "errorName": "Spielername ist erforderlich.",
@@ -4109,7 +4109,7 @@
     "freeBadge": "Kostenloses Allianz-Tool",
     "ctaTitle": "Kenne deine Schläger. Gewinn die Jagd.",
     "ctaDesc": "Erkunde deine Allianz, gib die Werte ein und lass Atlas deine Spieler einstufen. 2 Minuten pro Spieler. Spart Stunden der Debatte.",
-    "allTools": "← Alle Werkzeuge",
+    "allTools": "Alle Werkzeuge",
     "disclaimerTitle": "Wichtiger Hinweis",
     "disclaimerText": "Die Bären-Rally Stufenliste ist ein Leitfaden — kein endgültiges Ranking. Sie berechnet Bären-Punktzahlen nur basierend auf Truppenboni und Exklusiv-Ausrüstungsanpassungen. Heldenfähigkeiten, Talentbäume und andere Variablen werden nicht berücksichtigt."
   },

@@ -4,7 +4,7 @@
     "retry": "Try Again",
     "save": "Save",
     "cancel": "Cancel",
-    "backToHome": "← Back to Home",
+    "backToHome": "Back to Home",
     "filter": "Filter",
     "signIn": "Sign In",
     "signOut": "Sign Out",
@@ -28,7 +28,7 @@
     "wins": "Wins",
     "losses": "Losses",
     "clear": "Clear",
-    "allTools": "← All Tools",
+    "allTools": "All Tools",
     "copied": "Copied!",
     "failed": "Failed",
     "remove": "Remove"
@@ -257,7 +257,7 @@
     "colChange": "Change",
     "footerTotal": "{{count}} kingdoms tracked",
     "footerRankChange": "Rank changes reflect the latest KvK results",
-    "backToRankings": "← Back to Rankings"
+    "backToRankings": "Back to Rankings"
   },
   "seasons": {
     "selectSeason": "Select a season",
@@ -407,7 +407,7 @@
     "supporterDesc": "The Battle Planner is included with Atlas Supporter — along with unlimited /multirally, the Supporter badge, exclusive Discord access, and more. Starting at $4.99/month.",
     "becomeSupporter": "Become a Supporter",
     "tryPlanner": "Try the Planner",
-    "allTools": "← All Tools",
+    "allTools": "All Tools",
     "communityCredit": "Huge shoutout to",
     "communityCreditSuffix": "for rallying this idea into existence. Built by the community, for the community.",
     "accessUnlocked": "Access Unlocked",
@@ -742,7 +742,7 @@
     "signInToContinue": "Sign In to Continue",
     "notFound": "Profile Not Found",
     "notFoundDesc": "This user profile could not be found or may have been removed.",
-    "backToPlayers": "← Back to Players",
+    "backToPlayers": "Back to Players",
     "subscription": "Subscription",
     "syncing": "Syncing...",
     "subscriptionNotShowing": "Subscription not showing?",
@@ -808,7 +808,7 @@
     "becomeSupporter": "Become an Atlas Supporter",
     "portalError": "Unable to open subscription management. Please email support@ks-atlas.com for assistance.",
     "referredBy": "Referred by",
-    "backToHome": "← Back to Home",
+    "backToHome": "Back to Home",
     "welcomeToast": "Welcome to Atlas, {{name}}! 🌍"
   },
   "discord": {
@@ -1183,7 +1183,7 @@
     "serverDeserves": "Your server deserves better intel.",
     "playersUseBot": "Kingshot players across dozens of servers use Atlas Bot to scout opponents, compare kingdoms, and plan transfers — without leaving Discord.",
     "joinDiscord": "Join Our Discord",
-    "allTools": "← All Tools",
+    "allTools": "All Tools",
     "dashboardSubtitle": "Your server, your rules. Configure everything from one place.",
     "dashGiftCodes": "Gift Codes",
     "dashGiftCodesDesc": "New codes drop — your server knows instantly. Auto-posted to your channel with optional role pings.",
@@ -1217,7 +1217,7 @@
     "serverRegistered": "Server registered!",
     "alreadyRegistered": "Server already registered.",
     "registrationFailed": "Registration failed",
-    "backToBot": "← Back to Atlas Bot",
+    "backToBot": "Back to Atlas Bot",
     "activeReminders": "Active Reminders",
     "configured": "Configured",
     "giftCodes": "Gift Codes",
@@ -2099,7 +2099,7 @@
     "titleAccent": "PLANNER",
     "subtitle": "Synchronized destruction. No guesswork.",
     "adminPreview": "ADMIN PREVIEW",
-    "backToTools": "← Back to Tools",
+    "backToTools": "Back to Tools",
     "allies": "ALLIES",
     "enemies": "ENEMIES",
     "addAlly": "+ Ally",
@@ -2458,7 +2458,7 @@
     "undefeatedBattle": "Undefeated Battle",
     "supremeRulers": "Supreme Rulers",
     "more": "+{{count}} more",
-    "backToHome": "← Back to Home"
+    "backToHome": "Back to Home"
   },
   "supportButton": {
     "supportAtlas": "Support Atlas",
@@ -2623,7 +2623,7 @@
     "ctaDesc": "Whether you're looking for a new home or looking for strong players — the Transfer Hub connects you with the right match. No cost, no catch.",
     "ctaButton": "Enter the Transfer Hub",
     "browseKingdoms": "Browse All Kingdoms",
-    "allTools": "← All Tools",
+    "allTools": "All Tools",
     "cmpAlliance": "Alliance Information & Schedules",
     "cmpBadge": "Gilded badge for all kingdom users",
     "cmpBasicListing": "Basic listing with Atlas Score & stats",
@@ -3053,7 +3053,7 @@
     "activeSchedule": "Active Schedule",
     "activeScheduleDesc": "Your kingdom has an active prep schedule.",
     "addTimeRange": "Add Time Range",
-    "backToTools": "← Back to Tools",
+    "backToTools": "Back to Tools",
     "beOnline": "Be online during your assigned slot",
     "changeScreenshot": "Change Screenshot",
     "copyFrom": "Copy from",
@@ -3641,7 +3641,7 @@
     "goldDesc": "The Battle Registry is available for Gold and Silver Tier kingdoms. Help your kingdom reach the tier by contributing to the Kingdom Fund.",
     "reachGold": "Reach Gold Tier",
     "tryRegistry": "View the Registry",
-    "allTools": "← All Tools"
+    "allTools": "All Tools"
   },
   "transferReadiness": {
     "title": "Transfer Readiness",
@@ -3976,7 +3976,7 @@
     "goldDesc": "The Battle Layout is a Gold Tier feature. Help your kingdom reach Gold by contributing to the Kingdom Fund on the Transfer Hub.",
     "reachGold": "Reach Gold Tier",
     "tryLayout": "Try the Layout",
-    "allTools": "← All Tools"
+    "allTools": "All Tools"
   },
   "allianceCenterLanding": {
     "pageTitle": "Alliance Center",
@@ -4025,7 +4025,7 @@
     "roleBooster": "Boosters",
     "canCreate": "Can create",
     "viewAllTools": "View All Tools",
-    "allTools": "← All Tools"
+    "allTools": "All Tools"
   },
   "eventCoordinatorLanding": {
     "pageTitle": "Alliance Event Coordinator — Kingshot Atlas",
@@ -4071,7 +4071,7 @@
     "roleBooster": "Boosters",
     "canActivate": "Can activate",
     "viewAllTools": "View All Tools",
-    "allTools": "← All Tools"
+    "allTools": "All Tools"
   },
   "bearRally": {
     "pageTitle": "Bear Rally Tier List",
@@ -4109,7 +4109,7 @@
     "tip3": "Atlas automatically adjusts for defensive EG bonuses (inflated in scout) and applies offensive EG bonuses (active in rally).",
     "tip4": "Players are ranked by Bear Score and assigned tiers from SS (highest) to D (lowest).",
     "aboutTool": "About this tool",
-    "allianceCenter": "← Alliance Center",
+    "allianceCenter": "Alliance Center",
     "rosterHint": "(suggestions from alliance roster)",
     "disclaimer": "This tool is a guide only. Bear Scores are based on troop bonuses and Exclusive Gear adjustments — hero skills and talent trees are not factored in. Use this as a starting point, not the final word.",
     "errorName": "Player name is required.",
@@ -4226,7 +4226,7 @@
     "freeBadge": "Free Alliance Tool",
     "ctaTitle": "Know your hitters. Win the hunt.",
     "ctaDesc": "Scout your alliance, input the stats, and let Atlas rank your players. Takes 2 minutes per player. Saves hours of debate.",
-    "allTools": "← All Tools",
+    "allTools": "All Tools",
     "disclaimerTitle": "Important Disclaimer",
     "disclaimerText": "The Bear Rally Tier List is a guide — not a definitive ranking. It calculates Bear Scores based on troop bonuses and Exclusive Gear adjustments only. Hero skills, talent trees, and other variables are not factored in. Use this tool as a starting point for your rally lineup decisions."
   },
