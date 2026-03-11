@@ -647,6 +647,15 @@
 | Watchlist Score Alerts | Toast notification on login if any favorited kingdom's score changed since last session. "K-1234 moved up 3 ranks!" Encourages daily engagement. | Global (on auth) | Medium | High |
 | Transfer Readiness Score | On user's profile, show a "Transfer Readiness" percentage based on how complete their transfer profile is. Incomplete fields show blurred potential score. | Profile | Low | Medium |
 
+### Recently Shipped
+
+| Feature | Status | Details |
+|---------|--------|---------|
+| Page Analytics v2 — Chart Consolidation | ✅ Live | Unified unique visitors chart with tab selector (Today/Last 24h/7 Days/30 Days/Custom). Hourly charts for Today/24h, daily charts for 7d/30d/Custom. Replaced 3 separate charts with single adaptive view. Centered stat box text. (2026-03-22) |
+| Page Analytics v2 — New vs Returning Visitors | ✅ Live | Split bar showing first-time vs returning visitors for selected period. Supabase RPC `get_new_vs_returning_visitors` with admin-only access. Color-coded counts + percentages. (2026-03-22) |
+| Page Analytics v2 — Peak Hours Heatmap | ✅ Live | 7×24 grid (day of week × hour) showing traffic intensity. Supabase RPC `get_peak_hours_heatmap`. Horizontal scroll on mobile. Color legend. (2026-03-22) |
+| Page Analytics v2 — User Journey Funnel | ✅ Live | 4-step conversion funnel: All Visitors → Browsed Kingdoms → Visited Profile → Used Tools. Supabase RPC `get_visitor_journey_funnel`. Drop-off percentages between steps. (2026-03-22) |
+
 ---
 
 ## Legend

@@ -297,20 +297,23 @@ export function useAllianceCenter(): UseAllianceCenterResult {
   });
 
   // ─── Fetch player data from Kingshot API for non-Atlas members ───
+  // NOTE: Do NOT gate on playerProfilesLoading — the playerProfiles map defaults to
+  // empty Map while loading, so new members simply won't match it yet. Gating on
+  // loading prevents uncachedPlayerIds from populating after import.
   const nonAtlasPlayerIds = useMemo(() => {
-    if (!alliance || playerProfilesLoading) return [];
+    if (!alliance) return [];
     return members
       .filter(m => m.player_id && !playerProfiles.has(m.player_id))
       .map(m => m.player_id!);
-  }, [members, playerProfiles, playerProfilesLoading, alliance]);
+  }, [members, playerProfiles, alliance]);
 
   // IDs that have never been resolved (no cached_at) — these auto-fetch
   const uncachedPlayerIds = useMemo(() => {
-    if (!alliance || playerProfilesLoading) return [];
+    if (!alliance) return [];
     return members
       .filter(m => m.player_id && !playerProfiles.has(m.player_id) && !m.cached_at)
       .map(m => m.player_id!);
-  }, [members, playerProfiles, playerProfilesLoading, alliance]);
+  }, [members, playerProfiles, alliance]);
 
   // Seed from cached columns on alliance_members (instant, avoids re-fetch every session)
   const cachedApiData = useMemo(() => {
@@ -334,12 +337,14 @@ export function useAllianceCenter(): UseAllianceCenterResult {
   const { data: apiPlayerData = cachedApiData, isLoading: apiPlayerDataLoading, isError: apiPlayerDataError, refetch: refetchApiPlayerData } = useQuery({
     queryKey: ['alliance-api-players', alliance?.id, nonAtlasPlayerIds.join(',')],
     queryFn: async (): Promise<Map<string, ApiPlayerData>> => {
-      const map = new Map<string, ApiPlayerData>();
+      // Start with existing cached data so we don't lose previously resolved entries
+      const map = new Map<string, ApiPlayerData>(cachedApiData);
       const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
       // Manual refresh fetches ALL non-Atlas IDs; auto-fetch only uncached ones
-      const batch = (manualRefreshRef.current ? nonAtlasPlayerIds : uncachedPlayerIds).slice(0, 50);
+      const isManual = manualRefreshRef.current;
+      const batch = (isManual ? nonAtlasPlayerIds : uncachedPlayerIds).slice(0, 50);
       manualRefreshRef.current = false;
-      if (batch.length === 0) return cachedApiData;
+      if (batch.length === 0) return map;
 
       let fetchedFromApi = false;
       try {
@@ -360,10 +365,11 @@ export function useAllianceCenter(): UseAllianceCenterResult {
       } catch { /* batch endpoint unavailable */ }
 
       // Persist resolved data to alliance_members cached columns
+      // On manual refresh, update ALL members (even already-cached) to get fresh data
       if (fetchedFromApi && isSupabaseConfigured && supabase && alliance) {
         const sb = supabase;
         const now = new Date().toISOString();
-        const toUpdate = members.filter(m => m.player_id && map.has(m.player_id));
+        const toUpdate = members.filter(m => m.player_id && map.has(m.player_id) && (isManual || !m.cached_at));
         for (const m of toUpdate) {
           const d = map.get(m.player_id!)!;
           const tcLevel = d.town_center_level ? Math.min(Math.max(d.town_center_level, 1), 60) : null;
@@ -843,6 +849,7 @@ export function useAllianceCenter(): UseAllianceCenterResult {
       return { success: 0, failed: playerIds.length, errors: ['No alliance found'] };
     }
 
+    const sb = supabase;
     const unique = [...new Set(playerIds.map(id => id.trim()).filter(Boolean))];
     const remaining = MAX_MEMBERS - members.length;
     const toAdd = unique.slice(0, remaining);
@@ -853,8 +860,8 @@ export function useAllianceCenter(): UseAllianceCenterResult {
       errors.push(`Only ${remaining} slots available, ${unique.length - remaining} IDs skipped`);
     }
 
-    // Try to resolve player names from Atlas profiles
-    const { data: profiles } = await supabase
+    // Try to resolve player data from Atlas profiles first
+    const { data: profiles } = await sb
       .from('profiles')
       .select('linked_player_id, linked_username, username')
       .in('linked_player_id', toAdd);
@@ -866,38 +873,64 @@ export function useAllianceCenter(): UseAllianceCenterResult {
       }
     });
 
-    // Resolve remaining names from Kingshot API
+    onProgress?.(profileMap.size, toAdd.length);
+
+    // Resolve remaining from Kingshot API via batch-verify (much faster than sequential single calls)
     const unresolvedIds = toAdd.filter(pid => !profileMap.has(pid));
+    const apiDataMap = new Map<string, { username: string; tc_level: number | null; kingdom: number | null }>();
+
     if (unresolvedIds.length > 0) {
       const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
       const batch = unresolvedIds.slice(0, 50);
-      for (let i = 0; i < batch.length; i++) {
-        const pid = batch[i]!;
-        try {
-          const res = await fetch(`${API_BASE}/api/v1/player-link/verify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ player_id: pid }),
-          });
-          if (res.ok) {
-            const apiData = await res.json();
-            if (apiData.username) profileMap.set(pid, apiData.username);
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/player-link/batch-verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ player_ids: batch }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.results) {
+            Object.entries(data.results).forEach(([pid, pdata]: [string, unknown]) => {
+              const d = pdata as ApiPlayerData;
+              if (d && d.username) {
+                profileMap.set(pid, d.username);
+                apiDataMap.set(pid, {
+                  username: d.username,
+                  tc_level: d.town_center_level ? Math.min(Math.max(d.town_center_level, 1), 60) : null,
+                  kingdom: d.kingdom || null,
+                });
+              }
+            });
           }
-        } catch { /* skip */ }
-        onProgress?.(profileMap.size + i + 1, toAdd.length);
-        await new Promise(r => setTimeout(r, 250));
-      }
+          if (data.errors?.length) {
+            data.errors.forEach((e: string) => errors.push(e));
+          }
+        }
+      } catch { /* batch endpoint unavailable — names will be "Player {id}" */ }
     }
 
-    // Build rows — use resolved name or fallback to "Player <ID>"
-    const rows = toAdd.map(pid => ({
-      alliance_id: alliance.id,
-      player_name: profileMap.get(pid) || `Player ${pid}`,
-      player_id: pid,
-      added_by: user.id,
-    }));
+    onProgress?.(profileMap.size, toAdd.length);
 
-    const { error, data } = await supabase
+    // Build rows — use resolved name or fallback to "Player <ID>"
+    // Include cached data directly so TC level is available immediately
+    const now = new Date().toISOString();
+    const rows = toAdd.map(pid => {
+      const apiData = apiDataMap.get(pid);
+      return {
+        alliance_id: alliance.id,
+        player_name: profileMap.get(pid) || `Player ${pid}`,
+        player_id: pid,
+        added_by: user.id,
+        // Cache API data directly on insert so TC level shows immediately
+        cached_username: apiData?.username || null,
+        cached_tc_level: apiData?.tc_level || null,
+        cached_kingdom: apiData?.kingdom || null,
+        cached_at: apiData ? now : null,
+      };
+    });
+
+    const { error, data } = await sb
       .from('alliance_members')
       .insert(rows)
       .select('id');

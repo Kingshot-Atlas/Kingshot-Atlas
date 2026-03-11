@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
-type RangePreset = 'today' | '7d' | '30d' | '90d' | 'custom';
+type RangePreset = 'today' | '24h' | '7d' | '30d' | '90d' | 'custom';
 
 interface DailyData {
   day: string;
@@ -29,6 +29,22 @@ interface ChartPoint {
   value: number;
 }
 
+interface HeatmapCell {
+  day_of_week: number;
+  hour_of_day: number;
+  visitor_count: number;
+}
+
+interface FunnelStep {
+  step_name: string;
+  visitor_count: number;
+}
+
+interface NewVsReturningData {
+  new_visitors: number;
+  returning_visitors: number;
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 function fmtDate(d: Date): string {
@@ -40,6 +56,9 @@ function dateFromPreset(preset: RangePreset): { start: string; end: string } {
   const start = new Date();
   switch (preset) {
     case 'today':
+      break;
+    case '24h':
+      start.setDate(start.getDate() - 1);
       break;
     case '7d':
       start.setDate(start.getDate() - 6);
@@ -261,9 +280,11 @@ export const PageAnalyticsTab: React.FC = () => {
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
   const [dailyData, setDailyData] = useState<DailyData[]>([]);
-  const [todayHourly, setTodayHourly] = useState<HourlyData[]>([]);
-  const [last24hHourly, setLast24hHourly] = useState<HourlyData[]>([]);
+  const [hourlyData, setHourlyData] = useState<HourlyData[]>([]);
   const [topPages, setTopPages] = useState<TopPage[]>([]);
+  const [heatmapData, setHeatmapData] = useState<HeatmapCell[]>([]);
+  const [funnelData, setFunnelData] = useState<FunnelStep[]>([]);
+  const [newVsReturning, setNewVsReturning] = useState<NewVsReturningData>({ new_visitors: 0, returning_visitors: 0 });
   const [liveCount, setLiveCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const liveIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -275,33 +296,47 @@ export const PageAnalyticsTab: React.FC = () => {
     return dateFromPreset(preset);
   }, [preset, customStart, customEnd]);
 
-  // Fetch daily + hourly analytics data
+  // Fetch analytics data
   const fetchAnalytics = useCallback(async () => {
     if (!supabase) return;
     setLoading(true);
     try {
       const { start, end } = getRange();
-
-      // Today = start of today (local midnight) to now
       const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      // Last 24h = now minus 24 hours
-      const last24hStart = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const isHourly = preset === 'today' || preset === '24h';
+      const hourlyStart = preset === 'today'
+        ? new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        : new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const rangeStart = new Date(start + 'T00:00:00');
+      const rangeEnd = new Date(end + 'T23:59:59');
 
-      const [dailyRes, pagesRes, todayRes, last24hRes] = await Promise.all([
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const promises: Promise<any>[] = [
         supabase.rpc('get_page_analytics', { p_start: start, p_end: end }),
         supabase.rpc('get_top_pages', { p_start: start, p_end: end, p_limit: 20 }),
-        supabase.rpc('get_hourly_analytics', { p_start: todayStart.toISOString(), p_end: now.toISOString() }),
-        supabase.rpc('get_hourly_analytics', { p_start: last24hStart.toISOString(), p_end: now.toISOString() }),
-      ]);
-      if (dailyRes.data) setDailyData(dailyRes.data as DailyData[]);
-      if (pagesRes.data) setTopPages(pagesRes.data as TopPage[]);
-      if (todayRes.data) setTodayHourly(todayRes.data as HourlyData[]);
-      if (last24hRes.data) setLast24hHourly(last24hRes.data as HourlyData[]);
+        supabase.rpc('get_peak_hours_heatmap', { p_start: rangeStart.toISOString(), p_end: rangeEnd.toISOString() }),
+        supabase.rpc('get_visitor_journey_funnel', { p_start: rangeStart.toISOString(), p_end: rangeEnd.toISOString() }),
+        supabase.rpc('get_new_vs_returning_visitors', { p_start: rangeStart.toISOString(), p_end: rangeEnd.toISOString() }),
+      ];
+      if (isHourly) {
+        promises.push(supabase.rpc('get_hourly_analytics', { p_start: hourlyStart.toISOString(), p_end: now.toISOString() }));
+      }
+
+      const results = await Promise.all(promises);
+      if (results[0].data) setDailyData(results[0].data as DailyData[]);
+      if (results[1].data) setTopPages(results[1].data as TopPage[]);
+      if (results[2].data) setHeatmapData(results[2].data as HeatmapCell[]);
+      if (results[3].data) setFunnelData(results[3].data as FunnelStep[]);
+      if (results[4].data) {
+        const d = results[4].data as NewVsReturningData[];
+        if (d.length > 0) setNewVsReturning(d[0]);
+      }
+      if (isHourly && results[5]?.data) setHourlyData(results[5].data as HourlyData[]);
+      if (!isHourly) setHourlyData([]);
     } catch { /* silent */ } finally {
       setLoading(false);
     }
-  }, [getRange]);
+  }, [getRange, preset]);
 
   // Fetch live visitor count
   const fetchLive = useCallback(async () => {
@@ -331,27 +366,24 @@ export const PageAnalyticsTab: React.FC = () => {
   const totalViews = dailyData.reduce((sum, d) => sum + d.total_views, 0);
   const avgDaily = dailyData.length > 0 ? Math.round(totalVisitors / dailyData.length) : 0;
 
-  // Prepare chart data
-  const dailyChartData: ChartPoint[] = useMemo(() =>
-    dailyData.map(d => ({ label: shortDay(d.day), value: d.unique_visitors })),
-    [dailyData]
-  );
+  // Prepare unified chart data
+  const chartData: ChartPoint[] = useMemo(() => {
+    if (preset === 'today' || preset === '24h') {
+      return hourlyData.map(d => ({ label: fmtHour(d.hour), value: d.unique_visitors }));
+    }
+    return dailyData.map(d => ({ label: shortDay(d.day), value: d.unique_visitors }));
+  }, [preset, hourlyData, dailyData]);
 
-  const todayChartData: ChartPoint[] = useMemo(() =>
-    todayHourly.map(d => ({ label: fmtHour(d.hour), value: d.unique_visitors })),
-    [todayHourly]
-  );
-
-  const last24hChartData: ChartPoint[] = useMemo(() =>
-    last24hHourly.map(d => ({ label: fmtHour(d.hour), value: d.unique_visitors })),
-    [last24hHourly]
-  );
+  const chartColor = preset === 'today' ? colors.success : preset === '24h' ? colors.purple : colors.primary;
+  const chartTitle = preset === 'today' ? 'Today — Hourly Unique Visitors'
+    : preset === '24h' ? 'Last 24 Hours — Hourly Unique Visitors'
+    : 'Daily Unique Visitors';
 
   const presets: { id: RangePreset; label: string }[] = [
     { id: 'today', label: 'Today' },
+    { id: '24h', label: 'Last 24h' },
     { id: '7d', label: '7 Days' },
     { id: '30d', label: '30 Days' },
-    { id: '90d', label: '90 Days' },
     { id: 'custom', label: 'Custom' },
   ];
 
@@ -374,7 +406,7 @@ export const PageAnalyticsTab: React.FC = () => {
             key={p.id}
             onClick={() => setPreset(p.id)}
             style={{
-              padding: '0.3rem 0.65rem',
+              padding: '0.4rem 0.75rem',
               backgroundColor: preset === p.id ? `${colors.primary}25` : 'transparent',
               color: preset === p.id ? colors.primary : colors.textMuted,
               border: preset === p.id ? `1px solid ${colors.primary}50` : '1px solid transparent',
@@ -461,6 +493,7 @@ export const PageAnalyticsTab: React.FC = () => {
           padding: '1.25rem',
           border: `1px solid ${colors.success}40`,
           position: 'relative',
+          textAlign: 'center',
         }}>
           <div style={{
             position: 'absolute',
@@ -487,6 +520,7 @@ export const PageAnalyticsTab: React.FC = () => {
           borderRadius: '12px',
           padding: '1.25rem',
           border: `1px solid ${colors.border}`,
+          textAlign: 'center',
         }}>
           <div style={{ color: colors.textMuted, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Unique Visitors</div>
           <div style={{ fontSize: '2rem', fontWeight: 700, color: colors.primary }}>
@@ -503,6 +537,7 @@ export const PageAnalyticsTab: React.FC = () => {
           borderRadius: '12px',
           padding: '1.25rem',
           border: `1px solid ${colors.border}`,
+          textAlign: 'center',
         }}>
           <div style={{ color: colors.textMuted, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Total Page Views</div>
           <div style={{ fontSize: '2rem', fontWeight: 700, color: colors.purple }}>
@@ -519,6 +554,7 @@ export const PageAnalyticsTab: React.FC = () => {
           borderRadius: '12px',
           padding: '1.25rem',
           border: `1px solid ${colors.border}`,
+          textAlign: 'center',
         }}>
           <div style={{ color: colors.textMuted, fontSize: '0.8rem', marginBottom: '0.4rem' }}>Avg. Daily Visitors</div>
           <div style={{ fontSize: '2rem', fontWeight: 700, color: colors.gold }}>
@@ -540,7 +576,7 @@ export const PageAnalyticsTab: React.FC = () => {
         </div>
       </div>
 
-      {/* Today Hourly Chart */}
+      {/* Unique Visitors Chart */}
       <div style={{
         backgroundColor: colors.cardAlt,
         borderRadius: '12px',
@@ -548,41 +584,123 @@ export const PageAnalyticsTab: React.FC = () => {
         border: `1px solid ${colors.border}`,
       }}>
         <h3 style={{ color: colors.text, margin: '0 0 1rem 0', fontSize: '1rem' }}>
-          📈 Today — Hourly Unique Visitors
+          📈 {chartTitle}
         </h3>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted }}>Loading chart...</div>
         ) : (
-          <AreaChart
-            data={todayChartData}
-            lineColor={colors.success}
-            emptyMessage="No visitors tracked today yet."
-          />
+          <AreaChart data={chartData} lineColor={chartColor} />
         )}
       </div>
 
-      {/* Last 24h Hourly Chart */}
-      <div style={{
-        backgroundColor: colors.cardAlt,
-        borderRadius: '12px',
-        padding: '1.25rem',
-        border: `1px solid ${colors.border}`,
-      }}>
-        <h3 style={{ color: colors.text, margin: '0 0 1rem 0', fontSize: '1rem' }}>
-          🕐 Last 24 Hours — Hourly Unique Visitors
-        </h3>
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted }}>Loading chart...</div>
-        ) : (
-          <AreaChart
-            data={last24hChartData}
-            lineColor={colors.purple}
-            emptyMessage="No visitor data in the last 24 hours."
-          />
-        )}
+      {/* New vs Returning Visitors + User Journey — side by side on desktop */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem' }}>
+        {/* New vs Returning Visitors */}
+        <div style={{
+          backgroundColor: colors.cardAlt,
+          borderRadius: '12px',
+          padding: '1.25rem',
+          border: `1px solid ${colors.border}`,
+        }}>
+          <h3 style={{ color: colors.text, margin: '0 0 1rem 0', fontSize: '1rem' }}>
+            👥 New vs Returning Visitors
+          </h3>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '1rem', color: colors.textMuted }}>Loading...</div>
+          ) : (() => {
+            const total = newVsReturning.new_visitors + newVsReturning.returning_visitors;
+            const newPct = total > 0 ? (newVsReturning.new_visitors / total) * 100 : 0;
+            const retPct = total > 0 ? (newVsReturning.returning_visitors / total) * 100 : 0;
+            return total === 0 ? (
+              <div style={{ textAlign: 'center', padding: '1rem', color: colors.textMuted, fontSize: '0.85rem' }}>
+                No visitor data for this period.
+              </div>
+            ) : (
+              <div>
+                <div style={{ display: 'flex', gap: '2rem', justifyContent: 'center', marginBottom: '1rem' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: colors.success }}>{newVsReturning.new_visitors.toLocaleString()}</div>
+                    <div style={{ fontSize: '0.75rem', color: colors.textMuted }}>New ({newPct.toFixed(1)}%)</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: colors.blue }}>{newVsReturning.returning_visitors.toLocaleString()}</div>
+                    <div style={{ fontSize: '0.75rem', color: colors.textMuted }}>Returning ({retPct.toFixed(1)}%)</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', height: '12px', borderRadius: '6px', overflow: 'hidden' }}>
+                  <div style={{ width: `${newPct}%`, backgroundColor: colors.success, transition: 'width 0.3s' }} />
+                  <div style={{ width: `${retPct}%`, backgroundColor: colors.blue, transition: 'width 0.3s' }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+                  <span style={{ fontSize: '0.7rem', color: colors.success }}>● New</span>
+                  <span style={{ fontSize: '0.7rem', color: colors.blue }}>● Returning</span>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* User Journey Funnel */}
+        <div style={{
+          backgroundColor: colors.cardAlt,
+          borderRadius: '12px',
+          padding: '1.25rem',
+          border: `1px solid ${colors.border}`,
+        }}>
+          <h3 style={{ color: colors.text, margin: '0 0 1rem 0', fontSize: '1rem' }}>
+            🔄 User Journey Funnel
+          </h3>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '1rem', color: colors.textMuted }}>Loading...</div>
+          ) : funnelData.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '1rem', color: colors.textMuted, fontSize: '0.85rem' }}>
+              No funnel data for this period.
+            </div>
+          ) : (() => {
+            const maxVal = funnelData[0]?.visitor_count || 1;
+            const stepColors = [colors.primary, colors.success, colors.purple, colors.gold];
+            const stepIcons = ['🌐', '🏰', '👤', '🛠️'];
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {funnelData.map((step, i) => {
+                  const pct = maxVal > 0 ? (step.visitor_count / maxVal) * 100 : 0;
+                  const dropoff = i > 0 && funnelData[i - 1].visitor_count > 0
+                    ? Math.round(((funnelData[i - 1].visitor_count - step.visitor_count) / funnelData[i - 1].visitor_count) * 100)
+                    : 0;
+                  return (
+                    <div key={step.step_name}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                        <span style={{ fontSize: '0.85rem', color: colors.text }}>
+                          {stepIcons[i] || '📊'} {step.step_name}
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          {i > 0 && dropoff > 0 && (
+                            <span style={{ fontSize: '0.7rem', color: colors.error }}>↓ {dropoff}%</span>
+                          )}
+                          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: stepColors[i] || colors.text }}>
+                            {step.visitor_count.toLocaleString()}
+                          </span>
+                        </span>
+                      </div>
+                      <div style={{ height: '8px', backgroundColor: `${colors.border}40`, borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{
+                          width: `${pct}%`,
+                          height: '100%',
+                          backgroundColor: stepColors[i] || colors.primary,
+                          borderRadius: '4px',
+                          transition: 'width 0.3s',
+                        }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </div>
       </div>
 
-      {/* Daily Unique Visitors Chart */}
+      {/* Peak Hours Heatmap */}
       <div style={{
         backgroundColor: colors.cardAlt,
         borderRadius: '12px',
@@ -590,13 +708,67 @@ export const PageAnalyticsTab: React.FC = () => {
         border: `1px solid ${colors.border}`,
       }}>
         <h3 style={{ color: colors.text, margin: '0 0 1rem 0', fontSize: '1rem' }}>
-          📊 Daily Unique Visitors
+          � Peak Hours Heatmap
         </h3>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted }}>Loading chart...</div>
-        ) : (
-          <AreaChart data={dailyChartData} />
-        )}
+          <div style={{ textAlign: 'center', padding: '1rem', color: colors.textMuted }}>Loading...</div>
+        ) : heatmapData.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '1rem', color: colors.textMuted, fontSize: '0.85rem' }}>
+            No heatmap data for this period.
+          </div>
+        ) : (() => {
+          const maxCount = Math.max(...heatmapData.map(h => h.visitor_count), 1);
+          const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+          const grid: Record<string, number> = {};
+          heatmapData.forEach(h => { grid[`${h.day_of_week}-${h.hour_of_day}`] = h.visitor_count; });
+          return (
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '40px repeat(24, 1fr)', gap: '2px', minWidth: '600px' }}>
+                {/* Header row */}
+                <div />
+                {Array.from({ length: 24 }, (_, h) => (
+                  <div key={h} style={{ textAlign: 'center', fontSize: '0.6rem', color: colors.textMuted, padding: '2px 0' }}>
+                    {h === 0 ? '12a' : h < 12 ? `${h}a` : h === 12 ? '12p' : `${h - 12}p`}
+                  </div>
+                ))}
+                {/* Data rows */}
+                {dayLabels.map((day, di) => (
+                  <React.Fragment key={di}>
+                    <div style={{ fontSize: '0.7rem', color: colors.textMuted, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '6px' }}>
+                      {day}
+                    </div>
+                    {Array.from({ length: 24 }, (_, h) => {
+                      const count = grid[`${di}-${h}`] || 0;
+                      const intensity = count / maxCount;
+                      return (
+                        <div
+                          key={h}
+                          title={`${day} ${h}:00 — ${count} visitors`}
+                          style={{
+                            aspectRatio: '1',
+                            borderRadius: '3px',
+                            backgroundColor: count === 0 ? `${colors.border}40` : colors.primary,
+                            opacity: count === 0 ? 0.3 : Math.max(0.15, intensity),
+                            cursor: 'default',
+                            minHeight: '16px',
+                          }}
+                        />
+                      );
+                    })}
+                  </React.Fragment>
+                ))}
+              </div>
+              {/* Legend */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.35rem', marginTop: '0.5rem' }}>
+                <span style={{ fontSize: '0.65rem', color: colors.textMuted }}>Less</span>
+                {[0.15, 0.35, 0.55, 0.75, 1].map((op, i) => (
+                  <div key={i} style={{ width: 12, height: 12, borderRadius: 2, backgroundColor: colors.primary, opacity: op }} />
+                ))}
+                <span style={{ fontSize: '0.65rem', color: colors.textMuted }}>More</span>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Top Pages */}
