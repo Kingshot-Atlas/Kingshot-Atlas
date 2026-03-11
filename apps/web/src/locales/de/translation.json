@@ -4190,6 +4190,12 @@
     "wAttack": "ANG",
     "wLethality": "LET",
     "wDefense": "VER",
-    "wHealth": "LP"
+    "wHealth": "LP",
+    "tierCutoffs": "Tier-Schwellenwerte",
+    "customLabel": "BENUTZERDEFINIERT",
+    "tierCutoffsDesc": "Legen Sie die Mindestpunktzahl für jedes Tier fest. Spieler unterhalb des C-Schwellenwerts werden in Tier D eingestuft.",
+    "belowC": "Unter C-Schwellenwert",
+    "resetToAuto": "Auf Auto zurücksetzen",
+    "applyCutoffs": "Schwellenwerte anwenden"
   }
 }

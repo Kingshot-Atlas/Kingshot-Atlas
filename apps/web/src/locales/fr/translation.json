@@ -4190,6 +4190,12 @@
     "wAttack": "ATQ",
     "wLethality": "LÉT",
     "wDefense": "DÉF",
-    "wHealth": "PV"
+    "wHealth": "PV",
+    "tierCutoffs": "Seuils de Tier",
+    "customLabel": "PERSONNALISÉ",
+    "tierCutoffsDesc": "Définissez le score minimum pour chaque tier. Les joueurs en dessous du seuil C sont placés en tier D.",
+    "belowC": "En dessous du seuil C",
+    "resetToAuto": "Réinitialiser en auto",
+    "applyCutoffs": "Appliquer les seuils"
   }
 }

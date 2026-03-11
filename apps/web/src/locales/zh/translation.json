@@ -4189,6 +4189,12 @@
     "wAttack": "攻击",
     "wLethality": "杀伤",
     "wDefense": "防御",
-    "wHealth": "生命"
+    "wHealth": "生命",
+    "tierCutoffs": "段位阈值",
+    "customLabel": "自定义",
+    "tierCutoffsDesc": "设置每个段位的最低分数。低于C阈值的玩家将被归入D段位。",
+    "belowC": "低于C阈值",
+    "resetToAuto": "重置为自动",
+    "applyCutoffs": "应用阈值"
   }
 }

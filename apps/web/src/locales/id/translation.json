@@ -4101,6 +4101,12 @@
     "wAttack": "ATK",
     "wLethality": "LTH",
     "wDefense": "DEF",
-    "wHealth": "HP"
+    "wHealth": "HP",
+    "tierCutoffs": "Batas Tier",
+    "customLabel": "KUSTOM",
+    "tierCutoffsDesc": "Atur skor minimum untuk setiap tier. Pemain di bawah ambang C ditempatkan di tier D.",
+    "belowC": "Di bawah ambang C",
+    "resetToAuto": "Reset ke Otomatis",
+    "applyCutoffs": "Terapkan Batas"
   }
 }

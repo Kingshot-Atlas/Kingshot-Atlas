@@ -4190,6 +4190,12 @@
     "wAttack": "攻撃",
     "wLethality": "致死",
     "wDefense": "防御",
-    "wHealth": "HP"
+    "wHealth": "HP",
+    "tierCutoffs": "ティアしきい値",
+    "customLabel": "カスタム",
+    "tierCutoffsDesc": "各ティアの最低スコアを設定します。Cしきい値未満のプレイヤーはDティアに配置されます。",
+    "belowC": "Cしきい値未満",
+    "resetToAuto": "自動にリセット",
+    "applyCutoffs": "しきい値を適用"
   }
 }

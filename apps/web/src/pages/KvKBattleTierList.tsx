@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { useBattleTierList, emptyForm } from '../hooks/useBattleTierList';
 import BattleBulkEdit from '../components/battle-tier/BattleBulkEdit';
 import BattleBulkInput from '../components/battle-tier/BattleBulkInput';
+import BattleTierCutoffEditor from '../components/battle-tier/BattleTierCutoffEditor';
 import {
   getHeroesByTroopType,
   EG_BONUS_BY_LEVEL,
@@ -1122,6 +1123,17 @@ const KvKBattleTierList: React.FC = () => {
                 ↩️ {t('battleTier.undone', 'Action undone')}
               </div>
             )}
+
+            {/* Tier Cutoff Editor */}
+            <BattleTierCutoffEditor
+              mode={state.activeSection}
+              rankedPlayers={rankedPlayers}
+              tierOverrides={state.activeSection === 'offense' ? state.tierOverridesOffense : state.tierOverridesDefense}
+              autoBoundaries={state.activeSection === 'offense' ? state.autoOffenseBoundaries : state.autoDefenseBoundaries}
+              onSetOverrides={state.activeSection === 'offense' ? state.handleSetOffenseOverrides : state.handleSetDefenseOverrides}
+              canEdit={state.canEdit}
+              isMobile={isMobile}
+            />
 
             {/* Tier Table */}
             {rankedPlayers.length > 0 ? (

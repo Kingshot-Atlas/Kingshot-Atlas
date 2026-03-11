@@ -4186,6 +4186,12 @@
     "wAttack": "공격",
     "wLethality": "치명",
     "wDefense": "방어",
-    "wHealth": "체력"
+    "wHealth": "체력",
+    "tierCutoffs": "티어 기준값",
+    "customLabel": "사용자 지정",
+    "tierCutoffsDesc": "각 티어의 최소 점수를 설정합니다. C 기준값 미만의 플레이어는 D 티어에 배치됩니다.",
+    "belowC": "C 기준값 미만",
+    "resetToAuto": "자동으로 초기화",
+    "applyCutoffs": "기준값 적용"
   }
 }

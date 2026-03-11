@@ -165,18 +165,34 @@ export function useBattleTierList() {
   const [offenseWeights, setOffenseWeights] = useState<BattleTroopWeights>(structuredClone(DEFAULT_TROOP_WEIGHTS));
   const [defenseWeights, setDefenseWeights] = useState<BattleTroopWeights>(structuredClone(DEFAULT_TROOP_WEIGHTS));
 
-  // ── Kingdom player names for autocomplete ──
+  // ── Kingdom player names for autocomplete (cached in localStorage, 5-min TTL) ──
   const [kingdomPlayerNames, setKingdomPlayerNames] = useState<string[]>([]);
 
   useEffect(() => {
     if (!supabase || !kingdomNumber) { setKingdomPlayerNames([]); return; }
+    const cacheKey = `battle_tier_kingdom_names_${kingdomNumber}`;
+    const TTL_MS = 5 * 60 * 1000; // 5 minutes
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const { names, ts } = JSON.parse(cached) as { names: string[]; ts: number };
+        if (Date.now() - ts < TTL_MS && Array.isArray(names)) {
+          setKingdomPlayerNames(names);
+          return;
+        }
+      }
+    } catch { /* ignore corrupt cache */ }
     supabase.from('profiles')
       .select('linked_username')
       .eq('linked_kingdom', kingdomNumber)
       .not('linked_username', 'is', null)
       .order('linked_username')
       .then(({ data }) => {
-        if (data) setKingdomPlayerNames(data.map(d => d.linked_username!).filter(Boolean));
+        if (data) {
+          const names = data.map(d => d.linked_username!).filter(Boolean);
+          setKingdomPlayerNames(names);
+          try { localStorage.setItem(cacheKey, JSON.stringify({ names, ts: Date.now() })); } catch { /* quota */ }
+        }
       });
   }, [kingdomNumber]);
 
