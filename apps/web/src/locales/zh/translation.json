@@ -3733,7 +3733,8 @@
       "goToProfile": "前往个人资料",
       "wantToCreate": "想创建自己的联盟中心？",
       "upgradeDesc": "支持者、领事和Discord加成者可以创建和管理联盟中心。",
-      "learnMore": "了解更多",
+      "becomeBooster": "成为加成者",
+      "becomeConsul": "成为领事",
       "notifTitle": "新的联盟申请",
       "notifMessage": "{{username}} 想要加入 [{{tag}}] {{name}}"
     }

@@ -3733,7 +3733,8 @@
       "goToProfile": "Aller au Profil",
       "wantToCreate": "Vous voulez créer votre propre Centre d'Alliance ?",
       "upgradeDesc": "Les Supporters, Consuls et Boosters Discord peuvent créer et gérer des Centres d'Alliance.",
-      "learnMore": "En Savoir Plus",
+      "becomeBooster": "Devenir Booster",
+      "becomeConsul": "Devenir Consul",
       "notifTitle": "Nouvelle Candidature d'Alliance",
       "notifMessage": "{{username}} souhaite rejoindre [{{tag}}] {{name}}"
     }

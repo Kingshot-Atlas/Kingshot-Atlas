@@ -3732,7 +3732,8 @@
       "goToProfile": "Ir al Perfil",
       "wantToCreate": "¿Quieres crear tu propio Centro de Alianza?",
       "upgradeDesc": "Supporters, Cónsules y Boosters de Discord pueden crear y gestionar Centros de Alianza.",
-      "learnMore": "Más Información",
+      "becomeBooster": "Ser Booster",
+      "becomeConsul": "Ser Cónsul",
       "notifTitle": "Nueva Solicitud de Alianza",
       "notifMessage": "{{username}} quiere unirse a [{{tag}}] {{name}}"
     }

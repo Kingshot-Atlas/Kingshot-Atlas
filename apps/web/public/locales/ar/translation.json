@@ -3733,7 +3733,8 @@
       "goToProfile": "الذهاب للملف الشخصي",
       "wantToCreate": "تريد إنشاء مركز تحالف خاص بك؟",
       "upgradeDesc": "الداعمون والقناصل ومعززو Discord يمكنهم إنشاء وإدارة مراكز التحالف.",
-      "learnMore": "اعرف المزيد",
+      "becomeBooster": "كن معززاً",
+      "becomeConsul": "كن قنصلاً",
       "notifTitle": "طلب تحالف جديد",
       "notifMessage": "{{username}} يريد الانضمام إلى [{{tag}}] {{name}}"
     }

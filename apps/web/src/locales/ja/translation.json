@@ -3733,7 +3733,8 @@
       "goToProfile": "プロフィールへ",
       "wantToCreate": "自分の同盟センターを作りたいですか？",
       "upgradeDesc": "サポーター、コンサル、Discordブースターは同盟センターを作成・管理できます。",
-      "learnMore": "詳細を見る",
+      "becomeBooster": "ブースターになる",
+      "becomeConsul": "コンサルになる",
       "notifTitle": "新しい同盟申請",
       "notifMessage": "{{username}}が[{{tag}}] {{name}}への参加を希望しています"
     }

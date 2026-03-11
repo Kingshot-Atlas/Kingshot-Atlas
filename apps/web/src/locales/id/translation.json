@@ -3649,7 +3649,8 @@
       "goToProfile": "Ke Profil",
       "wantToCreate": "Ingin membuat Pusat Aliansi sendiri?",
       "upgradeDesc": "Pendukung, Konsul, dan Discord Booster dapat membuat dan mengelola Pusat Aliansi.",
-      "learnMore": "Pelajari Lebih Lanjut",
+      "becomeBooster": "Jadi Booster",
+      "becomeConsul": "Jadi Konsul",
       "notifTitle": "Permohonan Aliansi Baru",
       "notifMessage": "{{username}} ingin bergabung dengan [{{tag}}] {{name}}"
     }

@@ -396,13 +396,8 @@ const AllianceCenterOnboarding: React.FC<AllianceCenterOnboardingProps> = ({ has
             border: `2px solid ${ACCENT_BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
             margin: '0 auto 1rem',
           }}>
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="6" y="14" width="6" height="14" rx="1" stroke="#a855f7" strokeWidth="1.5" fill="none" />
-              <rect x="13" y="8" width="6" height="20" rx="1" stroke="#a855f7" strokeWidth="1.5" fill="none" />
-              <rect x="20" y="14" width="6" height="14" rx="1" stroke="#a855f7" strokeWidth="1.5" fill="none" />
-              <rect x="14.5" y="4" width="3" height="4" rx="0.5" fill="#a855f7" opacity="0.6" />
-              <path d="M16 2l2 2h-4l2-2z" fill="#a855f7" opacity="0.8" />
-              <line x1="4" y1="28" x2="28" y2="28" stroke="#a855f7" strokeWidth="1.5" opacity="0.4" />
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-4h6v4"/>
             </svg>
           </div>
           <h2 style={{ color: '#fff', fontFamily: FONT_DISPLAY, fontSize: isMobile ? '1.15rem' : '1.35rem', marginBottom: '0.4rem' }}>
@@ -583,9 +578,40 @@ const AllianceCenterOnboarding: React.FC<AllianceCenterOnboardingProps> = ({ has
               {!hasAccess && (
                 <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                   <Link to="/support" style={{ textDecoration: 'none' }}>
-                    <Button variant="primary" style={{ fontSize: '0.75rem' }}>
-                      {t('allianceCenter.onboarding.becomeSupporter', 'Become a Supporter')}
-                    </Button>
+                    <button style={{
+                      padding: '0.5rem 0.85rem', borderRadius: '8px', cursor: 'pointer',
+                      backgroundColor: '#FF6B8A15', border: '1px solid #FF6B8A30', color: '#FF6B8A',
+                      fontSize: '0.7rem', fontWeight: 700, transition: 'border-color 0.15s',
+                      minHeight: isMobile ? '44px' : 'auto',
+                    }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#FF6B8A60'; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#FF6B8A30'; }}>
+                      ⭐ {t('allianceCenter.onboarding.becomeSupporter', 'Become a Supporter')}
+                    </button>
+                  </Link>
+                  <a href="https://discord.gg/cajcacDzGd" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                    <button style={{
+                      padding: '0.5rem 0.85rem', borderRadius: '8px', cursor: 'pointer',
+                      backgroundColor: '#5865F215', border: '1px solid #5865F230', color: '#5865F2',
+                      fontSize: '0.7rem', fontWeight: 700, transition: 'border-color 0.15s',
+                      minHeight: isMobile ? '44px' : 'auto',
+                    }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#5865F260'; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#5865F230'; }}>
+                      🎮 {t('allianceCenter.onboarding.becomeBooster', 'Become a Booster')}
+                    </button>
+                  </a>
+                  <Link to="/ambassadors" style={{ textDecoration: 'none' }}>
+                    <button style={{
+                      padding: '0.5rem 0.85rem', borderRadius: '8px', cursor: 'pointer',
+                      backgroundColor: '#b890dd15', border: '1px solid #b890dd30', color: '#b890dd',
+                      fontSize: '0.7rem', fontWeight: 700, transition: 'border-color 0.15s',
+                      minHeight: isMobile ? '44px' : 'auto',
+                    }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#b890dd60'; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#b890dd30'; }}>
+                      🏛️ {t('allianceCenter.onboarding.becomeConsul', 'Become a Consul')}
+                    </button>
                   </Link>
                 </div>
               )}
@@ -622,22 +648,54 @@ const AllianceCenterOnboarding: React.FC<AllianceCenterOnboardingProps> = ({ has
           {!hasAccess && (
             <div style={{
               backgroundColor: '#111111', borderRadius: '12px', border: '1px solid #a855f720',
-              padding: '1rem', display: 'flex', alignItems: isMobile ? 'flex-start' : 'center',
-              flexDirection: isMobile ? 'column' : 'row', gap: '0.75rem',
+              padding: '1.25rem',
             }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ color: '#e5e7eb', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.2rem' }}>
+              <div style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
+                <div style={{ color: '#e5e7eb', fontSize: '0.85rem', fontWeight: 700 }}>
                   {t('allianceCenter.onboarding.wantToCreate', 'Want to create your own Alliance Center?')}
                 </div>
-                <div style={{ color: '#6b7280', fontSize: '0.7rem', lineHeight: 1.4 }}>
+                <div style={{ color: '#6b7280', fontSize: '0.7rem', lineHeight: 1.4, marginTop: '0.25rem' }}>
                   {t('allianceCenter.onboarding.upgradeDesc', 'Supporters, Consuls, and Discord Boosters can create and manage Alliance Centers.')}
                 </div>
               </div>
-              <Link to="/support" style={{ textDecoration: 'none', flexShrink: 0 }}>
-                <Button variant="ghost" style={{ fontSize: '0.7rem', color: '#a855f7', borderColor: '#a855f730' }}>
-                  {t('allianceCenter.onboarding.learnMore', 'Learn More')}
-                </Button>
-              </Link>
+              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <Link to="/support" style={{ textDecoration: 'none', flex: isMobile ? '1 1 100%' : '0 1 auto' }}>
+                  <button style={{
+                    width: '100%', padding: '0.6rem 1rem', borderRadius: '8px', cursor: 'pointer',
+                    backgroundColor: '#FF6B8A15', border: '1px solid #FF6B8A30', color: '#FF6B8A',
+                    fontSize: '0.75rem', fontWeight: 700, transition: 'border-color 0.15s',
+                    minHeight: isMobile ? '44px' : 'auto',
+                  }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#FF6B8A60'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#FF6B8A30'; }}>
+                    ⭐ {t('allianceCenter.onboarding.becomeSupporter', 'Become a Supporter')}
+                  </button>
+                </Link>
+                <a href="https://discord.gg/cajcacDzGd" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', flex: isMobile ? '1 1 100%' : '0 1 auto' }}>
+                  <button style={{
+                    width: '100%', padding: '0.6rem 1rem', borderRadius: '8px', cursor: 'pointer',
+                    backgroundColor: '#5865F215', border: '1px solid #5865F230', color: '#5865F2',
+                    fontSize: '0.75rem', fontWeight: 700, transition: 'border-color 0.15s',
+                    minHeight: isMobile ? '44px' : 'auto',
+                  }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#5865F260'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#5865F230'; }}>
+                    🎮 {t('allianceCenter.onboarding.becomeBooster', 'Become a Booster')}
+                  </button>
+                </a>
+                <Link to="/ambassadors" style={{ textDecoration: 'none', flex: isMobile ? '1 1 100%' : '0 1 auto' }}>
+                  <button style={{
+                    width: '100%', padding: '0.6rem 1rem', borderRadius: '8px', cursor: 'pointer',
+                    backgroundColor: '#b890dd15', border: '1px solid #b890dd30', color: '#b890dd',
+                    fontSize: '0.75rem', fontWeight: 700, transition: 'border-color 0.15s',
+                    minHeight: isMobile ? '44px' : 'auto',
+                  }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#b890dd60'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#b890dd30'; }}>
+                    🏛️ {t('allianceCenter.onboarding.becomeConsul', 'Become a Consul')}
+                  </button>
+                </Link>
+              </div>
             </div>
           )}
         </div>

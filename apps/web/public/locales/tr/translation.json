@@ -3733,7 +3733,8 @@
       "goToProfile": "Profile Git",
       "wantToCreate": "Kendi ittifak merkezinizi oluşturmak mı istiyorsunuz?",
       "upgradeDesc": "Destekçiler, Konsüller ve Discord Boost yapanlar ittifak merkezleri oluşturabilir ve yönetebilir.",
-      "learnMore": "Daha Fazla",
+      "becomeBooster": "Booster Ol",
+      "becomeConsul": "Konsül Ol",
       "notifTitle": "Yeni İttifak Başvurusu",
       "notifMessage": "{{username}} [{{tag}}] {{name}} ittifakına katılmak istiyor"
     }

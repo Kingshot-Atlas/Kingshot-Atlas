@@ -3733,7 +3733,8 @@
       "goToProfile": "Zum Profil",
       "wantToCreate": "Möchtest du dein eigenes Allianz-Zentrum erstellen?",
       "upgradeDesc": "Supporter, Konsuln und Discord-Booster können Allianz-Zentren erstellen und verwalten.",
-      "learnMore": "Mehr erfahren",
+      "becomeBooster": "Booster werden",
+      "becomeConsul": "Konsul werden",
       "notifTitle": "Neue Allianz-Bewerbung",
       "notifMessage": "{{username}} möchte [{{tag}}] {{name}} beitreten"
     }

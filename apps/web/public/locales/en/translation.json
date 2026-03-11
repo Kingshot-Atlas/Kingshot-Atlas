@@ -3842,7 +3842,8 @@
       "goToProfile": "Go to Profile",
       "wantToCreate": "Want to create your own Alliance Center?",
       "upgradeDesc": "Supporters, Consuls, and Discord Boosters can create and manage Alliance Centers.",
-      "learnMore": "Learn More",
+      "becomeBooster": "Become a Booster",
+      "becomeConsul": "Become a Consul",
       "notifTitle": "New Alliance Application",
       "notifMessage": "{{username}} wants to join [{{tag}}] {{name}}"
     }
