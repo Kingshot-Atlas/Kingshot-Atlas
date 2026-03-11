@@ -10,7 +10,6 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
 import { useGoldKingdoms } from './useGoldKingdoms';
-import { useAllianceCenter } from './useAllianceCenter';
 import { supabase } from '../lib/supabase';
 import { logger } from '../utils/logger';
 import {
@@ -91,7 +90,6 @@ export function useBattleTierList() {
   const { user, profile } = useAuth();
   const { isAdmin } = usePremium();
   const goldKingdoms = useGoldKingdoms();
-  const ac = useAllianceCenter();
 
   const kingdomNumber = profile?.linked_kingdom ?? null;
   const isGoldKingdom = !!(kingdomNumber && goldKingdoms.has(kingdomNumber));
@@ -137,6 +135,7 @@ export function useBattleTierList() {
   const [listsIndex, setListsIndex] = useState<BattleTierListMeta[]>([]);
   const [activeListId, setActiveListIdState] = useState<string | null>(null);
   const [players, setPlayers] = useState<BattlePlayerEntry[]>([]);
+  const [defensePlayers, setDefensePlayers] = useState<BattlePlayerEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [tierOverridesOffense, setTierOverridesOffense] = useState<BattleTierOverrides | null>(null);
   const [tierOverridesDefense, setTierOverridesDefense] = useState<BattleTierOverrides | null>(null);
@@ -166,17 +165,26 @@ export function useBattleTierList() {
   const [offenseWeights, setOffenseWeights] = useState<BattleTroopWeights>(structuredClone(DEFAULT_TROOP_WEIGHTS));
   const [defenseWeights, setDefenseWeights] = useState<BattleTroopWeights>(structuredClone(DEFAULT_TROOP_WEIGHTS));
 
-  // ── Alliance Roster names for autocomplete ──
-  const rosterNames = useMemo(() =>
-    ac.members.map(m => m.player_name).filter(Boolean).sort((a, b) => a.localeCompare(b)),
-    [ac.members]
-  );
+  // ── Kingdom player names for autocomplete ──
+  const [kingdomPlayerNames, setKingdomPlayerNames] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!supabase || !kingdomNumber) { setKingdomPlayerNames([]); return; }
+    supabase.from('profiles')
+      .select('linked_username')
+      .eq('linked_kingdom', kingdomNumber)
+      .not('linked_username', 'is', null)
+      .order('linked_username')
+      .then(({ data }) => {
+        if (data) setKingdomPlayerNames(data.map(d => d.linked_username!).filter(Boolean));
+      });
+  }, [kingdomNumber]);
 
   const nameSuggestions = useMemo(() => {
-    if (!form.playerName.trim() || rosterNames.length === 0) return [];
+    if (!form.playerName.trim() || kingdomPlayerNames.length === 0) return [];
     const q = form.playerName.trim().toLowerCase();
-    return rosterNames.filter(n => n.toLowerCase().includes(q) && n.toLowerCase() !== q).slice(0, 8);
-  }, [form.playerName, rosterNames]);
+    return kingdomPlayerNames.filter(n => n.toLowerCase().includes(q) && n.toLowerCase() !== q).slice(0, 8);
+  }, [form.playerName, kingdomPlayerNames]);
 
   const nameInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -184,7 +192,7 @@ export function useBattleTierList() {
 
   const listMenuRef = useRef<HTMLDivElement>(null);
   const managerSearchRef = useRef<HTMLDivElement>(null);
-  const undoStack = useRef<BattlePlayerEntry[][]>([]);
+  const undoStack = useRef<Array<{ mode: 'offense' | 'defense'; snapshot: BattlePlayerEntry[] }>>([]);
 
   // ── Load lists from Supabase ──
   useEffect(() => {
@@ -194,7 +202,7 @@ export function useBattleTierList() {
     }
     setLoading(true);
     supabase.from('battle_tier_lists')
-      .select('id, name, kingdom_number, created_at, updated_at, updated_by_username, players, tier_overrides_offense, tier_overrides_defense')
+      .select('id, name, kingdom_number, created_at, updated_at, updated_by_username, players, defense_players, tier_overrides_offense, tier_overrides_defense')
       .eq('kingdom_number', kingdomNumber)
       .order('created_at', { ascending: true })
       .then(({ data, error }) => {
@@ -210,7 +218,7 @@ export function useBattleTierList() {
           created_at: d.created_at,
           updated_at: d.updated_at,
           updated_by_username: d.updated_by_username,
-          playerCount: Array.isArray(d.players) ? d.players.length : 0,
+          playerCount: (Array.isArray(d.players) ? d.players.length : 0) + (Array.isArray(d.defense_players) ? d.defense_players.length : 0),
         }));
         setListsIndex(lists);
 
@@ -224,7 +232,9 @@ export function useBattleTierList() {
           const match = data?.find(d => d.id === targetId);
           if (match) {
             const p = Array.isArray(match.players) ? match.players as BattlePlayerEntry[] : [];
+            const dp = Array.isArray(match.defense_players) ? match.defense_players as BattlePlayerEntry[] : [];
             setPlayers(recalculateAll(p));
+            setDefensePlayers(recalculateAll(dp));
             setLastEditedBy(match.updated_by_username);
             // Load overrides from the match data
             if (match.tier_overrides_offense) setTierOverridesOffense(match.tier_overrides_offense as unknown as BattleTierOverrides);
@@ -238,19 +248,19 @@ export function useBattleTierList() {
   // ── Persist to Supabase (debounced) ──
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const persistToSupabase = useCallback((listId: string, updatedPlayers: BattlePlayerEntry[]) => {
+  const persistToSupabase = useCallback((listId: string, offPlayers: BattlePlayerEntry[], defPlayers: BattlePlayerEntry[]) => {
     if (!supabase || !user?.id) return;
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => {
-      const validation = validateBattlePlayers(updatedPlayers);
-      if (validation) {
-        logger.error('Battle tier validation failed:', validation);
-        return;
-      }
+      const offValidation = validateBattlePlayers(offPlayers);
+      if (offValidation) { logger.error('Battle tier offense validation failed:', offValidation); return; }
+      const defValidation = validateBattlePlayers(defPlayers);
+      if (defValidation) { logger.error('Battle tier defense validation failed:', defValidation); return; }
       const username = profile?.linked_username || profile?.display_name || profile?.username || 'Unknown';
       supabase!.from('battle_tier_lists')
         .update({
-          players: updatedPlayers as unknown as Record<string, unknown>[],
+          players: offPlayers as unknown as Record<string, unknown>[],
+          defense_players: defPlayers as unknown as Record<string, unknown>[],
           updated_by: user.id,
           updated_by_username: username,
           updated_at: new Date().toISOString(),
@@ -265,31 +275,35 @@ export function useBattleTierList() {
 
       // Update index counts
       setListsIndex(prev => prev.map(l =>
-        l.id === listId ? { ...l, playerCount: updatedPlayers.length, updated_at: new Date().toISOString() } : l
+        l.id === listId ? { ...l, playerCount: offPlayers.length + defPlayers.length, updated_at: new Date().toISOString() } : l
       ));
     }, 800);
   }, [user?.id, profile, tierOverridesOffense, tierOverridesDefense]);
 
   // ── Auto-save on player changes ──
   const prevPlayersRef = useRef<string>('');
+  const prevDefPlayersRef = useRef<string>('');
   useEffect(() => {
     if (!activeListId || loading) return;
-    const serialized = JSON.stringify(players);
-    if (serialized === prevPlayersRef.current) return;
-    prevPlayersRef.current = serialized;
-    persistToSupabase(activeListId, players);
-  }, [players, activeListId, loading, persistToSupabase]);
+    const offSerialized = JSON.stringify(players);
+    const defSerialized = JSON.stringify(defensePlayers);
+    if (offSerialized === prevPlayersRef.current && defSerialized === prevDefPlayersRef.current) return;
+    prevPlayersRef.current = offSerialized;
+    prevDefPlayersRef.current = defSerialized;
+    persistToSupabase(activeListId, players, defensePlayers);
+  }, [players, defensePlayers, activeListId, loading, persistToSupabase]);
 
   // ── Undo ──
-  const pushUndo = useCallback((state: BattlePlayerEntry[]) => {
-    undoStack.current = [...undoStack.current.slice(-19), state];
+  const pushUndo = useCallback((mode: 'offense' | 'defense', snapshot: BattlePlayerEntry[]) => {
+    undoStack.current = [...undoStack.current.slice(-19), { mode, snapshot }];
   }, []);
 
   const [showUndoToast, setShowUndoToast] = useState(false);
   const handleUndo = useCallback(() => {
     if (undoStack.current.length === 0) return;
-    const prev = undoStack.current.pop()!;
-    setPlayers(prev);
+    const { mode, snapshot } = undoStack.current.pop()!;
+    if (mode === 'offense') setPlayers(snapshot);
+    else setDefensePlayers(snapshot);
     setShowUndoToast(true);
     setTimeout(() => setShowUndoToast(false), 2000);
   }, []);
@@ -303,6 +317,7 @@ export function useBattleTierList() {
         kingdom_number: kingdomNumber,
         name: name || new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
         players: [],
+        defense_players: [],
         created_by: user.id,
         updated_by: user.id,
         updated_by_username: username,
@@ -326,6 +341,7 @@ export function useBattleTierList() {
     setActiveListIdState(data.id);
     localStorage.setItem(BATTLE_TIER_ACTIVE_LIST_KEY, data.id);
     setPlayers([]);
+    setDefensePlayers([]);
     setShowNewListPrompt(false);
     setNewListNameDraft('');
     setShowListMenu(false);
@@ -345,12 +361,14 @@ export function useBattleTierList() {
     setEditingId(null);
 
     const { data } = await supabase.from('battle_tier_lists')
-      .select('players, updated_by_username, tier_overrides_offense, tier_overrides_defense')
+      .select('players, defense_players, updated_by_username, tier_overrides_offense, tier_overrides_defense')
       .eq('id', listId)
       .single();
     if (data) {
       const p = Array.isArray(data.players) ? data.players as BattlePlayerEntry[] : [];
+      const dp = Array.isArray(data.defense_players) ? data.defense_players as BattlePlayerEntry[] : [];
       setPlayers(recalculateAll(p));
+      setDefensePlayers(recalculateAll(dp));
       setLastEditedBy(data.updated_by_username);
       setTierOverridesOffense(data.tier_overrides_offense as BattleTierOverrides | null);
       setTierOverridesDefense(data.tier_overrides_defense as BattleTierOverrides | null);
@@ -461,8 +479,10 @@ export function useBattleTierList() {
       defenseTier: 'D',
     };
 
-    pushUndo(players);
-    setPlayers(prev => {
+    const currentPlayers = activeSection === 'offense' ? players : defensePlayers;
+    pushUndo(activeSection, currentPlayers);
+    const setter = activeSection === 'offense' ? setPlayers : setDefensePlayers;
+    setter(prev => {
       let updated: BattlePlayerEntry[];
       if (editingId) {
         updated = prev.map(p => p.id === editingId ? entry : p);
@@ -478,7 +498,7 @@ export function useBattleTierList() {
     setEditingId(null);
     setShowForm(false);
     setFormError('');
-  }, [form, editingId, t, players, pushUndo, tierOverridesOffense, tierOverridesDefense, offenseWeights, defenseWeights]);
+  }, [form, editingId, t, players, defensePlayers, activeSection, pushUndo, tierOverridesOffense, tierOverridesDefense, offenseWeights, defenseWeights]);
 
   const handleEdit = useCallback((player: BattlePlayerEntry) => {
     setForm({
@@ -499,13 +519,15 @@ export function useBattleTierList() {
   }, []);
 
   const handleDelete = useCallback((playerId: string) => {
-    pushUndo(players);
-    setPlayers(prev => {
+    const currentPlayers = activeSection === 'offense' ? players : defensePlayers;
+    pushUndo(activeSection, currentPlayers);
+    const setter = activeSection === 'offense' ? setPlayers : setDefensePlayers;
+    setter(prev => {
       const updated = prev.filter(p => p.id !== playerId);
       return recalculateAll(updated, tierOverridesOffense, tierOverridesDefense);
     });
     setDeleteConfirm(null);
-  }, [players, pushUndo, tierOverridesOffense, tierOverridesDefense]);
+  }, [players, defensePlayers, activeSection, pushUndo, tierOverridesOffense, tierOverridesDefense]);
 
   const handleCancelForm = useCallback(() => {
     setShowForm(false);
@@ -518,11 +540,13 @@ export function useBattleTierList() {
   const handleSetOffenseOverrides = useCallback((overrides: BattleTierOverrides | null) => {
     setTierOverridesOffense(overrides);
     setPlayers(prev => recalculateAll(prev, overrides, tierOverridesDefense));
+    setDefensePlayers(prev => recalculateAll(prev, overrides, tierOverridesDefense));
   }, [tierOverridesDefense]);
 
   const handleSetDefenseOverrides = useCallback((overrides: BattleTierOverrides | null) => {
     setTierOverridesDefense(overrides);
     setPlayers(prev => recalculateAll(prev, tierOverridesOffense, overrides));
+    setDefensePlayers(prev => recalculateAll(prev, tierOverridesOffense, overrides));
   }, [tierOverridesOffense]);
 
   // ── Weight handlers ──
@@ -530,6 +554,7 @@ export function useBattleTierList() {
     setOffenseWeights(offW);
     setDefenseWeights(defW);
     setPlayers(prev => recalculateAllWeighted(prev, tierOverridesOffense, tierOverridesDefense, offW, defW));
+    setDefensePlayers(prev => recalculateAllWeighted(prev, tierOverridesOffense, tierOverridesDefense, offW, defW));
   }, [tierOverridesOffense, tierOverridesDefense]);
 
   const handleResetWeights = useCallback(() => {
@@ -537,22 +562,24 @@ export function useBattleTierList() {
     setOffenseWeights(def);
     setDefenseWeights(structuredClone(DEFAULT_TROOP_WEIGHTS));
     setPlayers(prev => recalculateAll(prev, tierOverridesOffense, tierOverridesDefense));
+    setDefensePlayers(prev => recalculateAll(prev, tierOverridesOffense, tierOverridesDefense));
   }, [tierOverridesOffense, tierOverridesDefense]);
 
   // ── Manager search ──
   const searchUsers = useCallback(async (query: string) => {
-    if (!supabase || query.length < 2) { setManagerSearchResults([]); setShowManagerDropdown(false); return; }
+    if (!supabase || query.length < 2 || !kingdomNumber) { setManagerSearchResults([]); setShowManagerDropdown(false); return; }
     const sanitized = query.replace(/[%_\\'"(),.:!]/g, '');
     if (sanitized.length < 2) { setManagerSearchResults([]); setShowManagerDropdown(false); return; }
     try {
       const { data } = await supabase.from('profiles')
         .select('id, linked_username, username, linked_player_id')
+        .eq('linked_kingdom', kingdomNumber)
         .or(`linked_username.ilike.%${sanitized}%,linked_player_id.ilike.%${sanitized}%,username.ilike.%${sanitized}%`)
         .limit(8);
       setManagerSearchResults(data || []);
       setShowManagerDropdown((data || []).length > 0);
     } catch { setManagerSearchResults([]); }
-  }, []);
+  }, [kingdomNumber]);
 
   // Debounced manager search
   useEffect(() => {
@@ -599,7 +626,8 @@ export function useBattleTierList() {
 
   // ── CSV Export ──
   const handleExportCSV = useCallback((mode: 'offense' | 'defense') => {
-    const complete = players.filter(isPlayerComplete);
+    const sourceArray = mode === 'offense' ? players : defensePlayers;
+    const complete = sourceArray.filter(isPlayerComplete);
     if (complete.length === 0) return;
     const ranked = mode === 'offense'
       ? [...complete].sort((a, b) => b.offenseScore - a.offenseScore)
@@ -630,16 +658,20 @@ export function useBattleTierList() {
     a.download = `${listName}-${mode}-rankings.csv`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [players, listsIndex, activeListId]);
+  }, [players, defensePlayers, listsIndex, activeListId]);
 
   // ── Ranked & incomplete players ──
-  const { offenseRanked, defenseRanked, incompletePlayers } = useMemo(() => {
-    const complete = players.filter(isPlayerComplete);
-    const incomplete = players.filter(p => !isPlayerComplete(p));
-    const offRanked = [...complete].sort((a, b) => b.offenseScore - a.offenseScore).map((p, i) => ({ ...p, rank: i + 1 }));
-    const defRanked = [...complete].sort((a, b) => b.defenseScore - a.defenseScore).map((p, i) => ({ ...p, rank: i + 1 }));
-    return { offenseRanked: offRanked, defenseRanked: defRanked, incompletePlayers: incomplete };
-  }, [players]);
+  const { offenseRanked, defenseRanked, offenseIncomplete, defenseIncomplete } = useMemo(() => {
+    const offComplete = players.filter(isPlayerComplete);
+    const offInc = players.filter(p => !isPlayerComplete(p));
+    const offRanked = [...offComplete].sort((a, b) => b.offenseScore - a.offenseScore).map((p, i) => ({ ...p, rank: i + 1 }));
+
+    const defComplete = defensePlayers.filter(isPlayerComplete);
+    const defInc = defensePlayers.filter(p => !isPlayerComplete(p));
+    const defRanked = [...defComplete].sort((a, b) => b.defenseScore - a.defenseScore).map((p, i) => ({ ...p, rank: i + 1 }));
+
+    return { offenseRanked: offRanked, defenseRanked: defRanked, offenseIncomplete: offInc, defenseIncomplete: defInc };
+  }, [players, defensePlayers]);
 
   // ── Auto-computed tier boundaries ──
   const autoOffenseBoundaries = useMemo(() => {
@@ -651,12 +683,23 @@ export function useBattleTierList() {
   }, [players]);
 
   const autoDefenseBoundaries = useMemo(() => {
-    const complete = players.filter(isPlayerComplete);
+    const complete = defensePlayers.filter(isPlayerComplete);
     if (complete.length < 2) return null;
     const scores = complete.map(p => p.defenseScore);
     const b = computeTierBoundaries(scores);
     return { SS: b[0] ?? 0, S: b[1] ?? 0, A: b[2] ?? 0, B: b[3] ?? 0, C: b[4] ?? 0 };
-  }, [players]);
+  }, [defensePlayers]);
+
+  // ── Close form on section change ──
+  const handleSetActiveSection = useCallback((section: 'offense' | 'defense') => {
+    setActiveSection(section);
+    setShowForm(false);
+    setShowBulkEdit(false);
+    setShowBulkInput(false);
+    setEditingId(null);
+    setForm(emptyForm);
+    setFormError('');
+  }, []);
 
   return {
     // Auth & access
@@ -664,12 +707,13 @@ export function useBattleTierList() {
     // Lists
     listsIndex, activeListId, loading,
     // Players
-    players, setPlayers, offenseRanked, defenseRanked, incompletePlayers,
+    players, setPlayers, defensePlayers, setDefensePlayers,
+    offenseRanked, defenseRanked, offenseIncomplete, defenseIncomplete,
     // Form
     form, setForm, editingId, setEditingId, formError, showForm, setShowForm,
     showBulkEdit, setShowBulkEdit,
     showBulkInput, setShowBulkInput,
-    rosterNames, nameSuggestions, showSuggestions, setShowSuggestions,
+    kingdomPlayerNames, nameSuggestions, showSuggestions, setShowSuggestions,
     nameInputRef, suggestionsRef,
     updateForm, handleSubmit, handleEdit, handleDelete, handleCancelForm,
     // List management
@@ -686,7 +730,7 @@ export function useBattleTierList() {
     autoOffenseBoundaries, autoDefenseBoundaries,
     // UI
     expandedCards, setExpandedCards, deleteConfirm, setDeleteConfirm,
-    activeSection, setActiveSection, lastEditedBy,
+    activeSection, setActiveSection: handleSetActiveSection, lastEditedBy,
     // Managers
     managers, addManager, removeManager,
     showManagerPanel, setShowManagerPanel,

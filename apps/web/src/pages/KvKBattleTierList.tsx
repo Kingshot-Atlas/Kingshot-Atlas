@@ -346,17 +346,31 @@ const KvKBattleTierList: React.FC = () => {
     return () => document.removeEventListener('mousedown', handler);
   }, [state]);
 
+  // ── Active mode helpers ──
+  const activePlayers = state.activeSection === 'offense' ? state.players : state.defensePlayers;
+  const activeIncomplete = state.activeSection === 'offense' ? state.offenseIncomplete : state.defenseIncomplete;
+
   // ── Bulk Edit handler ──
   const handleBulkEdit = useCallback((updatedPlayers: BattlePlayerEntry[]) => {
-    state.pushUndo(state.players);
-    state.setPlayers(updatedPlayers);
+    if (state.activeSection === 'offense') {
+      state.pushUndo('offense', state.players);
+      state.setPlayers(updatedPlayers);
+    } else {
+      state.pushUndo('defense', state.defensePlayers);
+      state.setDefensePlayers(updatedPlayers);
+    }
     state.setShowBulkEdit(false);
   }, [state]);
 
   // ── Bulk Add handler ──
   const handleBulkAdd = useCallback((allPlayers: BattlePlayerEntry[]) => {
-    state.pushUndo(state.players);
-    state.setPlayers(allPlayers);
+    if (state.activeSection === 'offense') {
+      state.pushUndo('offense', state.players);
+      state.setPlayers(allPlayers);
+    } else {
+      state.pushUndo('defense', state.defensePlayers);
+      state.setDefensePlayers(allPlayers);
+    }
     state.setShowBulkInput(false);
   }, [state]);
 
@@ -676,7 +690,7 @@ const KvKBattleTierList: React.FC = () => {
                     >
                       📋 {t('battleTier.bulkAdd', 'Bulk Add')}
                     </button>
-                    {state.players.length > 0 && (
+                    {activePlayers.length > 0 && (
                       <button
                         onClick={() => { state.setShowBulkEdit(true); state.setShowBulkInput(false); state.setShowForm(false); }}
                         style={{
@@ -974,7 +988,7 @@ const KvKBattleTierList: React.FC = () => {
             {/* Bulk Edit */}
             {state.showBulkEdit && (
               <BattleBulkEdit
-                existingPlayers={state.players}
+                existingPlayers={activePlayers}
                 onSave={handleBulkEdit}
                 onClose={() => state.setShowBulkEdit(false)}
                 isMobile={isMobile}
@@ -986,11 +1000,11 @@ const KvKBattleTierList: React.FC = () => {
             {/* Bulk Add */}
             {state.showBulkInput && (
               <BattleBulkInput
-                existingPlayers={state.players}
+                existingPlayers={activePlayers}
                 onSave={handleBulkAdd}
                 onClose={() => state.setShowBulkInput(false)}
                 isMobile={isMobile}
-                rosterNames={state.rosterNames}
+                rosterNames={state.kingdomPlayerNames}
                 tierOverridesOffense={state.tierOverridesOffense}
                 tierOverridesDefense={state.tierOverridesDefense}
               />
@@ -1013,9 +1027,9 @@ const KvKBattleTierList: React.FC = () => {
                 <div style={{ marginBottom: '0.75rem', position: 'relative' }}>
                   <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.2rem' }}>
                     {t('battleTier.playerName', 'Player Name')}
-                    {state.rosterNames.length > 0 && (
+                    {state.kingdomPlayerNames.length > 0 && (
                       <span style={{ color: '#6b7280', fontWeight: 400, fontSize: '0.6rem', marginLeft: '0.4rem', textTransform: 'none' }}>
-                        {t('battleTier.rosterHint', '(suggestions from alliance roster)')}
+                        {t('battleTier.kingdomHint', '(suggestions from kingdom players)')}
                       </span>
                     )}
                   </div>
@@ -1201,15 +1215,15 @@ const KvKBattleTierList: React.FC = () => {
                 ))}
 
                 {/* Incomplete players */}
-                {state.incompletePlayers.length > 0 && (
+                {activeIncomplete.length > 0 && (
                   <div style={{ marginTop: '1rem' }}>
                     <h4 style={{
                       fontSize: '0.75rem', fontWeight: 700, color: '#eab308',
                       marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem',
                     }}>
-                      ⚠️ {t('battleTier.unranked', 'Unranked — Missing Data')} ({state.incompletePlayers.length})
+                      ⚠️ {t('battleTier.unranked', 'Unranked — Missing Data')} ({activeIncomplete.length})
                     </h4>
-                    {state.incompletePlayers.map(p => (
+                    {activeIncomplete.map(p => (
                       <div key={p.id} style={{
                         display: 'flex', alignItems: 'center', gap: '0.5rem',
                         padding: '0.5rem 0.75rem', backgroundColor: '#111',
@@ -1234,7 +1248,7 @@ const KvKBattleTierList: React.FC = () => {
                   </div>
                 )}
               </div>
-            ) : state.players.length === 0 ? (
+            ) : activePlayers.length === 0 ? (
               <div style={{
                 textAlign: 'center', padding: isMobile ? '2rem 1rem' : '3rem 2rem',
                 backgroundColor: '#111', borderRadius: '16px', border: '1px solid #2a2a2a',

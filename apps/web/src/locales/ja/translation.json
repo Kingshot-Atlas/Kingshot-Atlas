@@ -4175,6 +4175,7 @@
     "sectionHeroesGearShort": "ヒーロー＆装備",
     "sectionTroopStatsShort": "部隊ステータス（攻撃 / 殺傷 / 防御 / HP）",
     "rosterHint": "（同盟名簿からの候補）",
+    "kingdomHint": "（王国プレイヤーからの候補）",
     "player": "プレイヤー",
     "exportCSV": "CSV出力",
     "managers": "マネージャー",
