@@ -3995,7 +3995,7 @@
     "aboutTool": "Sobre esta herramienta",
     "allianceCenter": "Centro de Alianza",
     "rosterHint": "(sugerencias del roster de alianza)",
-    "disclaimer": "Esta herramienta es solo una guía. Las Puntuaciones Oso se basan en bonos de tropas y ajustes de Equipo Exclusivo — las habilidades de héroes y árboles de talentos no se consideran. Úsala como punto de partida, no como la última palabra.",
+    "disclaimer": "Esta herramienta es solo una guía. Las Puntuaciones Oso se basan en bonos de tropas y ajustes de Equipo Exclusivo — las habilidades de héroes no se consideran. Úsala como punto de partida, no como la última palabra.",
     "errorName": "El nombre del jugador es obligatorio.",
     "errorHeroes": "Los tres héroes deben ser seleccionados.",
     "errorEG": "Todos los niveles de Equipo Exclusivo deben ser seleccionados.",
@@ -4097,7 +4097,7 @@
     "featAccess": "Control de Acceso de Alianza",
     "featAccessDesc": "Supporters, Embajadores y Boosters pueden crear y gestionar la lista de niveles. Hasta 2 delegados también pueden editar. El resto de tu alianza tiene acceso de solo lectura.",
     "featDisclaimer": "Guía, No Evangelio",
-    "featDisclaimerDesc": "Esta herramienta solo considera bonos de tropas y ajustes de Equipo Exclusivo. Las habilidades de héroes y árboles de talentos no están incluidos. Úsala como punto de partida para decisiones de rally.",
+    "featDisclaimerDesc": "Esta herramienta solo considera bonos de tropas y ajustes de Equipo Exclusivo. Las habilidades de héroes no están incluidas. Úsala como punto de partida para decisiones de rally.",
     "problemTitle": "\"¿A quién ponemos en el rally del Oso?\" — Cada R5, cada Caza del Oso.",
     "problemDesc": "Preguntas en el chat de alianza. La mitad de tus miembros dicen \"yo\" sin estadísticas. Terminas eligiendo a las mismas 5 personas cada vez — preguntándote si hay alguien mejor. Mientras tanto, los bonos de Equipo Exclusivo defensivos inflan las estadísticas exploradas.",
     "solutionDesc": "La Lista de Niveles de Rally del Oso corta el ruido. Ajusta el Equipo Exclusivo — eliminando bonos defensivos inflados, aplicando bonos ofensivos reales — y clasifica a cada jugador por su potencial real de daño en rally.",
@@ -4111,7 +4111,7 @@
     "ctaDesc": "Explora tu alianza, ingresa las estadísticas y deja que Atlas clasifique a tus jugadores. Toma 2 minutos por jugador. Ahorra horas de debate.",
     "allTools": "Todas las Herramientas",
     "disclaimerTitle": "Aviso Importante",
-    "disclaimerText": "La Lista de Niveles de Rally del Oso es una guía — no una clasificación definitiva. Calcula Puntuaciones Oso basadas solo en bonos de tropas y ajustes de Equipo Exclusivo. Las habilidades de héroes, árboles de talentos y otras variables no se consideran."
+    "disclaimerText": "La Lista de Niveles de Rally del Oso es una guía — no una clasificación definitiva. Calcula Puntuaciones Oso basadas solo en bonos de tropas y ajustes de Equipo Exclusivo. Las habilidades de héroes y otras variables no se consideran."
   },
   "battleTier": {
     "pageTitle": "Lista de Niveles de Batalla KvK — Kingshot Atlas",
@@ -4156,7 +4156,9 @@
     "how2": "Puntuación Ofensiva: Se eliminan los bonos defensivos de EG de los valores explorados, luego se aplican los bonos ofensivos de EG. Se suman las 12 estadísticas (ATK, LTH, DEF, HP × 3 tipos de tropa).",
     "how3": "Puntuación Defensiva: Los valores explorados crudos se suman directamente — el informe de exploración ya muestra las estadísticas defensivas exactas.",
     "how4": "Los niveles usan un algoritmo de cortes naturales para encontrar brechas significativas entre puntuaciones.",
-    "disclaimer": "Esta herramienta es solo una guía. Las puntuaciones se basan en bonos de tropas y ajustes de Equipo Exclusivo — las habilidades de héroes y árboles de talentos no se incluyen.",
+    "disclaimer": "Esta herramienta es solo una guía. Las puntuaciones se basan en bonos de tropas y ajustes de Equipo Exclusivo — las habilidades de héroes no se incluyen.",
+    "rankedOfTotal": "{{ranked}} clasificados / {{total}} total",
+    "totalPlayers": "{{count}} jugadores",
     "bulkEdit": "Editar Todo",
     "bulkEditTitle": "Editar Todos los Jugadores",
     "bulkEditDesc": "Edita datos de todos los jugadores. Las filas sin nombre se omitirán al guardar.",

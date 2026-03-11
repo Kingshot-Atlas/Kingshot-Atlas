@@ -3910,7 +3910,7 @@
     "aboutTool": "Sobre esta ferramenta",
     "allianceCenter": "Centro da Aliança",
     "rosterHint": "(sugestões do roster da aliança)",
-    "disclaimer": "Esta ferramenta é apenas um guia. Pontuações Urso são baseadas em bônus de tropas e ajustes de Equipamento Exclusivo — habilidades de heróis e árvores de talentos não são consideradas. Use como ponto de partida, não como última palavra.",
+    "disclaimer": "Esta ferramenta é apenas um guia. Pontuações Urso são baseadas em bônus de tropas e ajustes de Equipamento Exclusivo — habilidades de heróis não são consideradas. Use como ponto de partida, não como última palavra.",
     "errorName": "Nome do jogador é obrigatório.",
     "errorHeroes": "Todos os três heróis devem ser selecionados.",
     "errorEG": "Todos os níveis de Equipamento Exclusivo devem ser selecionados.",
@@ -4007,7 +4007,7 @@
     "featAccess": "Controle de Acesso da Aliança",
     "featAccessDesc": "Supporters, Cônsules e Boosters podem criar e gerenciar a lista de níveis. Até 2 delegados também podem editar. O resto da aliança tem acesso somente leitura.",
     "featDisclaimer": "Guia, Não Evangelho",
-    "featDisclaimerDesc": "Esta ferramenta considera apenas bônus de tropas e ajustes de Equipamento Exclusivo. Habilidades de heróis e árvores de talentos não estão incluídas. Use como ponto de partida para decisões de rally.",
+    "featDisclaimerDesc": "Esta ferramenta considera apenas bônus de tropas e ajustes de Equipamento Exclusivo. Habilidades de heróis não estão incluídas. Use como ponto de partida para decisões de rally.",
     "problemTitle": "\"Quem colocamos no rally do Urso?\" — Todo R5, toda Caça ao Urso.",
     "problemDesc": "Você pergunta no chat da aliança. Metade dos membros dizem \"eu\" sem estatísticas. Você acaba escolhendo as mesmas 5 pessoas toda vez. Enquanto isso, bônus de EG defensivos inflam as estatísticas exploradas.",
     "solutionDesc": "A Lista de Níveis do Rally do Urso corta o ruído. Ajusta Equipamento Exclusivo — removendo bônus defensivos inflados, aplicando bônus ofensivos reais — e classifica cada jogador pelo potencial real de dano no rally.",
@@ -4021,7 +4021,7 @@
     "ctaDesc": "Explore sua aliança, insira as estatísticas e deixe Atlas classificar seus jogadores. 2 minutos por jogador. Economiza horas de debate.",
     "allTools": "Todas as Ferramentas",
     "disclaimerTitle": "Aviso Importante",
-    "disclaimerText": "A Lista de Níveis do Rally do Urso é um guia — não uma classificação definitiva. Calcula Pontuações Urso baseadas apenas em bônus de tropas e ajustes de Equipamento Exclusivo. Habilidades de heróis, árvores de talentos e outras variáveis não são consideradas."
+    "disclaimerText": "A Lista de Níveis do Rally do Urso é um guia — não uma classificação definitiva. Calcula Pontuações Urso baseadas apenas em bônus de tropas e ajustes de Equipamento Exclusivo. Habilidades de heróis e outras variáveis não são consideradas."
   },
   "battleTier": {
     "pageTitle": "Lista de Níveis de Batalha KvK — Kingshot Atlas",
@@ -4066,7 +4066,9 @@
     "how2": "Pontuação Ofensiva: Bônus de EE defensivos são removidos dos valores espionados, depois bônus de EE ofensivos são aplicados. Todas as 12 estatísticas (ATK, LTH, DEF, HP × 3 tipos de tropa) são somadas.",
     "how3": "Pontuação Defensiva: Valores espionados brutos são somados diretamente — o relatório de espionagem já mostra as estatísticas defensivas exatas.",
     "how4": "Níveis usam um algoritmo de quebras naturais para encontrar lacunas significativas entre pontuações dos jogadores.",
-    "disclaimer": "Esta ferramenta é apenas um guia. Pontuações são baseadas em bônus de tropas e ajustes de Equipamento Exclusivo — habilidades de heróis e árvores de talentos não estão incluídos.",
+    "disclaimer": "Esta ferramenta é apenas um guia. Pontuações são baseadas em bônus de tropas e ajustes de Equipamento Exclusivo — habilidades de heróis não estão incluídas.",
+    "rankedOfTotal": "{{ranked}} classificados / {{total}} total",
+    "totalPlayers": "{{count}} jogadores",
     "bulkEdit": "Editar Tudo",
     "bulkEditTitle": "Editar Todos os Jogadores",
     "bulkEditDesc": "Edite dados de todos os jogadores. Linhas sem nome serão ignoradas ao salvar.",

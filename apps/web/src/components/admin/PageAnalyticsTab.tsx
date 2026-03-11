@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { colors } from '../../utils/styles';
 import { supabase } from '../../lib/supabase';
 
@@ -12,10 +12,21 @@ interface DailyData {
   total_views: number;
 }
 
+interface HourlyData {
+  hour: string;
+  unique_visitors: number;
+  total_views: number;
+}
+
 interface TopPage {
   page_path: string;
   unique_visitors: number;
   views: number;
+}
+
+interface ChartPoint {
+  label: string;
+  value: number;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -50,29 +61,35 @@ function shortDay(iso: string): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-// ── Bar Chart (SVG) ────────────────────────────────────────────────────────────
+function fmtHour(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true });
+}
 
-const BarChart: React.FC<{
-  data: DailyData[];
+// ── Area Chart (SVG) ──────────────────────────────────────────────────────────
+
+const AreaChart: React.FC<{
+  data: ChartPoint[];
   height?: number;
-  barColor?: string;
-}> = ({ data, height = 220, barColor = colors.primary }) => {
+  lineColor?: string;
+  emptyMessage?: string;
+}> = ({ data, height = 280, lineColor = colors.primary, emptyMessage }) => {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
 
   if (!data.length) {
     return (
       <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted, fontSize: '0.85rem' }}>
-        No data yet. Page views will appear here once visitors are tracked.
+        {emptyMessage || 'No data yet. Page views will appear here once visitors are tracked.'}
       </div>
     );
   }
 
-  const maxVal = Math.max(...data.map(d => d.unique_visitors), 1);
-  const chartPadding = { top: 20, right: 12, bottom: 40, left: 44 };
-  const chartW = Math.max(data.length * 28, 300);
+  const maxVal = Math.max(...data.map(d => d.value), 1);
+  const chartPadding = { top: 40, right: 16, bottom: 44, left: 50 };
+  const chartW = Math.max(data.length * 32, 400);
   const innerW = chartW - chartPadding.left - chartPadding.right;
   const innerH = height - chartPadding.top - chartPadding.bottom;
-  const barWidth = Math.max(Math.min(innerW / data.length - 4, 24), 6);
 
   // Y-axis gridlines
   const gridLines = 4;
@@ -80,13 +97,45 @@ const BarChart: React.FC<{
     Math.round((maxVal / gridLines) * i)
   );
 
+  // Compute point positions
+  const points = data.map((d, i) => ({
+    x: chartPadding.left + (data.length === 1 ? innerW / 2 : (i / (data.length - 1)) * innerW),
+    y: chartPadding.top + innerH - (d.value / maxVal) * innerH,
+    ...d,
+  }));
+
+  // Build SVG path for the line
+  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+
+  // Build SVG path for the filled area
+  const areaPath = `${linePath} L${points[points.length - 1]!.x},${chartPadding.top + innerH} L${points[0]!.x},${chartPadding.top + innerH} Z`;
+
+  // Tooltip clamped within SVG bounds
+  const tooltipW = 100;
+  const hoveredPoint = hoveredIdx !== null ? points[hoveredIdx] : null;
+  const tooltipX = hoveredPoint
+    ? Math.max(tooltipW / 2 + 4, Math.min(hoveredPoint.x, chartW - tooltipW / 2 - 4))
+    : 0;
+  const tooltipY = hoveredPoint
+    ? Math.max(chartPadding.top + 4, hoveredPoint.y - 42)
+    : 0;
+
   return (
     <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
       <svg
+        ref={svgRef}
         width={chartW}
         height={height}
         style={{ display: 'block', minWidth: '100%' }}
+        onMouseLeave={() => setHoveredIdx(null)}
       >
+        <defs>
+          <linearGradient id={`areaGrad-${lineColor.replace('#', '')}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={lineColor} stopOpacity={0.3} />
+            <stop offset="100%" stopColor={lineColor} stopOpacity={0.02} />
+          </linearGradient>
+        </defs>
+
         {/* Y-axis gridlines */}
         {yTicks.map((tick, i) => {
           const y = chartPadding.top + innerH - (tick / maxVal) * innerH;
@@ -102,7 +151,7 @@ const BarChart: React.FC<{
                 strokeDasharray={i === 0 ? undefined : '4,4'}
               />
               <text
-                x={chartPadding.left - 6}
+                x={chartPadding.left - 8}
                 y={y + 4}
                 textAnchor="end"
                 fill={colors.textMuted}
@@ -114,70 +163,92 @@ const BarChart: React.FC<{
           );
         })}
 
-        {/* Bars */}
-        {data.map((d, i) => {
-          const barH = (d.unique_visitors / maxVal) * innerH;
-          const x = chartPadding.left + (i * (innerW / data.length)) + (innerW / data.length - barWidth) / 2;
-          const y = chartPadding.top + innerH - barH;
-          const isHovered = hoveredIdx === i;
+        {/* Filled area */}
+        <path d={areaPath} fill={`url(#areaGrad-${lineColor.replace('#', '')})`} />
 
+        {/* Line */}
+        <path d={linePath} fill="none" stroke={lineColor} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
+
+        {/* Data points + invisible hover zones */}
+        {points.map((p, i) => {
+          const isHovered = hoveredIdx === i;
           return (
-            <g
-              key={d.day}
-              onMouseEnter={() => setHoveredIdx(i)}
-              onMouseLeave={() => setHoveredIdx(null)}
-              style={{ cursor: 'pointer' }}
-            >
+            <g key={i}>
+              {/* Invisible wide hover target */}
               <rect
-                x={x}
-                y={y}
-                width={barWidth}
-                height={Math.max(barH, 1)}
-                rx={3}
-                fill={isHovered ? colors.primaryHover : barColor}
-                opacity={isHovered ? 1 : 0.8}
+                x={p.x - (innerW / data.length) / 2}
+                y={chartPadding.top}
+                width={innerW / data.length}
+                height={innerH}
+                fill="transparent"
+                onMouseEnter={() => setHoveredIdx(i)}
+                style={{ cursor: 'pointer' }}
               />
-              {/* Hover tooltip */}
+              {/* Dot */}
+              <circle
+                cx={p.x}
+                cy={p.y}
+                r={isHovered ? 5 : 3}
+                fill={isHovered ? lineColor : colors.cardAlt}
+                stroke={lineColor}
+                strokeWidth={2}
+              />
+              {/* Vertical guide line on hover */}
               {isHovered && (
-                <>
-                  <rect
-                    x={x + barWidth / 2 - 46}
-                    y={y - 36}
-                    width={92}
-                    height={28}
-                    rx={4}
-                    fill="#1e1e2a"
-                    stroke={colors.border}
-                    strokeWidth={1}
-                  />
-                  <text
-                    x={x + barWidth / 2}
-                    y={y - 18}
-                    textAnchor="middle"
-                    fill={colors.text}
-                    fontSize={11}
-                    fontWeight={600}
-                  >
-                    {d.unique_visitors} visitors
-                  </text>
-                </>
+                <line
+                  x1={p.x}
+                  y1={p.y}
+                  x2={p.x}
+                  y2={chartPadding.top + innerH}
+                  stroke={lineColor}
+                  strokeWidth={1}
+                  strokeDasharray="3,3"
+                  opacity={0.4}
+                />
               )}
-              {/* X-axis label — show every Nth depending on data length */}
-              {(data.length <= 14 || i % Math.ceil(data.length / 14) === 0 || i === data.length - 1) && (
+              {/* X-axis label */}
+              {(data.length <= 16 || i % Math.ceil(data.length / 16) === 0 || i === data.length - 1) && (
                 <text
-                  x={x + barWidth / 2}
-                  y={chartPadding.top + innerH + 16}
+                  x={p.x}
+                  y={chartPadding.top + innerH + 18}
                   textAnchor="middle"
                   fill={colors.textMuted}
                   fontSize={9}
-                  transform={data.length > 30 ? `rotate(-35, ${x + barWidth / 2}, ${chartPadding.top + innerH + 16})` : undefined}
+                  transform={data.length > 30 ? `rotate(-35, ${p.x}, ${chartPadding.top + innerH + 18})` : undefined}
                 >
-                  {shortDay(d.day)}
+                  {p.label}
                 </text>
               )}
             </g>
           );
         })}
+
+        {/* Tooltip — rendered last to stay on top */}
+        {hoveredPoint && hoveredIdx !== null && (
+          <g>
+            <rect
+              x={tooltipX - tooltipW / 2}
+              y={tooltipY}
+              width={tooltipW}
+              height={30}
+              rx={6}
+              fill="#1a1a2e"
+              stroke={lineColor}
+              strokeWidth={1}
+              opacity={0.95}
+            />
+            <text
+              x={tooltipX}
+              y={tooltipY + 19}
+              textAnchor="middle"
+              fill={colors.text}
+              fontSize={11}
+              fontWeight={600}
+            >
+              {hoveredPoint.value.toLocaleString()} visitors
+            </text>
+          </g>
+        )}
       </svg>
     </div>
   );
@@ -190,6 +261,8 @@ export const PageAnalyticsTab: React.FC = () => {
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
   const [dailyData, setDailyData] = useState<DailyData[]>([]);
+  const [todayHourly, setTodayHourly] = useState<HourlyData[]>([]);
+  const [last24hHourly, setLast24hHourly] = useState<HourlyData[]>([]);
   const [topPages, setTopPages] = useState<TopPage[]>([]);
   const [liveCount, setLiveCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -202,18 +275,29 @@ export const PageAnalyticsTab: React.FC = () => {
     return dateFromPreset(preset);
   }, [preset, customStart, customEnd]);
 
-  // Fetch daily analytics data
+  // Fetch daily + hourly analytics data
   const fetchAnalytics = useCallback(async () => {
     if (!supabase) return;
     setLoading(true);
     try {
       const { start, end } = getRange();
-      const [dailyRes, pagesRes] = await Promise.all([
+
+      // Today = start of today (local midnight) to now
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      // Last 24h = now minus 24 hours
+      const last24hStart = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+      const [dailyRes, pagesRes, todayRes, last24hRes] = await Promise.all([
         supabase.rpc('get_page_analytics', { p_start: start, p_end: end }),
         supabase.rpc('get_top_pages', { p_start: start, p_end: end, p_limit: 20 }),
+        supabase.rpc('get_hourly_analytics', { p_start: todayStart.toISOString(), p_end: now.toISOString() }),
+        supabase.rpc('get_hourly_analytics', { p_start: last24hStart.toISOString(), p_end: now.toISOString() }),
       ]);
       if (dailyRes.data) setDailyData(dailyRes.data as DailyData[]);
       if (pagesRes.data) setTopPages(pagesRes.data as TopPage[]);
+      if (todayRes.data) setTodayHourly(todayRes.data as HourlyData[]);
+      if (last24hRes.data) setLast24hHourly(last24hRes.data as HourlyData[]);
     } catch { /* silent */ } finally {
       setLoading(false);
     }
@@ -246,6 +330,22 @@ export const PageAnalyticsTab: React.FC = () => {
   const totalVisitors = dailyData.reduce((sum, d) => sum + d.unique_visitors, 0);
   const totalViews = dailyData.reduce((sum, d) => sum + d.total_views, 0);
   const avgDaily = dailyData.length > 0 ? Math.round(totalVisitors / dailyData.length) : 0;
+
+  // Prepare chart data
+  const dailyChartData: ChartPoint[] = useMemo(() =>
+    dailyData.map(d => ({ label: shortDay(d.day), value: d.unique_visitors })),
+    [dailyData]
+  );
+
+  const todayChartData: ChartPoint[] = useMemo(() =>
+    todayHourly.map(d => ({ label: fmtHour(d.hour), value: d.unique_visitors })),
+    [todayHourly]
+  );
+
+  const last24hChartData: ChartPoint[] = useMemo(() =>
+    last24hHourly.map(d => ({ label: fmtHour(d.hour), value: d.unique_visitors })),
+    [last24hHourly]
+  );
 
   const presets: { id: RangePreset; label: string }[] = [
     { id: 'today', label: 'Today' },
@@ -440,6 +540,48 @@ export const PageAnalyticsTab: React.FC = () => {
         </div>
       </div>
 
+      {/* Today Hourly Chart */}
+      <div style={{
+        backgroundColor: colors.cardAlt,
+        borderRadius: '12px',
+        padding: '1.25rem',
+        border: `1px solid ${colors.border}`,
+      }}>
+        <h3 style={{ color: colors.text, margin: '0 0 1rem 0', fontSize: '1rem' }}>
+          📈 Today — Hourly Unique Visitors
+        </h3>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted }}>Loading chart...</div>
+        ) : (
+          <AreaChart
+            data={todayChartData}
+            lineColor={colors.success}
+            emptyMessage="No visitors tracked today yet."
+          />
+        )}
+      </div>
+
+      {/* Last 24h Hourly Chart */}
+      <div style={{
+        backgroundColor: colors.cardAlt,
+        borderRadius: '12px',
+        padding: '1.25rem',
+        border: `1px solid ${colors.border}`,
+      }}>
+        <h3 style={{ color: colors.text, margin: '0 0 1rem 0', fontSize: '1rem' }}>
+          🕐 Last 24 Hours — Hourly Unique Visitors
+        </h3>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted }}>Loading chart...</div>
+        ) : (
+          <AreaChart
+            data={last24hChartData}
+            lineColor={colors.purple}
+            emptyMessage="No visitor data in the last 24 hours."
+          />
+        )}
+      </div>
+
       {/* Daily Unique Visitors Chart */}
       <div style={{
         backgroundColor: colors.cardAlt,
@@ -453,7 +595,7 @@ export const PageAnalyticsTab: React.FC = () => {
         {loading ? (
           <div style={{ textAlign: 'center', padding: '2rem', color: colors.textMuted }}>Loading chart...</div>
         ) : (
-          <BarChart data={dailyData} />
+          <AreaChart data={dailyChartData} />
         )}
       </div>
 
