@@ -590,4 +590,4 @@ export function validateBearPlayers(players: unknown): string | null {
 // ─── Disclaimer ─────────────────────────────────────────────────────────────
 
 export const BEAR_DISCLAIMER_KEY = 'bearRally.disclaimer';
-export const BEAR_DISCLAIMER_DEFAULT = 'This tool is a guide only. Bear Scores are based on troop bonuses and Exclusive Gear adjustments — hero skills and talent trees are not factored in. Use this as a starting point, not the final word.';
+export const BEAR_DISCLAIMER_DEFAULT = 'This tool is a guide only. Bear Scores are based on troop bonuses and Exclusive Gear adjustments — hero skills are not factored in. Use this as a starting point, not the final word.';

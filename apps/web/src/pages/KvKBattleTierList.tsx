@@ -1125,77 +1125,9 @@ const KvKBattleTierList: React.FC = () => {
               </div>
             )}
 
-            {/* Tier Cutoff Editor */}
-            <BattleTierCutoffEditor
-              mode={state.activeSection}
-              rankedPlayers={rankedPlayers}
-              tierOverrides={state.activeSection === 'offense' ? state.tierOverridesOffense : state.tierOverridesDefense}
-              autoBoundaries={state.activeSection === 'offense' ? state.autoOffenseBoundaries : state.autoDefenseBoundaries}
-              onSetOverrides={state.activeSection === 'offense' ? state.handleSetOffenseOverrides : state.handleSetDefenseOverrides}
-              canEdit={state.canEdit}
-              isMobile={isMobile}
-            />
-
             {/* Tier Table */}
             {rankedPlayers.length > 0 ? (
               <div>
-                {/* Tier Distribution Bar */}
-                {(() => {
-                  const tierCounts = (['SS', 'S', 'A', 'B', 'C', 'D'] as BattleTier[]).map(tier => ({
-                    tier,
-                    count: rankedPlayers.filter(p =>
-                      (state.activeSection === 'offense' ? p.offenseTier : p.defenseTier) === tier
-                    ).length,
-                  })).filter(t => t.count > 0);
-                  const total = rankedPlayers.length;
-                  return (
-                    <div style={{ marginBottom: '1rem' }}>
-                      {/* Stacked bar */}
-                      <div style={{
-                        display: 'flex', height: '28px', borderRadius: '8px',
-                        overflow: 'hidden', border: '1px solid #2a2a2a',
-                      }}>
-                        {tierCounts.map(({ tier, count }) => (
-                          <div key={tier} style={{
-                            width: `${(count / total) * 100}%`,
-                            backgroundColor: `${BATTLE_TIER_COLORS[tier]}30`,
-                            borderRight: '1px solid #0a0a0a',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            minWidth: count > 0 ? '32px' : 0,
-                            transition: 'width 0.3s ease',
-                          }}>
-                            <span style={{
-                              fontSize: '0.65rem', fontWeight: 700,
-                              color: BATTLE_TIER_COLORS[tier],
-                              whiteSpace: 'nowrap',
-                            }}>
-                              {tier} ({count})
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                      {/* Legend */}
-                      <div style={{
-                        display: 'flex', gap: '0.5rem', flexWrap: 'wrap',
-                        marginTop: '0.4rem', justifyContent: 'center',
-                      }}>
-                        {tierCounts.map(({ tier, count }) => (
-                          <div key={tier} style={{
-                            display: 'flex', alignItems: 'center', gap: '0.2rem',
-                            fontSize: '0.6rem', color: '#6b7280',
-                          }}>
-                            <span style={{
-                              width: '8px', height: '8px', borderRadius: '2px',
-                              backgroundColor: BATTLE_TIER_COLORS[tier],
-                            }} />
-                            {tier}: {count} ({Math.round((count / total) * 100)}%)
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })()}
-
                 {/* Player Rows */}
                 {rankedPlayers.map(player => (
                   <PlayerRow
@@ -1226,6 +1158,42 @@ const KvKBattleTierList: React.FC = () => {
                     onCancelDelete={() => setDeleteTarget(null)}
                   />
                 ))}
+
+                {/* Tier Distribution Footer */}
+                <div style={{
+                  padding: '0.6rem 0.75rem',
+                  backgroundColor: '#0d0d0d',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '0.5rem',
+                  marginTop: '0.25rem',
+                  borderTop: '1px solid #1a1a1a',
+                }}>
+                  <span style={{ fontSize: '0.7rem', color: '#6b7280' }}>
+                    {activeIncomplete.length > 0
+                      ? t('battleTier.rankedOfTotal', '{{ranked}} ranked / {{total}} total', { ranked: rankedPlayers.length, total: activePlayers.length })
+                      : t('battleTier.totalPlayers', '{{count}} players', { count: activePlayers.length })}
+                  </span>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {(['SS', 'S', 'A', 'B', 'C', 'D'] as BattleTier[]).map(tier => {
+                      const count = rankedPlayers.filter(p =>
+                        (state.activeSection === 'offense' ? p.offenseTier : p.defenseTier) === tier
+                      ).length;
+                      if (count === 0) return null;
+                      return (
+                        <span key={tier} style={{
+                          fontSize: '0.6rem',
+                          color: BATTLE_TIER_COLORS[tier],
+                          fontWeight: 700,
+                        }}>
+                          {tier}: {count}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
 
                 {/* Incomplete players */}
                 {activeIncomplete.length > 0 && (
@@ -1295,6 +1263,17 @@ const KvKBattleTierList: React.FC = () => {
           </>
         ) : null}
 
+        {/* Tier Cutoff Editor */}
+            <BattleTierCutoffEditor
+              mode={state.activeSection}
+              rankedPlayers={rankedPlayers}
+              tierOverrides={state.activeSection === 'offense' ? state.tierOverridesOffense : state.tierOverridesDefense}
+              autoBoundaries={state.activeSection === 'offense' ? state.autoOffenseBoundaries : state.autoDefenseBoundaries}
+              onSetOverrides={state.activeSection === 'offense' ? state.handleSetOffenseOverrides : state.handleSetDefenseOverrides}
+              canEdit={state.canEdit}
+              isMobile={isMobile}
+            />
+
         {/* Info Card */}
         <div style={{
           marginTop: '1.5rem', padding: isMobile ? '1rem' : '1.25rem',
@@ -1317,7 +1296,7 @@ const KvKBattleTierList: React.FC = () => {
           backgroundColor: '#0d0d0d', borderRadius: '10px', border: '1px solid #1a1a1a',
         }}>
           <p style={{ fontSize: '0.7rem', color: '#6b7280', margin: 0, fontStyle: 'italic', lineHeight: 1.5 }}>
-            ⚠️ {t('battleTier.disclaimer', 'This tool is a guide only. Scores are based on troop bonuses and Exclusive Gear adjustments — hero skills and talent trees are not factored in. Use this as a starting point for rally and garrison decisions.')}
+            ⚠️ {t('battleTier.disclaimer', 'This tool is a guide only. Scores are based on troop bonuses and Exclusive Gear adjustments — hero skills are not factored in. Use this as a starting point for rally and garrison decisions.')}
           </p>
         </div>
 

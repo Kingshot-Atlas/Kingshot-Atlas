@@ -4112,7 +4112,7 @@
     "aboutTool": "About this tool",
     "allianceCenter": "Alliance Center",
     "rosterHint": "(suggestions from alliance roster)",
-    "disclaimer": "This tool is a guide only. Bear Scores are based on troop bonuses and Exclusive Gear adjustments — hero skills and talent trees are not factored in. Use this as a starting point, not the final word.",
+    "disclaimer": "This tool is a guide only. Bear Scores are based on troop bonuses and Exclusive Gear adjustments — hero skills are not factored in. Use this as a starting point, not the final word.",
     "errorName": "Player name is required.",
     "errorHeroes": "All three heroes must be selected.",
     "errorEG": "All Exclusive Gear levels must be selected.",
@@ -4215,7 +4215,7 @@
     "featAccess": "Alliance Access Control",
     "featAccessDesc": "Supporters, Consuls, and Boosters can create and manage the tier list. Up to 2 delegates can also edit. The rest of your alliance gets read-only access.",
     "featDisclaimer": "Guide, Not Gospel",
-    "featDisclaimerDesc": "This tool factors in troop bonuses and Exclusive Gear adjustments only. Hero skills and talent trees are not included. Use it as a starting point for rally decisions.",
+    "featDisclaimerDesc": "This tool factors in troop bonuses and Exclusive Gear adjustments only. Hero skills are not included. Use it as a starting point for rally decisions.",
     "problemTitle": "\"Who should we put in the Bear rally?\" — Every R5, every Bear Hunt.",
     "problemDesc": "You ask in alliance chat. Half your members say \"me\" with no stats. You end up picking the same 5 people every time — and wondering if there's someone better. Meanwhile, defensive Exclusive Gear bonuses inflate scouted stats, making some players look stronger than they actually are in a rally.",
     "solutionDesc": "The Bear Rally Tier List cuts through the noise. It adjusts for Exclusive Gear — removing inflated defensive bonuses, applying real offensive bonuses — and ranks every player by their actual rally damage potential. No more guessing. No more politics. Just data.",
@@ -4229,7 +4229,7 @@
     "ctaDesc": "Scout your alliance, input the stats, and let Atlas rank your players. Takes 2 minutes per player. Saves hours of debate.",
     "allTools": "All Tools",
     "disclaimerTitle": "Important Disclaimer",
-    "disclaimerText": "The Bear Rally Tier List is a guide — not a definitive ranking. It calculates Bear Scores based on troop bonuses and Exclusive Gear adjustments only. Hero skills, talent trees, and other variables are not factored in. Use this tool as a starting point for your rally lineup decisions."
+    "disclaimerText": "The Bear Rally Tier List is a guide — not a definitive ranking. It calculates Bear Scores based on troop bonuses and Exclusive Gear adjustments only. Hero skills and other variables are not factored in. Use this tool as a starting point for your rally lineup decisions."
   },
   "battleTier": {
     "pageTitle": "KvK Battle Tier List — Kingshot Atlas",
@@ -4274,7 +4274,9 @@
     "how2": "Offense Score: Defensive EG bonuses are removed from scouted values, then offensive EG bonuses are applied. All 12 stats (ATK, LTH, DEF, HP × 3 troop types) are summed.",
     "how3": "Defense Score: Raw scouted values are summed directly — the scout report already shows exact defensive stats.",
     "how4": "Tiers use a natural-breaks algorithm to find meaningful gaps between player scores. Managers can also set custom cutoffs.",
-    "disclaimer": "This tool is a guide only. Scores are based on troop bonuses and Exclusive Gear adjustments — hero skills and talent trees are not factored in. Use this as a starting point for rally and garrison decisions.",
+    "disclaimer": "This tool is a guide only. Scores are based on troop bonuses and Exclusive Gear adjustments — hero skills are not factored in. Use this as a starting point for rally and garrison decisions.",
+    "rankedOfTotal": "{{ranked}} ranked / {{total}} total",
+    "totalPlayers": "{{count}} players",
     "bulkEdit": "Edit All",
     "bulkEditTitle": "Edit All Players",
     "bulkEditDesc": "Edit data for all players. Empty name rows will be skipped on save.",

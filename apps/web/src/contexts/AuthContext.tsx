@@ -811,8 +811,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const now = new Date();
       const hoursSinceSync = lastSynced ? (now.getTime() - lastSynced.getTime()) / (1000 * 60 * 60) : Infinity;
       
-      // Auto-refresh if never synced or last sync > 24 hours ago
-      if (hoursSinceSync > 24) {
+      // Auto-refresh if never synced or last sync > 4 hours ago
+      if (hoursSinceSync > 4) {
         refreshLinkedPlayer();
       }
     }

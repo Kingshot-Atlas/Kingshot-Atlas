@@ -3996,7 +3996,7 @@
     "aboutTool": "Bu araç hakkında",
     "allianceCenter": "İttifak Merkezi",
     "rosterHint": "(ittifak kadrosundan öneriler)",
-    "disclaimer": "Bu araç yalnızca bir rehberdir. Ayı Puanları birlik bonuslarına ve Özel Teçhizat ayarlamalarına dayanır — kahraman becerileri ve yetenek ağaçları dahil değildir. Başlangıç noktası olarak kullanın, son söz olarak değil.",
+    "disclaimer": "Bu araç yalnızca bir rehberdir. Ayı Puanları birlik bonuslarına ve Özel Teçhizat ayarlamalarına dayanır — kahraman becerileri dahil değildir. Başlangıç noktası olarak kullanın, son söz olarak değil.",
     "errorName": "Oyuncu adı gereklidir.",
     "errorHeroes": "Üç kahramanın tamamı seçilmelidir.",
     "errorEG": "Tüm Özel Teçhizat seviyeleri seçilmelidir.",
@@ -4098,7 +4098,7 @@
     "featAccess": "İttifak Erişim Kontrolü",
     "featAccessDesc": "Destekçiler, Konsüller ve Güçlendiriciler seviye listesini oluşturabilir ve yönetebilir. 2 delegeye kadar da düzenleyebilir. İttifakınızın geri kalanı salt okunur erişime sahiptir.",
     "featDisclaimer": "Rehber, Mutlak Değil",
-    "featDisclaimerDesc": "Bu araç yalnızca birlik bonuslarını ve Özel Teçhizat ayarlamalarını dikkate alır. Kahraman becerileri ve yetenek ağaçları dahil değildir. Ralli kararları için başlangıç noktası olarak kullanın.",
+    "featDisclaimerDesc": "Bu araç yalnızca birlik bonuslarını ve Özel Teçhizat ayarlamalarını dikkate alır. Kahraman becerileri dahil değildir. Ralli kararları için başlangıç noktası olarak kullanın.",
     "problemTitle": "\"Ayı rallisine kimi koyacağız?\" — Her R5, her Ayı Avı.",
     "problemDesc": "İttifak sohbetinde soruyorsunuz. Üyelerinizin yarısı istatistik olmadan \"ben\" diyor. Her seferinde aynı 5 kişiyi seçiyorsunuz. Bu arada savunma ÖT bonusları keşif istatistiklerini şişiriyor.",
     "solutionDesc": "Ayı Rallisi Seviye Listesi gürültüyü keser. Özel Teçhizatı ayarlar — şişirilmiş savunma bonuslarını çıkarır, gerçek saldırı bonuslarını uygular — ve her oyuncuyu gerçek ralli hasar potansiyeline göre sıralar.",
@@ -4112,7 +4112,7 @@
     "ctaDesc": "İttifakınızı keşfedin, istatistikleri girin ve Atlas'ın oyuncularınızı sıralamasına izin verin. Oyuncu başına 2 dakika. Saatlerce tartışmadan tasarruf.",
     "allTools": "Tüm Araçlar",
     "disclaimerTitle": "Önemli Uyarı",
-    "disclaimerText": "Ayı Rallisi Seviye Listesi bir rehberdir — kesin bir sıralama değil. Ayı Puanlarını yalnızca birlik bonuslarına ve Özel Teçhizat ayarlamalarına göre hesaplar. Kahraman becerileri, yetenek ağaçları ve diğer değişkenler dahil değildir."
+    "disclaimerText": "Ayı Rallisi Seviye Listesi bir rehberdir — kesin bir sıralama değil. Ayı Puanlarını yalnızca birlik bonuslarına ve Özel Teçhizat ayarlamalarına göre hesaplar. Kahraman becerileri ve diğer değişkenler dahil değildir."
   },
   "battleTier": {
     "pageTitle": "KvK Savaş Seviye Listesi — Kingshot Atlas",
@@ -4157,7 +4157,9 @@
     "how2": "Saldırı Puanı: Keşif değerlerinden savunma ÖT bonusları çıkarılır, ardından saldırı ÖT bonusları uygulanır. 12 istatistiğin (ATK, LTH, DEF, HP × 3 birlik türü) tümü toplanır.",
     "how3": "Savunma Puanı: Ham keşif değerleri doğrudan toplanır — keşif raporu zaten tam savunma istatistiklerini gösterir.",
     "how4": "Seviyeler, oyuncu puanları arasındaki anlamlı boşlukları bulmak için doğal ayrım algoritması kullanır.",
-    "disclaimer": "Bu araç yalnızca bir rehberdir. Puanlar birlik bonuslarına ve Özel Teçhizat ayarlamalarına dayanır — kahraman becerileri ve yetenek ağaçları dahil değildir.",
+    "disclaimer": "Bu araç yalnızca bir rehberdir. Puanlar birlik bonuslarına ve Özel Teçhizat ayarlamalarına dayanır — kahraman becerileri dahil değildir.",
+    "rankedOfTotal": "{{ranked}} sıralanmış / {{total}} toplam",
+    "totalPlayers": "{{count}} oyuncu",
     "bulkEdit": "Tümünü Düzenle",
     "bulkEditTitle": "Tüm Oyuncuları Düzenle",
     "bulkEditDesc": "Tüm oyuncuların verilerini düzenle. İsimsiz satırlar kaydederken atlanır.",

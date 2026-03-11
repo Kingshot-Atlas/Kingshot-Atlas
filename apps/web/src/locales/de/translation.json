@@ -3996,7 +3996,7 @@
     "aboutTool": "Über dieses Tool",
     "allianceCenter": "Allianzzentrum",
     "rosterHint": "(Vorschläge aus dem Allianz-Roster)",
-    "disclaimer": "Dieses Tool ist nur ein Leitfaden. Bären-Punktzahlen basieren auf Truppenboni und Exklusiv-Ausrüstungsanpassungen — Heldenfähigkeiten und Talentbäume werden nicht berücksichtigt. Nutze es als Ausgangspunkt, nicht als letztes Wort.",
+    "disclaimer": "Dieses Tool ist nur ein Leitfaden. Bären-Punktzahlen basieren auf Truppenboni und Exklusiv-Ausrüstungsanpassungen — Heldenfähigkeiten werden nicht berücksichtigt. Nutze es als Ausgangspunkt, nicht als letztes Wort.",
     "errorName": "Spielername ist erforderlich.",
     "errorHeroes": "Alle drei Helden müssen ausgewählt werden.",
     "errorEG": "Alle Exklusiv-Ausrüstungsstufen müssen ausgewählt werden.",
@@ -4098,7 +4098,7 @@
     "featAccess": "Allianz-Zugangskontrolle",
     "featAccessDesc": "Supporters, Botschafter und Booster können die Stufenliste erstellen und verwalten. Bis zu 2 Delegierte können ebenfalls bearbeiten. Der Rest deiner Allianz hat Lesezugriff.",
     "featDisclaimer": "Leitfaden, kein Evangelium",
-    "featDisclaimerDesc": "Dieses Tool berücksichtigt nur Truppenboni und Exklusiv-Ausrüstungsanpassungen. Heldenfähigkeiten und Talentbäume sind nicht enthalten. Nutze es als Ausgangspunkt für Rally-Entscheidungen.",
+    "featDisclaimerDesc": "Dieses Tool berücksichtigt nur Truppenboni und Exklusiv-Ausrüstungsanpassungen. Heldenfähigkeiten sind nicht enthalten. Nutze es als Ausgangspunkt für Rally-Entscheidungen.",
     "problemTitle": "\"Wen setzen wir in den Bären-Rally?\" — Jeder R5, jede Bärenjagd.",
     "problemDesc": "Du fragst im Allianz-Chat. Die Hälfte deiner Mitglieder sagt \"ich\" ohne Werte. Du wählst jedes Mal die gleichen 5 Leute. Währenddessen blähen defensive EG-Boni die erspähten Werte auf.",
     "solutionDesc": "Die Bären-Rally Stufenliste schneidet durch das Rauschen. Sie passt Exklusiv-Ausrüstung an — entfernt aufgeblähte defensive Boni, wendet echte offensive Boni an — und stuft jeden Spieler nach seinem tatsächlichen Rally-Schadenspotenzial ein.",
@@ -4112,7 +4112,7 @@
     "ctaDesc": "Erkunde deine Allianz, gib die Werte ein und lass Atlas deine Spieler einstufen. 2 Minuten pro Spieler. Spart Stunden der Debatte.",
     "allTools": "Alle Werkzeuge",
     "disclaimerTitle": "Wichtiger Hinweis",
-    "disclaimerText": "Die Bären-Rally Stufenliste ist ein Leitfaden — kein endgültiges Ranking. Sie berechnet Bären-Punktzahlen nur basierend auf Truppenboni und Exklusiv-Ausrüstungsanpassungen. Heldenfähigkeiten, Talentbäume und andere Variablen werden nicht berücksichtigt."
+    "disclaimerText": "Die Bären-Rally Stufenliste ist ein Leitfaden — kein endgültiges Ranking. Sie berechnet Bären-Punktzahlen nur basierend auf Truppenboni und Exklusiv-Ausrüstungsanpassungen. Heldenfähigkeiten und andere Variablen werden nicht berücksichtigt."
   },
   "battleTier": {
     "pageTitle": "KvK Kampf-Stufenliste — Kingshot Atlas",
@@ -4157,7 +4157,9 @@
     "how2": "Offensiv-Punktzahl: Defensive EG-Boni werden von den gescouteten Werten entfernt, dann werden offensive EG-Boni angewendet. Alle 12 Statistiken (ATK, LTH, DEF, HP × 3 Truppentypen) werden summiert.",
     "how3": "Defensiv-Punktzahl: Rohe gescoutete Werte werden direkt summiert — der Scout-Bericht zeigt bereits die genauen Verteidigungsstatistiken.",
     "how4": "Stufen verwenden einen Natural-Breaks-Algorithmus, um bedeutsame Lücken zwischen Spielerpunktzahlen zu finden.",
-    "disclaimer": "Dieses Tool ist nur ein Leitfaden. Punktzahlen basieren auf Truppenboni und Exklusiv-Ausrüstungsanpassungen — Heldenfähigkeiten und Talentbäume sind nicht enthalten.",
+    "disclaimer": "Dieses Tool ist nur ein Leitfaden. Punktzahlen basieren auf Truppenboni und Exklusiv-Ausrüstungsanpassungen — Heldenfähigkeiten sind nicht enthalten.",
+    "rankedOfTotal": "{{ranked}} eingestuft / {{total}} gesamt",
+    "totalPlayers": "{{count}} Spieler",
     "bulkEdit": "Alle Bearbeiten",
     "bulkEditTitle": "Alle Spieler Bearbeiten",
     "bulkEditDesc": "Bearbeite Daten aller Spieler. Zeilen ohne Namen werden beim Speichern übersprungen.",

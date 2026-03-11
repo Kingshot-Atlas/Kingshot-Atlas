@@ -57,7 +57,7 @@ const BearRallyTierListLanding: React.FC = () => {
     {
       icon: '⚠️',
       title: t('bearRallyLanding.featDisclaimer', 'Guide, Not Gospel'),
-      desc: t('bearRallyLanding.featDisclaimerDesc', 'This tool factors in troop bonuses and Exclusive Gear adjustments only. Hero skills and talent trees are not included. Use it as a starting point for rally decisions.'),
+      desc: t('bearRallyLanding.featDisclaimerDesc', 'This tool factors in troop bonuses and Exclusive Gear adjustments only. Hero skills are not included. Use it as a starting point for rally decisions.'),
     },
   ];
 
@@ -323,7 +323,7 @@ const BearRallyTierListLanding: React.FC = () => {
               {t('bearRallyLanding.disclaimerTitle', 'Important Disclaimer')}
             </h3>
             <p style={{ color: '#d1a054', fontSize: isMobile ? '0.78rem' : '0.83rem', lineHeight: 1.6, margin: 0 }}>
-              {t('bearRallyLanding.disclaimerText', 'The Bear Rally Tier List is a guide \u2014 not a definitive ranking. It calculates Bear Scores based on troop bonuses and Exclusive Gear adjustments only. Hero skills, talent trees, and other variables are not factored in. Use this tool as a starting point for your rally lineup decisions.')}
+              {t('bearRallyLanding.disclaimerText', 'The Bear Rally Tier List is a guide \u2014 not a definitive ranking. It calculates Bear Scores based on troop bonuses and Exclusive Gear adjustments only. Hero skills and other variables are not factored in. Use this tool as a starting point for your rally lineup decisions.')}
             </p>
           </div>
         </div>

@@ -3912,7 +3912,7 @@
     "aboutTool": "Tentang alat ini",
     "allianceCenter": "Pusat Aliansi",
     "rosterHint": "(saran dari daftar aliansi)",
-    "disclaimer": "Alat ini hanya panduan. Skor Beruang didasarkan pada bonus pasukan dan penyesuaian Perlengkapan Eksklusif — skill pahlawan dan pohon bakat tidak diperhitungkan. Gunakan sebagai titik awal, bukan keputusan final.",
+    "disclaimer": "Alat ini hanya panduan. Skor Beruang didasarkan pada bonus pasukan dan penyesuaian Perlengkapan Eksklusif — skill pahlawan tidak diperhitungkan. Gunakan sebagai titik awal, bukan keputusan final.",
     "errorName": "Nama pemain wajib diisi.",
     "errorHeroes": "Ketiga pahlawan harus dipilih.",
     "errorEG": "Semua level Perlengkapan Eksklusif harus dipilih.",
@@ -4009,7 +4009,7 @@
     "featAccess": "Kontrol Akses Aliansi",
     "featAccessDesc": "Supporter, Konsul, dan Booster dapat membuat dan mengelola daftar tier. Hingga 2 delegasi juga dapat mengedit. Anggota aliansi lainnya memiliki akses baca saja.",
     "featDisclaimer": "Panduan, Bukan Mutlak",
-    "featDisclaimerDesc": "Alat ini hanya memperhitungkan bonus pasukan dan penyesuaian Perlengkapan Eksklusif. Skill pahlawan dan pohon bakat tidak termasuk. Gunakan sebagai titik awal untuk keputusan rally.",
+    "featDisclaimerDesc": "Alat ini hanya memperhitungkan bonus pasukan dan penyesuaian Perlengkapan Eksklusif. Skill pahlawan tidak termasuk. Gunakan sebagai titik awal untuk keputusan rally.",
     "problemTitle": "\"Siapa yang kita masukkan ke rally Beruang?\" — Setiap R5, setiap Berburu Beruang.",
     "problemDesc": "Kamu bertanya di chat aliansi. Setengah anggotamu bilang \"aku\" tanpa statistik. Kamu akhirnya memilih 5 orang yang sama setiap kali. Sementara itu, bonus EG defensif membengkakkan statistik intai.",
     "solutionDesc": "Daftar Tier Rally Beruang memotong noise. Menyesuaikan Perlengkapan Eksklusif — menghilangkan bonus defensif yang membengkak, menerapkan bonus ofensif nyata — dan memeringkat setiap pemain berdasarkan potensi damage rally sebenarnya.",
@@ -4023,7 +4023,7 @@
     "ctaDesc": "Intai aliansimu, masukkan statistik, dan biarkan Atlas memeringkat pemainmu. 2 menit per pemain. Hemat berjam-jam debat.",
     "allTools": "Semua Alat",
     "disclaimerTitle": "Pemberitahuan Penting",
-    "disclaimerText": "Daftar Tier Rally Beruang adalah panduan — bukan peringkat definitif. Menghitung Skor Beruang hanya berdasarkan bonus pasukan dan penyesuaian Perlengkapan Eksklusif. Skill pahlawan, pohon bakat, dan variabel lainnya tidak diperhitungkan."
+    "disclaimerText": "Daftar Tier Rally Beruang adalah panduan — bukan peringkat definitif. Menghitung Skor Beruang hanya berdasarkan bonus pasukan dan penyesuaian Perlengkapan Eksklusif. Skill pahlawan dan variabel lainnya tidak diperhitungkan."
   },
   "battleTier": {
     "pageTitle": "Daftar Tier Pertempuran KvK — Kingshot Atlas",
@@ -4068,7 +4068,9 @@
     "how2": "Skor Ofensif: Bonus PE defensif dihapus dari nilai intai, lalu bonus PE ofensif diterapkan. Semua 12 statistik (ATK, LTH, DEF, HP × 3 jenis pasukan) dijumlahkan.",
     "how3": "Skor Defensif: Nilai intai mentah dijumlahkan langsung — laporan intai sudah menampilkan statistik defensif yang tepat.",
     "how4": "Tier menggunakan algoritma natural-breaks untuk menemukan celah bermakna antar skor pemain.",
-    "disclaimer": "Alat ini hanya panduan. Skor berdasarkan bonus pasukan dan penyesuaian Perlengkapan Eksklusif — skill pahlawan dan pohon bakat tidak termasuk.",
+    "disclaimer": "Alat ini hanya panduan. Skor berdasarkan bonus pasukan dan penyesuaian Perlengkapan Eksklusif — skill pahlawan tidak termasuk.",
+    "rankedOfTotal": "{{ranked}} terperingkat / {{total}} total",
+    "totalPlayers": "{{count}} pemain",
     "bulkEdit": "Edit Semua",
     "bulkEditTitle": "Edit Semua Pemain",
     "bulkEditDesc": "Edit data semua pemain. Baris tanpa nama akan dilewati saat menyimpan.",

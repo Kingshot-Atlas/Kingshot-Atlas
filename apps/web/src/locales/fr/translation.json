@@ -3996,7 +3996,7 @@
     "aboutTool": "À propos de cet outil",
     "allianceCenter": "Centre d'Alliance",
     "rosterHint": "(suggestions du roster d'alliance)",
-    "disclaimer": "Cet outil est un guide uniquement. Les Scores Ours sont basés sur les bonus de troupes et les ajustements d'Équipement Exclusif — les compétences de héros et arbres de talents ne sont pas pris en compte. Utilisez-le comme point de départ, pas comme le dernier mot.",
+    "disclaimer": "Cet outil est un guide uniquement. Les Scores Ours sont basés sur les bonus de troupes et les ajustements d'Équipement Exclusif — les compétences de héros ne sont pas prises en compte. Utilisez-le comme point de départ, pas comme le dernier mot.",
     "errorName": "Le nom du joueur est requis.",
     "errorHeroes": "Les trois héros doivent être sélectionnés.",
     "errorEG": "Tous les niveaux d'Équipement Exclusif doivent être sélectionnés.",
@@ -4098,7 +4098,7 @@
     "featAccess": "Contrôle d'Accès d'Alliance",
     "featAccessDesc": "Les Supporters, Ambassadeurs et Boosters peuvent créer et gérer la liste de niveaux. Jusqu'à 2 délégués peuvent aussi modifier. Le reste de votre alliance a un accès en lecture seule.",
     "featDisclaimer": "Guide, Pas Parole d'Évangile",
-    "featDisclaimerDesc": "Cet outil ne prend en compte que les bonus de troupes et les ajustements d'Équipement Exclusif. Les compétences de héros et arbres de talents ne sont pas inclus. Utilisez-le comme point de départ pour vos décisions de rally.",
+    "featDisclaimerDesc": "Cet outil ne prend en compte que les bonus de troupes et les ajustements d'Équipement Exclusif. Les compétences de héros ne sont pas incluses. Utilisez-le comme point de départ pour vos décisions de rally.",
     "problemTitle": "\"Qui mettre dans le rally de l'Ours ?\" — Chaque R5, chaque Chasse à l'Ours.",
     "problemDesc": "Vous demandez dans le chat d'alliance. La moitié de vos membres disent \"moi\" sans stats. Vous finissez par choisir les mêmes 5 personnes à chaque fois. Pendant ce temps, les bonus d'EG défensifs gonflent les stats scoutées.",
     "solutionDesc": "La Liste de Niveaux du Rally de l'Ours coupe le bruit. Elle ajuste l'Équipement Exclusif — retirant les bonus défensifs gonflés, appliquant les vrais bonus offensifs — et classe chaque joueur par son vrai potentiel de dégâts en rally.",
@@ -4112,7 +4112,7 @@
     "ctaDesc": "Scoutez votre alliance, entrez les stats et laissez Atlas classer vos joueurs. Prend 2 minutes par joueur. Économise des heures de débat.",
     "allTools": "Tous les Outils",
     "disclaimerTitle": "Avis Important",
-    "disclaimerText": "La Liste de Niveaux du Rally de l'Ours est un guide — pas un classement définitif. Elle calcule les Scores Ours basés uniquement sur les bonus de troupes et les ajustements d'Équipement Exclusif. Les compétences de héros, arbres de talents et autres variables ne sont pas pris en compte."
+    "disclaimerText": "La Liste de Niveaux du Rally de l'Ours est un guide — pas un classement définitif. Elle calcule les Scores Ours basés uniquement sur les bonus de troupes et les ajustements d'Équipement Exclusif. Les compétences de héros et autres variables ne sont pas pris en compte."
   },
   "battleTier": {
     "pageTitle": "Liste de Niveaux de Bataille KvK — Kingshot Atlas",
@@ -4157,7 +4157,9 @@
     "how2": "Score Offensif : Les bonus EG défensifs sont retirés des valeurs scoutées, puis les bonus EG offensifs sont appliqués. Les 12 statistiques (ATK, LTH, DEF, HP × 3 types de troupes) sont additionnées.",
     "how3": "Score Défensif : Les valeurs scoutées brutes sont additionnées directement — le rapport de repérage montre déjà les statistiques défensives exactes.",
     "how4": "Les niveaux utilisent un algorithme de ruptures naturelles pour trouver des écarts significatifs entre les scores.",
-    "disclaimer": "Cet outil est un guide uniquement. Les scores sont basés sur les bonus de troupes et les ajustements d'Équipement Exclusif — les compétences de héros et arbres de talents ne sont pas inclus.",
+    "disclaimer": "Cet outil est un guide uniquement. Les scores sont basés sur les bonus de troupes et les ajustements d'Équipement Exclusif — les compétences de héros ne sont pas incluses.",
+    "rankedOfTotal": "{{ranked}} classés / {{total}} total",
+    "totalPlayers": "{{count}} joueurs",
     "bulkEdit": "Tout Modifier",
     "bulkEditTitle": "Modifier Tous les Joueurs",
     "bulkEditDesc": "Modifiez les données de tous les joueurs. Les lignes sans nom seront ignorées à l'enregistrement.",
