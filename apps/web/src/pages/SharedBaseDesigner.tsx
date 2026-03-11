@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -331,9 +332,7 @@ const SharedBaseDesigner: React.FC = () => {
         <p style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
           {t('baseDesigner.shareNotFoundDesc', 'This link may have expired or been removed.')}
         </p>
-        <Link to="/tools/base-designer/about" style={{ color: '#22d3ee', textDecoration: 'none', fontWeight: 600 }}>
-          ← {t('baseDesigner.backToDesigner', 'Back to Base Designer')}
-        </Link>
+        <BackLink to="/tools/base-designer/about" label={t('baseDesigner.backToDesigner', 'Base Designer')} />
       </div>
     );
   }

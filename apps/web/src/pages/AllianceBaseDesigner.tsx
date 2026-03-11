@@ -1,5 +1,5 @@
 import React, { useRef, useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -430,7 +430,7 @@ const AllianceBaseDesigner: React.FC = () => {
 
               {/* Back link */}
               <div style={{ padding: '0.5rem 0.75rem', marginTop: 'auto', borderTop: '1px solid #1e2a35' }}>
-                <Link to="/alliance-center" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '0.65rem' }}>← {t('baseDesigner.backToAlliance', 'Alliance Center')}</Link>
+                <BackLink to="/alliance-center" label={t('baseDesigner.backToAlliance', 'Alliance Center')} variant="secondary" />
               </div>
             </div>
 
@@ -633,9 +633,9 @@ const AllianceBaseDesigner: React.FC = () => {
           <span style={{ color: '#fff' }}>BASE </span>
           <span style={neonGlow('#3b82f6')}>DESIGNER</span>
         </h1>
-        <Link to="/alliance-center" style={{ position: 'absolute', right: '0.75rem', color: '#6b7280', fontSize: '0.6rem', textDecoration: 'none' }}>
-          ← {t('baseDesigner.backToAlliance', 'Alliance Center')}
-        </Link>
+        <div style={{ position: 'absolute', right: '0.75rem' }}>
+          <BackLink to="/alliance-center" label={t('baseDesigner.backToAlliance', 'Alliance Center')} variant="secondary" />
+        </div>
       </div>
 
       {/* Canvas fills most of the screen — minHeight prevents bottom panel from compressing it */}

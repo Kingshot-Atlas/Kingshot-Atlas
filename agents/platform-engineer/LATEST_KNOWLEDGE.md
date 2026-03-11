@@ -419,6 +419,48 @@ raise APIError(404, "PLAYER_NOT_FOUND", f"Player {id} not found")
 
 ---
 
+## Supabase Function & View Security (2026-03-11)
+
+### Function search_path
+**All** PL/pgSQL and SQL functions MUST have `SET search_path = ''` to prevent search_path injection attacks.
+
+- **New functions:** Add `SET search_path = ''` in the CREATE statement
+- **Existing functions:** Use `ALTER FUNCTION public.func_name(...) SET search_path = '';`
+- **All table references** in the function body must use `public.tablename` (schema-qualified)
+- **Function calls** to other public functions must also be qualified: `public.my_func()`
+
+```sql
+-- Example: correct pattern
+CREATE OR REPLACE FUNCTION public.my_func()
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path = ''
+AS $function$
+BEGIN
+  UPDATE public.my_table SET col = 'val';
+  PERFORM public.other_func();
+END;
+$function$;
+```
+
+### SECURITY DEFINER Views
+Views should use `security_invoker = on` (Postgres 15+) so they respect the querying user's RLS policies, not the view owner's:
+```sql
+ALTER VIEW public.my_view SET (security_invoker = on);
+```
+Only use SECURITY DEFINER views when you intentionally need to bypass RLS (rare).
+
+### RLS Policy WITH CHECK
+- **Never use `WITH CHECK (true)`** on INSERT/UPDATE/DELETE policies unless the table is truly open-write
+- For UPDATE policies, WITH CHECK should match the USING clause (e.g., `WITH CHECK (owner_id = auth.uid())`)
+- Redundant policies (e.g., separate UPDATE policy when ALL policy already covers it) should be dropped
+
+### Monitoring
+Run `mcp3_get_advisors(project_id, type='security')` regularly — it catches SECURITY DEFINER views, mutable search_paths, and overly permissive RLS policies. Target: **0 lints**.
+
+---
+
 ## Security Practices
 
 ### CORS Configuration

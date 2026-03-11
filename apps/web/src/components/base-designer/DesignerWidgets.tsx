@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import BackLink from '../shared/BackLink';
 import { useTranslation } from 'react-i18next';
 import { useBaseDesigner } from '../../hooks/useBaseDesigner';
 import { useToolAccess } from '../../hooks/useToolAccess';
@@ -33,11 +34,7 @@ export const AccessGate: React.FC<{ children: React.ReactNode }> = ({ children }
         <Button variant="primary" onClick={() => navigate('/support')}>
           {t('baseDesigner.becomeSupporter', 'Become a Supporter')}
         </Button>
-        <Link to="/tools" style={{ textDecoration: 'none' }}>
-          <Button variant="ghost">
-            {t('baseDesigner.backToTools', 'Back to Tools')}
-          </Button>
-        </Link>
+        <BackLink to="/tools" label={t('common.allTools', 'All Tools')} />
       </div>
     </div>
   );

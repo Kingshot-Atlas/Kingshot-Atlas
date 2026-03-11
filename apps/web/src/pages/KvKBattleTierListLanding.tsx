@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -160,19 +161,7 @@ const KvKBattleTierListLanding: React.FC = () => {
                 🔒 {t('battleTierLanding.goldOnly', 'Gold Tier Kingdoms Only')}
               </div>
             )}
-            <Link
-              to="/tools"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                padding: isMobile ? '0.75rem 1.5rem' : '0.8rem 1.75rem',
-                backgroundColor: 'transparent',
-                border: '1px solid #333', borderRadius: '10px',
-                color: '#9ca3af', fontWeight: 600,
-                fontSize: isMobile ? '0.85rem' : '0.9rem', textDecoration: 'none',
-              }}
-            >
-              ← {t('common.backToTools', 'All Tools')}
-            </Link>
+            <BackLink to="/tools" label={t('common.allTools', 'All Tools')} />
           </div>
           <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.75rem' }}>
             {t('battleTierLanding.goldNote', 'Available for Gold Tier Kingdom Fund kingdoms.')}

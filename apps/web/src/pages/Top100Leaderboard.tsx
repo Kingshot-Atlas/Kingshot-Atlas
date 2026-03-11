@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { Kingdom } from '../types';
 import { apiService, dataLoadError } from '../services/api';
 import { DataLoadError } from '../components/DataLoadError';
@@ -369,13 +370,9 @@ const Top100Leaderboard: React.FC = () => {
         )}
 
         {/* Back links */}
-        <div style={{ textAlign: 'center', marginTop: '2rem', paddingBottom: '1rem', display: 'flex', justifyContent: 'center', gap: '1.5rem' }}>
-          <Link to="/rankings" style={{ color: colors.primary, textDecoration: 'none', fontSize: '0.8rem' }}>
-            {t('top100.backToRankings', '← Back to Rankings')}
-          </Link>
-          <Link to="/" style={{ color: colors.primary, textDecoration: 'none', fontSize: '0.8rem' }}>
-            {t('common.backToHome', 'Back to Home')}
-          </Link>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', marginTop: '2rem', paddingBottom: '1rem', flexWrap: 'wrap' }}>
+          <BackLink to="/rankings" label={t('top100.backToRankings', 'Rankings')} />
+          <BackLink to="/" label={t('common.backToHome', 'Home')} variant="secondary" />
         </div>
       </div>
     </div>

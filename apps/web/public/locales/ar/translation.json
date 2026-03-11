@@ -4190,6 +4190,12 @@
     "wAttack": "هجوم",
     "wLethality": "فتك",
     "wDefense": "دفاع",
-    "wHealth": "صحة"
+    "wHealth": "صحة",
+    "tierCutoffs": "حدود المستويات",
+    "customLabel": "مخصص",
+    "tierCutoffsDesc": "حدد الحد الأدنى للنقاط لكل مستوى. يتم وضع اللاعبين تحت حد C في المستوى D.",
+    "belowC": "أقل من حد C",
+    "resetToAuto": "إعادة التعيين للتلقائي",
+    "applyCutoffs": "تطبيق الحدود"
   }
 }

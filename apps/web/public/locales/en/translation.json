@@ -4272,7 +4272,7 @@
     "how1": "Each player's stats come from scouting their Guard Station lineup (3 heroes).",
     "how2": "Offense Score: Defensive EG bonuses are removed from scouted values, then offensive EG bonuses are applied. All 12 stats (ATK, LTH, DEF, HP × 3 troop types) are summed.",
     "how3": "Defense Score: Raw scouted values are summed directly — the scout report already shows exact defensive stats.",
-    "how4": "Tiers use a natural-breaks algorithm to find meaningful gaps between player scores.",
+    "how4": "Tiers use a natural-breaks algorithm to find meaningful gaps between player scores. Managers can also set custom cutoffs.",
     "disclaimer": "This tool is a guide only. Scores are based on troop bonuses and Exclusive Gear adjustments — hero skills and talent trees are not factored in. Use this as a starting point for rally and garrison decisions.",
     "bulkEdit": "Edit All",
     "bulkEditTitle": "Edit All Players",
@@ -4307,7 +4307,13 @@
     "wAttack": "ATK",
     "wLethality": "LTH",
     "wDefense": "DEF",
-    "wHealth": "HP"
+    "wHealth": "HP",
+    "tierCutoffs": "Tier Cutoffs",
+    "customLabel": "CUSTOM",
+    "tierCutoffsDesc": "Set the minimum score for each tier. Players below the C threshold are placed in D tier.",
+    "belowC": "Below C threshold",
+    "resetToAuto": "Reset to Auto",
+    "applyCutoffs": "Apply Cutoffs"
   },
   "battleTierLanding": {
     "pageTitle": "KvK Battle Tier List",

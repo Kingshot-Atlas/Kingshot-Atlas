@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
@@ -480,7 +480,7 @@ const BotDashboard: React.FC = () => {
           )}
         </div>
         <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
-          <Link to="/atlas-bot" style={{ color: colors.primary, textDecoration: 'none', fontSize: '0.8rem' }}>← Back to Atlas Bot</Link>
+          <BackLink to="/atlas-bot" label={t('botDashboard.backToBot', 'Atlas Bot')} />
         </div>
       </div>
     </div>
@@ -523,7 +523,7 @@ const BotDashboard: React.FC = () => {
               <button onClick={() => { setTab('servers'); fetchDiscordGuilds(); }} style={{ color: colors.textMuted, fontSize: '0.7rem', padding: '0.35rem 0.6rem', borderRadius: 6, border: `1px solid ${colors.border}`, cursor: 'pointer', backgroundColor: 'transparent' }}>+ Server</button>
             )}
             <button onClick={() => setShowLocal(!showLocal)} style={{ color: colors.textMuted, fontSize: '0.7rem', padding: '0.35rem 0.6rem', borderRadius: 6, border: `1px solid ${colors.border}`, cursor: 'pointer', backgroundColor: showLocal ? `${colors.primary}15` : 'transparent' }}>{showLocal ? '🕐 Local' : '🌐 UTC'}</button>
-            <Link to="/atlas-bot" style={{ color: colors.textMuted, textDecoration: 'none', fontSize: '0.75rem', padding: '0.4rem 0.7rem', borderRadius: 6, border: `1px solid ${colors.border}` }}>← Bot</Link>
+            <BackLink to="/atlas-bot" label={t('botDashboard.backToBot', 'Bot')} variant="secondary" />
           </div>
         </div>
       </div>
@@ -887,9 +887,9 @@ const BotDashboard: React.FC = () => {
 
         {/* Footer */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', paddingTop: '1.5rem', paddingBottom: '1rem' }}>
-          <Link to="/atlas-bot" style={{ color: colors.primary, textDecoration: 'none', fontSize: '0.8rem' }}>← Atlas Bot</Link>
-          <Link to="/tools" style={{ color: colors.textMuted, textDecoration: 'none', fontSize: '0.8rem' }}>All Tools</Link>
-          <Link to="/" style={{ color: colors.textMuted, textDecoration: 'none', fontSize: '0.8rem' }}>Home</Link>
+          <BackLink to="/atlas-bot" label={t('botDashboard.backToBot', 'Atlas Bot')} />
+          <BackLink to="/tools" label={t('common.allTools', 'All Tools')} variant="secondary" />
+          <BackLink to="/" label={t('common.backToHome', 'Home')} variant="secondary" />
         </div>
       </div>
     </div>

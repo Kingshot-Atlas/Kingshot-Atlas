@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { Link } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { useAuth } from '../contexts/AuthContext';
 import { useTrustedSubmitter } from '../hooks/useTrustedSubmitter';
 import { isAdminUsername } from '../utils/constants';
@@ -45,20 +45,7 @@ const KvKSpreadsheet: React.FC = () => {
         <p style={{ marginBottom: '1.5rem', maxWidth: '440px', margin: '0 auto 1.5rem' }}>
           {t('kvkSpreadsheet.accessDeniedMessage', 'This page is only available to trusted data submitters and admins. Contact an admin if you believe you should have access.')}
         </p>
-        <Link
-          to="/"
-          style={{
-            display: 'inline-block',
-            padding: '0.6rem 1.5rem',
-            backgroundColor: '#22d3ee',
-            color: '#000',
-            borderRadius: '8px',
-            fontWeight: 600,
-            textDecoration: 'none',
-          }}
-        >
-          {t('common.backToHome', 'Back to Home')}
-        </Link>
+        <BackLink to="/" label={t('common.backToHome', 'Home')} />
       </div>
     );
   }

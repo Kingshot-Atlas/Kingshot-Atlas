@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import BackLink from '../shared/BackLink';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useIsMobile } from '../../hooks/useMediaQuery';
@@ -278,9 +279,7 @@ const AllianceCenterOnboarding: React.FC<AllianceCenterOnboardingProps> = ({ has
               style={{ color: '#ef4444', borderColor: '#ef444430' }}>
               {t('allianceCenter.onboarding.withdraw', 'Withdraw Application')}
             </Button>
-            <Link to="/tools" style={{ textDecoration: 'none' }}>
-              <Button variant="ghost">{t('allianceCenter.backToTools', 'Back to Tools')}</Button>
-            </Link>
+            <BackLink to="/tools" label={t('common.allTools', 'All Tools')} />
           </div>
         </div>
       </div>
@@ -645,9 +644,7 @@ const AllianceCenterOnboarding: React.FC<AllianceCenterOnboardingProps> = ({ has
 
         {/* Back to tools */}
         <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
-          <Link to="/tools" style={{ textDecoration: 'none' }}>
-            <Button variant="ghost">{t('allianceCenter.backToTools', 'Back to Tools')}</Button>
-          </Link>
+          <BackLink to="/tools" label={t('common.allTools', 'All Tools')} />
         </div>
       </div>
     </div>

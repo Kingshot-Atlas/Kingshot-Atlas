@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
@@ -667,9 +668,7 @@ const Messages: React.FC = () => {
           💬 {t('messages.title', 'Messages')}
         </h2>
         <p>{t('messages.loginRequired', 'Sign in to access your messages.')}</p>
-        <Link to="/transfer-hub" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.85rem' }}>
-          ← {t('messages.backToHub', 'Back to Transfer Hub')}
-        </Link>
+        <BackLink to="/transfer-hub" label={t('messages.backToHub', 'Transfer Hub')} />
       </div>
     );
   }
@@ -720,13 +719,7 @@ const Messages: React.FC = () => {
               ✓ {t('messages.markAllRead', 'Mark all read')}
             </button>
           )}
-          <Link to="/transfer-hub" style={{
-            padding: '0.35rem 0.6rem', backgroundColor: '#ffffff08',
-            border: '1px solid #ffffff15', borderRadius: '6px',
-            color: colors.textSecondary, fontSize: '0.7rem', textDecoration: 'none',
-          }}>
-            ← {t('messages.backToHub', 'Transfer Hub')}
-          </Link>
+          <BackLink to="/transfer-hub" label={t('messages.backToHub', 'Transfer Hub')} />
         </div>
       </div>
 

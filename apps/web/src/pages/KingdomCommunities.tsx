@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { colors, neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -514,9 +515,7 @@ const KingdomCommunities: React.FC = () => {
           <p style={{ color: colors.textMuted, fontSize: '0.75rem', marginBottom: '1rem', lineHeight: 1.6 }}>
             {t('kingdomCommunities.footer', 'Only players who have linked their Kingshot account with TC20+ are counted. Rankings update in real-time.')}
           </p>
-          <Link to="/" style={{ color: colors.primary, textDecoration: 'none', fontSize: '0.85rem' }}>
-            {t('common.backToHome', '← Back to Home')}
-          </Link>
+          <BackLink to="/" label={t('common.backToHome', 'Home')} />
         </div>
           </>
         )}

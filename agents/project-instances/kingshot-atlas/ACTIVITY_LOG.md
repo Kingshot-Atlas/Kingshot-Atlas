@@ -3,6 +3,19 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-11 09:00 | Platform Engineer | COMPLETED
+Task: Supabase Security Hardening — Fix all security advisor warnings
+Files: 4 Supabase migrations (database-only, no frontend changes)
+Changes:
+- Fixed SECURITY DEFINER view `current_transfer_groups` → set `security_invoker = on` (Postgres 17)
+- Fixed 23 functions with mutable search_path → `SET search_path = ''` on all
+  - 17 functions: simple ALTER (already had schema-qualified table refs)
+  - 6 functions: CREATE OR REPLACE with added `public.` schema qualification on all table refs
+- Fixed RLS policy on `alliances`: dropped redundant "Owner can update own alliance" UPDATE policy (WITH CHECK true) — already covered by "Alliance owner full access" ALL policy
+- Fixed RLS policy on `page_views`: replaced open `WITH CHECK (true)` INSERT policy with length validation (page_path ≤500, visitor_id ≤100)
+- Verified: Supabase security advisor now returns 0 lints
+Result: All 26 security warnings resolved (1 ERROR + 25 WARN → 0). Build passes.
+
 ## 2026-03-10 09:30 | Platform Engineer | COMPLETED
 Task: Kingdom Transfer Awareness Hardening
 Files: AuthContext.tsx, App.tsx, Profile.tsx, TransferDetectionToast.tsx, KingdomTransferHistory.tsx, KingdomTransfersTab.tsx, AdminTabNav.tsx, AdminDashboard.tsx, types.ts, index.ts, 11 locale files

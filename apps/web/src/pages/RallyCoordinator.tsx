@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { useIsMobile, useIsTablet } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
@@ -153,12 +154,7 @@ const RallyCoordinator: React.FC = () => {
             }}>
               {t('battlePlanner.contributeToFund', 'Contribute to Kingdom Fund')}
             </Link>
-            <Link to="/tools" style={{
-              color: '#9ca3af', textDecoration: 'none', fontSize: '0.8rem',
-              display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
-            }}>
-              {t('rallyCoordinator.backToTools', '← Back to Tools')}
-            </Link>
+            <BackLink to="/tools" label={t('common.allTools', 'All Tools')} />
           </div>
         </div>
       </div>
@@ -207,9 +203,7 @@ const RallyCoordinator: React.FC = () => {
             <span style={{ color: ENEMY_COLOR }}>🛡️ {rc.counterQueue.length}</span>
           </div>
           <div>
-            <Link to="/tools" style={{ color: '#9ca3af', fontSize: '0.75rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-              {t('rallyCoordinator.backToTools')}
-            </Link>
+            <BackLink to="/tools" label={t('common.allTools', 'All Tools')} variant="secondary" />
           </div>
         </div>
       </div>

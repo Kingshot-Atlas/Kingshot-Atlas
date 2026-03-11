@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
@@ -349,13 +350,9 @@ const PrepSchedulerLanding: React.FC = () => {
         </div>
 
         {/* Back links */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', paddingBottom: '1rem' }}>
-          <Link to="/tools" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem' }}>
-            {t('common.allTools', '← All Tools')}
-          </Link>
-          <Link to="/" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '0.8rem' }}>
-            {t('common.backToHome', '← Back to Home')}
-          </Link>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', paddingBottom: '1rem', flexWrap: 'wrap' }}>
+          <BackLink to="/tools" label={t('common.allTools', 'All Tools')} />
+          <BackLink to="/" label={t('common.backToHome', 'Home')} variant="secondary" />
         </div>
       </div>
     </div>

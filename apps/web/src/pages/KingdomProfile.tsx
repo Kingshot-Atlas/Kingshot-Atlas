@@ -1,6 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { KingdomProfile as KingdomProfileType, getPowerTier } from '../types';
 import { incrementStat } from '../components/UserAchievements';
 import { getAchievements } from '../components/kingdom-card/AchievementBadges';
@@ -265,7 +266,7 @@ const KingdomProfile: React.FC = () => {
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>❌</div>
           <div style={{ color: '#ef4444', fontSize: '1.25rem', marginBottom: '1rem' }}>{t('kingdomProfile.notFoundMessage', "Kingdom not found. Either it doesn't exist, or we haven't tracked it yet.")}</div>
-          <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none' }}>{t('common.backToHome')}</Link>
+          <BackLink to="/" label={t('common.backToHome', 'Home')} />
         </div>
       </div>
     );
@@ -650,28 +651,7 @@ const KingdomProfile: React.FC = () => {
             {t('kingdomProfile.compareWith', 'Compare with another Kingdom')}
           </button>
           
-          <Link 
-            to="/" 
-            style={{ 
-              color: '#6b7280', 
-              textDecoration: 'none', 
-              fontSize: '0.85rem',
-              padding: '0.75rem 1.5rem',
-              border: '1px solid #333',
-              borderRadius: '8px',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#22d3ee40';
-              e.currentTarget.style.color = '#22d3ee';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = '#333';
-              e.currentTarget.style.color = '#6b7280';
-            }}
-          >
-            {t('common.backToHome')}
-          </Link>
+          <BackLink to="/" label={t('common.backToHome', 'Home')} variant="secondary" />
         </div>
       </div>
 

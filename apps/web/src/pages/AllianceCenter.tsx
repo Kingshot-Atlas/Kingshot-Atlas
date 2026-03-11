@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -33,7 +33,7 @@ const AllianceCenter: React.FC = () => {
           {t('allianceCenter.subtitle', 'Your alliance command hub — manage your roster and coordinate.')}
         </p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', marginTop: '0.75rem' }}>
-          <Link to="/tools" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '0.75rem' }}>← {t('common.allTools', 'All Tools')}</Link>
+          <BackLink to="/tools" label={t('common.allTools', 'All Tools')} variant="secondary" />
         </div>
       </div>
       <AllianceCenterGate>

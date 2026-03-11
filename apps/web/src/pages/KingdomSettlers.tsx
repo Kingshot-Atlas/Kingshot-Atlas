@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { useAuth } from '../contexts/AuthContext';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useActiveCampaign, useSettlerLeaderboard, useCampaignWinners, useKingdomSettlers } from '../hooks/useCampaignQueries';
@@ -530,9 +531,9 @@ const KingdomSettlers: React.FC = () => {
           {t('campaign.noCampaign', 'No Active Campaign')}
         </h2>
         <p style={{ color: '#6b7280' }}>{t('campaign.noCampaignDesc', 'Check back soon for the next Kingdom Settlers campaign!')}</p>
-        <Link to="/" style={{ display: 'inline-block', marginTop: '1rem', padding: '0.75rem 1.5rem', background: '#22d3ee', color: '#000', borderRadius: 8, fontWeight: 600, textDecoration: 'none' }}>
-          {t('common.backToHome', 'Back to Home')}
-        </Link>
+        <div style={{ marginTop: '1rem' }}>
+          <BackLink to="/" label={t('common.backToHome', 'Home')} />
+        </div>
       </div>
     );
   }

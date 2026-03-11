@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { useAuth } from '../contexts/AuthContext';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -56,13 +57,7 @@ const CancelSurvey: React.FC = () => {
           <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1.5rem' }}>
             {t('cancelSurvey.thankYouDesc', 'Your input helps us make Atlas better. Your free account stays active — all your data, favorites, and history are still here whenever you want to come back.')}
           </p>
-          <Link to="/" style={{
-            display: 'inline-block', padding: '0.6rem 1.5rem',
-            backgroundColor: '#22d3ee', borderRadius: '8px',
-            color: '#000', textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem',
-          }}>
-            {t('cancelSurvey.backToAtlas', 'Back to Atlas')}
-          </Link>
+          <BackLink to="/" label={t('cancelSurvey.backToAtlas', 'Back to Atlas')} />
         </div>
       </div>
     );
@@ -204,9 +199,7 @@ const CancelSurvey: React.FC = () => {
         </div>
 
         <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
-          <Link to="/" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '0.8rem' }}>
-            {t('cancelSurvey.skip', 'Skip — take me back to Atlas')}
-          </Link>
+          <BackLink to="/" label={t('cancelSurvey.skip', 'Skip — back to Atlas')} variant="secondary" />
         </div>
       </div>
     </div>

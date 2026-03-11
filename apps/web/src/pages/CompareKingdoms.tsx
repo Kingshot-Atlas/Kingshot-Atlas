@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { KingdomProfile, Kingdom, getPowerTier } from '../types';
 import { apiService } from '../services/api';
 import { incrementStat } from '../components/UserAchievements';
@@ -868,7 +869,7 @@ const CompareKingdoms: React.FC = () => {
 
         {/* Back to Home link */}
         <div style={{ textAlign: 'center', marginTop: '2rem', paddingBottom: '1rem' }}>
-          <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem' }}>{t('common.backToHome')}</Link>
+          <BackLink to="/" label={t('common.backToHome', 'Home')} />
         </div>
       </div>
     </div>

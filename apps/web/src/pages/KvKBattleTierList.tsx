@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags } from '../hooks/useMetaTags';
@@ -1321,29 +1322,9 @@ const KvKBattleTierList: React.FC = () => {
         </div>
 
         {/* Back Links */}
-        <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-          <Link
-            to="/tools"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-              padding: '0.5rem 1rem', backgroundColor: '#1a1a1a',
-              border: '1px solid #333', borderRadius: '8px',
-              color: '#9ca3af', textDecoration: 'none', fontSize: '0.8rem', fontWeight: 600,
-            }}
-          >
-            ← {t('common.backToTools', 'All Tools')}
-          </Link>
-          <Link
-            to="/"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-              padding: '0.5rem 1rem', backgroundColor: '#1a1a1a',
-              border: '1px solid #333', borderRadius: '8px',
-              color: '#9ca3af', textDecoration: 'none', fontSize: '0.8rem', fontWeight: 600,
-            }}
-          >
-            🏠 {t('common.backToHome', 'Home')}
-          </Link>
+        <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <BackLink to="/tools" label={t('common.allTools', 'All Tools')} />
+          <BackLink to="/" label={t('common.backToHome', 'Home')} variant="secondary" />
         </div>
       </div>
     </div>

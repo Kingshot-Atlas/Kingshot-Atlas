@@ -1,10 +1,9 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import BackLink from '../shared/BackLink';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { useAuth } from '../../contexts/AuthContext';
 import { FONT_DISPLAY } from '../../utils/styles';
-import { Button } from '../shared';
 
 // ─── Access Gate (allows any authenticated user; dashboard handles role-specific views) ───
 const AllianceCenterGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -31,9 +30,7 @@ const AllianceCenterGate: React.FC<{ children: React.ReactNode }> = ({ children 
           {t('allianceCenter.gateDescLogin', 'Sign in to access the Alliance Center. Manage your alliance roster and coordinate with your team.')}
         </p>
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <Link to="/tools" style={{ textDecoration: 'none' }}>
-            <Button variant="ghost">{t('allianceCenter.backToTools', 'Back to Tools')}</Button>
-          </Link>
+          <BackLink to="/tools" label={t('common.allTools', 'All Tools')} />
         </div>
       </div>
     );

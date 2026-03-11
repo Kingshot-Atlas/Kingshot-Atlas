@@ -2,6 +2,7 @@
 // Members select 30-min time slots per day (UTC). Managers see tallied heatmap.
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -69,9 +70,7 @@ const EventCoordinatorGate: React.FC<{ children: React.ReactNode }> = ({ childre
           <Link to="/support" style={{ textDecoration: 'none' }}>
             <Button variant="primary">{t('allianceCenter.becomeSupporter', 'Become a Supporter')}</Button>
           </Link>
-          <Link to="/tools" style={{ textDecoration: 'none' }}>
-            <Button variant="ghost">{t('allianceCenter.backToTools', 'Back to Tools')}</Button>
-          </Link>
+          <BackLink to="/tools" label={t('common.allTools', 'All Tools')} />
         </div>
       </div>
     );
@@ -1023,9 +1022,9 @@ const EventCoordinatorContent: React.FC = () => {
         </span>
         <span style={{ color: '#e5e7eb', fontSize: '0.85rem', fontWeight: 600 }}>{ec.alliance.name}</span>
         <span style={{ color: '#4b5563', fontSize: '0.7rem' }}>K{ec.alliance.kingdom_number}</span>
-        <Link to="/alliance-center" style={{ color: '#6b7280', fontSize: '0.7rem', marginLeft: 'auto', textDecoration: 'none' }}>
-          ← {t('eventCoordinator.backToAlliance', 'Alliance Center')}
-        </Link>
+        <div style={{ marginLeft: 'auto' }}>
+          <BackLink to="/alliance-center" label={t('eventCoordinator.backToAlliance', 'Alliance Center')} variant="secondary" />
+        </div>
       </div>
 
       {/* Tab switcher */}
@@ -1078,7 +1077,7 @@ const AllianceEventCoordinator: React.FC = () => {
           {t('eventCoordinator.subtitle', 'Find the best times for your alliance events by collecting member availability.')}
         </p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', marginTop: '0.75rem' }}>
-          <Link to="/tools" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '0.75rem' }}>← {t('common.allTools', 'All Tools')}</Link>
+          <BackLink to="/tools" label={t('common.allTools', 'All Tools')} variant="secondary" />
         </div>
       </div>
       <EventCoordinatorGate>

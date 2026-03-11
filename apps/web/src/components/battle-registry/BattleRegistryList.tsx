@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import BackLink from '../shared/BackLink';
 import { useTranslation } from 'react-i18next';
 import { colors, neonGlow, FONT_DISPLAY } from '../../utils/styles';
 import { BattleRegistry } from './types';
@@ -294,7 +294,7 @@ const BattleRegistryList: React.FC<BattleRegistryListProps> = ({
         )}
 
         <div style={{ textAlign: 'center', marginTop: '1.5rem', paddingBottom: isMobile ? '1.5rem' : '0' }}>
-          <Link to="/tools" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: isMobile ? '0.85rem' : '0.8rem', padding: '0.5rem', minHeight: '44px', display: 'inline-flex', alignItems: 'center' }}>← {t('battleRegistry.backToTools', 'Back to Tools')}</Link>
+          <BackLink to="/tools" label={t('common.allTools', 'All Tools')} />
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import * as Sentry from '@sentry/react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import ParticleEffect from '../components/ParticleEffect';
 import UserAchievements from '../components/UserAchievements';
 import SubmissionHistory from '../components/SubmissionHistory';
@@ -284,9 +285,7 @@ const Profile: React.FC = () => {
             {t('profile.signInToContinue', 'Sign In to Continue')}
           </button>
           <div style={{ marginTop: '3rem' }}>
-            <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.85rem' }}>
-              {t('common.backToHome')}
-            </Link>
+            <BackLink to="/" label={t('common.backToHome', 'Home')} />
           </div>
         </div>
         <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
@@ -324,9 +323,7 @@ const Profile: React.FC = () => {
             {t('profile.notFoundDesc', 'This user profile could not be found or may have been removed.')}
           </p>
           <div style={{ marginTop: '3rem' }}>
-            <Link to="/players" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.85rem' }}>
-              {t('profile.backToPlayers', '← Back to Players')}
-            </Link>
+            <BackLink to="/players" label={t('profile.backToPlayers', 'Players')} />
           </div>
         </div>
       </div>
@@ -1017,7 +1014,7 @@ const Profile: React.FC = () => {
         )}
         
         <div style={{ textAlign: 'center', marginTop: '2rem', paddingBottom: '1rem' }}>
-          <Link to="/" style={{ color: themeColor, textDecoration: 'none', fontSize: '0.8rem' }}>{t('profile.backToHome', '← Back to Home')}</Link>
+          <BackLink to="/" label={t('common.backToHome', 'Home')} />
         </div>
         </>)}
         </div>

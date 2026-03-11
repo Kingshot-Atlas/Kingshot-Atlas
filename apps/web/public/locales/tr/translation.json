@@ -4190,6 +4190,12 @@
     "wAttack": "SLD",
     "wLethality": "ÖLD",
     "wDefense": "SVN",
-    "wHealth": "CAN"
+    "wHealth": "CAN",
+    "tierCutoffs": "Kademe Eşikleri",
+    "customLabel": "ÖZEL",
+    "tierCutoffsDesc": "Her kademe için minimum puanı ayarlayın. C eşiğinin altındaki oyuncular D kademesine yerleştirilir.",
+    "belowC": "C eşiğinin altında",
+    "resetToAuto": "Otomatiğe sıfırla",
+    "applyCutoffs": "Eşikleri uygula"
   }
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useIsMobile } from '../hooks/useMediaQuery';
@@ -219,9 +220,7 @@ const TermsOfService: React.FC = () => {
           <Link to="/about" style={{ color: colors.textSecondary, textDecoration: 'none', fontSize: '0.8rem' }}>
             About Atlas
           </Link>
-          <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem' }}>
-            Back to Home
-          </Link>
+          <BackLink to="/" label={t('common.backToHome', 'Home')} />
         </div>
       </div>
     </div>

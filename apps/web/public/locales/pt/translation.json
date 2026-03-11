@@ -4099,6 +4099,12 @@
     "wAttack": "ATQ",
     "wLethality": "LET",
     "wDefense": "DEF",
-    "wHealth": "VDA"
+    "wHealth": "VDA",
+    "tierCutoffs": "Limites de Tier",
+    "customLabel": "PERSONALIZADO",
+    "tierCutoffsDesc": "Defina a pontuação mínima para cada tier. Jogadores abaixo do limite C são colocados no tier D.",
+    "belowC": "Abaixo do limite C",
+    "resetToAuto": "Redefinir para automático",
+    "applyCutoffs": "Aplicar limites"
   }
 }

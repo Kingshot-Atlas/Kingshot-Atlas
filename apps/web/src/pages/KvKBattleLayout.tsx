@@ -1,5 +1,6 @@
 import React, { useRef, useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
@@ -62,11 +63,7 @@ const BattleAccessGate: React.FC<{ children: React.ReactNode }> = ({ children })
               {t('battleLayout.viewKingdom', 'View Kingdom Fund')}
             </Button>
           )}
-          <Link to="/tools" style={{ textDecoration: 'none' }}>
-            <Button variant="ghost">
-              {t('baseDesigner.backToTools', 'Back to Tools')}
-            </Button>
-          </Link>
+          <BackLink to="/tools" label={t('common.allTools', 'All Tools')} />
         </div>
       </div>
     );
@@ -438,7 +435,7 @@ const KvKBattleLayout: React.FC = () => {
 
               {/* Back link */}
               <div style={{ padding: '0.5rem 0.75rem', marginTop: 'auto', borderTop: '1px solid #1e2a35' }}>
-                <Link to="/tools" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '0.65rem' }}>← {t('common.backToTools', 'Back to Tools')}</Link>
+                <BackLink to="/tools" label={t('common.allTools', 'All Tools')} variant="secondary" />
               </div>
             </div>
 
@@ -564,9 +561,9 @@ const KvKBattleLayout: React.FC = () => {
           <span style={{ color: '#fff' }}>BATTLE </span>
           <span style={neonGlow('#f97316')}>LAYOUT</span>
         </h1>
-        <Link to="/tools" style={{ position: 'absolute', right: '0.75rem', color: '#6b7280', fontSize: '0.6rem', textDecoration: 'none' }}>
-          ← {t('common.backToTools', 'Back to Tools')}
-        </Link>
+        <div style={{ position: 'absolute', right: '0.75rem' }}>
+          <BackLink to="/tools" label={t('common.allTools', 'Tools')} variant="secondary" />
+        </div>
       </div>
 
       <BattleAccessGate>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { useAuth, UserProfile } from '../contexts/AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { colors, neonGlow, subscriptionColors, FONT_DISPLAY } from '../utils/styles';
@@ -1002,9 +1003,7 @@ const UserDirectory: React.FC = () => {
 
       {/* Back to Home */}
       <div style={{ textAlign: 'center', marginTop: '3rem', paddingBottom: '2rem' }}>
-        <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.85rem' }}>
-          {t('common.backToHome', '← Back to Home')}
-        </Link>
+        <BackLink to="/" label={t('common.backToHome', 'Home')} />
       </div>
     </div>
   );

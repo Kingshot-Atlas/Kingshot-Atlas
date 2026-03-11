@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import BackLink from '../shared/BackLink';
 import { useTranslation } from 'react-i18next';
 import { colors, neonGlow, FONT_DISPLAY } from '../../utils/styles';
 import {
@@ -664,8 +664,8 @@ const BattleRegistryDashboard: React.FC<BattleRegistryDashboardProps> = ({
 
         {/* Navigation links */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: isMobile ? '1rem' : '1.5rem', marginTop: '1rem', paddingBottom: isMobile ? '1.5rem' : '0', flexWrap: 'wrap' }}>
-          <Link to="/tools/battle-registry" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: isMobile ? '0.85rem' : '0.8rem', padding: '0.5rem', minHeight: '44px', display: 'flex', alignItems: 'center' }}>← {t('battleRegistry.backToRegistries', 'All Registries')}</Link>
-          <Link to="/tools" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: isMobile ? '0.85rem' : '0.8rem', padding: '0.5rem', minHeight: '44px', display: 'flex', alignItems: 'center' }}>← {t('battleRegistry.backToTools', 'Back to Tools')}</Link>
+          <BackLink to="/tools/battle-registry" label={t('battleRegistry.backToRegistries', 'All Registries')} />
+          <BackLink to="/tools" label={t('common.allTools', 'All Tools')} variant="secondary" />
         </div>
       </div>
     </div>

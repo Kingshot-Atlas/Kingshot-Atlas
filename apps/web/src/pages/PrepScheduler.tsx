@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../utils/styles';
 import {
@@ -169,7 +169,7 @@ const PrepScheduler: React.FC = () => {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', padding: '2rem', textAlign: 'center' }}>
       <p style={{ color: colors.textMuted }}>{t('prepScheduler.scheduleNotFound', 'Schedule not found.')}</p>
-      <Link to="/tools/prep-scheduler" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem' }}>← {t('prepScheduler.back', 'Back')}</Link>
+      <BackLink to="/tools/prep-scheduler" label={t('prepScheduler.back', 'All Schedules')} />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags } from '../hooks/useMetaTags';
@@ -402,30 +402,8 @@ const BearRallyTierList: React.FC = () => {
 
         {/* ── Back Links ── */}
         <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-          <Link
-            to="/alliance-center"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-              padding: '0.5rem 1rem', backgroundColor: '#1a1a1a',
-              border: '1px solid #333', borderRadius: '8px',
-              color: '#9ca3af', textDecoration: 'none', fontSize: '0.8rem', fontWeight: 600,
-              transition: 'all 0.2s',
-            }}
-          >
-            ← {t('bearRally.backToAlliance', 'Alliance Center')}
-          </Link>
-          <Link
-            to="/"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-              padding: '0.5rem 1rem', backgroundColor: '#1a1a1a',
-              border: '1px solid #333', borderRadius: '8px',
-              color: '#9ca3af', textDecoration: 'none', fontSize: '0.8rem', fontWeight: 600,
-              transition: 'all 0.2s',
-            }}
-          >
-            🏠 {t('bearRally.backToHome', 'Home')}
-          </Link>
+          <BackLink to="/alliance-center" label={t('bearRally.backToAlliance', 'Alliance Center')} />
+          <BackLink to="/" label={t('common.backToHome', 'Home')} variant="secondary" />
         </div>
 
       </div>

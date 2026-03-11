@@ -4189,6 +4189,12 @@
     "wAttack": "ATQ",
     "wLethality": "LET",
     "wDefense": "DEF",
-    "wHealth": "VID"
+    "wHealth": "VID",
+    "tierCutoffs": "Límites de Tier",
+    "customLabel": "PERSONALIZADO",
+    "tierCutoffsDesc": "Establece la puntuación mínima para cada tier. Los jugadores por debajo del umbral C se colocan en tier D.",
+    "belowC": "Por debajo del umbral C",
+    "resetToAuto": "Restablecer a automático",
+    "applyCutoffs": "Aplicar límites"
   }
 }

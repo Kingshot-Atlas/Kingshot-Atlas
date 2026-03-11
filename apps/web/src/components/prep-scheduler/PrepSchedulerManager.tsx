@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import BackLink from '../shared/BackLink';
 import { useTranslation } from 'react-i18next';
 import { colors, FONT_DISPLAY } from '../../utils/styles';
 import {
@@ -693,7 +693,7 @@ const PrepSchedulerManager: React.FC<PrepSchedulerManagerProps> = (props) => {
         )}
 
         <div style={{ textAlign: 'center', marginTop: '1.5rem', paddingBottom: '1rem' }}>
-          <Link to="/tools/prep-scheduler" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem' }}>← {t('prepScheduler.backToSchedules', 'Back to Schedules')}</Link>
+          <BackLink to="/tools/prep-scheduler" label={t('prepScheduler.backToSchedules', 'All Schedules')} />
         </div>
       </div>
     </div>

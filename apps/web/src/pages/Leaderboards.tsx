@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import BackLink from '../components/shared/BackLink';
 import { Kingdom, KingdomWithStats } from '../types';
 import { apiService, dataLoadError } from '../services/api';
 import { incrementStat } from '../components/UserAchievements';
@@ -1094,7 +1095,7 @@ const Leaderboards: React.FC = () => {
 
         {/* Back to Home link */}
         <div style={{ textAlign: 'center', marginTop: '2rem', paddingBottom: '1rem' }}>
-          <Link to="/" style={{ color: '#22d3ee', textDecoration: 'none', fontSize: '0.8rem' }}>{t('common.backToHome')}</Link>
+          <BackLink to="/" label={t('common.backToHome', 'Home')} />
         </div>
       </div>
     </div>
