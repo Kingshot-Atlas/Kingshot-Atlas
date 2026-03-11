@@ -603,7 +603,7 @@
     "savePercent": "%17 TASARRUF",
     "yearlySavings": "Ayda $4,17 — aylığa kıyasla $9,89 tasarruf",
     "cancelAnytime": "İstediğiniz zaman iptal edin • Stripe üzerinden yönetin",
-    "getPerks": "Rozet, Krallık Araçları, sınırsız bot komutları, tam liderlik tablosu — ve gerçekten kullandığınız araçları finanse etmenin memnuniyeti.",
+    "getPerks": "Rozet, Discord rolü, İttifak Merkezi, Bot Paneli, erken erişim — ve gerçekten kullandığınız araçları finanse etmenin memnuniyeti.",
     "becomeSupporter": "Destekçi Ol",
     "signInToSubscribe": "Abone Olmak İçin Giriş Yap",
     "giveMore": "Daha fazla vermek mi istiyorsunuz? Abone olduktan sonra Stripe portalında miktarınızı artırabilirsiniz.",
@@ -654,7 +654,9 @@
     "perk13Title": "Tam Liderlik Tablosu",
     "perk13Desc": "Krallık sıralamalarının tamamını görün — sınırsız. Ücretsiz kullanıcılar yalnızca ilk 25'i görür.",
     "perk14Title": "Araç Delegasyonu",
-    "perk14Desc": "Krallık araçlarınızı en fazla 2 arkadaşınızla paylaşın — sizin sayenizde tam erişim elde ederler."
+    "perk14Desc": "Krallık araçlarınızı en fazla 2 arkadaşınızla paylaşın — sizin sayenizde tam erişim elde ederler.",
+    "perk15Title": "İttifak Merkezi",
+    "perk15Desc": "İttifak Merkezine tam erişim — ittifak kadronuzu yönetin, etkinlikleri koordine edin ve birlikte planlayın."
   },
   "changelog": {
     "new": "Yeni",

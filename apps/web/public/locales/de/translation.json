@@ -603,7 +603,7 @@
     "savePercent": "17% SPAREN",
     "yearlySavings": "$4,17/Monat — spare $9,89 vs monatlich",
     "cancelAnytime": "Jederzeit kündbar • Verwaltung über Stripe",
-    "getPerks": "Abzeichen, Königreich-Werkzeuge, unbegrenzte Bot-Befehle, vollständige Rangliste — und die Zufriedenheit, die Werkzeuge zu finanzieren, die du wirklich nutzt.",
+    "getPerks": "Abzeichen, Discord-Rolle, Allianz-Zentrum, Bot-Dashboard, Frühzugang — und die Zufriedenheit, die Werkzeuge zu finanzieren, die du wirklich nutzt.",
     "becomeSupporter": "Supporter werden",
     "signInToSubscribe": "Anmelden zum Abonnieren",
     "giveMore": "Willst du mehr geben? Du kannst deinen Betrag im Stripe-Portal nach dem Abonnieren erhöhen.",
@@ -654,7 +654,9 @@
     "perk13Title": "Vollständige Rangliste",
     "perk13Desc": "Sieh die kompletten Königreich-Rankings — ohne Limits. Kostenlose Nutzer sehen die Top 25.",
     "perk14Title": "Werkzeug-Delegation",
-    "perk14Desc": "Teile deine Königreich-Werkzeuge mit bis zu 2 Freunden — sie erhalten vollen Zugang, auf deine Kosten."
+    "perk14Desc": "Teile deine Königreich-Werkzeuge mit bis zu 2 Freunden — sie erhalten vollen Zugang, auf deine Kosten.",
+    "perk15Title": "Allianz-Zentrum",
+    "perk15Desc": "Voller Zugang zum Allianz-Zentrum — verwalte deine Allianz-Liste, koordiniere Events und plane gemeinsam."
   },
   "changelog": {
     "new": "Neu",

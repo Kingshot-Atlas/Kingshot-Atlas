@@ -603,7 +603,7 @@
     "savePercent": "节省 17%",
     "yearlySavings": "每月 $4.17 — 比月付节省 $9.89",
     "cancelAnytime": "随时取消 • 通过 Stripe 管理",
-    "getPerks": "徽章、王国工具、无限机器人命令、完整排行榜——以及资助你真正使用的工具的满足感。",
+    "getPerks": "徽章、Discord 角色、联盟中心、Bot 仪表盘、抢先体验——以及资助你真正使用的工具的满足感。",
     "becomeSupporter": "成为支持者",
     "signInToSubscribe": "登录以订阅",
     "giveMore": "想给更多？订阅后可在 Stripe 门户中增加金额。",
@@ -654,7 +654,9 @@
     "perk13Title": "完整排行榜",
     "perk13Desc": "查看完整的王国排名 — 无限制。免费用户只能查看前 25 名。",
     "perk14Title": "工具委托",
-    "perk14Desc": "与最多 2 位朋友分享你的王国工具 — 他们获得完整访问权限，由你提供。"
+    "perk14Desc": "与最多 2 位朋友分享你的王国工具 — 他们获得完整访问权限，由你提供。",
+    "perk15Title": "联盟中心",
+    "perk15Desc": "完整访问联盟中心 — 管理你的联盟花名册、协调活动、共同规划。"
   },
   "changelog": {
     "new": "新增",

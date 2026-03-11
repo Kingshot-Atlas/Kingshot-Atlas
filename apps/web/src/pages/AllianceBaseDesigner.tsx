@@ -52,8 +52,8 @@ const AllianceBaseDesigner: React.FC = () => {
   const [shareMenu, setShareMenu] = useState(false);
   const [shareToast, setShareToast] = useState<string | null>(null);
 
-  // Determine edit permission: owner/manager can edit all; delegates only if they have base_designer access
-  const canEdit = hasAccess && (roster.accessRole === 'owner' || roster.accessRole === 'manager' || (roster.accessRole === 'delegate' && roster.hasDelegateAccessTo('base_designer')));
+  // Determine edit permission: owner always edits (it's their design); manager needs tool access; delegates need tool access + base_designer grant
+  const canEdit = roster.accessRole === 'owner' || (hasAccess && (roster.accessRole === 'manager' || (roster.accessRole === 'delegate' && roster.hasDelegateAccessTo('base_designer'))));
   const rosterNames = roster.sortedNames;
   const [labelSuggestions, setLabelSuggestions] = useState<string[]>([]);
   const [selectedSuggestionIdx, setSelectedSuggestionIdx] = useState(-1);

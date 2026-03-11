@@ -618,7 +618,7 @@
     "savePercent": "SAVE 17%",
     "yearlySavings": "$4.17/mo — save $9.89 vs monthly",
     "cancelAnytime": "Cancel anytime • Manage via Stripe",
-    "getPerks": "Badge, Kingdom Tools, unlimited bot commands, full leaderboard access — and the satisfaction of funding the tools you actually use.",
+    "getPerks": "Badge, Discord role, Alliance Center, Bot Dashboard, early access — and the satisfaction of funding the tools you actually use.",
     "becomeSupporter": "Become a Supporter",
     "signInToSubscribe": "Sign In to Subscribe",
     "giveMore": "Want to give more? You can increase your amount in the Stripe portal after subscribing.",
@@ -669,7 +669,9 @@
     "perk13Title": "Full Leaderboard",
     "perk13Desc": "See the complete kingdom rankings — no limits. Free users see the top 25.",
     "perk14Title": "Tool Delegation",
-    "perk14Desc": "Share your kingdom tools with up to 2 friends — they get full access, on you."
+    "perk14Desc": "Share your kingdom tools with up to 2 friends — they get full access, on you.",
+    "perk15Title": "Alliance Center",
+    "perk15Desc": "Full access to the Alliance Center — manage your alliance roster, coordinate events, and plan together."
   },
   "changelog": {
     "new": "New",

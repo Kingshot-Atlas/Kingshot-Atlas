@@ -602,7 +602,7 @@
     "savePercent": "AHORRA 17%",
     "yearlySavings": "$4.17/mes — ahorra $9.89 vs mensual",
     "cancelAnytime": "Cancela cuando quieras • Gestiona vía Stripe",
-    "getPerks": "Insignia, Herramientas de Reino, comandos de bot ilimitados, clasificación completa — y la satisfacción de financiar las herramientas que realmente usas.",
+    "getPerks": "Insignia, rol de Discord, Centro de Alianza, Panel del Bot, acceso anticipado — y la satisfacción de financiar las herramientas que realmente usas.",
     "becomeSupporter": "Hazte Supporter",
     "signInToSubscribe": "Inicia Sesión para Suscribirte",
     "giveMore": "¿Quieres dar más? Puedes aumentar tu monto en el portal de Stripe después de suscribirte.",
@@ -653,7 +653,9 @@
     "perk13Title": "Clasificación Completa",
     "perk13Desc": "Ve la clasificación completa de reinos — sin límites. Los usuarios gratuitos ven el top 25.",
     "perk14Title": "Delegación de Herramientas",
-    "perk14Desc": "Comparte tus herramientas de reino con hasta 2 amigos — ellos obtienen acceso completo, por tu cuenta."
+    "perk14Desc": "Comparte tus herramientas de reino con hasta 2 amigos — ellos obtienen acceso completo, por tu cuenta.",
+    "perk15Title": "Centro de Alianza",
+    "perk15Desc": "Acceso completo al Centro de Alianza — gestiona tu lista de alianza, coordina eventos y planifica juntos."
   },
   "changelog": {
     "new": "Nuevo",

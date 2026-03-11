@@ -603,7 +603,7 @@
     "savePercent": "ÉCONOMISEZ 17%",
     "yearlySavings": "4,17 $/mois — économisez 9,89 $ vs mensuel",
     "cancelAnytime": "Résiliez à tout moment • Gérez via Stripe",
-    "getPerks": "Badge, Outils de Royaume, commandes bot illimitées, classement complet — et la satisfaction de financer les outils que vous utilisez vraiment.",
+    "getPerks": "Badge, rôle Discord, Centre d'Alliance, Tableau de Bord Bot, accès anticipé — et la satisfaction de financer les outils que vous utilisez vraiment.",
     "becomeSupporter": "Devenir Supporter",
     "signInToSubscribe": "Connectez-vous pour vous Abonner",
     "giveMore": "Envie de donner plus ? Vous pouvez augmenter votre montant dans le portail Stripe après votre abonnement.",
@@ -654,7 +654,9 @@
     "perk13Title": "Classement Complet",
     "perk13Desc": "Consultez le classement complet des royaumes — sans limites. Les utilisateurs gratuits voient le top 25.",
     "perk14Title": "Délégation d'Outils",
-    "perk14Desc": "Partagez vos outils de royaume avec jusqu'à 2 amis — ils obtiennent un accès complet, à vos frais."
+    "perk14Desc": "Partagez vos outils de royaume avec jusqu'à 2 amis — ils obtiennent un accès complet, à vos frais.",
+    "perk15Title": "Centre d'Alliance",
+    "perk15Desc": "Accès complet au Centre d'Alliance — gérez votre liste d'alliance, coordonnez les événements et planifiez ensemble."
   },
   "changelog": {
     "new": "Nouveau",

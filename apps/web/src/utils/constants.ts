@@ -126,6 +126,18 @@ export const isReferralEligible = (profile: { linked_player_id?: string | null; 
   return !!profile.linked_player_id && (profile.linked_tc_level ?? 0) >= 25;
 };
 
+// ─── Supporter Perks — SINGLE SOURCE OF TRUTH ───
+// All components displaying supporter perks should import this array.
+// Each entry has an icon (emoji), and i18n key suffix (maps to support.perk{N}Title / support.perk{N}Desc).
+export const SUPPORTER_PERKS = [
+  { icon: '\u2B50', key: '1' },        // Supporter Badge
+  { icon: '\uD83D\uDC9C', key: '2' },  // Discord Supporter Role
+  { icon: '\uD83D\uDCAC', key: '5' },  // Exclusive Discord Channel
+  { icon: '\uD83D\uDE80', key: '6' },  // Early Access
+  { icon: '\uD83C\uDFF0', key: '15' }, // Alliance Center access
+  { icon: '\uD83C\uDFDB\uFE0F', key: '10' }, // Atlas Bot Dashboard access
+] as const;
+
 // Get tier color for UI elements (borders, buttons) - white for free, colored for paid
 // Supporter = Pink, Gilded = Gold, Admin = Cyan
 export const getTierBorderColor = (tier: string | null | undefined): string => {
