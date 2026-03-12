@@ -5,6 +5,22 @@
 
 ---
 
+## PWA Cache Auto-Reload Fix (2026-03-12)
+
+**Problem:** Users were stuck on old versions of the site until they hard-refreshed or cleared cache. The auto-reload mechanism existed in `serviceWorkerRegistration.ts` but was never wired up because `main.tsx` (the actual Vite entry point) didn't call `registerUpdateHandler()`. Only the dead `index.tsx` file did.
+
+**Fix:**
+- Added `registerUpdateHandler()` call in `main.tsx` (the real entry point per `index.html`)
+- Added `/sw.js` no-cache header in `public/_headers` (VitePWA generates `sw.js`, not `service-worker.js`)
+
+**How it works:**
+1. VitePWA (`registerType: 'autoUpdate'`) with `skipWaiting: true` + `clientsClaim: true` activates new SW immediately
+2. `registerUpdateHandler()` listens for `controllerchange` event → auto-reloads the page
+3. `sessionStorage` guard prevents infinite reload loops
+4. `hadController` check skips reload on first-ever SW install
+
+**Gotcha:** `index.tsx` is dead code — Vite uses `main.tsx` (referenced in `index.html` line 130). Any registration calls in `index.tsx` have no effect.
+
 ## Referral Count Integrity System (2026-07-17)
 
 **Problem:** `profiles.referral_count` is a denormalized cache of `COUNT(*) FROM referrals WHERE status='verified'`. Before this fix, it was only updated in specific code paths (verify_pending_referral trigger, manual admin, endorsement). Any status change outside those paths (direct SQL, future admin tools) caused silent drift. Initial reconciliation found **1 mismatched profile**.

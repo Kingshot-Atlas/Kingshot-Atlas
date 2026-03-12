@@ -3,6 +3,18 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-12 17:30 | Product Engineer + Platform Engineer | COMPLETED
+Task: Mobile SOON tag → toast notification + fix stale cache auto-reload
+Files: apps/web/src/components/homepage/QuickActions.tsx, apps/web/src/main.tsx, apps/web/public/_headers
+Changes:
+- Removed SOON badge from Gaming Calculators button on mobile (keeps uniform button sizes)
+- Added toast notification ("Coming soon!") on mobile tap using existing useToast hook
+- SOON badge still visible on desktop for clarity
+- Fixed critical bug: registerUpdateHandler() was only called in dead index.tsx, not main.tsx (actual entry point)
+- Added /sw.js no-cache header in _headers (VitePWA generates sw.js, not service-worker.js)
+- Users will now auto-reload when new service worker activates after deploy (no more stale cache)
+Result: Build passes, pushed to main, Cloudflare Pages auto-deploying
+
 ## 2026-03-12 10:54 | Platform Engineer | COMPLETED
 Task: Fix 10 Supabase security warnings (9 mutable search_path functions + 1 unrestricted materialized view)
 Files: kingdomReputationService.ts, useTransferHubQueries.ts (frontend), 2 Supabase migrations
