@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { usePremium } from '../contexts/PremiumContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useGoldKingdoms } from '../hooks/useGoldKingdoms';
+import { useAdminToolGrant } from '../hooks/useAdminToolGrant';
 import { useKvk11Promo } from '../hooks/useKvk11Promo';
 import { supabase } from '../lib/supabase';
 
@@ -23,8 +24,9 @@ const BattleRegistryLanding: React.FC = () => {
   const { hasPromoAccess } = useKvk11Promo();
   const isGoldKingdom = !!(profile?.linked_kingdom && goldKingdoms.has(profile.linked_kingdom));
   const hasSilverPromoAccess = !!(profile?.linked_kingdom && hasPromoAccess(profile.linked_kingdom));
+  const { hasGrant: hasToolGrant } = useAdminToolGrant('battle_registry');
   const [isEditorOrCoEditor, setIsEditorOrCoEditor] = useState(false);
-  const hasFullAccess = isGoldKingdom || hasSilverPromoAccess || isAdmin || isEditorOrCoEditor;
+  const hasFullAccess = isGoldKingdom || hasSilverPromoAccess || isAdmin || isEditorOrCoEditor || hasToolGrant;
 
   useEffect(() => {
     if (!user?.id || !supabase) return;

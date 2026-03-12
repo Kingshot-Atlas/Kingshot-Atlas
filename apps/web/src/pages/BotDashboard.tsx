@@ -18,6 +18,7 @@ import {
 import RoleAssignerCard from './BotDashboardRoleAssigner';
 import BotDashboardTransferGroups from './BotDashboardTransferGroups';
 import { useBotDashboardData } from '../hooks/useBotDashboardData';
+import { useAdminToolGrant } from '../hooks/useAdminToolGrant';
 
 // EmojiPicker + RoleAssignerCard extracted to BotDashboardEmojiPicker.tsx & BotDashboardRoleAssigner.tsx
 
@@ -29,6 +30,7 @@ const BotDashboard: React.FC = () => {
   const { user, profile } = useAuth();
   const mob = useIsMobile();
   const { isSupporter, isAdmin } = usePremium();
+  const { hasGrant: hasToolGrant } = useAdminToolGrant('bot_dashboard');
   const canMultiServer = isSupporter || isAdmin;
 
   // ─── Data (extracted to hook) ──────────────────────────────────────────
@@ -387,7 +389,7 @@ const BotDashboard: React.FC = () => {
     </div>
   );
 
-  if (!isSupporter && !isAdmin) return (
+  if (!isSupporter && !isAdmin && !hasToolGrant) return (
     <div style={{ minHeight: '100vh', backgroundColor: colors.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
       <div style={{ textAlign: 'center', maxWidth: 480 }}>
         <img src="/AtlasBotAvatar.webp" alt="Atlas Bot" style={{ width: 64, height: 64, borderRadius: '50%', margin: '0 auto 1rem', display: 'block', border: '2px solid #FF6B8A30' }} />

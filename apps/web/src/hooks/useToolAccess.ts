@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { usePremium } from '../contexts/PremiumContext';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { useAdminToolGrant } from './useAdminToolGrant';
 import { logger } from '../utils/logger';
 
 export type AllianceTool = 'base_designer' | 'bear_rally' | 'rally_coordinator';
@@ -26,8 +27,10 @@ export interface ToolDelegate {
 
 interface ToolAccessResult {
   hasAccess: boolean;
-  reason: 'admin' | 'supporter' | 'referral' | 'booster' | 'delegate' | 'none';
+  reason: 'admin' | 'supporter' | 'referral' | 'booster' | 'delegate' | 'tool_grant' | 'none';
   grantedBy?: string; // username of the owner who granted delegate access
+  isTrial?: boolean;
+  expiresAt?: string | null;
   loading: boolean;
 }
 
@@ -72,6 +75,9 @@ export function useToolAccess(): ToolAccessResult {
   // Direct access check (no DB query needed)
   const hasDirectAccess = isAdmin || isSupporter || hasReferralAccess || isBooster;
 
+  // Check admin-granted tool_access for alliance_center
+  const { hasGrant, isTrial, expiresAt, loading: grantLoading } = useAdminToolGrant('alliance_center');
+
   // Check if user is a delegate of someone with access
   const { data: delegateGrant, isLoading } = useQuery({
     queryKey: ['tool-delegate-access', user?.id],
@@ -102,7 +108,7 @@ export function useToolAccess(): ToolAccessResult {
       }
       return null;
     },
-    enabled: !!user && !hasDirectAccess, // Only check delegates if no direct access
+    enabled: !!user && !hasDirectAccess && !hasGrant, // Only check delegates if no direct access and no tool grant
     staleTime: 5 * 60 * 1000,
   });
 
@@ -111,11 +117,16 @@ export function useToolAccess(): ToolAccessResult {
     return { hasAccess: true, reason, loading: false };
   }
 
+  // Admin-granted tool_access row (permanent or valid trial)
+  if (hasGrant) {
+    return { hasAccess: true, reason: 'tool_grant', isTrial, expiresAt, loading: false };
+  }
+
   if (delegateGrant) {
     return { hasAccess: true, reason: 'delegate', grantedBy: delegateGrant.grantedBy, loading: false };
   }
 
-  return { hasAccess: false, reason: 'none', loading: isLoading };
+  return { hasAccess: false, reason: 'none', loading: isLoading || grantLoading };
 }
 
 const MAX_DELEGATES = 2;

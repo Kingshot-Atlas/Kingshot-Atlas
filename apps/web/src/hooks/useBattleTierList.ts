@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
 import { useGoldKingdoms } from './useGoldKingdoms';
+import { useAdminToolGrant } from './useAdminToolGrant';
 import { supabase } from '../lib/supabase';
 import { logger } from '../utils/logger';
 import {
@@ -90,10 +91,11 @@ export function useBattleTierList() {
   const { user, profile } = useAuth();
   const { isAdmin } = usePremium();
   const goldKingdoms = useGoldKingdoms();
+  const { hasGrant: hasToolGrant } = useAdminToolGrant('battle_tier_list');
 
   const kingdomNumber = profile?.linked_kingdom ?? null;
   const isGoldKingdom = !!(kingdomNumber && goldKingdoms.has(kingdomNumber));
-  const hasAccess = isGoldKingdom || isAdmin;
+  const hasAccess = isGoldKingdom || isAdmin || hasToolGrant;
 
   // ── Editor / Manager status ──
   const [isEditor, setIsEditor] = useState(false);

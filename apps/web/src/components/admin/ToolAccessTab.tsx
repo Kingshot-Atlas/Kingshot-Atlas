@@ -23,12 +23,16 @@ interface AccessEntry {
   user_id: string;
   tool: ToolId;
   created_at: string;
+  expires_at: string | null;
   linked_username: string;
   linked_kingdom: number | null;
   linked_tc_level: number | null;
   linked_avatar_url: string | null;
   username: string;
 }
+
+type GrantType = 'permanent' | 'trial';
+type DurationUnit = 'hours' | 'days';
 
 interface SearchResult {
   id: string;
@@ -50,6 +54,9 @@ export const ToolAccessTab: React.FC = () => {
   const [searching, setSearching] = useState(false);
   const [adding, setAdding] = useState<string | null>(null);
   const [removing, setRemoving] = useState<string | null>(null);
+  const [grantType, setGrantType] = useState<GrantType>('permanent');
+  const [trialDuration, setTrialDuration] = useState(24);
+  const [durationUnit, setDurationUnit] = useState<DurationUnit>('hours');
 
   const toolConfig = TOOLS.find(t => t.id === activeTool)!;
 
@@ -59,7 +66,7 @@ export const ToolAccessTab: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('tool_access')
-        .select('id, user_id, tool, created_at')
+        .select('id, user_id, tool, created_at, expires_at')
         .eq('tool', tool)
         .order('created_at', { ascending: false });
 
@@ -80,6 +87,7 @@ export const ToolAccessTab: React.FC = () => {
             user_id: d.user_id,
             tool: d.tool as ToolId,
             created_at: d.created_at,
+            expires_at: d.expires_at || null,
             linked_username: p?.linked_username || '—',
             linked_kingdom: p?.linked_kingdom || null,
             linked_tc_level: p?.linked_tc_level || null,
@@ -136,11 +144,33 @@ export const ToolAccessTab: React.FC = () => {
     if (!supabase || !user) return;
     setAdding(userId);
     try {
-      const { error } = await supabase
-        .from('tool_access')
-        .insert({ user_id: userId, tool: activeTool, granted_by: user.id });
+      // Calculate expires_at for trial grants
+      let expires_at: string | null = null;
+      if (grantType === 'trial') {
+        const ms = durationUnit === 'hours' ? trialDuration * 60 * 60 * 1000 : trialDuration * 24 * 60 * 60 * 1000;
+        expires_at = new Date(Date.now() + ms).toISOString();
+      }
 
-      if (error) throw error;
+      // Upsert: if user already has an expired trial for this tool, update it
+      const { data: existing } = await supabase
+        .from('tool_access')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('tool', activeTool)
+        .maybeSingle();
+
+      if (existing) {
+        const { error } = await supabase
+          .from('tool_access')
+          .update({ expires_at, granted_by: user.id, created_at: new Date().toISOString() })
+          .eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('tool_access')
+          .insert({ user_id: userId, tool: activeTool, granted_by: user.id, expires_at });
+        if (error) throw error;
+      }
 
       setSearchQuery('');
       setSearchResults([]);
@@ -150,7 +180,7 @@ export const ToolAccessTab: React.FC = () => {
     } finally {
       setAdding(null);
     }
-  }, [user, activeTool, fetchAccessList]);
+  }, [user, activeTool, grantType, trialDuration, durationUnit, fetchAccessList]);
 
   const revokeAccess = useCallback(async (entryId: string) => {
     if (!supabase) return;
@@ -177,6 +207,22 @@ export const ToolAccessTab: React.FC = () => {
       return iso;
     }
   };
+
+  const formatTimeRemaining = (expiresAt: string) => {
+    const ms = new Date(expiresAt).getTime() - Date.now();
+    if (ms <= 0) return t('admin.toolAccess.expired', 'Expired');
+    const hours = Math.floor(ms / (1000 * 60 * 60));
+    const days = Math.floor(hours / 24);
+    const remainHours = hours % 24;
+    if (days > 0) return `${days}d ${remainHours}h left`;
+    const mins = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+    if (hours > 0) return `${hours}h ${mins}m left`;
+    return `${mins}m left`;
+  };
+
+  const isExpired = (entry: AccessEntry) => entry.expires_at ? new Date(entry.expires_at) <= new Date() : false;
+  const activeEntries = accessList.filter(e => !isExpired(e));
+  const expiredEntries = accessList.filter(e => isExpired(e));
 
   const toolLabel = (id: ToolId) => t(`admin.toolAccess.tool_${id}`, id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
 
@@ -223,13 +269,82 @@ export const ToolAccessTab: React.FC = () => {
           <span style={{ color: toolConfig.color, fontSize: '0.85rem', fontWeight: 700 }}>
             {toolConfig.icon} {toolLabel(activeTool)}
           </span>
-          <div style={{
-            padding: '0.2rem 0.6rem', backgroundColor: `${toolConfig.color}20`,
-            border: `1px solid ${toolConfig.color}40`, borderRadius: '20px',
-            color: toolConfig.color, fontSize: '0.7rem', fontWeight: 600,
-          }}>
-            {accessList.length} {t('admin.toolAccess.users', 'user')}{accessList.length !== 1 ? 's' : ''}
+          <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+            {expiredEntries.length > 0 && (
+              <div style={{
+                padding: '0.2rem 0.6rem', backgroundColor: '#ef444420',
+                border: '1px solid #ef444440', borderRadius: '20px',
+                color: '#ef4444', fontSize: '0.7rem', fontWeight: 600,
+              }}>
+                {expiredEntries.length} expired
+              </div>
+            )}
+            <div style={{
+              padding: '0.2rem 0.6rem', backgroundColor: `${toolConfig.color}20`,
+              border: `1px solid ${toolConfig.color}40`, borderRadius: '20px',
+              color: toolConfig.color, fontSize: '0.7rem', fontWeight: 600,
+            }}>
+              {activeEntries.length} {t('admin.toolAccess.users', 'active')}{activeEntries.length !== 1 ? '' : ''}
+            </div>
           </div>
+        </div>
+
+        {/* Grant Type Toggle */}
+        <div style={{
+          display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.75rem',
+          padding: '0.6rem 0.75rem', backgroundColor: colors.bg, borderRadius: '8px',
+          border: `1px solid ${colors.border}`,
+        }}>
+          <span style={{ color: colors.textSecondary, fontSize: '0.75rem', fontWeight: 600, marginRight: '0.25rem' }}>
+            {t('admin.toolAccess.grantType', 'Grant type:')}
+          </span>
+          {(['permanent', 'trial'] as const).map(gt => (
+            <button
+              key={gt}
+              onClick={() => setGrantType(gt)}
+              style={{
+                padding: '0.3rem 0.7rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600,
+                cursor: 'pointer', transition: 'all 0.15s ease',
+                border: `1px solid ${grantType === gt ? (gt === 'trial' ? '#f59e0b60' : '#22c55e60') : colors.border}`,
+                backgroundColor: grantType === gt ? (gt === 'trial' ? '#f59e0b15' : '#22c55e15') : 'transparent',
+                color: grantType === gt ? (gt === 'trial' ? '#f59e0b' : '#22c55e') : colors.textMuted,
+              }}
+            >
+              {gt === 'permanent' ? t('admin.toolAccess.permanent', 'Permanent') : t('admin.toolAccess.trial', 'Trial')}
+            </button>
+          ))}
+
+          {grantType === 'trial' && (
+            <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', marginLeft: '0.5rem' }}>
+              <input
+                type="number"
+                min={1}
+                max={durationUnit === 'hours' ? 720 : 90}
+                value={trialDuration}
+                onChange={e => setTrialDuration(Math.max(1, parseInt(e.target.value) || 1))}
+                style={{
+                  width: '60px', padding: '0.3rem 0.4rem', backgroundColor: colors.cardAlt,
+                  border: '1px solid #f59e0b40', borderRadius: '6px', color: '#f59e0b',
+                  fontSize: '0.8rem', fontWeight: 600, textAlign: 'center', outline: 'none',
+                }}
+              />
+              {(['hours', 'days'] as const).map(u => (
+                <button
+                  key={u}
+                  onClick={() => setDurationUnit(u)}
+                  style={{
+                    padding: '0.3rem 0.5rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 600,
+                    cursor: 'pointer',
+                    border: `1px solid ${durationUnit === u ? '#f59e0b50' : colors.border}`,
+                    backgroundColor: durationUnit === u ? '#f59e0b15' : 'transparent',
+                    color: durationUnit === u ? '#f59e0b' : colors.textMuted,
+                  }}
+                >
+                  {u}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Search */}
@@ -301,11 +416,16 @@ export const ToolAccessTab: React.FC = () => {
                     </div>
                   </div>
                   <span style={{
-                    padding: '0.2rem 0.5rem', backgroundColor: `${colors.success}20`,
-                    border: `1px solid ${colors.success}40`, borderRadius: '6px',
-                    color: colors.success, fontSize: '0.65rem', fontWeight: 600, flexShrink: 0,
+                    padding: '0.2rem 0.5rem',
+                    backgroundColor: grantType === 'trial' ? '#f59e0b20' : `${colors.success}20`,
+                    border: `1px solid ${grantType === 'trial' ? '#f59e0b40' : colors.success + '40'}`,
+                    borderRadius: '6px',
+                    color: grantType === 'trial' ? '#f59e0b' : colors.success,
+                    fontSize: '0.65rem', fontWeight: 600, flexShrink: 0,
                   }}>
-                    {adding === result.id ? '...' : `+ ${t('admin.toolAccess.grant', 'Grant')}`}
+                    {adding === result.id ? '...' : grantType === 'trial'
+                      ? `+ ${trialDuration}${durationUnit === 'hours' ? 'h' : 'd'} ${t('admin.toolAccess.trial', 'Trial')}`
+                      : `+ ${t('admin.toolAccess.grant', 'Grant')}`}
                   </span>
                 </button>
               ))}
@@ -328,7 +448,7 @@ export const ToolAccessTab: React.FC = () => {
         </div>
       </div>
 
-      {/* Access List */}
+      {/* Active Access List */}
       <div style={{
         backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1.25rem',
         border: `1px solid ${colors.border}`,
@@ -341,7 +461,7 @@ export const ToolAccessTab: React.FC = () => {
           <div style={{ padding: '2rem', textAlign: 'center', color: colors.textMuted, fontSize: '0.8rem' }}>
             {t('admin.toolAccess.loading', 'Loading...')}
           </div>
-        ) : accessList.length === 0 ? (
+        ) : activeEntries.length === 0 ? (
           <div style={{
             padding: '2rem', textAlign: 'center', color: colors.textMuted,
             fontSize: '0.8rem', border: `1px dashed ${colors.border}`, borderRadius: '8px',
@@ -350,7 +470,7 @@ export const ToolAccessTab: React.FC = () => {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            {accessList.map(entry => (
+            {activeEntries.map(entry => (
               <div
                 key={entry.id}
                 style={{
@@ -377,8 +497,26 @@ export const ToolAccessTab: React.FC = () => {
                 )}
 
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, fontSize: '0.85rem', color: colors.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {entry.linked_username}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span style={{ fontWeight: 600, fontSize: '0.85rem', color: colors.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {entry.linked_username}
+                    </span>
+                    {entry.expires_at ? (
+                      <span style={{
+                        padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 700,
+                        backgroundColor: '#f59e0b18', border: '1px solid #f59e0b30', color: '#f59e0b',
+                        whiteSpace: 'nowrap',
+                      }}>
+                        {formatTimeRemaining(entry.expires_at)}
+                      </span>
+                    ) : (
+                      <span style={{
+                        padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 700,
+                        backgroundColor: '#22c55e18', border: '1px solid #22c55e30', color: '#22c55e',
+                      }}>
+                        {t('admin.toolAccess.permanent', 'Permanent')}
+                      </span>
+                    )}
                   </div>
                   <div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
                     K{entry.linked_kingdom || '?'} · TC{entry.linked_tc_level || '?'} · @{entry.username} · {t('admin.toolAccess.added', 'Added')} {formatDate(entry.created_at)}
@@ -403,6 +541,93 @@ export const ToolAccessTab: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Expired Trials */}
+      {!loading && expiredEntries.length > 0 && (
+        <div style={{
+          backgroundColor: colors.cardAlt, borderRadius: '12px', padding: '1.25rem',
+          border: '1px solid #ef444420',
+        }}>
+          <h4 style={{ color: '#ef4444', margin: '0 0 0.75rem', fontSize: '0.9rem' }}>
+            {t('admin.toolAccess.expiredTrials', 'Expired Trials')} ({expiredEntries.length})
+          </h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            {expiredEntries.map(entry => (
+              <div
+                key={entry.id}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '0.6rem',
+                  padding: '0.5rem 0.65rem', backgroundColor: colors.bg,
+                  border: '1px solid #ef444415', borderRadius: '8px', opacity: 0.7,
+                }}
+              >
+                {entry.linked_avatar_url ? (
+                  <img
+                    src={entry.linked_avatar_url}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                    style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0, filter: 'grayscale(50%)' }}
+                  />
+                ) : (
+                  <div style={{
+                    width: '32px', height: '32px', borderRadius: '50%',
+                    backgroundColor: colors.border, display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', flexShrink: 0, fontSize: '0.8rem',
+                  }}>
+                    👤
+                  </div>
+                )}
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span style={{ fontWeight: 600, fontSize: '0.85rem', color: colors.textSecondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {entry.linked_username}
+                    </span>
+                    <span style={{
+                      padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 700,
+                      backgroundColor: '#ef444418', border: '1px solid #ef444430', color: '#ef4444',
+                    }}>
+                      {t('admin.toolAccess.expired', 'Expired')}
+                    </span>
+                  </div>
+                  <div style={{ color: colors.textMuted, fontSize: '0.65rem' }}>
+                    K{entry.linked_kingdom || '?'} · {t('admin.toolAccess.expiredOn', 'Expired')} {formatDate(entry.expires_at!)}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.3rem', flexShrink: 0 }}>
+                  <button
+                    onClick={() => grantAccess(entry.user_id)}
+                    disabled={adding === entry.user_id}
+                    style={{
+                      padding: '0.25rem 0.5rem', backgroundColor: '#22c55e15',
+                      border: '1px solid #22c55e30', borderRadius: '6px',
+                      color: '#22c55e', fontSize: '0.65rem', fontWeight: 600,
+                      cursor: adding === entry.user_id ? 'not-allowed' : 'pointer',
+                      opacity: adding === entry.user_id ? 0.5 : 1,
+                    }}
+                  >
+                    {adding === entry.user_id ? '...' : t('admin.toolAccess.renew', 'Renew')}
+                  </button>
+                  <button
+                    onClick={() => revokeAccess(entry.id)}
+                    disabled={removing === entry.id}
+                    style={{
+                      padding: '0.25rem 0.5rem', backgroundColor: `${colors.error}15`,
+                      border: `1px solid ${colors.error}30`, borderRadius: '6px',
+                      color: colors.error, fontSize: '0.65rem', fontWeight: 600,
+                      cursor: removing === entry.id ? 'not-allowed' : 'pointer',
+                      opacity: removing === entry.id ? 0.5 : 1,
+                    }}
+                  >
+                    {removing === entry.id ? '...' : t('admin.toolAccess.remove', 'Remove')}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

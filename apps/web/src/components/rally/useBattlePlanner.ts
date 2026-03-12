@@ -78,11 +78,16 @@ export function useBattlePlanner() {
       try {
         const { data, error } = await supabase
           .from('tool_access')
-          .select('id')
+          .select('id, expires_at')
           .eq('user_id', user.id)
           .eq('tool', 'battle_planner')
           .maybeSingle();
-        if (!cancelled) setHasAccess(!error && !!data);
+        if (!cancelled) {
+          if (error || !data) { setHasAccess(false); return; }
+          // Permanent grant or valid trial
+          const valid = !data.expires_at || new Date(data.expires_at) > new Date();
+          setHasAccess(valid);
+        }
       } catch { if (!cancelled) setHasAccess(false); }
     })();
     return () => { cancelled = true; };

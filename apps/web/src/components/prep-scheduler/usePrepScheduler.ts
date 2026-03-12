@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useSilverPlusKingdoms } from '../../hooks/useSilverPlusKingdoms';
+import { useAdminToolGrant } from '../../hooks/useAdminToolGrant';
 import { useKvk11Promo } from '../../hooks/useKvk11Promo';
 import { useToast } from '../Toast';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
@@ -30,6 +31,7 @@ export function usePrepScheduler() {
   const { user, profile } = useAuth();
   const isMobile = useIsMobile();
   const silverPlusKingdoms = useSilverPlusKingdoms();
+  const { hasGrant: hasToolGrant } = useAdminToolGrant('prep_scheduler');
   const { hasPromoAccess, isPromoActive, msRemaining: promoMsRemaining } = useKvk11Promo();
   const { showToast } = useToast();
   useDocumentTitle('KvK Prep Scheduler');
@@ -437,7 +439,7 @@ export function usePrepScheduler() {
       showToast(t('prepScheduler.toastRoleRequired', 'Only Editors, Co-Editors, and Prep Managers can create schedules.'), 'error');
       return;
     }
-    if (!silverPlusKingdoms.has(createKingdom) && !hasPromoAccess(createKingdom)) {
+    if (!silverPlusKingdoms.has(createKingdom) && !hasPromoAccess(createKingdom) && !hasToolGrant) {
       showToast(t('prepScheduler.toastSilverOnly', 'Only Silver Tier and above kingdoms can use the KvK Prep Scheduler.'), 'error');
       return;
     }
@@ -994,7 +996,7 @@ export function usePrepScheduler() {
     // Routing
     scheduleId, navigate,
     // Auth
-    user, profile, silverPlusKingdoms, hasPromoAccess, isPromoActive, promoMsRemaining,
+    user, profile, silverPlusKingdoms, hasPromoAccess, hasToolGrant, isPromoActive, promoMsRemaining,
     // Layout
     isMobile,
     // State

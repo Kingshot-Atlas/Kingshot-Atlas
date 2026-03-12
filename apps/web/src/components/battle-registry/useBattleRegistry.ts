@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useGoldKingdoms } from '../../hooks/useGoldKingdoms';
+import { useAdminToolGrant } from '../../hooks/useAdminToolGrant';
 import { useKvk11Promo } from '../../hooks/useKvk11Promo';
 import { useToast } from '../Toast';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
@@ -33,6 +34,7 @@ export function useBattleRegistry() {
   const { user, profile } = useAuth();
   const isMobile = useIsMobile();
   const goldKingdoms = useGoldKingdoms();
+  const { hasGrant: hasToolGrant } = useAdminToolGrant('battle_registry');
   const { hasPromoAccess, isPromoActive, msRemaining: promoMsRemaining } = useKvk11Promo();
   const { showToast } = useToast();
   useDocumentTitle('KvK Battle Registry');
@@ -314,7 +316,7 @@ export function useBattleRegistry() {
       showToast(t('battleRegistry.toastRoleRequired', 'Only Editors, Co-Editors, and Battle Managers can create registries.'), 'error');
       return;
     }
-    if (!goldKingdoms.has(createKingdom) && !hasPromoAccess(createKingdom)) {
+    if (!goldKingdoms.has(createKingdom) && !hasPromoAccess(createKingdom) && !hasToolGrant) {
       showToast(t('battleRegistry.toastGoldOnly', 'Only Gold Tier kingdoms can use the KvK Battle Registry.'), 'error');
       return;
     }
@@ -573,7 +575,7 @@ export function useBattleRegistry() {
   return {
     // Params
     registryId, navigate, t, user, profile, isMobile,
-    goldKingdoms, hasPromoAccess, isPromoActive, promoMsRemaining,
+    goldKingdoms, hasPromoAccess, hasToolGrant, isPromoActive, promoMsRemaining,
     // State
     view, setView, loading, registry, myRegistries, entries,
     isManager, isEditorOrCoEditor, saving, existingEntry,

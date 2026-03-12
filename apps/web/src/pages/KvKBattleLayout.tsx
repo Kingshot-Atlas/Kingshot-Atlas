@@ -8,6 +8,7 @@ import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData'
 import { useBattleLayout } from '../hooks/useBattleLayout';
 import { useAuth } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
+import { useAdminToolGrant } from '../hooks/useAdminToolGrant';
 import { useKingdomFund, useBattleManagers, useAddBattleManager, useRemoveBattleManager, useKingdomEditor, useSearchProfiles } from '../hooks/useKingdomProfileQueries';
 import { getBuildingType } from '../config/allianceBuildings';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
@@ -19,6 +20,7 @@ import { MapControls, SidebarSection, CoordinateSearch } from '../components/bas
 const BattleAccessGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { profile, user } = useAuth();
   const { isAdmin } = usePremium();
+  const { hasGrant: hasToolGrant } = useAdminToolGrant('battle_layout');
   const { t } = useTranslation();
   const navigate = useNavigate();
   const kingdomNumber = profile?.home_kingdom ?? profile?.linked_kingdom ?? undefined;
@@ -27,6 +29,9 @@ const BattleAccessGate: React.FC<{ children: React.ReactNode }> = ({ children })
 
   // Admins bypass
   if (isAdmin) return <>{children}</>;
+
+  // Admin-granted tool_access bypass
+  if (hasToolGrant) return <>{children}</>;
 
   // Battle managers bypass gold gate
   const isBattleManager = !!(user && managers?.some(m => m.user_id === user.id));

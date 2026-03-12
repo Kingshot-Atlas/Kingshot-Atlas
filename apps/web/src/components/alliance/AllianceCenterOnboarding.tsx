@@ -44,7 +44,7 @@ interface ResolvedApp {
 
 interface AllianceCenterOnboardingProps {
   hasAccess: boolean;
-  reason: 'admin' | 'supporter' | 'referral' | 'booster' | 'delegate' | 'none';
+  reason: 'admin' | 'supporter' | 'referral' | 'booster' | 'delegate' | 'tool_grant' | 'none';
   onShowCreate: () => void;
 }
 
