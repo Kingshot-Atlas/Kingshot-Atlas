@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { colors } from '../../utils/styles';
 import { logger } from '../../utils/logger';
+import { useToast } from '../Toast';
 
 // ─── Tool Definitions ──────────────────────────────────────────────────
 const TOOLS = [
@@ -46,6 +47,7 @@ interface SearchResult {
 export const ToolAccessTab: React.FC = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { showToast } = useToast();
   const [activeTool, setActiveTool] = useState<ToolId>('bot_dashboard');
   const [accessList, setAccessList] = useState<AccessEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,6 +61,7 @@ export const ToolAccessTab: React.FC = () => {
   const [durationUnit, setDurationUnit] = useState<DurationUnit>('hours');
 
   const toolConfig = TOOLS.find(t => t.id === activeTool)!;
+  const toolLabel = useCallback((id: ToolId) => t(`admin.toolAccess.tool_${id}`, id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())), [t]);
 
   const fetchAccessList = useCallback(async (tool: ToolId) => {
     if (!supabase) return;
@@ -175,12 +178,20 @@ export const ToolAccessTab: React.FC = () => {
       setSearchQuery('');
       setSearchResults([]);
       await fetchAccessList(activeTool);
+
+      const label = toolLabel(activeTool);
+      if (grantType === 'trial') {
+        showToast(t('admin.toolAccess.toastTrialGranted', 'Granted {{duration}}{{unit}} trial access to {{tool}}', { duration: trialDuration, unit: durationUnit === 'hours' ? 'h' : 'd', tool: label }), 'success');
+      } else {
+        showToast(t('admin.toolAccess.toastGranted', 'Granted permanent access to {{tool}}', { tool: label }), 'success');
+      }
     } catch (err) {
       logger.error('Failed to grant access:', err);
+      showToast(t('admin.toolAccess.toastGrantFailed', 'Failed to grant access. Please try again.'), 'error');
     } finally {
       setAdding(null);
     }
-  }, [user, activeTool, grantType, trialDuration, durationUnit, fetchAccessList]);
+  }, [user, activeTool, grantType, trialDuration, durationUnit, fetchAccessList, showToast, t, toolLabel]);
 
   const revokeAccess = useCallback(async (entryId: string) => {
     if (!supabase) return;
@@ -193,12 +204,14 @@ export const ToolAccessTab: React.FC = () => {
 
       if (error) throw error;
       await fetchAccessList(activeTool);
+      showToast(t('admin.toolAccess.toastRevoked', 'Access revoked for {{tool}}', { tool: toolLabel(activeTool) }), 'info');
     } catch (err) {
       logger.error('Failed to revoke access:', err);
+      showToast(t('admin.toolAccess.toastRevokeFailed', 'Failed to revoke access. Please try again.'), 'error');
     } finally {
       setRemoving(null);
     }
-  }, [activeTool, fetchAccessList]);
+  }, [activeTool, fetchAccessList, showToast, t, toolLabel]);
 
   const formatDate = (iso: string) => {
     try {
@@ -224,7 +237,6 @@ export const ToolAccessTab: React.FC = () => {
   const activeEntries = accessList.filter(e => !isExpired(e));
   const expiredEntries = accessList.filter(e => isExpired(e));
 
-  const toolLabel = (id: ToolId) => t(`admin.toolAccess.tool_${id}`, id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
