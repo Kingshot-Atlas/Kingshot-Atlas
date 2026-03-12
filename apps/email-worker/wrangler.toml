@@ -1,6 +1,20 @@
 name = "atlas-email-worker"
 main = "worker.js"
 compatibility_date = "2024-01-01"
+workers_dev = true
 
 # Email routing - bind to support@ks-atlas.com
 # Configure in Cloudflare Dashboard > Email Routing > Email Workers
+
+# Required secrets (set via `wrangler secret put <NAME>`):
+#   SUPABASE_URL         — e.g. https://qdczmafwcvnwfvixxbwg.supabase.co
+#   SUPABASE_SERVICE_KEY — service_role key from Supabase project settings
+#   FORWARD_TO           — (optional) personal email for backup forwarding
+
+# To configure email routing:
+#   1. Cloudflare Dashboard → ks-atlas.com → Email → Email Routing
+#   2. Under "Email Workers" tab, create a route:
+#        Custom address: support@ks-atlas.com → atlas-email-worker
+#   3. Ensure Email Routing is ENABLED (not paused)
+
+# Deploy: cd apps/email-worker && npx wrangler deploy

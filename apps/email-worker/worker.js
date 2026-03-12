@@ -32,6 +32,88 @@ function categorizeEmail(subject, body) {
 }
 
 export default {
+  /**
+   * HTTP handler — health check & diagnostics.
+   * GET /         → worker status + env var check
+   * POST /test    → insert a test inbound email into Supabase (for debugging)
+   */
+  async fetch(request, env) {
+    const url = new URL(request.url);
+
+    // Health check
+    if (request.method === "GET" && (url.pathname === "/" || url.pathname === "/health")) {
+      const hasSupabase = !!(env.SUPABASE_URL && env.SUPABASE_SERVICE_KEY);
+      const hasForward = !!env.FORWARD_TO;
+
+      // Quick connectivity test if Supabase is configured
+      let supabaseOk = false;
+      if (hasSupabase) {
+        try {
+          const resp = await fetch(
+            `${env.SUPABASE_URL}/rest/v1/support_emails?select=id&limit=1`,
+            {
+              headers: {
+                apikey: env.SUPABASE_SERVICE_KEY,
+                Authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+              },
+            }
+          );
+          supabaseOk = resp.ok;
+        } catch (_) {}
+      }
+
+      return new Response(
+        JSON.stringify({
+          status: "ok",
+          worker: "atlas-email-worker",
+          timestamp: new Date().toISOString(),
+          env: {
+            SUPABASE_URL: hasSupabase ? "configured" : "MISSING",
+            SUPABASE_SERVICE_KEY: hasSupabase ? "configured" : "MISSING",
+            FORWARD_TO: hasForward ? "configured" : "not set",
+          },
+          supabase_connectivity: supabaseOk ? "ok" : hasSupabase ? "FAILED" : "not configured",
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // Test endpoint: insert a test email
+    if (request.method === "POST" && url.pathname === "/test") {
+      if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) {
+        return new Response(JSON.stringify({ error: "Supabase not configured" }), { status: 500 });
+      }
+      try {
+        const resp = await fetch(`${env.SUPABASE_URL}/rest/v1/support_emails`, {
+          method: "POST",
+          headers: {
+            apikey: env.SUPABASE_SERVICE_KEY,
+            Authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal",
+          },
+          body: JSON.stringify({
+            direction: "inbound",
+            from_email: "health-check@ks-atlas.com",
+            to_email: "support@ks-atlas.com",
+            subject: "[Health Check] Email Worker Test",
+            body_text: `Test email inserted at ${new Date().toISOString()} to verify worker → Supabase pipeline.`,
+            status: "unread",
+            metadata: { category: "general", test: true },
+          }),
+        });
+        return new Response(
+          JSON.stringify({ success: resp.ok, status: resp.status }),
+          { headers: { "Content-Type": "application/json" } }
+        );
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+      }
+    }
+
+    return new Response("Not found", { status: 404 });
+  },
+
   async email(message, env) {
     const from = message.from;
     const to = message.to;
