@@ -68,7 +68,7 @@ const EditMemberModal: React.FC<{
         logAllianceActivity({
           allianceId,
           actorUserId: authUser.id,
-          actorName: (authProfile as { username?: string } | null)?.username || authUser.email || 'Unknown',
+          actorName: (authProfile as { linked_username?: string; display_name?: string; username?: string } | null)?.linked_username || (authProfile as { display_name?: string; username?: string } | null)?.display_name || (authProfile as { username?: string } | null)?.username || 'Unknown',
           action: 'member_updated',
           targetName: member.player_name,
           details: { restrictedMode: !!restrictedMode },

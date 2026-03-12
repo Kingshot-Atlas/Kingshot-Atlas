@@ -131,31 +131,40 @@ class KingdomsSupabaseService {
       // Get status overrides from status_submissions (user-submitted updates)
       const statusOverrides = await statusService.getAllApprovedStatusOverridesAsync();
 
-      // Fetch current transfer status from transfer_status_history (source of truth)
-      // This table has the official per-event status for each kingdom
+      // Fetch most recent transfer status per kingdom from transfer_status_history (source of truth)
+      // Uses the highest event_number per kingdom to get the latest status
       const transferStatusMap = new Map<number, string>();
       try {
-        // Find the current event number
-        const { data: currentEvent } = await supabase
-          .from('transfer_events')
-          .select('event_number')
-          .eq('is_current', true)
-          .maybeSingle();
+        // Fetch all statuses ordered by event_number desc, then deduplicate per kingdom
+        const allStatusRows: { kingdom_number: number; event_number: number; status: string }[] = [];
+        let statusOffset = 0;
+        const statusBatchSize = 1000;
+        let hasMoreStatuses = true;
 
-        if (currentEvent) {
-          // Fetch all statuses for the current event
-          const { data: statusRows } = await supabase
+        while (hasMoreStatuses) {
+          const { data: statusBatch } = await supabase
             .from('transfer_status_history')
-            .select('kingdom_number, group_number, status')
-            .eq('event_number', currentEvent.event_number);
+            .select('kingdom_number, event_number, status')
+            .order('event_number', { ascending: false })
+            .range(statusOffset, statusOffset + statusBatchSize - 1);
 
-          if (statusRows) {
-            for (const row of statusRows) {
-              // Use the status directly: 'Leading' or 'Ordinary'
-              transferStatusMap.set(row.kingdom_number, row.status);
-            }
-            logger.info(`Loaded ${transferStatusMap.size} transfer statuses from current event #${currentEvent.event_number}`);
+          if (!statusBatch || statusBatch.length === 0) {
+            hasMoreStatuses = false;
+            continue;
           }
+          allStatusRows.push(...statusBatch);
+          if (statusBatch.length < statusBatchSize) hasMoreStatuses = false;
+          statusOffset += statusBatchSize;
+        }
+
+        // Keep only the most recent status per kingdom (first occurrence since sorted desc)
+        for (const row of allStatusRows) {
+          if (!transferStatusMap.has(row.kingdom_number)) {
+            transferStatusMap.set(row.kingdom_number, row.status);
+          }
+        }
+        if (transferStatusMap.size > 0) {
+          logger.info(`Loaded ${transferStatusMap.size} transfer statuses from transfer_status_history`);
         }
       } catch (err) {
         logger.error('Error fetching transfer status history:', err);

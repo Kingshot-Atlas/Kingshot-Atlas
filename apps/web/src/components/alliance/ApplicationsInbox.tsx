@@ -58,6 +58,13 @@ const ApplicationsInbox: React.FC<{
     const now = new Date().toISOString();
     const app = apps.find(a => a.id === appId);
 
+    // Fetch profile for proper display name (never expose email)
+    let actorDisplayName = 'Unknown';
+    if (currentUser) {
+      const { data: profile } = await supabase.from('profiles').select('linked_username, display_name, username').eq('id', currentUser.id).maybeSingle();
+      actorDisplayName = profile?.linked_username || profile?.display_name || profile?.username || 'Unknown';
+    }
+
     const { error } = await supabase
       .from('alliance_applications')
       .update({ status, resolved_by: currentUser?.id, resolved_at: now })
@@ -95,7 +102,7 @@ const ApplicationsInbox: React.FC<{
         logAllianceActivity({
           allianceId,
           actorUserId: currentUser.id,
-          actorName: currentUser.user_metadata?.username || currentUser.email || 'Unknown',
+          actorName: actorDisplayName,
           action: status === 'approved' ? 'application_approved' : 'application_rejected',
           targetName: app.applicant_username,
         });
@@ -118,6 +125,13 @@ const ApplicationsInbox: React.FC<{
     const currentUser = (await supabase.auth.getUser()).data.user;
     const now = new Date().toISOString();
     const selectedApps = apps.filter(a => selected.has(a.id));
+
+    // Fetch profile for proper display name (never expose email)
+    let bulkActorName = 'Unknown';
+    if (currentUser) {
+      const { data: profile } = await supabase.from('profiles').select('linked_username, display_name, username').eq('id', currentUser.id).maybeSingle();
+      bulkActorName = profile?.linked_username || profile?.display_name || profile?.username || 'Unknown';
+    }
 
     const results = await Promise.all(
       Array.from(selected).map(appId =>
@@ -165,7 +179,7 @@ const ApplicationsInbox: React.FC<{
         logAllianceActivity({
           allianceId,
           actorUserId: currentUser.id,
-          actorName: currentUser.user_metadata?.username || currentUser.email || 'Unknown',
+          actorName: bulkActorName,
           action: status === 'approved' ? 'application_approved' : 'application_rejected',
           targetName: app.applicant_username,
         });

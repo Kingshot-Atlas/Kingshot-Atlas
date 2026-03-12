@@ -140,7 +140,7 @@ const AllianceDashboard: React.FC = () => {
         logAllianceActivity({
           allianceId: ac.alliance.id,
           actorUserId: authUser.id,
-          actorName: (authProfile as { username?: string } | null)?.username || authUser.email || 'Unknown',
+          actorName: (authProfile as { linked_username?: string; display_name?: string; username?: string } | null)?.linked_username || (authProfile as { display_name?: string; username?: string } | null)?.display_name || (authProfile as { username?: string } | null)?.username || 'Unknown',
           action: 'alliance_updated',
           details: { tag: editTag, name: editName },
         });
@@ -169,7 +169,7 @@ const AllianceDashboard: React.FC = () => {
         logAllianceActivity({
           allianceId: ac.alliance.id,
           actorUserId: authUser.id,
-          actorName: (authProfile as { username?: string } | null)?.username || authUser.email || 'Unknown',
+          actorName: (authProfile as { linked_username?: string; display_name?: string; username?: string } | null)?.linked_username || (authProfile as { display_name?: string; username?: string } | null)?.display_name || (authProfile as { username?: string } | null)?.username || 'Unknown',
           action: 'member_updated',
           details: { bulk: true, count: success, infantry_tier: bulkInfTier, cavalry_tier: bulkCavTier, archers_tier: bulkArcTier },
         });
@@ -942,7 +942,7 @@ const AllianceDashboard: React.FC = () => {
                     logAllianceActivity({
                       allianceId: ac.alliance.id,
                       actorUserId: authUser.id,
-                      actorName: (authProfile as { username?: string } | null)?.username || authUser.email || 'Unknown',
+                      actorName: (authProfile as { linked_username?: string; display_name?: string; username?: string } | null)?.linked_username || (authProfile as { display_name?: string; username?: string } | null)?.display_name || (authProfile as { username?: string } | null)?.username || 'Unknown',
                       action: 'member_removed',
                       targetName: member.player_name,
                     });
