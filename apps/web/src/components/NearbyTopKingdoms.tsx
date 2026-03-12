@@ -6,13 +6,13 @@ import SmartTooltip from './shared/SmartTooltip';
 import { useTranslation } from 'react-i18next';
 import { getTransferGroup, getTransferGroupLabel } from '../config/transferGroups';
 
-interface SimilarKingdomsProps {
+interface NearbyTopKingdomsProps {
   currentKingdom: Kingdom;
   allKingdoms: Kingdom[];
   limit?: number;
 }
 
-const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({ 
+const NearbyTopKingdoms: React.FC<NearbyTopKingdomsProps> = ({ 
   currentKingdom, 
   allKingdoms, 
   limit = 5 
@@ -21,48 +21,21 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
   
   const transferGroup = useMemo(() => getTransferGroup(currentKingdom.kingdom_number), [currentKingdom.kingdom_number]);
 
-  const similarKingdoms = useMemo(() => {
-    const currentTier = getPowerTier(currentKingdom.overall_score);
-    
+  const topKingdoms = useMemo(() => {
     // Only compare with kingdoms within the same transfer group
-    const scored = allKingdoms
+    const inGroup = allKingdoms
       .filter(k => k.kingdom_number !== currentKingdom.kingdom_number)
       .filter(k => {
         if (!transferGroup) return false;
         return k.kingdom_number >= transferGroup[0] && k.kingdom_number <= transferGroup[1];
       })
-      .map(k => {
-        // Weighted similarity calculation
-        // Atlas Score similarity (max 100 point difference in data, weight: 40%)
-        const maxScoreDiff = 100;
-        const scoreSim = Math.max(0, 1 - Math.abs(k.overall_score - currentKingdom.overall_score) / maxScoreDiff);
-        
-        // Win rate similarity (weight: 25% each)
-        const prepWRSim = 1 - Math.abs(k.prep_win_rate - currentKingdom.prep_win_rate);
-        const battleWRSim = 1 - Math.abs(k.battle_win_rate - currentKingdom.battle_win_rate);
-        
-        // Tier match bonus (weight: 10%)
-        const tierMatch = getPowerTier(k.overall_score) === currentTier ? 1 : 0.5;
-        
-        // Calculate weighted average (0-100%)
-        const similarity = (
-          scoreSim * 0.40 +
-          prepWRSim * 0.25 +
-          battleWRSim * 0.25 +
-          tierMatch * 0.10
-        ) * 100;
-        
-        return { kingdom: k, similarity };
-      })
-      // Filter to only show kingdoms with >70% similarity
-      .filter(k => k.similarity >= 70)
-      .sort((a, b) => b.similarity - a.similarity)
+      .sort((a, b) => b.overall_score - a.overall_score)
       .slice(0, limit);
 
-    return scored;
+    return inGroup;
   }, [currentKingdom, allKingdoms, limit, transferGroup]);
 
-  if (similarKingdoms.length === 0) return null;
+  if (topKingdoms.length === 0) return null;
 
   return (
     <div style={{
@@ -78,8 +51,8 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
           maxWidth={240}
           content={
             <div style={{ fontSize: '0.7rem' }}>
-              <div style={{ color: colors.primary, fontWeight: 'bold', marginBottom: '2px' }}>{t('similarKingdoms.howItWorks', 'How it works')}</div>
-              <div style={{ color: '#9ca3af' }}>{transferGroup ? `Compared within transfer group ${getTransferGroupLabel(transferGroup)}` : 'No transfer group found for this kingdom'}</div>
+              <div style={{ color: colors.primary, fontWeight: 'bold', marginBottom: '2px' }}>{t('nearbyTopKingdoms.howItWorks', 'How it works')}</div>
+              <div style={{ color: '#9ca3af' }}>{transferGroup ? t('nearbyTopKingdoms.tooltipDesc', 'Top kingdoms by Atlas Score in transfer group {{group}}', { group: getTransferGroupLabel(transferGroup) }) : t('nearbyTopKingdoms.noGroup', 'No transfer group found for this kingdom')}</div>
             </div>
           }
         >
@@ -90,7 +63,7 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
             margin: 0,
             cursor: 'help'
           }}>
-            {t('similarKingdoms.title', 'Nearby Similar Kingdoms')}
+            {t('nearbyTopKingdoms.title', 'Nearby Top Kingdoms')}
           </h3>
         </SmartTooltip>
       </div>
@@ -107,14 +80,13 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
         <span style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: '500', textAlign: 'left' }}>{t('common.kingdom', 'Kingdom')}</span>
         <span style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: '500', textAlign: 'left', paddingLeft: '0.25rem' }}>Tier</span>
         <span style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: '500', textAlign: 'center' }}>Atlas Score</span>
-        <span style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: '500', textAlign: 'center' }}>Match</span>
+        <span style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: '500', textAlign: 'center' }}>{t('common.rank', 'Rank')}</span>
       </div>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        {similarKingdoms.map(({ kingdom, similarity }) => {
+        {topKingdoms.map((kingdom) => {
           const tier = getPowerTier(kingdom.overall_score);
           const tierColor = getTierColor(tier);
-          
           return (
             <Link
               key={kingdom.kingdom_number}
@@ -161,7 +133,7 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
                 {tier}
               </span>
               
-              {/* Atlas Score with Rank */}
+              {/* Atlas Score */}
               <span style={{ 
                 color: '#22d3ee', 
                 fontSize: '0.85rem', 
@@ -171,23 +143,16 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
                 whiteSpace: 'nowrap'
               }}>
                 {kingdom.overall_score.toFixed(2)}
-                <span style={{ 
-                  color: '#22d3ee', 
-                  fontWeight: '400',
-                  marginLeft: '0.25rem'
-                }}>
-                  (#{kingdom.rank || '—'})
-                </span>
               </span>
               
-              {/* Match % */}
+              {/* Rank */}
               <span style={{ 
-                color: '#22c55e', 
+                color: '#fbbf24', 
                 fontSize: '0.75rem',
                 fontWeight: '500',
                 textAlign: 'center'
               }}>
-                {Math.round(similarity)}%
+                #{kingdom.rank || '—'}
               </span>
             </Link>
           );
@@ -197,4 +162,4 @@ const SimilarKingdoms: React.FC<SimilarKingdomsProps> = ({
   );
 };
 
-export default SimilarKingdoms;
+export default NearbyTopKingdoms;

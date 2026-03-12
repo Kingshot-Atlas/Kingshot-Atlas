@@ -3,6 +3,29 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-11 22:30 | Product Engineer | COMPLETED
+Task: Kingdom Profile Tabs + Nearby Top Kingdoms feature
+Files: apps/web/src/pages/KingdomProfile.tsx, apps/web/src/components/NearbyTopKingdoms.tsx (NEW), apps/web/src/components/SimilarKingdoms.tsx, apps/web/src/components/kingdom-profile/LoginGatedSection.tsx, 11 locale translation.json files
+Changes:
+- Added 3-tab layout to KingdomProfile (Performance/Community/Analytics) with color-coded tab bar
+- Created NearbyTopKingdoms component — shows top 5 kingdoms by Atlas Score from same transfer group
+- Side-by-side layout: SimilarKingdoms + NearbyTopKingdoms on desktop, stacked on mobile
+- Made LoginGatedSection.onToggle optional for always-expanded Analytics tab sections
+- Renamed SimilarKingdoms title to "Nearby Similar Kingdoms" across all locales
+- Added nearbyTopKingdoms i18n keys (title, howItWorks, tooltipDesc, noGroup) in all 11 locales
+- Added tab label i18n keys (tabPerformance, tabCommunity, tabAnalytics) in all 11 locales
+Result: Kingdom Profile now has organized tabs + two side-by-side comparison tables
+
+## 2026-03-11 21:16 | Platform Engineer | COMPLETED
+Task: Fix Tool Access grant failing silently for 4 of 7 tools + add toast notifications
+Files: apps/web/src/components/admin/ToolAccessTab.tsx, Supabase migration (tool_access CHECK constraint)
+Root Cause: tool_access table had CHECK constraint only allowing 3 tools (battle_planner, prep_scheduler, battle_registry). Inserts for alliance_center, bot_dashboard, battle_tier_list, battle_layout were silently rejected by Postgres.
+Changes:
+- Updated CHECK constraint to allow all 7 tools
+- Added useToast integration with success/error toasts for grant and revoke actions
+- Wrapped toolLabel in useCallback for stable dependencies
+Result: Granting access now works for all tools with immediate toast feedback
+
 ## 2026-03-11 09:00 | Platform Engineer | COMPLETED
 Task: Supabase Security Hardening — Fix all security advisor warnings
 Files: 4 Supabase migrations (database-only, no frontend changes)

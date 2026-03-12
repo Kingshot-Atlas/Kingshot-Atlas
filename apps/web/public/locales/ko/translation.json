@@ -204,6 +204,9 @@
     "townCenter": "타운센터",
     "viewProfile": "프로필 보기",
     "youCanUpdate": "업데이트할 수 있습니다",
+    "tabPerformance": "전적",
+    "tabCommunity": "커뮤니티",
+    "tabAnalytics": "분석",
     "chipInToFund": "기금에 기여",
     "fundActivity": "기금 활동",
     "fundMoreTransactions": "+ {{count}}건의 거래 더 보기",
@@ -1380,8 +1383,14 @@
     "upcoming": "예정된 이벤트"
   },
   "similarKingdoms": {
-    "title": "근처 왕국",
+    "title": "근처 유사 왕국",
     "howItWorks": "작동 방식"
+  },
+  "nearbyTopKingdoms": {
+    "title": "근처 최고 왕국",
+    "howItWorks": "작동 방식",
+    "tooltipDesc": "이적 그룹 {{group}} 내 Atlas Score 상위 왕국",
+    "noGroup": "이 왕국의 이적 그룹을 찾을 수 없습니다"
   },
   "table": {
     "kingdom": "왕국",

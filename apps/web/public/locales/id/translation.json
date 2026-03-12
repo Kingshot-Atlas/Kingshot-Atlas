@@ -219,6 +219,9 @@
     "townCenter": "Town Center",
     "viewProfile": "Lihat Profil",
     "youCanUpdate": "Anda dapat memperbarui ini",
+    "tabPerformance": "Performa",
+    "tabCommunity": "Komunitas",
+    "tabAnalytics": "Analitik",
     "chipInToFund": "Kontribusi ke Dana",
     "fundActivity": "Aktivitas Dana",
     "fundMoreTransactions": "+ {{count}} transaksi lagi",
@@ -1331,8 +1334,14 @@
     "upcoming": "Upcoming Events"
   },
   "similarKingdoms": {
-    "title": "Kingdom Terdekat",
+    "title": "Kingdom Serupa Terdekat",
     "howItWorks": "Cara kerjanya"
+  },
+  "nearbyTopKingdoms": {
+    "title": "Kingdom Teratas Terdekat",
+    "howItWorks": "Cara kerjanya",
+    "tooltipDesc": "Kingdom teratas berdasarkan Atlas Score di grup transfer {{group}}",
+    "noGroup": "Tidak ditemukan grup transfer untuk kingdom ini"
   },
   "table": {
     "kingdom": "Kingdom",

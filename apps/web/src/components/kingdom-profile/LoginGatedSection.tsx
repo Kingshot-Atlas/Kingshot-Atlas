@@ -8,11 +8,12 @@ const LoginGatedSection: React.FC<{
   title: string;
   subtitle: string;
   isExpanded: boolean;
-  onToggle: (expanded: boolean) => void;
+  onToggle?: (expanded: boolean) => void;
   isMobile: boolean;
 }> = ({ title, subtitle, isExpanded, onToggle, isMobile }) => {
   const { t } = useTranslation();
   const handleToggle = () => {
+    if (!onToggle) return;
     const newState = !isExpanded;
     onToggle(newState);
     if (newState) {
@@ -38,7 +39,7 @@ const LoginGatedSection: React.FC<{
       aria-expanded={isExpanded}
       style={{
         padding: isMobile ? '1rem' : '1.25rem',
-        cursor: 'pointer',
+        cursor: onToggle ? 'pointer' : 'default',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',

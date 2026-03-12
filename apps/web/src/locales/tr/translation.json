@@ -204,6 +204,9 @@
     "townCenter": "Town Center",
     "viewProfile": "Profili Gör",
     "youCanUpdate": "Bunu güncelleyebilirsiniz",
+    "tabPerformance": "Performans",
+    "tabCommunity": "Topluluk",
+    "tabAnalytics": "Analitik",
     "chipInToFund": "Fona Katkıda Bulun",
     "fundActivity": "Fon Aktivitesi",
     "fundMoreTransactions": "+ {{count}} daha fazla işlem",
@@ -1383,8 +1386,14 @@
     "upcoming": "Yaklaşan Etkinlikler"
   },
   "similarKingdoms": {
-    "title": "Yakın Krallıklar",
+    "title": "Yakın Benzer Krallıklar",
     "howItWorks": "Nasıl çalışır"
+  },
+  "nearbyTopKingdoms": {
+    "title": "Yakın En İyi Krallıklar",
+    "howItWorks": "Nasıl çalışır",
+    "tooltipDesc": "Transfer grubu {{group}} içindeki Atlas Score'a göre en iyi krallıklar",
+    "noGroup": "Bu krallık için transfer grubu bulunamadı"
   },
   "table": {
     "kingdom": "Krallık",

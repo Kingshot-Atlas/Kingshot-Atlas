@@ -204,6 +204,9 @@
     "townCenter": "Stadtzentrum",
     "viewProfile": "Profil ansehen",
     "youCanUpdate": "Du kannst dies aktualisieren",
+    "tabPerformance": "Leistung",
+    "tabCommunity": "Community",
+    "tabAnalytics": "Analytik",
     "chipInToFund": "Zum Fonds beitragen",
     "fundActivity": "Fondsaktivität",
     "fundMoreTransactions": "+ {{count}} weitere Transaktionen",
@@ -1383,8 +1386,14 @@
     "upcoming": "Kommende Events"
   },
   "similarKingdoms": {
-    "title": "Benachbarte Königreiche",
+    "title": "Ähnliche Königreiche in der Nähe",
     "howItWorks": "Wie es funktioniert"
+  },
+  "nearbyTopKingdoms": {
+    "title": "Top-Königreiche in der Nähe",
+    "howItWorks": "Wie es funktioniert",
+    "tooltipDesc": "Top-Königreiche nach Atlas Score in Transfergruppe {{group}}",
+    "noGroup": "Keine Transfergruppe für dieses Königreich gefunden"
   },
   "table": {
     "kingdom": "Königreich",

@@ -204,6 +204,9 @@
     "townCenter": "城镇中心",
     "viewProfile": "查看资料",
     "youCanUpdate": "您可以更新此内容",
+    "tabPerformance": "战绩",
+    "tabCommunity": "社区",
+    "tabAnalytics": "分析",
     "chipInToFund": "为基金贡献",
     "fundActivity": "基金活动",
     "fundMoreTransactions": "+ {{count}} 笔更多交易",
@@ -1383,8 +1386,14 @@
     "upcoming": "即将到来的活动"
   },
   "similarKingdoms": {
-    "title": "附近的王国",
+    "title": "附近相似王国",
     "howItWorks": "工作原理"
+  },
+  "nearbyTopKingdoms": {
+    "title": "附近顶级王国",
+    "howItWorks": "工作原理",
+    "tooltipDesc": "转移组 {{group}} 中Atlas Score最高的王国",
+    "noGroup": "未找到该王国的转移组"
   },
   "table": {
     "kingdom": "王国",

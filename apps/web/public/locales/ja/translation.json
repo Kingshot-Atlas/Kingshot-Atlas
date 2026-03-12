@@ -204,6 +204,9 @@
     "townCenter": "タウンセンター",
     "viewProfile": "プロフィールを見る",
     "youCanUpdate": "更新できます",
+    "tabPerformance": "パフォーマンス",
+    "tabCommunity": "コミュニティ",
+    "tabAnalytics": "分析",
     "chipInToFund": "基金に貢献",
     "fundActivity": "基金活動",
     "fundMoreTransactions": "+ {{count}}件の取引",
@@ -1383,8 +1386,14 @@
     "upcoming": "今後のイベント"
   },
   "similarKingdoms": {
-    "title": "類似の王国",
+    "title": "近くの類似王国",
     "howItWorks": "仕組み"
+  },
+  "nearbyTopKingdoms": {
+    "title": "近くのトップ王国",
+    "howItWorks": "仕組み",
+    "tooltipDesc": "移転グループ {{group}} 内のAtlas Scoreトップ王国",
+    "noGroup": "この王国の移転グループが見つかりません"
   },
   "table": {
     "kingdom": "王国",

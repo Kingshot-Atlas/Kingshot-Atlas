@@ -22,6 +22,7 @@ const TrendChart = lazy(() => import('../components/TrendChart'));
 const ScoreHistoryChart = lazy(() => import('../components/ScoreHistoryChart'));
 const RankingHistoryChart = lazy(() => import('../components/RankingHistoryChart'));
 const SimilarKingdoms = lazy(() => import('../components/SimilarKingdoms'));
+const NearbyTopKingdoms = lazy(() => import('../components/NearbyTopKingdoms'));
 const KingdomPlayers = lazy(() => import('../components/KingdomPlayers'));
 const AtlasScoreBreakdown = lazy(() => import('../components/AtlasScoreBreakdown'));
 const PathToNextTier = lazy(() => import('../components/PathToNextTier'));
@@ -58,6 +59,7 @@ const KingdomProfile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const isMobile = useIsMobile();
   const [refreshKey, setRefreshKey] = useState(0);
+  const [profileTab, setProfileTab] = useState<'performance' | 'community' | 'analytics'>('performance');
   // scoreHistoryRank / totalKingdomsAtKvk / percentileRank removed —
   // rank comes from API (Supabase current_rank), not computed client-side
   const [recentScoreChange, setRecentScoreChange] = useState<number | null>(null);
@@ -103,24 +105,7 @@ const KingdomProfile: React.FC = () => {
   }, [location.pathname, location.search, kingdom, navigate]);
 
 
-  // Expand/collapse all state for collapsible sections
-  const [breakdownExpanded, setBreakdownExpanded] = useState(false);
-  const [scoreHistoryExpanded, setScoreHistoryExpanded] = useState(false);
-  const [rankingHistoryExpanded, setRankingHistoryExpanded] = useState(false);
-  const [simulatorExpanded, setSimulatorExpanded] = useState(false);
-  const [pathExpanded, setPathExpanded] = useState(false);
-  const [trendExpanded, setTrendExpanded] = useState(false);
-  
-  const allExpanded = breakdownExpanded && scoreHistoryExpanded && rankingHistoryExpanded && simulatorExpanded && pathExpanded && trendExpanded;
-  const toggleAllSections = () => {
-    const newState = !allExpanded;
-    setBreakdownExpanded(newState);
-    setScoreHistoryExpanded(newState);
-    setRankingHistoryExpanded(newState);
-    setSimulatorExpanded(newState);
-    setPathExpanded(newState);
-    setTrendExpanded(newState);
-  };
+  // Analytics sections are always expanded in the Analytics tab (no collapse state needed)
 
 
 
@@ -315,294 +300,297 @@ const KingdomProfile: React.FC = () => {
 
       {/* Main Content */}
       <div style={{ maxWidth: '1000px', margin: '0 auto', padding: isMobile ? '1rem' : '1.5rem 2rem' }}>
-        {/* Quick Stats Grid */}
-        <QuickStats
-          totalKvks={kingdom.total_kvks}
-          dominations={highKings}
-          invasions={invaderKings}
-          prepWins={kingdom.prep_wins}
-          battleWins={kingdom.battle_wins}
-          isMobile={isMobile}
-        />
 
-        {/* Return Visit Delta - shows score change since last visit */}
-        {visitDelta !== null && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '0.5rem',
-            padding: '0.5rem 1rem',
-            marginBottom: isMobile ? '1rem' : '1.25rem',
-            backgroundColor: visitDelta > 0 ? '#22c55e10' : '#ef444410',
-            border: `1px solid ${visitDelta > 0 ? '#22c55e30' : '#ef444430'}`,
-            borderRadius: '8px',
-          }}>
-            <span style={{ fontSize: '0.8rem' }}>{visitDelta > 0 ? '📈' : '📉'}</span>
-            <span style={{ 
-              color: visitDelta > 0 ? '#22c55e' : '#ef4444', 
-              fontSize: '0.8rem', 
-              fontWeight: '500' 
-            }}>
-              {t('kingdomProfile.scoreSinceVisit', 'Score {{change}} since your last visit', { change: `${visitDelta > 0 ? '+' : ''}${visitDelta.toFixed(2)}` })}
-            </span>
-            <button
-              onClick={() => setVisitDelta(null)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#6b7280',
-                cursor: 'pointer',
-                fontSize: '0.75rem',
-                padding: '0.5rem',
-                minWidth: '44px',
-                minHeight: '44px',
+        {/* Tab Bar */}
+        <div style={{
+          display: 'flex',
+          gap: isMobile ? '0.5rem' : '0.75rem',
+          marginBottom: isMobile ? '1.25rem' : '1.5rem',
+          borderBottom: '1px solid #2a2a2a',
+          paddingBottom: '0',
+        }}>
+          {([
+            { key: 'performance' as const, label: t('kingdomProfile.tabPerformance', 'Performance'), color: '#22d3ee' },
+            { key: 'community' as const, label: t('kingdomProfile.tabCommunity', 'Community'), color: '#a855f7' },
+            { key: 'analytics' as const, label: t('kingdomProfile.tabAnalytics', 'Analytics'), color: '#eab308' },
+          ]).map(tab => {
+            const isActive = profileTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setProfileTab(tab.key)}
+                style={{
+                  flex: 1,
+                  padding: isMobile ? '0.75rem 0.5rem' : '0.6rem 1rem',
+                  minHeight: isMobile ? '44px' : 'auto',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  borderBottom: isActive ? `2px solid ${tab.color}` : '2px solid transparent',
+                  color: isActive ? tab.color : '#6b7280',
+                  fontSize: isMobile ? '0.85rem' : '0.9rem',
+                  fontWeight: isActive ? '600' : '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  textAlign: 'center',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ═══════ PERFORMANCE TAB ═══════ */}
+        {profileTab === 'performance' && (
+          <>
+            {/* Quick Stats Grid */}
+            <QuickStats
+              totalKvks={kingdom.total_kvks}
+              dominations={highKings}
+              invasions={invaderKings}
+              prepWins={kingdom.prep_wins}
+              battleWins={kingdom.battle_wins}
+              isMobile={isMobile}
+            />
+
+            {/* Return Visit Delta - shows score change since last visit */}
+            {visitDelta !== null && (
+              <div style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                lineHeight: 1,
-              }}
-              aria-label="Dismiss"
-            >
-              ✕
-            </button>
-          </div>
-        )}
-
-        {/* Phase Performance Cards */}
-        <PhaseCards
-          prepWins={kingdom.prep_wins}
-          prepLosses={kingdom.prep_losses}
-          prepWinRate={kingdom.prep_win_rate}
-          prepBestStreak={kingdom.prep_best_streak ?? 0}
-          battleWins={kingdom.battle_wins}
-          battleLosses={kingdom.battle_losses}
-          battleWinRate={kingdom.battle_win_rate}
-          battleBestStreak={kingdom.battle_best_streak ?? 0}
-          recentKvks={kingdom.recent_kvks || []}
-          isMobile={isMobile}
-        />
-
-        {/* KvK History Section */}
-        <KvKHistoryTable
-          kingdomNumber={kingdom.kingdom_number}
-          kvkRecords={kingdom.recent_kvks || []}
-          isMobile={isMobile}
-          onReportErrorClick={() => setShowKvKErrorModal(true)}
-          isLoggedIn={!!user}
-          onSubmitClick={(mode) => {
-            if (!user) return;
-            if (!profile?.linked_username) {
-              showToast(t('home.linkToSubmit'), 'error');
-              navigate('/profile');
-              return;
-            }
-            setMatchupModalMode(mode);
-            setShowMatchupModal(true);
-          }}
-          onLockedClick={(message) => showToast(message, 'info')}
-        />
-
-        {/* Transfer Status History */}
-        <TransferStatusHistory
-          kingdomNumber={kingdom.kingdom_number}
-          isMobile={isMobile}
-        />
-
-        {/* Expand/Collapse All Button */}
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'flex-end', 
-          marginBottom: '0.75rem'
-        }}>
-          <button
-            onClick={toggleAllSections}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleAllSections(); } }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.35rem',
-              padding: isMobile ? '0.6rem 1rem' : '0.4rem 0.75rem',
-              minHeight: isMobile ? '44px' : 'auto',
-              backgroundColor: '#131318',
-              border: '1px solid #2a2a2a',
-              borderRadius: '6px',
-              color: '#6b7280',
-              fontSize: isMobile ? '0.8rem' : '0.75rem',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#22d3ee40';
-              e.currentTarget.style.color = '#22d3ee';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = '#2a2a2a';
-              e.currentTarget.style.color = '#6b7280';
-            }}
-          >
-            <svg 
-              width="12" 
-              height="12" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2"
-              style={{ 
-                transform: allExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                transition: 'transform 0.2s ease'
-              }}
-            >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-            {allExpanded ? t('kingdomProfile.collapseAll', 'Collapse All') : t('kingdomProfile.expandAll', 'Expand All')}
-          </button>
-        </div>
-
-        <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>Loading analytics...</div>}>
-        {/* Atlas Score Breakdown - Toggleable Radar Chart */}
-        {user ? (
-          <AtlasScoreBreakdown 
-            kingdom={kingdom} 
-            rank={rank > 0 ? rank : undefined}
-            totalKingdoms={totalRankedKingdoms > 0 ? totalRankedKingdoms : (rankingList.length || undefined)}
-            isExpanded={breakdownExpanded}
-            onToggle={setBreakdownExpanded}
-          />
-        ) : (
-          <LoginGatedSection title={t('scoreBreakdown.title', 'Atlas Score Breakdown')} subtitle={t('scoreBreakdown.whyScore', '\u201CWhy is my score what it is?\u201D')} isExpanded={breakdownExpanded} onToggle={setBreakdownExpanded} isMobile={isMobile} />
-        )}
-
-        {/* Atlas Score Simulator - Pro Feature */}
-        {user ? (
-          <ScoreSimulator 
-            kingdom={kingdom} 
-            isExpanded={simulatorExpanded}
-            onToggle={setSimulatorExpanded}
-          />
-        ) : (
-          <LoginGatedSection title={t('simulator.title', 'Atlas Score Simulator')} subtitle={t('simulator.subtitle', '\u201CWhat if I win the next KvK?\u201D')} isExpanded={simulatorExpanded} onToggle={setSimulatorExpanded} isMobile={isMobile} />
-        )}
-
-        {/* Atlas Score History Chart */}
-        {user ? (
-          <div style={{ marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
-            <ScoreHistoryChart 
-              kingdomNumber={kingdom.kingdom_number} 
-              isExpanded={scoreHistoryExpanded}
-              onToggle={setScoreHistoryExpanded}
-            />
-          </div>
-        ) : (
-          <LoginGatedSection title={t('scoreHistory.title', 'Atlas Score History')} subtitle={t('scoreHistory.subtitle', '\u201CHow has my score evolved?\u201D')} isExpanded={scoreHistoryExpanded} onToggle={setScoreHistoryExpanded} isMobile={isMobile} />
-        )}
-
-        {/* Kingdom Ranking History Chart */}
-        {user ? (
-          <div style={{ marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
-            <RankingHistoryChart 
-              kingdomNumber={kingdom.kingdom_number}
-              currentRank={rank}
-              currentScore={atlasScore}
-              isExpanded={rankingHistoryExpanded}
-              onToggle={setRankingHistoryExpanded}
-            />
-          </div>
-        ) : (
-          <LoginGatedSection title={t('rankingHistory.title', 'Kingdom Ranking History')} subtitle={t('rankingHistory.subtitle', '\u201CAm I climbing or slipping?\u201D')} isExpanded={rankingHistoryExpanded} onToggle={setRankingHistoryExpanded} isMobile={isMobile} />
-        )}
-
-        {/* Path to Next Tier - What-If Scenarios */}
-        {user ? (
-          <PathToNextTier 
-            kingdom={kingdom} 
-            isExpanded={pathExpanded}
-            onToggle={setPathExpanded}
-          />
-        ) : (
-          <LoginGatedSection title={t('pathToTier.title', 'Path to Next Tier')} subtitle={t('pathToTier.subtitle', '\u201CHow do I reach the next tier?\u201D')} isExpanded={pathExpanded} onToggle={setPathExpanded} isMobile={isMobile} />
-        )}
-
-        {/* Performance Trend Chart */}
-        {user ? (
-          <div style={{ marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
-            <TrendChart 
-              kvkRecords={kingdom.recent_kvks || []} 
-              isExpanded={trendExpanded}
-              onToggle={setTrendExpanded}
-            />
-          </div>
-        ) : (
-          <LoginGatedSection title={t('performanceTrend.title', 'Performance Trend')} subtitle={t('performanceTrend.subtitle', '\u201CWhat\u2019s my win rate trend?\u201D')} isExpanded={trendExpanded} onToggle={setTrendExpanded} isMobile={isMobile} />
-        )}
-
-        {/* Atlas Users from this Kingdom */}
-        {user ? (
-          <KingdomPlayers kingdomNumber={kingdom.kingdom_number} themeColor="#22d3ee" />
-        ) : (
-          <div style={{
-            backgroundColor: '#131318',
-            borderRadius: '12px',
-            padding: isMobile ? '1rem' : '1.25rem',
-            marginBottom: '1.5rem',
-            border: '1px solid #22d3ee30',
-            textAlign: 'center'
-          }}>
-            <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
-              {t('kingdomProfile.atlasUsersFrom', 'Atlas Users from Kingdom {{num}}', { num: kingdom.kingdom_number })}
-            </h3>
-            <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🔒</div>
-            <div style={{ color: '#d1d5db', fontSize: '0.85rem', fontWeight: '500', marginBottom: '0.35rem' }}>
-              {t('kingdomProfile.signInToSeeUsers', 'Sign in to see Atlas users')}
-            </div>
-            <div style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '1rem' }}>
-              {t('kingdomProfile.linkToSeePlayers', 'Log in and link your Kingshot account to see players from this kingdom.')}
-            </div>
-            <Link
-              to="/profile"
-              onClick={() => analyticsService.trackButtonClick('Gated CTA: Kingdom Players')}
-              style={{
-                display: 'inline-block',
-                padding: '0.5rem 1.25rem',
-                background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
+                gap: '0.5rem',
+                padding: '0.5rem 1rem',
+                marginBottom: isMobile ? '1rem' : '1.25rem',
+                backgroundColor: visitDelta > 0 ? '#22c55e10' : '#ef444410',
+                border: `1px solid ${visitDelta > 0 ? '#22c55e30' : '#ef444430'}`,
                 borderRadius: '8px',
-                color: '#000',
-                fontWeight: '600',
-                fontSize: '0.85rem',
-                textDecoration: 'none'
+              }}>
+                <span style={{ fontSize: '0.8rem' }}>{visitDelta > 0 ? '📈' : '📉'}</span>
+                <span style={{ 
+                  color: visitDelta > 0 ? '#22c55e' : '#ef4444', 
+                  fontSize: '0.8rem', 
+                  fontWeight: '500' 
+                }}>
+                  {t('kingdomProfile.scoreSinceVisit', 'Score {{change}} since your last visit', { change: `${visitDelta > 0 ? '+' : ''}${visitDelta.toFixed(2)}` })}
+                </span>
+                <button
+                  onClick={() => setVisitDelta(null)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#6b7280',
+                    cursor: 'pointer',
+                    fontSize: '0.75rem',
+                    padding: '0.5rem',
+                    minWidth: '44px',
+                    minHeight: '44px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    lineHeight: 1,
+                  }}
+                  aria-label="Dismiss"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            {/* Phase Performance Cards */}
+            <PhaseCards
+              prepWins={kingdom.prep_wins}
+              prepLosses={kingdom.prep_losses}
+              prepWinRate={kingdom.prep_win_rate}
+              prepBestStreak={kingdom.prep_best_streak ?? 0}
+              battleWins={kingdom.battle_wins}
+              battleLosses={kingdom.battle_losses}
+              battleWinRate={kingdom.battle_win_rate}
+              battleBestStreak={kingdom.battle_best_streak ?? 0}
+              recentKvks={kingdom.recent_kvks || []}
+              isMobile={isMobile}
+            />
+
+            {/* KvK History Section */}
+            <KvKHistoryTable
+              kingdomNumber={kingdom.kingdom_number}
+              kvkRecords={kingdom.recent_kvks || []}
+              isMobile={isMobile}
+              onReportErrorClick={() => setShowKvKErrorModal(true)}
+              isLoggedIn={!!user}
+              onSubmitClick={(mode) => {
+                if (!user) return;
+                if (!profile?.linked_username) {
+                  showToast(t('home.linkToSubmit'), 'error');
+                  navigate('/profile');
+                  return;
+                }
+                setMatchupModalMode(mode);
+                setShowMatchupModal(true);
               }}
-            >
-              {t('common.signIn')} / {t('kingdomProfile.register', 'Register')}
-            </Link>
-          </div>
+              onLockedClick={(message) => showToast(message, 'info')}
+            />
+
+            {/* Transfer Status History */}
+            <TransferStatusHistory
+              kingdomNumber={kingdom.kingdom_number}
+              isMobile={isMobile}
+            />
+
+            {/* Nearby Kingdoms: Similar + Top — side by side on desktop, stacked on mobile */}
+            {allKingdoms.length > 0 && (
+              <Suspense fallback={null}>
+                <div style={{
+                  display: isMobile ? 'flex' : 'grid',
+                  gridTemplateColumns: isMobile ? undefined : '1fr 1fr',
+                  flexDirection: isMobile ? 'column' : undefined,
+                  gap: isMobile ? '0' : '1rem',
+                }}>
+                  <SimilarKingdoms currentKingdom={kingdom} allKingdoms={allKingdoms} limit={5} />
+                  <NearbyTopKingdoms currentKingdom={kingdom} allKingdoms={allKingdoms} limit={5} />
+                </div>
+              </Suspense>
+            )}
+          </>
         )}
 
-        {/* Reviews Section */}
-        <div style={{ marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
-          <KingdomReviews kingdomNumber={kingdom.kingdom_number} />
-        </div>
-        </Suspense>
+        {/* ═══════ COMMUNITY TAB ═══════ */}
+        {profileTab === 'community' && (
+          <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>{t('common.loading', 'Loading...')}</div>}>
+            {/* Atlas Users from this Kingdom */}
+            {user ? (
+              <KingdomPlayers kingdomNumber={kingdom.kingdom_number} themeColor="#22d3ee" />
+            ) : (
+              <div style={{
+                backgroundColor: '#131318',
+                borderRadius: '12px',
+                padding: isMobile ? '1rem' : '1.25rem',
+                marginBottom: '1.5rem',
+                border: '1px solid #22d3ee30',
+                textAlign: 'center'
+              }}>
+                <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '0.9rem', fontWeight: '600', color: '#fff' }}>
+                  {t('kingdomProfile.atlasUsersFrom', 'Atlas Users from Kingdom {{num}}', { num: kingdom.kingdom_number })}
+                </h3>
+                <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🔒</div>
+                <div style={{ color: '#d1d5db', fontSize: '0.85rem', fontWeight: '500', marginBottom: '0.35rem' }}>
+                  {t('kingdomProfile.signInToSeeUsers', 'Sign in to see Atlas users')}
+                </div>
+                <div style={{ color: '#6b7280', fontSize: '0.8rem', marginBottom: '1rem' }}>
+                  {t('kingdomProfile.linkToSeePlayers', 'Log in and link your Kingshot account to see players from this kingdom.')}
+                </div>
+                <Link
+                  to="/profile"
+                  onClick={() => analyticsService.trackButtonClick('Gated CTA: Kingdom Players')}
+                  style={{
+                    display: 'inline-block',
+                    padding: '0.5rem 1.25rem',
+                    background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
+                    borderRadius: '8px',
+                    color: '#000',
+                    fontWeight: '600',
+                    fontSize: '0.85rem',
+                    textDecoration: 'none'
+                  }}
+                >
+                  {t('common.signIn')} / {t('kingdomProfile.register', 'Register')}
+                </Link>
+              </div>
+            )}
 
-        {/* Action Buttons */}
+            {/* Reviews Section */}
+            <div style={{ marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
+              <KingdomReviews kingdomNumber={kingdom.kingdom_number} />
+            </div>
+          </Suspense>
+        )}
+
+        {/* ═══════ ANALYTICS TAB ═══════ */}
+        {profileTab === 'analytics' && (
+          <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>{t('common.loading', 'Loading...')}</div>}>
+            {/* Atlas Score History Chart — always expanded */}
+            {user ? (
+              <div style={{ marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
+                <ScoreHistoryChart 
+                  kingdomNumber={kingdom.kingdom_number} 
+                  isExpanded={true}
+                />
+              </div>
+            ) : (
+              <LoginGatedSection title={t('scoreHistory.title', 'Atlas Score History')} subtitle={t('scoreHistory.subtitle', '\u201CHow has my score evolved?\u201D')} isExpanded={true} isMobile={isMobile} />
+            )}
+
+            {/* Kingdom Ranking History Chart — always expanded */}
+            {user ? (
+              <div style={{ marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
+                <RankingHistoryChart 
+                  kingdomNumber={kingdom.kingdom_number}
+                  currentRank={rank}
+                  currentScore={atlasScore}
+                  isExpanded={true}
+                />
+              </div>
+            ) : (
+              <LoginGatedSection title={t('rankingHistory.title', 'Kingdom Ranking History')} subtitle={t('rankingHistory.subtitle', '\u201CAm I climbing or slipping?\u201D')} isExpanded={true} isMobile={isMobile} />
+            )}
+
+            {/* Performance Trend Chart — always expanded */}
+            {user ? (
+              <div style={{ marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
+                <TrendChart 
+                  kvkRecords={kingdom.recent_kvks || []} 
+                  isExpanded={true}
+                />
+              </div>
+            ) : (
+              <LoginGatedSection title={t('performanceTrend.title', 'Performance Trend')} subtitle={t('performanceTrend.subtitle', '\u201CWhat\u2019s my win rate trend?\u201D')} isExpanded={true} isMobile={isMobile} />
+            )}
+
+            {/* Atlas Score Breakdown — always expanded */}
+            {user ? (
+              <AtlasScoreBreakdown 
+                kingdom={kingdom} 
+                rank={rank > 0 ? rank : undefined}
+                totalKingdoms={totalRankedKingdoms > 0 ? totalRankedKingdoms : (rankingList.length || undefined)}
+                isExpanded={true}
+              />
+            ) : (
+              <LoginGatedSection title={t('scoreBreakdown.title', 'Atlas Score Breakdown')} subtitle={t('scoreBreakdown.whyScore', '\u201CWhy is my score what it is?\u201D')} isExpanded={true} isMobile={isMobile} />
+            )}
+
+            {/* Atlas Score Simulator — always expanded */}
+            {user ? (
+              <ScoreSimulator 
+                kingdom={kingdom} 
+                isExpanded={true}
+              />
+            ) : (
+              <LoginGatedSection title={t('simulator.title', 'Atlas Score Simulator')} subtitle={t('simulator.subtitle', '\u201CWhat if I win the next KvK?\u201D')} isExpanded={true} isMobile={isMobile} />
+            )}
+
+            {/* Path to Next Tier — always expanded */}
+            {user ? (
+              <PathToNextTier 
+                kingdom={kingdom} 
+                isExpanded={true}
+              />
+            ) : (
+              <LoginGatedSection title={t('pathToTier.title', 'Path to Next Tier')} subtitle={t('pathToTier.subtitle', '\u201CHow do I reach the next tier?\u201D')} isExpanded={true} isMobile={isMobile} />
+            )}
+          </Suspense>
+        )}
+
+        {/* ═══════ ACTION BUTTONS (always visible) ═══════ */}
         <div style={{ 
           display: 'flex', 
           flexDirection: isMobile ? 'column' : 'row',
           justifyContent: 'center', 
           alignItems: 'center',
           gap: '1rem',
-          paddingBottom: '2rem' 
+          paddingBottom: '2rem',
+          marginTop: '1rem',
         }}>
-          {/* Similar Kingdoms */}
-          {allKingdoms.length > 0 && (
-            <Suspense fallback={null}>
-              <div style={{ width: '100%', maxWidth: '400px' }}>
-                <SimilarKingdoms currentKingdom={kingdom} allKingdoms={allKingdoms} limit={4} />
-              </div>
-            </Suspense>
-          )}
-
-
           <button
             onClick={() => setShowFundModal(true)}
             style={{

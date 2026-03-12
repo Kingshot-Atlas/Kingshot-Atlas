@@ -318,7 +318,20 @@
     "transferTagline": "Реальные данные. Реальные заявки. Ноль догадок.",
     "battleRegistryTitle": "Реестр битв KvK",
     "battleRegistryDesc": "Собирайте данные о доступности и войсках для битв за замок. Знайте, кто придёт и что принесёт.",
-    "battleRegistryTagline": "Информация побеждает."
+    "battleRegistryTagline": "Информация побеждает.",
+    "botDashboard": "Панель бота",
+    "allianceCenter": "Центр альянса",
+    "battleLayout": "Расстановка битвы",
+    "battleTierList": "Рейтинг бойцов",
+    "battleRegistry": "Реестр битв",
+    "prepScheduler": "Планировщик подготовки",
+    "battlePlanner": "Планировщик боя"
+  },
+  "toolGrantBanner": {
+    "granted": "Вам предоставлен доступ к {{tool}}!",
+    "trialExpires": "Пробный доступ истекает через {{time}}",
+    "expired": "Истёк",
+    "dismiss": "Закрыть"
   },
   "battlePlanner": {
     "pageTitle": "Планировщик боя KvK",

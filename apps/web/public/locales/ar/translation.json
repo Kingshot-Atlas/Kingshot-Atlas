@@ -204,6 +204,9 @@
     "townCenter": "مركز المدينة",
     "viewProfile": "عرض الملف",
     "youCanUpdate": "يمكنك تحديث هذا",
+    "tabPerformance": "الأداء",
+    "tabCommunity": "المجتمع",
+    "tabAnalytics": "التحليلات",
     "chipInToFund": "المساهمة في الصندوق",
     "fundActivity": "نشاط الصندوق",
     "fundMoreTransactions": "+ {{count}} معاملات إضافية",
@@ -1383,8 +1386,14 @@
     "upcoming": "الأحداث القادمة"
   },
   "similarKingdoms": {
-    "title": "ممالك قريبة",
+    "title": "ممالك مشابهة قريبة",
     "howItWorks": "كيف يعمل"
+  },
+  "nearbyTopKingdoms": {
+    "title": "أفضل الممالك القريبة",
+    "howItWorks": "كيف يعمل",
+    "tooltipDesc": "أفضل الممالك حسب Atlas Score في مجموعة النقل {{group}}",
+    "noGroup": "لم يتم العثور على مجموعة نقل لهذه المملكة"
   },
   "table": {
     "kingdom": "المملكة",

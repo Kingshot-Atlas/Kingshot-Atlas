@@ -204,6 +204,9 @@
     "townCenter": "Centre-ville",
     "viewProfile": "Voir le Profil",
     "youCanUpdate": "Vous pouvez mettre à jour",
+    "tabPerformance": "Performance",
+    "tabCommunity": "Communauté",
+    "tabAnalytics": "Analytique",
     "chipInToFund": "Contribuer au Fonds",
     "fundActivity": "Activité du Fonds",
     "fundMoreTransactions": "+ {{count}} transactions supplémentaires",
@@ -1383,8 +1386,14 @@
     "upcoming": "Événements à Venir"
   },
   "similarKingdoms": {
-    "title": "Royaumes Proches",
+    "title": "Royaumes Similaires Proches",
     "howItWorks": "Comment ça marche"
+  },
+  "nearbyTopKingdoms": {
+    "title": "Meilleurs Royaumes Proches",
+    "howItWorks": "Comment ça marche",
+    "tooltipDesc": "Meilleurs royaumes par Atlas Score dans le groupe de transfert {{group}}",
+    "noGroup": "Aucun groupe de transfert trouvé pour ce royaume"
   },
   "table": {
     "kingdom": "Royaume",

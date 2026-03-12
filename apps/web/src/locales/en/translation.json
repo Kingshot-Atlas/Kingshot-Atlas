@@ -219,6 +219,9 @@
     "townCenter": "Town Center",
     "viewProfile": "View Profile",
     "youCanUpdate": "You can update this",
+    "tabPerformance": "Performance",
+    "tabCommunity": "Community",
+    "tabAnalytics": "Analytics",
     "chipInToFund": "Chip In to Fund",
     "fundActivity": "Fund Activity",
     "fundMoreTransactions": "+ {{count}} more transactions",
@@ -356,7 +359,20 @@
     "battleRegistryTagline": "Information wins wars.",
     "battleTierTitle": "KvK Battle Tier List",
     "battleTierDesc": "Rank your kingdom's players by offensive and defensive power. Scout-based stats with EG adjustments — know exactly who to rally with and who to garrison.",
-    "battleTierTagline": "Data-driven dominance. Every castle hit."
+    "battleTierTagline": "Data-driven dominance. Every castle hit.",
+    "botDashboard": "Bot Dashboard",
+    "allianceCenter": "Alliance Center",
+    "battleLayout": "Battle Layout",
+    "battleTierList": "Battle Tier List",
+    "battleRegistry": "Battle Registry",
+    "prepScheduler": "Prep Scheduler",
+    "battlePlanner": "Battle Planner"
+  },
+  "toolGrantBanner": {
+    "granted": "You have been granted access to {{tool}}!",
+    "trialExpires": "Trial access expires in {{time}}",
+    "expired": "Expired",
+    "dismiss": "Dismiss"
   },
   "battlePlanner": {
     "pageTitle": "KvK Battle Planner",
@@ -1398,8 +1414,14 @@
     "upcoming": "Upcoming Events"
   },
   "similarKingdoms": {
-    "title": "Nearby Kingdoms",
+    "title": "Nearby Similar Kingdoms",
     "howItWorks": "How it works"
+  },
+  "nearbyTopKingdoms": {
+    "title": "Nearby Top Kingdoms",
+    "howItWorks": "How it works",
+    "tooltipDesc": "Top kingdoms by Atlas Score in transfer group {{group}}",
+    "noGroup": "No transfer group found for this kingdom"
   },
   "table": {
     "kingdom": "Kingdom",
