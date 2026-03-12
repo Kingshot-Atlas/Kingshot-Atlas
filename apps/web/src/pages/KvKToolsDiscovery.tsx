@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import BackLink from '../components/shared/BackLink';
 import { useIsMobile } from '../hooks/useMediaQuery';
@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { usePremium } from '../contexts/PremiumContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useGoldKingdoms } from '../hooks/useGoldKingdoms';
+import AuthModal from '../components/AuthModal';
 
 interface ToolSection {
   id: string;
@@ -33,7 +34,10 @@ const KvKToolsDiscovery: React.FC = () => {
   const { profile } = useAuth();
   const goldKingdoms = useGoldKingdoms();
 
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const user = profile; // profile is null when not logged in
   const linkedKingdom = profile?.linked_kingdom;
+  const isLinked = !!profile?.linked_player_id;
   const isGoldKingdom = !!(linkedKingdom && goldKingdoms.has(linkedKingdom));
   const fundPath = linkedKingdom ? `/kingdom/${linkedKingdom}/fund` : '/transfer-hub';
 
@@ -203,17 +207,35 @@ const KvKToolsDiscovery: React.FC = () => {
                     borderRadius: '2px', marginBottom: '0.25rem',
                   }} />
                 )}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  {phase.tools.map((e) => <span key={e} style={{ fontSize: isMobile ? '0.9rem' : '1rem' }}>{e}</span>)}
-                </div>
-                <div style={{ textAlign: isMobile ? 'left' : 'center' }}>
-                  <div style={{ fontSize: isMobile ? '0.75rem' : '0.8rem', fontWeight: 700, color: phase.color }}>
-                    {phase.label}
-                  </div>
-                  <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>
-                    {phase.days}
-                  </div>
-                </div>
+                {isMobile ? (
+                  <>
+                    <div style={{ flex: 1, textAlign: 'left' }}>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 700, color: phase.color }}>
+                        {phase.label}
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>
+                        {phase.days}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      {phase.tools.map((e) => <span key={e} style={{ fontSize: '0.9rem' }}>{e}</span>)}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      {phase.tools.map((e) => <span key={e} style={{ fontSize: '1rem' }}>{e}</span>)}
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: phase.color }}>
+                        {phase.label}
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>
+                        {phase.days}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             ))}
           </div>
@@ -343,7 +365,42 @@ const KvKToolsDiscovery: React.FC = () => {
                   >
                     {tool.emoji} {tool.primaryCta.label}
                   </Link>
-                  {showFundCta && (
+                  {showFundCta && !user && (
+                    <button
+                      onClick={() => setShowAuthModal(true)}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                        padding: '0.6rem 1.1rem',
+                        backgroundColor: 'transparent',
+                        border: `1px solid ${tierColor}40`,
+                        borderRadius: '8px',
+                        color: tierColor, fontWeight: 600,
+                        fontSize: isMobile ? '0.8rem' : '0.85rem',
+                        width: isMobile ? '100%' : 'auto',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {t('kvkTools.loginToFund', 'Log In to Fund Your Kingdom')}
+                    </button>
+                  )}
+                  {showFundCta && user && !isLinked && (
+                    <Link
+                      to="/profile#link-kingshot-section"
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                        padding: '0.6rem 1.1rem',
+                        backgroundColor: 'transparent',
+                        border: `1px solid ${tierColor}40`,
+                        borderRadius: '8px',
+                        color: tierColor, fontWeight: 600,
+                        fontSize: isMobile ? '0.8rem' : '0.85rem', textDecoration: 'none',
+                        width: isMobile ? '100%' : 'auto',
+                      }}
+                    >
+                      {t('kvkTools.linkToFund', 'Link Your Player ID to Fund Your Kingdom')}
+                    </Link>
+                  )}
+                  {showFundCta && user && isLinked && (
                     <Link
                       to={fundPath}
                       style={{
@@ -462,21 +519,56 @@ const KvKToolsDiscovery: React.FC = () => {
               }}>
                 {t('kvkTools.fundPitch', 'Kingdom Fund contributions from your alliance members add up fast. Rally your R4s — collective investment unlocks elite tools for everyone.')}
               </p>
-              <Link
-                to={fundPath}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                  padding: '0.7rem 1.5rem',
-                  backgroundColor: '#ffc30b',
-                  border: 'none', borderRadius: '8px',
-                  color: '#0a0a0a', fontWeight: 700,
-                  fontSize: isMobile ? '0.85rem' : '0.9rem', textDecoration: 'none',
-                  transition: 'all 0.2s ease',
-                  boxShadow: '0 4px 15px rgba(255, 195, 11, 0.3)',
-                }}
-              >
-                {t('kvkTools.fundKingdom', 'Fund Your Kingdom')}
-              </Link>
+              {!user ? (
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                    padding: '0.7rem 1.5rem',
+                    backgroundColor: '#ffc30b',
+                    border: 'none', borderRadius: '8px',
+                    color: '#0a0a0a', fontWeight: 700,
+                    fontSize: isMobile ? '0.85rem' : '0.9rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 4px 15px rgba(255, 195, 11, 0.3)',
+                  }}
+                >
+                  {t('kvkTools.loginToFund', 'Log In to Fund Your Kingdom')}
+                </button>
+              ) : !isLinked ? (
+                <Link
+                  to="/profile#link-kingshot-section"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                    padding: '0.7rem 1.5rem',
+                    backgroundColor: '#ffc30b',
+                    border: 'none', borderRadius: '8px',
+                    color: '#0a0a0a', fontWeight: 700,
+                    fontSize: isMobile ? '0.85rem' : '0.9rem', textDecoration: 'none',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 4px 15px rgba(255, 195, 11, 0.3)',
+                  }}
+                >
+                  {t('kvkTools.linkToFund', 'Link Your Player ID to Fund Your Kingdom')}
+                </Link>
+              ) : (
+                <Link
+                  to={fundPath}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                    padding: '0.7rem 1.5rem',
+                    backgroundColor: '#ffc30b',
+                    border: 'none', borderRadius: '8px',
+                    color: '#0a0a0a', fontWeight: 700,
+                    fontSize: isMobile ? '0.85rem' : '0.9rem', textDecoration: 'none',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 4px 15px rgba(255, 195, 11, 0.3)',
+                  }}
+                >
+                  {t('kvkTools.fundKingdom', 'Fund Your Kingdom')}
+                </Link>
+              )}
             </div>
           )}
           {(isGoldKingdom || isAdmin) && (
@@ -497,6 +589,7 @@ const KvKToolsDiscovery: React.FC = () => {
           <BackLink to="/" label={t('common.backToHome', 'Home')} variant="secondary" />
         </div>
       </div>
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
   );
 };

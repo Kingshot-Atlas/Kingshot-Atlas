@@ -83,14 +83,40 @@ const KvKToolsDiscovery = lazy(() => import('./pages/KvKToolsDiscovery'));
 const NotFound = () => {
   const { t } = useTranslation();
   return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-8">
-      <div className="text-[4rem] mb-4">🔍</div>
-      <h1 className="text-[2rem] font-bold text-white mb-2">404</h1>
-      <p className="text-text-muted mb-6 max-w-[400px]">
+    <div style={{
+      minHeight: '60vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      textAlign: 'center',
+      padding: '2rem',
+    }}>
+      <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🔍</div>
+      <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fff', marginBottom: '0.5rem' }}>404</h1>
+      <p style={{ color: '#9ca3af', marginBottom: '1.5rem', maxWidth: '400px', lineHeight: 1.6 }}>
         {t('errors.pageNotFound', 'This page doesn\'t exist. It may have been moved or removed.')}
       </p>
-      <Link to="/" className="py-3 px-6 bg-primary text-black rounded-lg font-semibold no-underline hover:bg-primary-hover transition-colors">
-        {t('common.backToHome', 'Back to Home')}
+      <Link
+        to="/"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.4rem',
+          padding: '0.5rem 1rem',
+          minHeight: '44px',
+          backgroundColor: 'transparent',
+          border: '1px solid #22d3ee30',
+          borderRadius: '8px',
+          color: '#22d3ee',
+          fontSize: '0.8rem',
+          fontWeight: 600,
+          textDecoration: 'none',
+          transition: 'all 0.15s ease',
+        }}
+      >
+        ← {t('common.backToHome', 'Back to Home')}
       </Link>
     </div>
   );
