@@ -8,6 +8,8 @@ import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData'
 import { FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 import { useBattleTierList, emptyForm } from '../hooks/useBattleTierList';
+import { useAdminToolGrant } from '../hooks/useAdminToolGrant';
+import ToolGrantBanner from '../components/shared/ToolGrantBanner';
 import BattleBulkEdit from '../components/battle-tier/BattleBulkEdit';
 import BattleBulkInput from '../components/battle-tier/BattleBulkInput';
 import BattleTierCutoffEditor from '../components/battle-tier/BattleTierCutoffEditor';
@@ -332,6 +334,7 @@ const KvKBattleTierList: React.FC = () => {
   });
 
   const state = useBattleTierList();
+  const { hasGrant: hasToolGrant, isTrial, expiresAt } = useAdminToolGrant('battle_tier_list');
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const rankedPlayers = state.activeSection === 'offense' ? state.offenseRanked : state.defenseRanked;
@@ -419,6 +422,7 @@ const KvKBattleTierList: React.FC = () => {
       padding: isMobile ? '1rem 0.5rem 4rem' : '2rem 1.5rem 4rem',
     }}>
       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+        <ToolGrantBanner toolId="battle_tier_list" toolLabel={t('tools.battleTierList', 'Battle Tier List')} hasGrant={hasToolGrant} isTrial={isTrial} expiresAt={expiresAt} accentColor="#f97316" />
 
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: isMobile ? '1.5rem' : '2rem' }}>

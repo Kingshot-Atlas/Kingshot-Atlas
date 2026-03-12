@@ -1,7 +1,7 @@
 import React, { lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../../utils/styles';
-import type { KingdomData, KingdomFund, KingdomReviewSummary, BoardMode, MatchDetail } from '../KingdomListingCard';
+import type { KingdomData, KingdomFund, KingdomReviewSummary, KingdomReputationSummary, BoardMode, MatchDetail } from '../KingdomListingCard';
 
 const KingdomListingCard = lazy(() => import('../KingdomListingCard'));
 
@@ -12,6 +12,7 @@ interface KingdomListingsProps {
   filteredKingdoms: KingdomData[];
   fundMap: Map<number, KingdomFund>;
   reviewMap: Map<number, KingdomReviewSummary>;
+  reputationMap: Map<number, KingdomReputationSummary>;
   matchScoreMap: Map<number, { score: number; details: MatchDetail[] }>;
   mode: BoardMode;
   visibleCount: number;
@@ -31,6 +32,7 @@ const KingdomListings: React.FC<KingdomListingsProps> = ({
   filteredKingdoms,
   fundMap,
   reviewMap,
+  reputationMap,
   matchScoreMap,
   mode,
   visibleCount,
@@ -105,6 +107,7 @@ const KingdomListings: React.FC<KingdomListingsProps> = ({
               kingdom={kingdom}
               fund={fund}
               reviewSummary={reviewMap.get(kingdom.kingdom_number) || null}
+              reputationSummary={reputationMap.get(kingdom.kingdom_number) || null}
               mode={mode}
               matchScore={matchResult?.score}
               matchDetails={matchResult?.details}
@@ -144,6 +147,7 @@ const KingdomListings: React.FC<KingdomListingsProps> = ({
               kingdom={kingdom}
               fund={fund}
               reviewSummary={reviewMap.get(kingdom.kingdom_number) || null}
+              reputationSummary={reputationMap.get(kingdom.kingdom_number) || null}
               mode={mode}
               matchScore={matchResult?.score}
               matchDetails={matchResult?.details}

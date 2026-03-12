@@ -152,7 +152,7 @@ const BattlePlannerLanding: React.FC = () => {
             </Link>
             {!hasFullAccess && (
               <Link
-                to="/transfer-hub"
+                to={profile?.linked_kingdom ? `/kingdom/${profile.linked_kingdom}/fund` : '/transfer-hub'}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
                   padding: '0.75rem 1.5rem', backgroundColor: 'transparent',
@@ -161,7 +161,7 @@ const BattlePlannerLanding: React.FC = () => {
                   fontSize: isMobile ? '0.9rem' : '0.95rem', textDecoration: 'none',
                 }}
               >
-                {t('battlePlanner.getGoldAccess', 'How to Reach Gold Tier')}
+                {t('battlePlanner.fundYourKingdom', 'Fund Your Kingdom')}
               </Link>
             )}
           </div>
@@ -351,7 +351,7 @@ const BattlePlannerLanding: React.FC = () => {
             ) : (
               <>
                 <Link
-                  to="/transfer-hub"
+                  to={profile?.linked_kingdom ? `/kingdom/${profile.linked_kingdom}/fund` : '/transfer-hub'}
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
                     padding: '0.75rem 1.5rem', backgroundColor: '#ffc30b',
@@ -361,7 +361,7 @@ const BattlePlannerLanding: React.FC = () => {
                     boxShadow: '0 4px 15px rgba(255, 195, 11, 0.3)',
                   }}
                 >
-                  {t('battlePlanner.reachGold', 'Reach Gold Tier')}
+                  {t('battlePlanner.fundYourKingdom', 'Fund Your Kingdom')}
                 </Link>
                 <Link
                   to="/tools/kvk-battle-planner"

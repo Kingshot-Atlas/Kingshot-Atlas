@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { logger } from '../utils/logger';
 import { TRANSFER_GROUPS, TRANSFER_GROUPS_UPDATED_AT } from '../config/transferGroups';
-import type { KingdomData, KingdomFund, KingdomReviewSummary } from '../components/KingdomListingCard';
+import type { KingdomData, KingdomFund, KingdomReviewSummary, KingdomReputationSummary } from '../components/KingdomListingCard';
 
 // ─── Query Keys ───────────────────────────────────────────────
 export const transferHubKeys = {
@@ -10,6 +10,7 @@ export const transferHubKeys = {
   kingdoms: () => [...transferHubKeys.all, 'kingdoms'] as const,
   funds: () => [...transferHubKeys.all, 'funds'] as const,
   reviewSummaries: () => [...transferHubKeys.all, 'reviewSummaries'] as const,
+  reputationSummaries: () => [...transferHubKeys.all, 'reputationSummaries'] as const,
   userProfile: (userId: string) => [...transferHubKeys.all, 'userProfile', userId] as const,
   activeAppCount: (userId: string) => [...transferHubKeys.all, 'activeAppCount', userId] as const,
   editorStatus: (userId: string) => [...transferHubKeys.all, 'editorStatus', userId] as const,
@@ -168,26 +169,41 @@ export function useTransferFunds() {
   });
 }
 
-// ─── Review Summaries (from Supabase view) ────────────────────
+// ─── Review Summaries (LEGACY - from old Supabase view) ──────
 async function fetchReviewSummaries(): Promise<KingdomReviewSummary[]> {
-  if (!supabase) return [];
-  const { data, error } = await supabase
-    .from('kingdom_review_summaries')
-    .select('kingdom_number, avg_rating, review_count, top_review_comment, top_review_author');
-
-  if (error) {
-    // Fallback: if view doesn't exist yet, return empty
-    logger.error('Error fetching review summaries:', error);
-    return [];
-  }
-  return data || [];
+  // Legacy: returns empty since old kingdom_review_summaries is deprecated
+  return [];
 }
 
 export function useTransferReviewSummaries() {
   return useQuery({
     queryKey: transferHubKeys.reviewSummaries(),
     queryFn: fetchReviewSummaries,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+  });
+}
+
+// ─── Reputation Summaries (from new materialized view) ───────
+async function fetchReputationSummaries(): Promise<KingdomReputationSummary[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('kingdom_reputation_summaries')
+    .select('*')
+    .eq('review_type', 'citizen');
+
+  if (error) {
+    logger.error('Error fetching reputation summaries:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export function useTransferReputationSummaries() {
+  return useQuery({
+    queryKey: transferHubKeys.reputationSummaries(),
+    queryFn: fetchReputationSummaries,
+    staleTime: 5 * 60 * 1000,
     retry: 1,
   });
 }
@@ -435,6 +451,7 @@ export function useInvalidateTransferHub() {
     invalidateAll: () => queryClient.invalidateQueries({ queryKey: transferHubKeys.all }),
     invalidateFunds: () => queryClient.invalidateQueries({ queryKey: transferHubKeys.funds() }),
     invalidateReviews: () => queryClient.invalidateQueries({ queryKey: transferHubKeys.reviewSummaries() }),
+    invalidateReputation: () => queryClient.invalidateQueries({ queryKey: transferHubKeys.reputationSummaries() }),
     invalidateUserProfile: (userId: string) => queryClient.invalidateQueries({ queryKey: transferHubKeys.userProfile(userId) }),
     invalidateActiveApps: (userId: string) => queryClient.invalidateQueries({ queryKey: transferHubKeys.activeAppCount(userId) }),
     invalidateEditorStatus: (userId: string) => queryClient.invalidateQueries({ queryKey: transferHubKeys.editorStatus(userId) }),

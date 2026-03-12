@@ -28,6 +28,7 @@
 
 | Task | Owner | Status |
 |------|-------|--------|
+| Tool Access System Fix + Trial System | Platform Engineer | ✅ Complete — Fixed CHECK constraint blocking 4/7 tools, added useAdminToolGrant hook, tool_access checks on all 7 tools + landing pages, trial system with hours/days picker, toast notifications. DB: expires_at column + updated CHECK constraint. |
 | Alliance Event Coordinator Landing Page | Product Engineer | ✅ Complete — `AllianceEventCoordinatorLanding.tsx` with blue theme, hero/features/steps/problem-solution/access sections. Route `/tools/event-coordinator/about`. Tools card + DesktopNav + MobileMenu links updated. i18n 11 langs (46 keys each). Deployed to Cloudflare Pages. |
 | Bear Rally Tier List Refactor | Product Engineer | ✅ Complete — Fixed `canEdit` to include delegates. Auto-populate new lists with roster members. Redesigned empty state with contextual CTAs. Updated read-only banner. Mobile UX polish. i18n 6 keys × 9 languages. **Unranked Empty State (2026-06):** Incomplete players (missing heroes/gear/stats) excluded from ranking, shown in amber "Unranked — Missing Data" section. `isPlayerComplete()` helper. BulkEdit saves incomplete players without error. Build passes. |
 | Kingdom Settlers Campaign #1 | Product Engineer | ✅ IMPLEMENTED (local) — 2 Supabase tables (campaigns, campaign_winners), campaign hub page (/campaigns/kingdom-settlers) with 3 tabs, admin slot machine (/admin/campaign-draw) with full draw experience, React Query hooks, i18n (9 langs). Build passes. NOT deployed — awaiting owner review. |

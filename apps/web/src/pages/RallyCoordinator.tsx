@@ -17,6 +17,8 @@ import {
   useBattlePlanner,
 } from '../components/rally';
 import SessionManager from '../components/rally/SessionManager';
+import { useAdminToolGrant } from '../hooks/useAdminToolGrant';
+import ToolGrantBanner from '../components/shared/ToolGrantBanner';
 import BattleLeadersPanel from '../components/rally/BattleLeadersPanel';
 import type { RallyPlayer } from '../components/rally/types';
 
@@ -27,6 +29,7 @@ const RallyCoordinator: React.FC = () => {
 
   const isTablet = useIsTablet();
   const rc = useBattlePlanner();
+  const { hasGrant: hasToolGrant, isTrial, expiresAt } = useAdminToolGrant('battle_planner');
   const localPlayerCount = (loadFromStorage<RallyPlayer[]>(STORAGE_KEY_PLAYERS, [])).length;
 
   // Mobile tab state
@@ -170,6 +173,7 @@ const RallyCoordinator: React.FC = () => {
         background: 'linear-gradient(180deg, #111111 0%, #0a0a0a 100%)',
       }}>
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+          <ToolGrantBanner toolId="battle_planner" toolLabel={t('tools.battlePlanner', 'Battle Planner')} hasGrant={hasToolGrant} isTrial={isTrial} expiresAt={expiresAt} accentColor="#ef4444" />
           <h1 style={{
             fontSize: isMobile ? '1.3rem' : '1.75rem', fontWeight: 'bold',
             fontFamily: FONT_DISPLAY, letterSpacing: '0.05em', margin: 0, marginBottom: '0.25rem',

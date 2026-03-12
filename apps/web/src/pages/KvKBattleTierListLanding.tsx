@@ -4,7 +4,7 @@ import BackLink from '../components/shared/BackLink';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { useMetaTags } from '../hooks/useMetaTags';
+import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { usePremium } from '../contexts/PremiumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,12 +12,10 @@ import { useGoldKingdoms } from '../hooks/useGoldKingdoms';
 import { useAdminToolGrant } from '../hooks/useAdminToolGrant';
 import { supabase } from '../lib/supabase';
 
-const ACCENT = '#f97316';
-
 const KvKBattleTierListLanding: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle(t('battleTierLanding.pageTitle', 'KvK Battle Tier List'));
-  useMetaTags({
+  useMetaTags(PAGE_META_TAGS.battleTierList || {
     title: 'KvK Battle Tier List — Rank Your Kingdom for Castle Battle | Kingshot Atlas',
     description: 'Rank your kingdom\'s players by offensive and defensive power for KvK Castle Battles. Scout-based stats, EG adjustments, smart tier classification.',
   });
@@ -109,11 +107,11 @@ const KvKBattleTierListLanding: React.FC = () => {
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '700px', margin: '0 auto' }}>
           <div style={{
             width: isMobile ? '64px' : '80px', height: isMobile ? '64px' : '80px',
-            borderRadius: '50%', backgroundColor: `${ACCENT}15`,
-            border: `2px solid ${ACCENT}30`,
+            borderRadius: '50%', backgroundColor: '#f9731615',
+            border: '2px solid #f9731630',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             margin: '0 auto 1.25rem',
-            boxShadow: `0 0 30px ${ACCENT}15, 0 0 60px ${ACCENT}08`,
+            boxShadow: '0 0 30px rgba(249, 115, 22, 0.15), 0 0 60px rgba(249, 115, 22, 0.08)',
           }}>
             <span style={{ fontSize: isMobile ? '1.75rem' : '2.25rem' }}>🏰</span>
           </div>
@@ -123,7 +121,7 @@ const KvKBattleTierListLanding: React.FC = () => {
             marginBottom: '0.75rem', fontFamily: FONT_DISPLAY,
           }}>
             <span style={{ color: '#fff' }}>{t('battleTierLanding.heroTitle1', 'KvK BATTLE')}</span>
-            <span style={{ ...neonGlow(ACCENT), marginLeft: '0.5rem' }}>{t('battleTierLanding.heroTitle2', 'TIER LIST')}</span>
+            <span style={{ ...neonGlow('#f97316'), marginLeft: '0.5rem' }}>{t('battleTierLanding.heroTitle2', 'TIER LIST')}</span>
           </h1>
           <p style={{
             color: '#9ca3af', fontSize: isMobile ? '0.95rem' : '1.1rem',
@@ -137,186 +135,255 @@ const KvKBattleTierListLanding: React.FC = () => {
             display: 'flex', flexDirection: isMobile ? 'column' : 'row',
             gap: '0.75rem', justifyContent: 'center', alignItems: 'center',
           }}>
+            <Link
+              to="/tools/battle-tier-list"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.6rem',
+                padding: isMobile ? '0.85rem 1.75rem' : '0.9rem 2rem',
+                backgroundColor: '#f97316', border: 'none', borderRadius: '10px',
+                color: '#fff', fontWeight: 700,
+                fontSize: isMobile ? '0.95rem' : '1rem', textDecoration: 'none',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 4px 20px rgba(249, 115, 22, 0.35)',
+              }}
+            >
+              🏰 {t('battleTierLanding.launchTool', 'Launch Tier List')}
+            </Link>
+            {!hasFullAccess && (
+              <Link
+                to={profile?.linked_kingdom ? `/kingdom/${profile.linked_kingdom}/fund` : '/transfer-hub'}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                  padding: '0.75rem 1.5rem', backgroundColor: 'transparent',
+                  border: '1px solid #ffc30b40', borderRadius: '8px',
+                  color: '#ffc30b', fontWeight: 600,
+                  fontSize: isMobile ? '0.9rem' : '0.95rem', textDecoration: 'none',
+                }}
+              >
+                {t('battleTierLanding.fundYourKingdom', 'Fund Your Kingdom')}
+              </Link>
+            )}
+          </div>
+          <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.75rem' }}>
+            {hasFullAccess
+              ? t('battleTierLanding.accessConfirm', 'You have full access as a Gold Tier kingdom member.')
+              : t('battleTierLanding.goldPerk', 'Available for Gold Tier kingdoms. Contribute to the Kingdom Fund to unlock.')}
+          </p>
+
+          {!isMobile && (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem' }}>
+              <div style={{ width: '50px', height: '2px', background: 'linear-gradient(90deg, transparent, #f97316)' }} />
+              <div style={{ width: '6px', height: '6px', backgroundColor: '#f97316', transform: 'rotate(45deg)', boxShadow: '0 0 8px #f97316' }} />
+              <div style={{ width: '50px', height: '2px', background: 'linear-gradient(90deg, #f97316, transparent)' }} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: isMobile ? '1rem' : '2rem' }}>
+
+        {/* How It Works */}
+        <div style={{ marginBottom: isMobile ? '2rem' : '3rem' }}>
+          <h2 style={{
+            fontSize: isMobile ? '1.1rem' : '1.35rem', fontWeight: 'bold', color: '#fff',
+            marginBottom: '0.4rem', fontFamily: FONT_DISPLAY, textAlign: 'center',
+          }}>
+            <span style={{ color: '#fff' }}>{t('battleTierLanding.howItWorks1', 'HOW IT')}</span>
+            <span style={{ ...neonGlow('#f97316'), marginLeft: '0.4rem' }}>{t('battleTierLanding.howItWorks2', 'WORKS')}</span>
+          </h2>
+          <p style={{
+            color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem',
+            textAlign: 'center', marginBottom: '1.5rem',
+          }}>
+            {t('battleTierLanding.threeSteps', 'Three steps. Total combat clarity.')}
+          </p>
+
+          <div style={{
+            display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '1rem',
+          }}>
+            {steps.map((item) => (
+              <div key={item.num} style={{
+                backgroundColor: '#111111', borderRadius: '12px', border: '1px solid #2a2a2a',
+                padding: isMobile ? '1rem' : '1.25rem', textAlign: 'center',
+              }}>
+                <div style={{
+                  width: '40px', height: '40px', borderRadius: '50%',
+                  backgroundColor: '#f9731615', border: '1px solid #f9731630',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  margin: '0 auto 0.75rem', fontSize: '1.1rem',
+                }}>
+                  {item.icon}
+                </div>
+                <h3 style={{ fontSize: isMobile ? '0.95rem' : '1rem', fontWeight: 700, color: '#fff', marginBottom: '0.35rem' }}>
+                  {item.title}
+                </h3>
+                <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.75rem' : '0.8rem', lineHeight: 1.5 }}>
+                  {item.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Features */}
+        <div style={{ marginBottom: isMobile ? '2rem' : '3rem' }}>
+          <h2 style={{
+            fontSize: isMobile ? '1.1rem' : '1.35rem', fontWeight: 'bold', color: '#fff',
+            marginBottom: '0.4rem', fontFamily: FONT_DISPLAY, textAlign: 'center',
+          }}>
+            <span style={{ color: '#fff' }}>{t('battleTierLanding.builtFor1', 'BUILT FOR')}</span>
+            <span style={{ ...neonGlow('#f97316'), marginLeft: '0.4rem' }}>{t('battleTierLanding.builtFor2', 'BATTLE COMMANDERS')}</span>
+          </h2>
+          <p style={{
+            color: '#6b7280', fontSize: isMobile ? '0.8rem' : '0.85rem',
+            textAlign: 'center', marginBottom: '1.5rem',
+          }}>
+            {t('battleTierLanding.featuresSubtitle', 'Every feature exists because castle battle leaders needed it.')}
+          </p>
+
+          <div style={{
+            display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '1rem',
+          }}>
+            {features.map((f) => (
+              <div key={f.title} style={{
+                backgroundColor: '#111111', borderRadius: '12px', border: '1px solid #2a2a2a',
+                padding: isMobile ? '1rem' : '1.25rem',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                  <span style={{ fontSize: '1.25rem', lineHeight: 1, flexShrink: 0 }}>{f.icon}</span>
+                  <div>
+                    <h3 style={{ fontSize: isMobile ? '0.9rem' : '0.95rem', fontWeight: 700, color: '#fff', marginBottom: '0.3rem' }}>
+                      {f.title}
+                    </h3>
+                    <p style={{ color: '#9ca3af', fontSize: isMobile ? '0.75rem' : '0.8rem', lineHeight: 1.5 }}>
+                      {f.desc}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* The Problem & Solution */}
+        <div style={{
+          marginBottom: isMobile ? '2rem' : '3rem',
+          backgroundColor: '#111111', borderRadius: '16px',
+          border: '1px solid #f9731630', padding: isMobile ? '1.25rem' : '1.75rem',
+          background: 'linear-gradient(135deg, #111111 0%, #f9731608 100%)',
+        }}>
+          <h2 style={{
+            fontSize: isMobile ? '1.05rem' : '1.2rem', fontWeight: 'bold', color: '#fff',
+            marginBottom: '1rem', fontFamily: FONT_DISPLAY,
+          }}>
+            {t('battleTierLanding.problemTitle', 'The Castle Battle Problem')}
+          </h2>
+          <p style={{ color: '#d1d5db', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.7, marginBottom: '1rem' }}>
+            {t('battleTierLanding.problemDesc', '"Who should we rally with?" — asked 5 minutes before the castle hit. "Is Player X stronger than Player Y?" — nobody knows for sure. "Who should garrison and who should rally?" — just vibes, no data.')}
+          </p>
+          <p style={{ color: '#d1d5db', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.7, marginBottom: '1rem' }}>
+            {t('battleTierLanding.solutionDesc', 'The KvK Battle Tier List gives you two clear rankings: who hits hardest (offense) and who holds strongest (defense). Real numbers from real scout reports, with EG adjustments baked in. Know exactly who to put where in Castle Battle.')}
+          </p>
+          <p style={{ color: '#f97316', fontSize: isMobile ? '0.8rem' : '0.85rem', fontWeight: 600, fontStyle: 'italic' }}>
+            {t('battleTierLanding.punchline', 'Data wins castles. Guessing loses them.')}
+          </p>
+        </div>
+
+        {/* Gold Kingdom CTA */}
+        <div style={{
+          marginBottom: isMobile ? '2rem' : '3rem',
+          padding: isMobile ? '1.5rem' : '2rem',
+          backgroundColor: '#111111', borderRadius: '16px',
+          border: hasFullAccess ? '1px solid #22c55e30' : '1px solid #ffc30b30', textAlign: 'center',
+          background: hasFullAccess
+            ? 'linear-gradient(135deg, #111111 0%, #22c55e08 100%)'
+            : 'linear-gradient(135deg, #111111 0%, #ffc30b08 100%)',
+        }}>
+          <span style={{
+            fontSize: '0.65rem', fontWeight: 700,
+            color: hasFullAccess ? '#22c55e' : '#ffc30b',
+            backgroundColor: hasFullAccess ? '#22c55e18' : '#ffc30b18',
+            border: hasFullAccess ? '1px solid #22c55e30' : '1px solid #ffc30b30',
+            padding: '0.2rem 0.6rem', borderRadius: '4px',
+            letterSpacing: '0.05em', textTransform: 'uppercase',
+            display: 'inline-block', marginBottom: '0.75rem',
+          }}>
+            {hasFullAccess
+              ? t('battleTierLanding.accessUnlocked', 'Access Unlocked')
+              : t('battleTierLanding.goldBadge', 'Gold Tier Kingdom Feature')}
+          </span>
+          <h3 style={{
+            fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: 'bold',
+            color: '#fff', marginBottom: '0.5rem', fontFamily: FONT_DISPLAY,
+          }}>
+            {hasFullAccess
+              ? t('battleTierLanding.accessThanks', 'You have full access to the Battle Tier List.')
+              : t('battleTierLanding.goldTitle', 'Give your kingdom the power ranking advantage.')}
+          </h3>
+          <p style={{
+            color: '#9ca3af', fontSize: isMobile ? '0.8rem' : '0.85rem',
+            marginBottom: '1.25rem', maxWidth: '450px', margin: '0 auto 1.25rem', lineHeight: 1.6,
+          }}>
+            {hasFullAccess
+              ? t('battleTierLanding.accessThanksDesc', 'Your kingdom has earned access. Start scouting and ranking your players for the next castle battle.')
+              : t('battleTierLanding.goldDesc', 'The Battle Tier List is a Gold Tier feature. Help your kingdom reach Gold by contributing to the Kingdom Fund.')}
+          </p>
+          <div style={{
+            display: 'flex', flexDirection: isMobile ? 'column' : 'row',
+            gap: '0.75rem', justifyContent: 'center', alignItems: 'center',
+          }}>
             {hasFullAccess ? (
               <Link
                 to="/tools/battle-tier-list"
                 style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.6rem',
-                  padding: isMobile ? '0.85rem 1.75rem' : '0.9rem 2rem',
-                  backgroundColor: ACCENT, border: 'none', borderRadius: '10px',
-                  color: '#fff', fontWeight: 700,
-                  fontSize: isMobile ? '0.95rem' : '1rem', textDecoration: 'none',
-                  transition: 'all 0.2s ease',
-                  boxShadow: `0 4px 20px ${ACCENT}35`,
+                  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                  padding: '0.75rem 1.5rem', backgroundColor: '#22c55e',
+                  border: 'none', borderRadius: '8px', color: '#fff',
+                  fontWeight: 600, fontSize: isMobile ? '0.9rem' : '0.95rem',
+                  textDecoration: 'none', transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 15px rgba(34, 197, 94, 0.3)',
                 }}
               >
                 🏰 {t('battleTierLanding.launchTool', 'Launch Tier List')}
               </Link>
             ) : (
-              <div style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.6rem',
-                padding: isMobile ? '0.85rem 1.75rem' : '0.9rem 2rem',
-                backgroundColor: '#333', borderRadius: '10px',
-                color: '#9ca3af', fontWeight: 700,
-                fontSize: isMobile ? '0.95rem' : '1rem',
-              }}>
-                🔒 {t('battleTierLanding.goldOnly', 'Gold Tier Kingdoms Only')}
-              </div>
+              <>
+                <Link
+                  to={profile?.linked_kingdom ? `/kingdom/${profile.linked_kingdom}/fund` : '/transfer-hub'}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                    padding: '0.75rem 1.5rem', backgroundColor: '#ffc30b',
+                    border: 'none', borderRadius: '8px', color: '#0a0a0a',
+                    fontWeight: 600, fontSize: isMobile ? '0.9rem' : '0.95rem',
+                    textDecoration: 'none', transition: 'all 0.2s ease',
+                    boxShadow: '0 4px 15px rgba(255, 195, 11, 0.3)',
+                  }}
+                >
+                  {t('battleTierLanding.fundYourKingdom', 'Fund Your Kingdom')}
+                </Link>
+                <Link
+                  to="/tools/battle-tier-list"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                    padding: '0.75rem 1.5rem', backgroundColor: 'transparent',
+                    border: '1px solid #f9731640', borderRadius: '8px',
+                    color: '#f97316', fontWeight: 600,
+                    fontSize: isMobile ? '0.9rem' : '0.95rem', textDecoration: 'none',
+                  }}
+                >
+                  {t('battleTierLanding.tryTierList', 'View the Tier List')}
+                </Link>
+              </>
             )}
-            <BackLink to="/tools" label={t('common.allTools', 'All Tools')} />
-          </div>
-          <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.75rem' }}>
-            {t('battleTierLanding.goldNote', 'Available for Gold Tier Kingdom Fund kingdoms.')}
-          </p>
-        </div>
-      </div>
-
-      {/* Problem / Solution */}
-      <div style={{
-        maxWidth: '700px', margin: '0 auto',
-        padding: isMobile ? '1.5rem 1rem' : '2rem 2rem',
-      }}>
-        <div style={{
-          backgroundColor: '#111', borderRadius: '16px', border: '1px solid #2a2a2a',
-          padding: isMobile ? '1.25rem' : '1.75rem',
-        }}>
-          <h2 style={{
-            fontSize: isMobile ? '1.1rem' : '1.3rem', fontWeight: 700,
-            color: '#fff', marginBottom: '1rem', fontFamily: FONT_DISPLAY,
-          }}>
-            {t('battleTierLanding.problemTitle', 'The Castle Battle Problem')}
-          </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <p style={{ color: '#ef4444', fontSize: isMobile ? '0.82rem' : '0.88rem', lineHeight: 1.6, margin: 0 }}>
-              ❌ {t('battleTierLanding.problem1', '"Who should we rally with?" — asked 5 minutes before the castle hit.')}
-            </p>
-            <p style={{ color: '#ef4444', fontSize: isMobile ? '0.82rem' : '0.88rem', lineHeight: 1.6, margin: 0 }}>
-              ❌ {t('battleTierLanding.problem2', '"Is Player X stronger than Player Y?" — nobody knows for sure.')}
-            </p>
-            <p style={{ color: '#ef4444', fontSize: isMobile ? '0.82rem' : '0.88rem', lineHeight: 1.6, margin: 0 }}>
-              ❌ {t('battleTierLanding.problem3', '"Who should garrison and who should rally?" — just vibes, no data.')}
-            </p>
-            <div style={{ height: '1px', backgroundColor: '#2a2a2a', margin: '0.5rem 0' }} />
-            <p style={{ color: '#22c55e', fontSize: isMobile ? '0.82rem' : '0.88rem', lineHeight: 1.6, margin: 0 }}>
-              ✅ {t('battleTierLanding.solution', 'The KvK Battle Tier List gives you two clear rankings: who hits hardest (offense) and who holds strongest (defense). Real numbers. No guesswork.')}
-            </p>
           </div>
         </div>
-      </div>
 
-      {/* Features */}
-      <div style={{
-        maxWidth: '900px', margin: '0 auto',
-        padding: isMobile ? '0 1rem 1.5rem' : '0 2rem 2rem',
-      }}>
-        <h2 style={{
-          textAlign: 'center', fontSize: isMobile ? '1.25rem' : '1.5rem',
-          fontWeight: 700, color: '#fff', marginBottom: '1.5rem', fontFamily: FONT_DISPLAY,
-        }}>
-          {t('battleTierLanding.featuresTitle', 'What You Get')}
-        </h2>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-          gap: isMobile ? '0.75rem' : '1rem',
-        }}>
-          {features.map((f, i) => (
-            <div key={i} style={{
-              backgroundColor: '#111', borderRadius: '12px', border: '1px solid #1a1a1a',
-              padding: isMobile ? '1rem' : '1.25rem',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '1.1rem' }}>{f.icon}</span>
-                <h3 style={{ fontSize: isMobile ? '0.9rem' : '0.95rem', fontWeight: 700, color: '#fff', margin: 0 }}>
-                  {f.title}
-                </h3>
-              </div>
-              <p style={{ fontSize: isMobile ? '0.78rem' : '0.82rem', color: '#9ca3af', lineHeight: 1.6, margin: 0 }}>
-                {f.desc}
-              </p>
-            </div>
-          ))}
+        {/* Back links */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', paddingBottom: '1rem', flexWrap: 'wrap' }}>
+          <BackLink to="/tools" label={t('common.allTools', 'All Tools')} />
+          <BackLink to="/" label={t('common.backToHome', 'Home')} variant="secondary" />
         </div>
-      </div>
-
-      {/* Steps */}
-      <div style={{
-        maxWidth: '700px', margin: '0 auto',
-        padding: isMobile ? '0 1rem 2rem' : '0 2rem 3rem',
-      }}>
-        <h2 style={{
-          textAlign: 'center', fontSize: isMobile ? '1.25rem' : '1.5rem',
-          fontWeight: 700, color: '#fff', marginBottom: '1.5rem', fontFamily: FONT_DISPLAY,
-        }}>
-          {t('battleTierLanding.howTitle', 'How It Works')}
-        </h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {steps.map((s, i) => (
-            <div key={i} style={{
-              display: 'flex', gap: '1rem', alignItems: 'flex-start',
-              backgroundColor: '#111', borderRadius: '12px', border: '1px solid #1a1a1a',
-              padding: isMobile ? '1rem' : '1.25rem',
-            }}>
-              <div style={{
-                minWidth: '40px', height: '40px', borderRadius: '50%',
-                backgroundColor: `${ACCENT}15`, border: `1px solid ${ACCENT}30`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '1.1rem',
-              }}>
-                {s.icon}
-              </div>
-              <div>
-                <h3 style={{ fontSize: isMobile ? '0.9rem' : '0.95rem', fontWeight: 700, color: '#fff', margin: '0 0 0.25rem' }}>
-                  <span style={{ color: ACCENT, marginRight: '0.35rem' }}>{s.num}.</span>{s.title}
-                </h3>
-                <p style={{ fontSize: isMobile ? '0.78rem' : '0.82rem', color: '#9ca3af', lineHeight: 1.6, margin: 0 }}>
-                  {s.desc}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Bottom CTA */}
-      <div style={{
-        maxWidth: '700px', margin: '0 auto',
-        padding: isMobile ? '0 1rem 3rem' : '0 2rem 4rem',
-        textAlign: 'center',
-      }}>
-        {hasFullAccess ? (
-          <Link
-            to="/tools/battle-tier-list"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.6rem',
-              padding: isMobile ? '0.85rem 2rem' : '0.9rem 2.5rem',
-              backgroundColor: ACCENT, border: 'none', borderRadius: '10px',
-              color: '#fff', fontWeight: 700,
-              fontSize: isMobile ? '0.95rem' : '1rem', textDecoration: 'none',
-              boxShadow: `0 4px 20px ${ACCENT}35`,
-            }}
-          >
-            🏰 {t('battleTierLanding.launchTool', 'Launch Tier List')}
-          </Link>
-        ) : (
-          <div>
-            <p style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '0.75rem' }}>
-              {t('battleTierLanding.goldExplain', 'This tool is available to kingdoms that have reached Gold Tier in the Kingdom Fund.')}
-            </p>
-            <Link
-              to="/transfer-hub"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                padding: '0.7rem 1.5rem',
-                backgroundColor: '#ffc30b15', border: '1px solid #ffc30b30',
-                borderRadius: '10px', color: '#ffc30b', fontWeight: 600,
-                fontSize: '0.85rem', textDecoration: 'none',
-              }}
-            >
-              🏆 {t('battleTierLanding.learnFund', 'Learn About Kingdom Fund')}
-            </Link>
-          </div>
-        )}
       </div>
     </div>
   );

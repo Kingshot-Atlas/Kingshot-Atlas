@@ -9,6 +9,7 @@ import { useBattleLayout } from '../hooks/useBattleLayout';
 import { useAuth } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
 import { useAdminToolGrant } from '../hooks/useAdminToolGrant';
+import ToolGrantBanner from '../components/shared/ToolGrantBanner';
 import { useKingdomFund, useBattleManagers, useAddBattleManager, useRemoveBattleManager, useKingdomEditor, useSearchProfiles } from '../hooks/useKingdomProfileQueries';
 import { getBuildingType } from '../config/allianceBuildings';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
@@ -91,6 +92,7 @@ const KvKBattleLayout: React.FC = () => {
   const { t } = useTranslation();
 
   const { profile, user } = useAuth();
+  const { hasGrant: hasToolGrant, isTrial, expiresAt } = useAdminToolGrant('battle_layout');
   const designer = useBattleLayout();
   const containerRef = useRef<HTMLDivElement>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 600, height: 600 });
@@ -222,6 +224,7 @@ const KvKBattleLayout: React.FC = () => {
             <span style={{ color: '#fff' }}>KVK BATTLE </span>
             <span style={neonGlow('#f97316')}>LAYOUT</span>
           </h1>
+          {hasToolGrant && <div style={{ maxWidth: 500, margin: '0.5rem auto 0' }}><ToolGrantBanner toolId="battle_layout" toolLabel={t('tools.battleLayout', 'Battle Layout')} hasGrant={hasToolGrant} isTrial={isTrial} expiresAt={expiresAt} accentColor="#f97316" /></div>}
           <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0.2rem 0 0', letterSpacing: '0.02em' }}>
             {t('battleLayout.subtitle', 'Plan your alliance positioning around the castle and turrets')}
           </p>

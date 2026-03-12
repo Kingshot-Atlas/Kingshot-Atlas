@@ -17,7 +17,7 @@ import ReportDataModal from '../components/ReportDataModal';
 import ReportKvKErrorModal from '../components/ReportKvKErrorModal';
 const KvKMatchupSubmission = lazy(() => import('../components/KvKMatchupSubmission'));
 // Lazy-load below-fold components for bundle splitting
-const KingdomReviews = lazy(() => import('../components/KingdomReviews'));
+const KingdomReputation = lazy(() => import('../components/KingdomReputation'));
 const TrendChart = lazy(() => import('../components/TrendChart'));
 const ScoreHistoryChart = lazy(() => import('../components/ScoreHistoryChart'));
 const RankingHistoryChart = lazy(() => import('../components/RankingHistoryChart'));
@@ -432,6 +432,11 @@ const KingdomProfile: React.FC = () => {
               onLockedClick={(message) => showToast(message, 'info')}
             />
 
+            {/* Rival Reputation Section */}
+            <Suspense fallback={null}>
+              <KingdomReputation kingdomNumber={kingdom.kingdom_number} reviewType="rival" accentColor="#22d3ee" />
+            </Suspense>
+
             {/* Transfer Status History */}
             <TransferStatusHistory
               kingdomNumber={kingdom.kingdom_number}
@@ -499,9 +504,9 @@ const KingdomProfile: React.FC = () => {
               </div>
             )}
 
-            {/* Reviews Section */}
+            {/* Citizen Reputation Section */}
             <div style={{ marginBottom: isMobile ? '1.25rem' : '1.5rem' }}>
-              <KingdomReviews kingdomNumber={kingdom.kingdom_number} />
+              <KingdomReputation kingdomNumber={kingdom.kingdom_number} reviewType="citizen" accentColor="#a855f7" />
             </div>
           </Suspense>
         )}

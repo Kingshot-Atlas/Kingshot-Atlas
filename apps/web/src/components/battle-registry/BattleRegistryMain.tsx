@@ -1,6 +1,9 @@
 // ─── KvK Battle Registry — Main Component ──────────────────────────────
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useBattleRegistry } from './useBattleRegistry';
+import { useAdminToolGrant } from '../../hooks/useAdminToolGrant';
+import ToolGrantBanner from '../shared/ToolGrantBanner';
 import BattleRegistryList from './BattleRegistryList';
 import BattleRegistryForm from './BattleRegistryForm';
 import BattleRegistryDashboard from './BattleRegistryDashboard';
@@ -16,7 +19,9 @@ export interface TierMapEntry {
 }
 
 const BattleRegistryMain: React.FC = () => {
+  const { t } = useTranslation();
   const hook = useBattleRegistry();
+  const { hasGrant: hasToolGrant, isTrial, expiresAt } = useAdminToolGrant('battle_registry');
   const [tierMap, setTierMap] = useState<Record<string, TierMapEntry>>({});
 
   // Fetch tier list data for the registry's kingdom
@@ -107,6 +112,10 @@ const BattleRegistryMain: React.FC = () => {
   // Manager dashboard view
   if (hook.view === 'manage' && hook.registry) {
     return (
+      <>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 1rem' }}>
+        <ToolGrantBanner toolId="battle_registry" toolLabel={t('tools.battleRegistry', 'Battle Registry')} hasGrant={hasToolGrant} isTrial={isTrial} expiresAt={expiresAt} accentColor="#f97316" />
+      </div>
       <BattleRegistryDashboard
         isMobile={hook.isMobile}
         registry={hook.registry}
@@ -135,6 +144,7 @@ const BattleRegistryMain: React.FC = () => {
         deleteEntry={hook.deleteEntry}
         saving={hook.saving}
       />
+      </>
     );
   }
 

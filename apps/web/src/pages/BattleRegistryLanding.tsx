@@ -151,7 +151,7 @@ const BattleRegistryLanding: React.FC = () => {
             </Link>
             {!hasFullAccess && (
               <Link
-                to="/transfer-hub"
+                to={profile?.linked_kingdom ? `/kingdom/${profile.linked_kingdom}/fund` : '/transfer-hub'}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
                   padding: '0.75rem 1.5rem', backgroundColor: 'transparent',
@@ -160,7 +160,7 @@ const BattleRegistryLanding: React.FC = () => {
                   fontSize: isMobile ? '0.9rem' : '0.95rem', textDecoration: 'none',
                 }}
               >
-                {t('battleRegistryLanding.getGoldAccess', 'How to Reach Gold Tier')}
+                {t('battleRegistryLanding.fundYourKingdom', 'Fund Your Kingdom')}
               </Link>
             )}
           </div>
@@ -350,7 +350,7 @@ const BattleRegistryLanding: React.FC = () => {
             ) : (
               <>
                 <Link
-                  to="/transfer-hub"
+                  to={profile?.linked_kingdom ? `/kingdom/${profile.linked_kingdom}/fund` : '/transfer-hub'}
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
                     padding: '0.75rem 1.5rem', backgroundColor: '#ffc30b',
@@ -360,7 +360,7 @@ const BattleRegistryLanding: React.FC = () => {
                     boxShadow: '0 4px 15px rgba(255, 195, 11, 0.3)',
                   }}
                 >
-                  {t('battleRegistryLanding.reachGold', 'Reach Gold Tier')}
+                  {t('battleRegistryLanding.fundYourKingdom', 'Fund Your Kingdom')}
                 </Link>
                 <Link
                   to="/tools/battle-registry"

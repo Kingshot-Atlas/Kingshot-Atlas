@@ -19,6 +19,7 @@ import RoleAssignerCard from './BotDashboardRoleAssigner';
 import BotDashboardTransferGroups from './BotDashboardTransferGroups';
 import { useBotDashboardData } from '../hooks/useBotDashboardData';
 import { useAdminToolGrant } from '../hooks/useAdminToolGrant';
+import ToolGrantBanner from '../components/shared/ToolGrantBanner';
 
 // EmojiPicker + RoleAssignerCard extracted to BotDashboardEmojiPicker.tsx & BotDashboardRoleAssigner.tsx
 
@@ -30,7 +31,7 @@ const BotDashboard: React.FC = () => {
   const { user, profile } = useAuth();
   const mob = useIsMobile();
   const { isSupporter, isAdmin } = usePremium();
-  const { hasGrant: hasToolGrant } = useAdminToolGrant('bot_dashboard');
+  const { hasGrant: hasToolGrant, isTrial, expiresAt } = useAdminToolGrant('bot_dashboard');
   const canMultiServer = isSupporter || isAdmin;
 
   // ─── Data (extracted to hook) ──────────────────────────────────────────
@@ -503,6 +504,9 @@ const BotDashboard: React.FC = () => {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: colors.bg }}>
       {toast && <div style={{ position: 'fixed', top: '1rem', right: '1rem', zIndex: 9999, padding: '0.6rem 1.2rem', borderRadius: 8, backgroundColor: toast.ok ? colors.success : colors.error, color: '#fff', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>{toast.msg}</div>}
+      <div style={{ maxWidth: 800, margin: '0 auto', padding: mob ? '0 1rem' : '0 2rem' }}>
+        <ToolGrantBanner toolId="bot_dashboard" toolLabel={t('tools.botDashboard', 'Bot Dashboard')} hasGrant={hasToolGrant} isTrial={isTrial} expiresAt={expiresAt} accentColor="#22d3ee" />
+      </div>
 
       {/* Header */}
       <div style={{ padding: mob ? '1.5rem 1rem 1rem' : '2rem 2rem 1.25rem', background: 'linear-gradient(180deg, #111 0%, #0a0a0a 100%)', borderBottom: `1px solid ${colors.borderSubtle}` }}>

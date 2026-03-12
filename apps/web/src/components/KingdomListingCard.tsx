@@ -11,12 +11,12 @@ import { generateTransferListingDiscordMessage, generateTransferListingCard, cop
 import { isReferralEligible } from '../utils/constants';
 import { supabase } from '../lib/supabase';
 import { AllianceDetailsGrid, AllianceInfoGrid } from './AllianceInfoSection';
-import { reviewService, Review } from '../services/reviewService';
+import type { KingdomReputationSummary } from './transfer/types';
 
 // Types & constants extracted to ./transfer/types.ts — re-exported for backward compatibility
 import type { KingdomData, KingdomFund, KingdomReviewSummary, MatchDetail, BoardMode } from './transfer/types';
 import { formatTCLevel } from './transfer/types';
-export type { KingdomData, KingdomFund, KingdomReviewSummary, MatchDetail, BoardMode } from './transfer/types';
+export type { KingdomData, KingdomFund, KingdomReviewSummary, KingdomReputationSummary, MatchDetail, BoardMode } from './transfer/types';
 export { formatTCLevel } from './transfer/types';
 
 const TIER_COLORS: Record<string, string> = {
@@ -44,6 +44,7 @@ export interface KingdomListingCardProps {
   kingdom: KingdomData;
   fund: KingdomFund | null;
   reviewSummary: KingdomReviewSummary | null;
+  reputationSummary?: KingdomReputationSummary | null;
   mode: BoardMode;
   matchScore?: number;
   matchDetails?: MatchDetail[];
@@ -54,7 +55,7 @@ export interface KingdomListingCardProps {
   onToggleCompare?: (kingdomNumber: number) => void;
 }
 
-const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, reviewSummary, mode, matchScore, matchDetails, onApply, onFund, highlighted, isComparing, onToggleCompare }) => {
+const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, reviewSummary, reputationSummary, mode, matchScore, matchDetails, onApply, onFund, highlighted, isComparing, onToggleCompare }) => {
   const { t } = useTranslation();
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedDiscord, setCopiedDiscord] = useState(false);
@@ -66,23 +67,9 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState(false);
-  const [topReviews, setTopReviews] = useState<Review[]>([]);
-  const [topReviewsLoaded, setTopReviewsLoaded] = useState(false);
   const [transferHistory, setTransferHistory] = useState<Array<{ event_number: number; group_number: number; status: string; is_unofficial: boolean }>>([]);
   const [transferHistoryLoaded, setTransferHistoryLoaded] = useState(false);
 
-  // Lazy-load top 5 helpful reviews when details section is expanded
-  const loadTopReviews = useCallback(async () => {
-    if (topReviewsLoaded || !reviewSummary || reviewSummary.review_count === 0) return;
-    try {
-      const reviews = await reviewService.getTopHelpfulReviews(kingdom.kingdom_number, 5);
-      setTopReviews(reviews);
-    } catch (err) {
-      logger.error('Error loading top reviews:', err);
-    } finally {
-      setTopReviewsLoaded(true);
-    }
-  }, [kingdom.kingdom_number, reviewSummary, topReviewsLoaded]);
 
   // Lazy-load transfer status history when details section is expanded
   const loadTransferHistory = useCallback(async () => {
@@ -128,7 +115,6 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
     const newSection = expandedSection === section ? null : section;
     setExpandedSection(newSection);
     if (newSection === 'details') {
-      loadTopReviews();
       loadTransferHistory();
     }
   };
@@ -489,17 +475,17 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
           </SmartTooltip>
         </div>
 
-        {/* Compact Rating Display */}
-        {reviewSummary && reviewSummary.review_count > 0 && (
+        {/* Compact Reputation Display */}
+        {reputationSummary && reputationSummary.review_count > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.4rem', ...(isPremium ? { backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: '6px', padding: '0.15rem 0.45rem', display: 'inline-flex' } : {}) }}>
             <div style={{ display: 'flex', gap: '0.05rem', fontSize: '0.65rem' }}>
-              {renderStars(reviewSummary.avg_rating)}
+              {renderStars(reputationSummary.avg_overall)}
             </div>
             <span style={{ fontSize: '0.65rem', color: colors.text, fontWeight: '600' }}>
-              {reviewSummary.avg_rating.toFixed(1)}
+              {reputationSummary.avg_overall.toFixed(1)}
             </span>
             <span style={{ fontSize: '0.55rem', color: colors.textMuted }}>
-              ({reviewSummary.review_count})
+              ({reputationSummary.review_count})
             </span>
           </div>
         )}
@@ -954,87 +940,68 @@ const KingdomListingCard: React.FC<KingdomListingCardProps> = ({ kingdom, fund, 
               <AllianceDetailsGrid alliances={fund.alliance_events.alliances} allianceDetails={fund.alliance_details} />
             )}
 
-            {/* Community Reviews — top 5 most helpful */}
-            {reviewSummary && reviewSummary.review_count > 0 && (
+            {/* Citizen Reputation Summary */}
+            {reputationSummary && reputationSummary.review_count > 0 && (
               <div style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '0.5rem', marginTop: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
-                  <div style={{ display: 'flex', gap: '0.1rem', fontSize: '0.8rem' }}>
-                    {renderStars(reviewSummary.avg_rating)}
-                  </div>
-                  <span style={{ color: colors.text, fontWeight: '600', fontSize: '0.75rem' }}>
-                    {reviewSummary.avg_rating.toFixed(1)}
-                  </span>
-                  <span style={{ color: colors.textSecondary, fontSize: '0.65rem' }}>
-                    ({t('listing.reviewCount', '{{count}} review(s)', { count: reviewSummary.review_count })})
+                  <span style={{ fontSize: '0.7rem' }}>🏠</span>
+                  <span style={{ color: colors.text, fontWeight: '600', fontSize: '0.72rem' }}>
+                    {t('reputation.citizenReputation', 'Citizen Reputation')}
                   </span>
                 </div>
-                {/* Top helpful reviews */}
-                {topReviewsLoaded && topReviews.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                    {topReviews.map(review => (
-                      <div key={review.id} style={{
-                        padding: '0.35rem 0.5rem',
-                        backgroundColor: colors.surface,
-                        borderRadius: '6px',
-                        borderLeft: '3px solid #fbbf24',
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.15rem' }}>
-                          <span style={{ color: '#fbbf24', fontSize: '0.6rem' }}>
-                            {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
-                          </span>
-                          {review.helpful_count > 0 && (
-                            <span style={{ fontSize: '0.55rem', color: '#22d3ee' }}>
-                              👍 {review.helpful_count}
-                            </span>
-                          )}
-                        </div>
-                        <p style={{ color: colors.textSecondary, fontSize: '0.7rem', margin: 0, fontStyle: 'italic', lineHeight: 1.4 }}>
-                          &ldquo;{review.comment}&rdquo;
-                        </p>
-                        {review.author_linked_username && (
-                          <span style={{ color: colors.textMuted, fontSize: '0.6rem' }}>— {review.author_linked_username}</span>
-                        )}
-                      </div>
-                    ))}
-                    {reviewSummary.review_count > topReviews.length && (
-                      <div style={{ textAlign: 'center', marginTop: '0.25rem' }}>
-                        <span style={{ fontSize: '0.65rem', color: colors.textMuted }}>
-                          {t('listing.showingTopReviews', 'Showing top {{count}} of {{total}} reviews', { count: topReviews.length, total: reviewSummary.review_count })}
-                        </span>
-                      </div>
-                    )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                  <div style={{ display: 'flex', gap: '0.1rem', fontSize: '0.8rem' }}>
+                    {renderStars(reputationSummary.avg_overall)}
                   </div>
-                ) : !topReviewsLoaded ? (
-                  <div style={{ textAlign: 'center', padding: '0.35rem' }}>
-                    <span style={{ fontSize: '0.7rem', color: colors.textMuted }}>{t('reviews.loading', 'Loading reviews...')}</span>
-                  </div>
-                ) : reviewSummary.top_review_comment ? (
+                  <span style={{ color: colors.text, fontWeight: '600', fontSize: '0.75rem' }}>
+                    {reputationSummary.avg_overall.toFixed(1)}
+                  </span>
+                  <span style={{ color: colors.textSecondary, fontSize: '0.65rem' }}>
+                    ({reputationSummary.review_count} {reputationSummary.review_count === 1 ? 'review' : 'reviews'})
+                  </span>
+                </div>
+                {/* Signal breakdown chips */}
+                <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', marginBottom: '0.35rem' }}>
+                  {[
+                    { label: 'Organization', val: reputationSummary.avg_citizen_organization },
+                    { label: 'Leadership', val: reputationSummary.avg_citizen_leadership },
+                    { label: 'Culture', val: reputationSummary.avg_citizen_culture },
+                  ].filter(s => s.val != null).map(s => (
+                    <span key={s.label} style={{
+                      fontSize: '0.6rem',
+                      padding: '0.1rem 0.4rem',
+                      borderRadius: '4px',
+                      backgroundColor: colors.surface,
+                      color: colors.textSecondary,
+                    }}>
+                      {s.label}: {s.val!.toFixed(1)}
+                    </span>
+                  ))}
+                </div>
+                {/* Top review comment */}
+                {reputationSummary.top_review_comment && (
                   <div style={{
                     padding: '0.35rem 0.5rem',
                     backgroundColor: colors.surface,
                     borderRadius: '6px',
-                    borderLeft: '3px solid #fbbf24',
+                    borderLeft: '3px solid #a855f7',
                   }}>
                     <p style={{ color: colors.textSecondary, fontSize: '0.7rem', margin: 0, fontStyle: 'italic', lineHeight: 1.4 }}>
-                      &ldquo;{reviewSummary.top_review_comment}&rdquo;
+                      &ldquo;{reputationSummary.top_review_comment}&rdquo;
                     </p>
-                    {reviewSummary.top_review_author && (
-                      <span style={{ color: colors.textMuted, fontSize: '0.6rem' }}>— {reviewSummary.top_review_author}</span>
-                    )}
                   </div>
-                ) : null}
-                {/* See all reviews link */}
+                )}
                 <div style={{ textAlign: 'center', marginTop: '0.4rem' }}>
                   <Link
-                    to={`/kingdom/${kingdom.kingdom_number}#reviews`}
+                    to={`/kingdom/${kingdom.kingdom_number}`}
                     style={{
                       fontSize: '0.7rem',
-                      color: '#22d3ee',
+                      color: '#a855f7',
                       textDecoration: 'none',
                       fontWeight: '500',
                     }}
                   >
-                    {t('listing.seeAllReviews', 'See all reviews on kingdom profile →')}
+                    {t('listing.seeFullReputation', 'See full reputation on kingdom profile →')}
                   </Link>
                 </div>
               </div>

@@ -100,6 +100,7 @@ async def send_email(
             async with httpx.AsyncClient() as http:
                 resend_payload = {
                     "from": f"Kingshot Atlas <{SUPPORT_EMAIL}>",
+                    "reply_to": SUPPORT_EMAIL,
                     "to": [payload.to],
                     "subject": payload.subject,
                     "text": payload.body_text,

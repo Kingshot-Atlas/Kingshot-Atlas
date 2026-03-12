@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { reviewService, ReviewReport } from '../../services/reviewService';
+import { kingdomReputationService, type ReputationReport } from '../../services/kingdomReputationService';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 
@@ -9,14 +9,14 @@ interface ReviewReportsTabProps {
 
 export const ReviewReportsTab: React.FC<ReviewReportsTabProps> = ({ filter }) => {
   const { user } = useAuth();
-  const [reports, setReports] = useState<ReviewReport[]>([]);
+  const [reports, setReports] = useState<ReputationReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<'pending' | 'reviewed' | 'dismissed' | 'all'>('pending');
   const [actioningId, setActioningId] = useState<string | null>(null);
 
   const loadReports = async () => {
     setLoading(true);
-    const data = await reviewService.getReviewReports(statusFilter === 'all' ? undefined : statusFilter);
+    const data = await kingdomReputationService.getAllReports(statusFilter === 'all' ? undefined : statusFilter);
     setReports(data);
     setLoading(false);
   };
@@ -28,7 +28,7 @@ export const ReviewReportsTab: React.FC<ReviewReportsTabProps> = ({ filter }) =>
   const handleDismiss = async (reportId: string) => {
     if (!user?.id) return;
     setActioningId(reportId);
-    const result = await reviewService.updateReportStatus(reportId, 'dismissed', user.id);
+    const result = await kingdomReputationService.updateReportStatus(reportId, 'dismissed', user.id);
     if (result.success) {
       setReports(prev => prev.map(r => r.id === reportId ? { ...r, status: 'dismissed' as const } : r));
     }
@@ -38,7 +38,7 @@ export const ReviewReportsTab: React.FC<ReviewReportsTabProps> = ({ filter }) =>
   const handleMarkReviewed = async (reportId: string) => {
     if (!user?.id) return;
     setActioningId(reportId);
-    const result = await reviewService.updateReportStatus(reportId, 'reviewed', user.id);
+    const result = await kingdomReputationService.updateReportStatus(reportId, 'reviewed', user.id);
     if (result.success) {
       setReports(prev => prev.map(r => r.id === reportId ? { ...r, status: 'reviewed' as const } : r));
     }
@@ -49,9 +49,9 @@ export const ReviewReportsTab: React.FC<ReviewReportsTabProps> = ({ filter }) =>
     if (!user?.id) return;
     if (!confirm('Delete this review permanently? This cannot be undone.')) return;
     setActioningId(reportId);
-    const deleteResult = await reviewService.adminDeleteReview(reviewId);
+    const deleteResult = await kingdomReputationService.adminHideReview(reviewId, 'Reported and removed by admin', user.id);
     if (deleteResult.success) {
-      await reviewService.updateReportStatus(reportId, 'reviewed', user.id);
+      await kingdomReputationService.updateReportStatus(reportId, 'reviewed', user.id);
       setReports(prev => prev.filter(r => r.review_id !== reviewId));
     }
     setActioningId(null);

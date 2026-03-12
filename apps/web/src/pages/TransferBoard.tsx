@@ -12,7 +12,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
 import { useStructuredData, PAGE_BREADCRUMBS, TRANSFER_HUB_FAQ_DATA } from '../hooks/useStructuredData';
 import Breadcrumbs from '../components/Breadcrumbs';
-import type { KingdomData, KingdomFund, KingdomReviewSummary, BoardMode, MatchDetail } from '../components/KingdomListingCard';
+import type { KingdomData, KingdomFund, KingdomReviewSummary, KingdomReputationSummary, BoardMode, MatchDetail } from '../components/KingdomListingCard';
 import { useScrollDepth } from '../hooks/useScrollDepth';
 import TransferHubGuide from '../components/TransferHubGuide';
 import EntryModal from '../components/transfer/EntryModal';
@@ -37,7 +37,7 @@ const KingdomCompare = lazy(() => import('../components/transfer/KingdomCompare'
 
 import { getTransferGroupLabel } from '../config/transferGroups';
 import { calculateMatchScore as calcMatchScore, calculateMatchScoreForSort as calcMatchScoreForSort } from '../utils/matchScore';
-import { useTransferKingdoms, useTransferFunds, useTransferReviewSummaries, useUserTransferProfile, useActiveAppCount, useEditorStatus, useAtlasPlayerCount, useInvalidateTransferHub, useTransferGroups } from '../hooks/useTransferHubQueries';
+import { useTransferKingdoms, useTransferFunds, useTransferReviewSummaries, useTransferReputationSummaries, useUserTransferProfile, useActiveAppCount, useEditorStatus, useAtlasPlayerCount, useInvalidateTransferHub, useTransferGroups } from '../hooks/useTransferHubQueries';
 
 // =============================================
 // TYPES (KingdomData, KingdomFund, KingdomReviewSummary, BoardMode, MatchDetail, formatTCLevel
@@ -90,6 +90,7 @@ const TransferBoard: React.FC = () => {
   const { data: kingdoms = [], isLoading: kingdomsLoading } = useTransferKingdoms();
   const { data: funds = [], isLoading: fundsLoading } = useTransferFunds();
   const { data: reviewSummaries = [] } = useTransferReviewSummaries();
+  const { data: reputationSummaries = [] } = useTransferReputationSummaries();
   const userProfileQuery = useUserTransferProfile(user?.id);
   const activeAppCountQuery = useActiveAppCount(user?.id);
   const editorStatusQuery = useEditorStatus(user?.id);
@@ -366,6 +367,13 @@ const TransferBoard: React.FC = () => {
     reviewSummaries.forEach((r) => map.set(r.kingdom_number, r));
     return map;
   }, [reviewSummaries]);
+
+  // Create reputation summary lookup map (citizen only for Transfer Hub)
+  const reputationMap = useMemo(() => {
+    const map = new Map<number, KingdomReputationSummary>();
+    reputationSummaries.forEach((r) => map.set(r.kingdom_number, r));
+    return map;
+  }, [reputationSummaries]);
 
   // Transfer groups from Supabase (source of truth), falls back to static config
   const { groups: dynamicTransferGroups, updatedAt: transferGroupsUpdatedAt } = useTransferGroups();
@@ -916,6 +924,7 @@ const TransferBoard: React.FC = () => {
                 kingdom={kingdom}
                 fund={fund}
                 reviewSummary={reviewMap.get(kingdom.kingdom_number) || null}
+                reputationSummary={reputationMap.get(kingdom.kingdom_number) || null}
                 mode={mode}
                 matchScore={score}
                 matchDetails={details}
@@ -1050,6 +1059,7 @@ const TransferBoard: React.FC = () => {
         filteredKingdoms={filteredKingdoms}
         fundMap={fundMap}
         reviewMap={reviewMap}
+        reputationMap={reputationMap}
         matchScoreMap={matchScoreMap}
         mode={mode}
         visibleCount={visibleCount}

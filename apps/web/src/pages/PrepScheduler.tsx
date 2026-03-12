@@ -1,5 +1,7 @@
 import React from 'react';
 import BackLink from '../components/shared/BackLink';
+import ToolGrantBanner from '../components/shared/ToolGrantBanner';
+import { useAdminToolGrant } from '../hooks/useAdminToolGrant';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../utils/styles';
 import {
@@ -14,6 +16,7 @@ import {
 const PrepScheduler: React.FC = () => {
   const { t } = useTranslation();
   const hook = usePrepScheduler();
+  const { hasGrant: hasToolGrant, isTrial, expiresAt } = useAdminToolGrant('prep_scheduler');
 
   // Loading state
   if (hook.loading) {
@@ -112,6 +115,9 @@ const PrepScheduler: React.FC = () => {
   if (hook.view === 'manage' && hook.schedule) {
     return (
       <>
+        <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 1rem' }}>
+          <ToolGrantBanner toolId="prep_scheduler" toolLabel={t('tools.prepScheduler', 'Prep Scheduler')} hasGrant={hasToolGrant} isTrial={isTrial} expiresAt={expiresAt} accentColor="#22c55e" />
+        </div>
         <PrepSchedulerManager
           isMobile={hook.isMobile}
           schedule={hook.schedule}

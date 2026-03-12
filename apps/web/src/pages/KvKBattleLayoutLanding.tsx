@@ -154,7 +154,7 @@ const KvKBattleLayoutLanding: React.FC = () => {
             </Link>
             {!hasFullAccess && (
               <Link
-                to="/transfer-hub"
+                to={profile?.linked_kingdom ? `/kingdom/${profile.linked_kingdom}/fund` : '/transfer-hub'}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
                   padding: '0.75rem 1.5rem', backgroundColor: 'transparent',
@@ -163,7 +163,7 @@ const KvKBattleLayoutLanding: React.FC = () => {
                   fontSize: isMobile ? '0.9rem' : '0.95rem', textDecoration: 'none',
                 }}
               >
-                {t('battleLayoutLanding.getGoldAccess', 'How to Reach Gold Tier')}
+                {t('battleLayoutLanding.fundYourKingdom', 'Fund Your Kingdom')}
               </Link>
             )}
           </div>
@@ -353,7 +353,7 @@ const KvKBattleLayoutLanding: React.FC = () => {
             ) : (
               <>
                 <Link
-                  to="/transfer-hub"
+                  to={profile?.linked_kingdom ? `/kingdom/${profile.linked_kingdom}/fund` : '/transfer-hub'}
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
                     padding: '0.75rem 1.5rem', backgroundColor: '#ffc30b',
@@ -363,7 +363,7 @@ const KvKBattleLayoutLanding: React.FC = () => {
                     boxShadow: '0 4px 15px rgba(255, 195, 11, 0.3)',
                   }}
                 >
-                  {t('battleLayoutLanding.reachGold', 'Reach Gold Tier')}
+                  {t('battleLayoutLanding.fundYourKingdom', 'Fund Your Kingdom')}
                 </Link>
                 <Link
                   to="/tools/battle-layout"

@@ -61,6 +61,20 @@ export interface KingdomReviewSummary {
   top_review_author: string | null;
 }
 
+export interface KingdomReputationSummary {
+  kingdom_number: number;
+  review_type: 'citizen' | 'rival';
+  review_count: number;
+  avg_overall: number;
+  avg_citizen_organization: number | null;
+  avg_citizen_leadership: number | null;
+  avg_citizen_culture: number | null;
+  avg_rival_communication: number | null;
+  avg_rival_compliance: number | null;
+  avg_rival_sportsmanship: number | null;
+  top_review_comment: string | null;
+}
+
 export interface MatchDetail {
   label: string;
   matched: boolean;

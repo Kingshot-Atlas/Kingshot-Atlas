@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { statusService } from '../services/statusService';
-import { reviewService } from '../services/reviewService';
+import { kingdomReputationService } from '../services/kingdomReputationService';
 
 // Query keys
 export const kingdomProfileKeys = {
@@ -10,6 +10,7 @@ export const kingdomProfileKeys = {
   pendingSubmissions: (kingdomNumber: number) => ['kingdom-pending-submissions', kingdomNumber] as const,
   editor: (kingdomNumber: number) => ['kingdom-editor', kingdomNumber] as const,
   aggregateRating: (kingdomNumber: number) => ['kingdom-aggregate-rating', kingdomNumber] as const,
+  reputationSummary: (kingdomNumber: number, type: string) => ['kingdom-reputation-summary', kingdomNumber, type] as const,
   battleManagers: (kingdomNumber: number) => ['battle-managers', kingdomNumber] as const,
 };
 
@@ -186,12 +187,19 @@ export function useKingdomEditor(kingdomNumber: number | undefined, userId: stri
 }
 
 /**
- * Fetch aggregate rating for structured data (SEO) - requires 5+ reviews
+ * Fetch aggregate rating for structured data (SEO) - uses new reputation system
  */
 export function useKingdomAggregateRating(kingdomNumber: number | undefined) {
   return useQuery({
     queryKey: kingdomProfileKeys.aggregateRating(kingdomNumber!),
-    queryFn: () => reviewService.getAggregateRatingForStructuredData(kingdomNumber!),
+    queryFn: async () => {
+      const summary = await kingdomReputationService.getSummary(kingdomNumber!, 'citizen');
+      if (!summary || summary.review_count < 5) return null;
+      return {
+        avgRating: summary.avg_overall,
+        reviewCount: summary.review_count,
+      };
+    },
     enabled: !!kingdomNumber,
     staleTime: 10 * 60 * 1000,
   });

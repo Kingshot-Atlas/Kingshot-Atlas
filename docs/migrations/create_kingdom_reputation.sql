@@ -1,0 +1,14 @@
+-- =============================================
+-- Kingdom Reputation System
+-- Replaces the old kingdom_reviews system
+-- Applied: 2026-07-XX
+-- =============================================
+
+-- See Supabase migration: create_kingdom_reputation_tables
+-- Tables: kingdom_reputation_reviews, kingdom_reputation_votes,
+--         kingdom_reputation_responses, kingdom_reputation_reports
+-- View:   kingdom_reputation_summaries (materialized)
+-- Functions: refresh_reputation_summaries(), is_rival_eligible(),
+--            update_reputation_vote_counts(), update_reputation_updated_at()
+-- RLS: Full policies on all tables
+-- Triggers: vote count sync, updated_at auto-update

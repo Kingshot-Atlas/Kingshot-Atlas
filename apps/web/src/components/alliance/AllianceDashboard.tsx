@@ -28,6 +28,7 @@ import ImportMembersModal from './ImportMembersModal';
 import TransferOwnershipModal from './TransferOwnershipModal';
 import ManagerModal from './ManagerModal';
 import EditMemberModal from './EditMemberModal';
+import ToolGrantBanner from '../shared/ToolGrantBanner';
 import AvailTooltip from './AvailTooltip';
 import { logAllianceActivity } from './logAllianceActivity';
 import AllianceActivityLog from './AllianceActivityLog';
@@ -39,7 +40,7 @@ const AllianceDashboard: React.FC = () => {
   const { user: authUser, profile: authProfile } = useAuth();
   const ac = useAllianceCenter();
   const queryClient = useQueryClient();
-  const { hasAccess, reason, grantedBy } = useToolAccess();
+  const { hasAccess, reason, grantedBy, isTrial, expiresAt } = useToolAccess();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
   const [showImport, setShowImport] = useState(false);
@@ -319,6 +320,7 @@ const AllianceDashboard: React.FC = () => {
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: isMobile ? '0.5rem' : '1rem' }}>
+      {reason === 'tool_grant' && <ToolGrantBanner toolId="alliance_center" toolLabel={t('tools.allianceCenter', 'Alliance Center')} hasGrant={hasAccess} isTrial={!!isTrial} expiresAt={expiresAt ?? null} accentColor="#a855f7" />}
       {/* Alliance Header */}
       <div style={{
         backgroundColor: '#111111', borderRadius: '16px', border: `1px solid ${ACCENT_BORDER}`,

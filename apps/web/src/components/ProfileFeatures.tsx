@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { apiService } from '../services/api';
 import { Kingdom, getPowerTier, TIER_COLORS } from '../types';
 import { MiniKingdomCard } from './profile-features';
-import { reviewService, Review } from '../services/reviewService';
+import { kingdomReputationService, type ReputationReview } from '../services/kingdomReputationService';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { useFavoritesContext } from '../contexts/FavoritesContext';
 import { neonGlow } from '../utils/styles';
@@ -17,14 +17,12 @@ const ProfileFeatures: React.FC = () => {
   const navigate = useNavigate();
   const { favorites, toggleFavorite } = useFavoritesContext();
   const [watchlist, setWatchlist] = useState<number[]>([]);
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviews, setReviews] = useState<ReputationReview[]>([]);
   const [homeKingdomData, setHomeKingdomData] = useState<Kingdom | null>(null);
   const isMobile = useIsMobile();
   const [showAllFavorites, setShowAllFavorites] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [favoriteKingdoms, setFavoriteKingdoms] = useState<Kingdom[]>([]);
-  const [totalHelpfulCount, setTotalHelpfulCount] = useState(0);
-  const [isTopReviewer, setIsTopReviewer] = useState(false);
 
   const themeColor = profile?.theme_color || '#22d3ee';
   
@@ -39,14 +37,10 @@ const ProfileFeatures: React.FC = () => {
     const savedWatch = localStorage.getItem(watchKey);
     if (savedWatch) setWatchlist(JSON.parse(savedWatch));
 
-    // Load user's reviews from Supabase
+    // Load user's reputation reviews from Supabase
     if (user?.id && isSupabaseConfigured) {
-      reviewService.getUserReviews(user.id).then(userReviews => {
+      kingdomReputationService.getUserReviews(user.id).then(userReviews => {
         setReviews(userReviews);
-        // Calculate total helpful count
-        const totalHelpful = userReviews.reduce((sum, r) => sum + (r.helpful_count || 0), 0);
-        setTotalHelpfulCount(totalHelpful);
-        setIsTopReviewer(totalHelpful >= 5);
       });
     }
   }, [user?.id]);
@@ -187,7 +181,7 @@ const ProfileFeatures: React.FC = () => {
   );
   };
 
-  const ReviewCard = ({ review }: { review: Review }) => (
+  const ReviewCard = ({ review }: { review: ReputationReview }) => (
     <div style={{
       backgroundColor: '#131318',
       borderRadius: '12px',
@@ -222,27 +216,27 @@ const ProfileFeatures: React.FC = () => {
             {t('common.kingdom', 'Kingdom')} {review.kingdom_number}
           </span>
           <span style={{ color: '#fbbf24', fontSize: '0.9rem' }}>
-            {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+            {review.overall_rating.toFixed(1)} ★
           </span>
-          {review.helpful_count > 0 && (
-            <span style={{ 
-              fontSize: '0.75rem', 
-              color: '#22d3ee',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.25rem'
-            }}>
-              👍 {review.helpful_count}
-            </span>
-          )}
+          <span style={{
+            fontSize: '0.65rem',
+            padding: '0.1rem 0.4rem',
+            borderRadius: '4px',
+            backgroundColor: review.review_type === 'citizen' ? '#a855f715' : '#22d3ee15',
+            color: review.review_type === 'citizen' ? '#a855f7' : '#22d3ee',
+          }}>
+            {review.review_type === 'citizen' ? '🏠 Citizen' : '⚔️ Rival'}
+          </span>
         </div>
         <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
           {new Date(review.created_at).toLocaleDateString()}
         </span>
       </div>
-      <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}>
-        {review.comment}
-      </p>
+      {review.comment && (
+        <p style={{ color: '#9ca3af', fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}>
+          {review.comment}
+        </p>
+      )}
     </div>
   );
 
@@ -393,7 +387,7 @@ const ProfileFeatures: React.FC = () => {
         </div>
       )}
 
-      {/* Review History - Most Recent 5 */}
+      {/* Reputation Review History - Most Recent 5 */}
       {reviews.length > 0 && (
         <div style={{
           backgroundColor: '#111116',
@@ -403,36 +397,13 @@ const ProfileFeatures: React.FC = () => {
         }}>
           <h3 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              {t('profileFeatures.reviewHistory')}
+              {t('profileFeatures.reviewHistory', 'Your Reviews')}
               <span style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 'normal' }}>
                 ({reviews.length})
               </span>
-              {/* Top Reviewer Badge */}
-              {isTopReviewer && (
-                <span style={{
-                  fontSize: '0.65rem',
-                  padding: '0.2rem 0.5rem',
-                  backgroundColor: '#22d3ee15',
-                  border: '1px solid #22d3ee40',
-                  borderRadius: '4px',
-                  color: '#22d3ee',
-                  fontWeight: '600',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.25rem'
-                }}>
-                  ⭐ {t('profileFeatures.topReviewer')}
-                </span>
-              )}
-              {/* Helpful count */}
-              {totalHelpfulCount > 0 && (
-                <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 'normal' }}>
-                  • 👍 {totalHelpfulCount} {t('profileFeatures.helpful')}
-                </span>
-              )}
             </span>
             <span style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: 'normal' }}>
-              {t('profileFeatures.mostRecentFirst')}
+              {t('profileFeatures.mostRecentFirst', 'Most recent first')}
             </span>
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
