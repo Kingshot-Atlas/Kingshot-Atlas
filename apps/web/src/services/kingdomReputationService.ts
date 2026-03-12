@@ -265,12 +265,13 @@ export const kingdomReputationService = {
     kingdomNumber: number,
     reviewType: ReviewType
   ): Promise<ReputationSummary | null> {
-    const { data, error } = await getSupabase()
-      .from('kingdom_reputation_summaries')
-      .select('*')
-      .eq('kingdom_number', kingdomNumber)
-      .eq('review_type', reviewType)
-      .maybeSingle();
+    const { data: rows, error } = await getSupabase()
+      .rpc('get_kingdom_reputation_summaries', {
+        p_kingdom_number: kingdomNumber,
+        p_review_type: reviewType,
+      });
+
+    const data = rows?.[0] ?? null;
 
     if (error) {
       logger.error('Error fetching reputation summary:', error);
@@ -282,9 +283,9 @@ export const kingdomReputationService = {
 
   async getSummaries(kingdomNumber: number): Promise<ReputationSummary[]> {
     const { data, error } = await getSupabase()
-      .from('kingdom_reputation_summaries')
-      .select('*')
-      .eq('kingdom_number', kingdomNumber);
+      .rpc('get_kingdom_reputation_summaries', {
+        p_kingdom_number: kingdomNumber,
+      });
 
     if (error) {
       logger.error('Error fetching reputation summaries:', error);
@@ -334,9 +335,9 @@ export const kingdomReputationService = {
 
   async getCitizenSummariesForTransferHub(): Promise<ReputationSummary[]> {
     const { data, error } = await getSupabase()
-      .from('kingdom_reputation_summaries')
-      .select('*')
-      .eq('review_type', 'citizen');
+      .rpc('get_kingdom_reputation_summaries', {
+        p_review_type: 'citizen',
+      });
 
     if (error) {
       logger.error('Error fetching citizen summaries:', error);

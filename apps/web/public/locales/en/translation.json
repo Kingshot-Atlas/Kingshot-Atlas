@@ -4378,7 +4378,11 @@
     "tierCutoffsDesc": "Set the minimum score for each tier. Players below the C threshold are placed in D tier.",
     "belowC": "Below C threshold",
     "resetToAuto": "Reset to Auto",
-    "applyCutoffs": "Apply Cutoffs"
+    "applyCutoffs": "Apply Cutoffs",
+    "bulkHeroesGear": "Heroes & Gear",
+    "bulkTroopStats": "Troop Stats (ATK / LTH / DEF / HP)",
+    "bulkHeroesEG": "Heroes & EG",
+    "bulkTroopStatsShort": "Troop Stats"
   },
   "battleTierLanding": {
     "pageTitle": "KvK Battle Tier List",

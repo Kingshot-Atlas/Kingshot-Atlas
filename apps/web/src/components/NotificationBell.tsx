@@ -179,6 +179,7 @@ const NotificationBell: React.FC = () => {
       case 'endorsement_received':
         return '/transfer-hub';
       case 'referral_verified':
+      case 'referral_invalidated':
         return '/profile';
       case 'favorite_score_change':
         return kn ? `/kingdom/${kn}` : '/';

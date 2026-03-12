@@ -188,9 +188,9 @@ export function useTransferReviewSummaries() {
 async function fetchReputationSummaries(): Promise<KingdomReputationSummary[]> {
   if (!supabase) return [];
   const { data, error } = await supabase
-    .from('kingdom_reputation_summaries')
-    .select('*')
-    .eq('review_type', 'citizen');
+    .rpc('get_kingdom_reputation_summaries', {
+      p_review_type: 'citizen',
+    });
 
   if (error) {
     logger.error('Error fetching reputation summaries:', error);

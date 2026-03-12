@@ -3,6 +3,18 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-12 10:54 | Platform Engineer | COMPLETED
+Task: Fix 10 Supabase security warnings (9 mutable search_path functions + 1 unrestricted materialized view)
+Files: kingdomReputationService.ts, useTransferHubQueries.ts (frontend), 2 Supabase migrations
+Changes:
+- Added `SET search_path = ''` to 9 functions: get_hourly_analytics, get_new_vs_returning_visitors, get_peak_hours_heatmap, get_visitor_journey_funnel, refresh_reputation_summaries, update_reputation_vote_counts, is_rival_eligible, update_reputation_updated_at, get_onboarding_data
+- Schema-qualified all unqualified table references (page_views, kvk_history, kingdom_reputation_reviews, alliance_applications, alliances, alliance_members, kingdom_reputation_summaries)
+- Created secure RPC function `get_kingdom_reputation_summaries()` to wrap materialized view access
+- Revoked anon + authenticated direct SELECT on `kingdom_reputation_summaries` materialized view
+- Updated 4 frontend `.from('kingdom_reputation_summaries')` queries to `.rpc('get_kingdom_reputation_summaries', {...})`
+- Supabase security advisors now show 0 warnings
+Result: All 10 security lint warnings resolved, build passes, functional tests verified
+
 ## 2026-03-11 22:30 | Product Engineer | COMPLETED
 Task: Kingdom Profile Tabs + Nearby Top Kingdoms feature
 Files: apps/web/src/pages/KingdomProfile.tsx, apps/web/src/components/NearbyTopKingdoms.tsx (NEW), apps/web/src/components/SimilarKingdoms.tsx, apps/web/src/components/kingdom-profile/LoginGatedSection.tsx, 11 locale translation.json files

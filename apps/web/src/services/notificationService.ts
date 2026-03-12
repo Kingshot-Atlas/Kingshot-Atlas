@@ -33,6 +33,7 @@ export type NotificationType =
   | 'system_announcement'
   | 'favorite_score_change'
   | 'referral_verified'
+  | 'referral_invalidated'
   | 'new_application'
   | 'application_status'
   | 'co_editor_invite'
@@ -290,6 +291,8 @@ class NotificationService {
         return '📊';
       case 'referral_verified':
         return '🏛️';
+      case 'referral_invalidated':
+        return '⚠️';
       case 'new_application':
         return '📩';
       case 'application_status':
@@ -341,6 +344,8 @@ class NotificationService {
         return colors.purple; // purple
       case 'referral_verified':
         return '#a24cf3'; // ambassador purple (one-off)
+      case 'referral_invalidated':
+        return colors.amber; // amber warning
       case 'new_application':
         return colors.warning; // yellow
       case 'application_status':

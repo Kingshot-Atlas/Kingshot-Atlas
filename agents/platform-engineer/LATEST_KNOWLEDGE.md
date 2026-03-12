@@ -1,7 +1,33 @@
 # Platform Engineer — Latest Knowledge
 
-**Last Updated:** 2026-02-21  
+**Last Updated:** 2026-07-17  
 **Purpose:** Current best practices for backend development, security, and performance
+
+---
+
+## Referral Count Integrity System (2026-07-17)
+
+**Problem:** `profiles.referral_count` is a denormalized cache of `COUNT(*) FROM referrals WHERE status='verified'`. Before this fix, it was only updated in specific code paths (verify_pending_referral trigger, manual admin, endorsement). Any status change outside those paths (direct SQL, future admin tools) caused silent drift. Initial reconciliation found **1 mismatched profile**.
+
+**Triggers on `referrals` table (5 total):**
+| Trigger | Timing | Event | Function |
+|---------|--------|-------|----------|
+| `enforce_referral_rate_limit` | BEFORE | INSERT | `check_referral_rate_limit()` — max 10 pending/referrer |
+| `enforce_referral_ip_check` | BEFORE | INSERT | `check_referral_ip_abuse()` — auto-invalidate 3+ same IP+referrer |
+| `on_referral_insert_audit` | AFTER | INSERT | `log_referral_insert()` — audit log entry |
+| `on_referral_status_change` | AFTER | UPDATE | `sync_referral_count_on_status_change()` — recount + notify |
+| `on_referral_delete_sync_count` | AFTER | DELETE | `sync_referral_count_on_status_change()` — recount |
+
+**Key functions:**
+- `sync_referral_count_on_status_change()` — Recounts verified referrals, updates `referral_count` + `referral_tier`, writes audit log, sends `referral_invalidated` notification on invalidation. SECURITY DEFINER, search_path=public.
+- `log_referral_insert()` — Logs all new referrals to audit. Tags IP abuse auto-invalids with context `ip_abuse_auto_invalid`.
+- `reconcile_referral_counts()` — Fixes all mismatched counts in one pass. Called weekly via pg_cron (Sundays 04:00 UTC, job: `reconcile-referral-counts-weekly`). Can also be called manually: `SELECT reconcile_referral_counts();`
+
+**Audit log table:** `referral_audit_log` — columns: id, referral_id, referrer_user_id, referred_user_id, old_status, new_status, changed_at, context. RLS: admin-only SELECT. Indexed on referrer_user_id and referral_id.
+
+**Interaction with existing triggers:** `verify_pending_referral` (on profiles AFTER UPDATE) updates referrals.status → triggers `sync_referral_count_on_status_change` → both recount independently → same result. Safe, no recursion (profiles UPDATE only changes referral_count, so verify_pending_referral guard condition fails on re-entry).
+
+**IP abuse threshold:** Kept at 3+ same IP per referrer (ip_count >= 2 on BEFORE INSERT). Reasonable for anti-fraud. Families/offices sharing IP can be manually overridden by admin.
 
 ---
 
