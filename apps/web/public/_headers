@@ -17,7 +17,10 @@
 /
   Cache-Control: no-cache, no-store, must-revalidate
 
-# Service worker must not be cached
+# Service worker must not be cached (VitePWA generates sw.js)
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
 /service-worker.js
   Cache-Control: no-cache, no-store, must-revalidate
 

@@ -4,6 +4,7 @@ import './i18n'
 import App from './App'
 import './index.css'
 import { logger } from './utils/logger'
+import { registerUpdateHandler } from './serviceWorkerRegistration'
 
 // Unregister service workers in development to prevent OAuth redirect issues
 if (import.meta.env.DEV && 'serviceWorker' in navigator) {
@@ -20,3 +21,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <App />
   </React.StrictMode>,
 )
+
+// Listen for SW updates and auto-reload so users always see the latest build
+registerUpdateHandler()

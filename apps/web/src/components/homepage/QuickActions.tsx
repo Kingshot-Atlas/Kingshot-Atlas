@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { useToast } from '../Toast';
 
 interface QuickAction {
   label: string;
@@ -78,6 +79,7 @@ const QuickActions: React.FC = () => {
   const isMobile = useIsMobile();
   const { trackFeature } = useAnalytics();
   const { t } = useTranslation();
+  const { showToast } = useToast();
 
   const iconSize = isMobile ? 16 : 20;
 
@@ -105,7 +107,10 @@ const QuickActions: React.FC = () => {
           <button
             key={action.label}
             onClick={() => {
-              if (action.comingSoon) return;
+              if (action.comingSoon) {
+                if (isMobile) showToast(t('common.comingSoon', 'This feature is coming soon!'), 'info', 2500);
+                return;
+              }
               trackFeature('QuickAction Clicked', { tile: action.label });
               navigate(action.path);
             }}
@@ -173,7 +178,7 @@ const QuickActions: React.FC = () => {
                 }}>
                   {action.line2}
                 </span>
-                {action.comingSoon && (
+                {action.comingSoon && !isMobile && (
                   <span style={{
                     fontSize: '0.5rem',
                     fontWeight: 700,
