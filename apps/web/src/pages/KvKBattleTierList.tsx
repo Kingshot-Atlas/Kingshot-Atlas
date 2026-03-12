@@ -1000,6 +1000,8 @@ const KvKBattleTierList: React.FC = () => {
                 isMobile={isMobile}
                 tierOverridesOffense={state.tierOverridesOffense}
                 tierOverridesDefense={state.tierOverridesDefense}
+                offenseWeights={state.offenseWeights}
+                defenseWeights={state.defenseWeights}
               />
             )}
 
@@ -1013,6 +1015,8 @@ const KvKBattleTierList: React.FC = () => {
                 rosterNames={state.kingdomPlayerNames}
                 tierOverridesOffense={state.tierOverridesOffense}
                 tierOverridesDefense={state.tierOverridesDefense}
+                offenseWeights={state.offenseWeights}
+                defenseWeights={state.defenseWeights}
               />
             )}
 
@@ -1129,8 +1133,21 @@ const KvKBattleTierList: React.FC = () => {
               </div>
             )}
 
+            {/* Loading indicator when switching lists */}
+            {state.listSwitching && (
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '2rem', marginBottom: '1rem',
+              }}>
+                <div className="loading-spinner-sm" />
+                <span style={{ marginLeft: '0.5rem', color: '#6b7280', fontSize: '0.8rem' }}>
+                  {t('battleTier.switchingList', 'Loading list...')}
+                </span>
+              </div>
+            )}
+
             {/* Tier Table */}
-            {rankedPlayers.length > 0 ? (
+            {!state.listSwitching && rankedPlayers.length > 0 ? (
               <div>
                 {/* Player Rows */}
                 {rankedPlayers.map(player => (

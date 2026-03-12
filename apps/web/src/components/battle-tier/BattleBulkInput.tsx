@@ -5,10 +5,15 @@ import {
   getHeroesByTroopType,
   calculateOffenseScore,
   calculateDefenseScore,
+  calculateWeightedOffenseScore,
+  calculateWeightedDefenseScore,
   recalculateAll,
+  recalculateAllWeighted,
+  isTroopWeightsDefault,
   TROOP_COLORS,
   type BattlePlayerEntry,
   type BattleTierOverrides,
+  type BattleTroopWeights,
 } from '../../data/battleTierData';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -64,6 +69,8 @@ interface BattleBulkInputProps {
   rosterNames?: string[];
   tierOverridesOffense?: BattleTierOverrides | null;
   tierOverridesDefense?: BattleTierOverrides | null;
+  offenseWeights?: BattleTroopWeights;
+  defenseWeights?: BattleTroopWeights;
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -71,6 +78,7 @@ interface BattleBulkInputProps {
 const BattleBulkInput: React.FC<BattleBulkInputProps> = ({
   existingPlayers, onSave, onClose, isMobile, rosterNames = [],
   tierOverridesOffense, tierOverridesDefense,
+  offenseWeights, defenseWeights,
 }) => {
   const { t } = useTranslation();
   const [rows, setRows] = useState<BulkRow[]>(() => [createEmptyRow(), createEmptyRow(), createEmptyRow()]);
@@ -169,16 +177,21 @@ const BattleBulkInput: React.FC<BattleBulkInputProps> = ({
         offenseTier: 'D' as const,
         defenseTier: 'D' as const,
       };
-      entry.offenseScore = calculateOffenseScore(entry);
-      entry.defenseScore = calculateDefenseScore(entry);
+      const hasCustomWeights = (offenseWeights && !isTroopWeightsDefault(offenseWeights)) || (defenseWeights && !isTroopWeightsDefault(defenseWeights));
+      entry.offenseScore = hasCustomWeights && offenseWeights ? calculateWeightedOffenseScore(entry, offenseWeights) : calculateOffenseScore(entry);
+      entry.defenseScore = hasCustomWeights && defenseWeights ? calculateWeightedDefenseScore(entry, defenseWeights) : calculateDefenseScore(entry);
       return entry;
     });
 
     // Merge with existing and recalculate tiers
     const combined = [...existingPlayers, ...newEntries];
-    const withTiers = recalculateAll(combined, tierOverridesOffense, tierOverridesDefense);
-    onSave(withTiers);
-  }, [rows, existingPlayers, onSave, t, tierOverridesOffense, tierOverridesDefense]);
+    const hasCustomWeights = (offenseWeights && !isTroopWeightsDefault(offenseWeights)) || (defenseWeights && !isTroopWeightsDefault(defenseWeights));
+    if (hasCustomWeights && offenseWeights && defenseWeights) {
+      onSave(recalculateAllWeighted(combined, tierOverridesOffense, tierOverridesDefense, offenseWeights, defenseWeights));
+    } else {
+      onSave(recalculateAll(combined, tierOverridesOffense, tierOverridesDefense));
+    }
+  }, [rows, existingPlayers, onSave, t, tierOverridesOffense, tierOverridesDefense, offenseWeights, defenseWeights]);
 
   // ── Shared styles ──
   const cellInput: React.CSSProperties = {

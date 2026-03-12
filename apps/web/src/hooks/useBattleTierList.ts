@@ -166,6 +166,8 @@ export function useBattleTierList() {
   const [showWeightsPanel, setShowWeightsPanel] = useState(false);
   const [offenseWeights, setOffenseWeights] = useState<BattleTroopWeights>(structuredClone(DEFAULT_TROOP_WEIGHTS));
   const [defenseWeights, setDefenseWeights] = useState<BattleTroopWeights>(structuredClone(DEFAULT_TROOP_WEIGHTS));
+  const [listVersion, setListVersion] = useState(1);
+  const [listSwitching, setListSwitching] = useState(false);
 
   // ── Kingdom player names for autocomplete (cached in localStorage, 5-min TTL) ──
   const [kingdomPlayerNames, setKingdomPlayerNames] = useState<string[]>([]);
@@ -220,7 +222,7 @@ export function useBattleTierList() {
     }
     setLoading(true);
     supabase.from('battle_tier_lists')
-      .select('id, name, kingdom_number, created_at, updated_at, updated_by_username, players, defense_players, tier_overrides_offense, tier_overrides_defense')
+      .select('id, name, kingdom_number, created_at, updated_at, updated_by_username, players, defense_players, tier_overrides_offense, tier_overrides_defense, weights_offense, weights_defense, version')
       .eq('kingdom_number', kingdomNumber)
       .order('created_at', { ascending: true })
       .then(({ data, error }) => {
@@ -257,6 +259,22 @@ export function useBattleTierList() {
             // Load overrides from the match data
             if (match.tier_overrides_offense) setTierOverridesOffense(match.tier_overrides_offense as unknown as BattleTierOverrides);
             if (match.tier_overrides_defense) setTierOverridesDefense(match.tier_overrides_defense as unknown as BattleTierOverrides);
+            // Load persisted weights
+            const loadedOffW = match.weights_offense as unknown as BattleTroopWeights | null;
+            const loadedDefW = match.weights_defense as unknown as BattleTroopWeights | null;
+            if (loadedOffW) setOffenseWeights(loadedOffW);
+            else setOffenseWeights(structuredClone(DEFAULT_TROOP_WEIGHTS));
+            if (loadedDefW) setDefenseWeights(loadedDefW);
+            else setDefenseWeights(structuredClone(DEFAULT_TROOP_WEIGHTS));
+            // Recalculate with loaded weights if custom
+            const hasCustom = (loadedOffW && !isTroopWeightsDefault(loadedOffW)) || (loadedDefW && !isTroopWeightsDefault(loadedDefW));
+            if (hasCustom) {
+              const ow = loadedOffW || structuredClone(DEFAULT_TROOP_WEIGHTS);
+              const dw = loadedDefW || structuredClone(DEFAULT_TROOP_WEIGHTS);
+              setPlayers(prev => recalculateAllWeighted(prev, match.tier_overrides_offense as BattleTierOverrides | null, match.tier_overrides_defense as BattleTierOverrides | null, ow, dw));
+              setDefensePlayers(prev => recalculateAllWeighted(prev, match.tier_overrides_offense as BattleTierOverrides | null, match.tier_overrides_defense as BattleTierOverrides | null, ow, dw));
+            }
+            setListVersion((match as Record<string, unknown>).version as number ?? 1);
           }
         }
         setLoading(false);
@@ -265,6 +283,18 @@ export function useBattleTierList() {
 
   // ── Persist to Supabase (debounced) ──
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Use refs for values that persistToSupabase needs to avoid stale closures
+  const tierOverridesOffenseRef = useRef(tierOverridesOffense);
+  const tierOverridesDefenseRef = useRef(tierOverridesDefense);
+  const offenseWeightsRef = useRef(offenseWeights);
+  const defenseWeightsRef = useRef(defenseWeights);
+  const listVersionRef = useRef(listVersion);
+  tierOverridesOffenseRef.current = tierOverridesOffense;
+  tierOverridesDefenseRef.current = tierOverridesDefense;
+  offenseWeightsRef.current = offenseWeights;
+  defenseWeightsRef.current = defenseWeights;
+  listVersionRef.current = listVersion;
 
   const persistToSupabase = useCallback((listId: string, offPlayers: BattlePlayerEntry[], defPlayers: BattlePlayerEntry[]) => {
     if (!supabase || !user?.id) return;
@@ -275,6 +305,9 @@ export function useBattleTierList() {
       const defValidation = validateBattlePlayers(defPlayers);
       if (defValidation) { logger.error('Battle tier defense validation failed:', defValidation); return; }
       const username = profile?.linked_username || profile?.display_name || profile?.username || 'Unknown';
+      const currentOffW = offenseWeightsRef.current;
+      const currentDefW = defenseWeightsRef.current;
+      const nextVersion = listVersionRef.current + 1;
       supabase!.from('battle_tier_lists')
         .update({
           players: offPlayers as unknown as Record<string, unknown>[],
@@ -282,13 +315,20 @@ export function useBattleTierList() {
           updated_by: user.id,
           updated_by_username: username,
           updated_at: new Date().toISOString(),
-          tier_overrides_offense: tierOverridesOffense,
-          tier_overrides_defense: tierOverridesDefense,
+          tier_overrides_offense: tierOverridesOffenseRef.current,
+          tier_overrides_defense: tierOverridesDefenseRef.current,
+          weights_offense: isTroopWeightsDefault(currentOffW) ? null : currentOffW,
+          weights_defense: isTroopWeightsDefault(currentDefW) ? null : currentDefW,
+          version: nextVersion,
         })
         .eq('id', listId)
+        .eq('version', listVersionRef.current)
         .then(({ error }) => {
           if (error) logger.error('Battle tier save failed:', error);
-          else setLastEditedBy(username);
+          else {
+            setLastEditedBy(username);
+            setListVersion(nextVersion);
+          }
         });
 
       // Update index counts
@@ -296,7 +336,7 @@ export function useBattleTierList() {
         l.id === listId ? { ...l, playerCount: offPlayers.length + defPlayers.length, updated_at: new Date().toISOString() } : l
       ));
     }, 800);
-  }, [user?.id, profile, tierOverridesOffense, tierOverridesDefense]);
+  }, [user?.id, profile]);
 
   // ── Auto-save on player changes ──
   const prevPlayersRef = useRef<string>('');
@@ -377,20 +417,38 @@ export function useBattleTierList() {
     setShowListMenu(false);
     setShowForm(false);
     setEditingId(null);
+    setListSwitching(true);
 
     const { data } = await supabase.from('battle_tier_lists')
-      .select('players, defense_players, updated_by_username, tier_overrides_offense, tier_overrides_defense')
+      .select('players, defense_players, updated_by_username, tier_overrides_offense, tier_overrides_defense, weights_offense, weights_defense, version')
       .eq('id', listId)
       .single();
     if (data) {
+      const offOverrides = data.tier_overrides_offense as BattleTierOverrides | null;
+      const defOverrides = data.tier_overrides_defense as BattleTierOverrides | null;
+      const loadedOffW = data.weights_offense as unknown as BattleTroopWeights | null;
+      const loadedDefW = data.weights_defense as unknown as BattleTroopWeights | null;
+      const ow = loadedOffW || structuredClone(DEFAULT_TROOP_WEIGHTS);
+      const dw = loadedDefW || structuredClone(DEFAULT_TROOP_WEIGHTS);
+      setOffenseWeights(ow);
+      setDefenseWeights(dw);
+      setTierOverridesOffense(offOverrides);
+      setTierOverridesDefense(defOverrides);
+      setLastEditedBy(data.updated_by_username);
+      setListVersion((data as Record<string, unknown>).version as number ?? 1);
+
       const p = Array.isArray(data.players) ? data.players as BattlePlayerEntry[] : [];
       const dp = Array.isArray(data.defense_players) ? data.defense_players as BattlePlayerEntry[] : [];
-      setPlayers(recalculateAll(p));
-      setDefensePlayers(recalculateAll(dp));
-      setLastEditedBy(data.updated_by_username);
-      setTierOverridesOffense(data.tier_overrides_offense as BattleTierOverrides | null);
-      setTierOverridesDefense(data.tier_overrides_defense as BattleTierOverrides | null);
+      const hasCustom = (loadedOffW && !isTroopWeightsDefault(loadedOffW)) || (loadedDefW && !isTroopWeightsDefault(loadedDefW));
+      if (hasCustom) {
+        setPlayers(recalculateAllWeighted(p, offOverrides, defOverrides, ow, dw));
+        setDefensePlayers(recalculateAllWeighted(dp, offOverrides, defOverrides, ow, dw));
+      } else {
+        setPlayers(recalculateAll(p, offOverrides, defOverrides));
+        setDefensePlayers(recalculateAll(dp, offOverrides, defOverrides));
+      }
     }
+    setListSwitching(false);
   }, []);
 
   // ── Rename list ──
@@ -568,20 +626,41 @@ export function useBattleTierList() {
   }, [tierOverridesOffense]);
 
   // ── Weight handlers ──
+  const persistWeightsOnly = useCallback((offW: BattleTroopWeights, defW: BattleTroopWeights) => {
+    if (!supabase || !activeListId || !user?.id) return;
+    const username = profile?.linked_username || profile?.display_name || profile?.username || 'Unknown';
+    supabase.from('battle_tier_lists')
+      .update({
+        weights_offense: isTroopWeightsDefault(offW) ? null : offW,
+        weights_defense: isTroopWeightsDefault(defW) ? null : defW,
+        updated_by: user.id,
+        updated_by_username: username,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', activeListId)
+      .then(({ error }) => {
+        if (error) logger.error('Battle tier weights save failed:', error);
+        else setLastEditedBy(username);
+      });
+  }, [activeListId, user?.id, profile]);
+
   const handleApplyWeights = useCallback((offW: BattleTroopWeights, defW: BattleTroopWeights) => {
     setOffenseWeights(offW);
     setDefenseWeights(defW);
     setPlayers(prev => recalculateAllWeighted(prev, tierOverridesOffense, tierOverridesDefense, offW, defW));
     setDefensePlayers(prev => recalculateAllWeighted(prev, tierOverridesOffense, tierOverridesDefense, offW, defW));
-  }, [tierOverridesOffense, tierOverridesDefense]);
+    persistWeightsOnly(offW, defW);
+  }, [tierOverridesOffense, tierOverridesDefense, persistWeightsOnly]);
 
   const handleResetWeights = useCallback(() => {
     const def = structuredClone(DEFAULT_TROOP_WEIGHTS);
+    const def2 = structuredClone(DEFAULT_TROOP_WEIGHTS);
     setOffenseWeights(def);
-    setDefenseWeights(structuredClone(DEFAULT_TROOP_WEIGHTS));
+    setDefenseWeights(def2);
     setPlayers(prev => recalculateAll(prev, tierOverridesOffense, tierOverridesDefense));
     setDefensePlayers(prev => recalculateAll(prev, tierOverridesOffense, tierOverridesDefense));
-  }, [tierOverridesOffense, tierOverridesDefense]);
+    persistWeightsOnly(def, def2);
+  }, [tierOverridesOffense, tierOverridesDefense, persistWeightsOnly]);
 
   // ── Manager search ──
   const searchUsers = useCallback(async (query: string) => {
@@ -723,7 +802,7 @@ export function useBattleTierList() {
     // Auth & access
     kingdomNumber, hasAccess, canEdit, isEditor, isAdmin,
     // Lists
-    listsIndex, activeListId, loading,
+    listsIndex, activeListId, loading, listSwitching,
     // Players
     players, setPlayers, defensePlayers, setDefensePlayers,
     offenseRanked, defenseRanked, offenseIncomplete, defenseIncomplete,

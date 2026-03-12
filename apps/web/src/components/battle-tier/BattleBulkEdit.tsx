@@ -5,9 +5,14 @@ import {
   EG_BONUS_BY_LEVEL,
   calculateOffenseScore,
   calculateDefenseScore,
+  calculateWeightedOffenseScore,
+  calculateWeightedDefenseScore,
   recalculateAll,
+  recalculateAllWeighted,
+  isTroopWeightsDefault,
   type BattlePlayerEntry,
   type BattleTierOverrides,
+  type BattleTroopWeights,
 } from '../../data/battleTierData';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -54,6 +59,8 @@ interface BattleBulkEditProps {
   isMobile: boolean;
   tierOverridesOffense?: BattleTierOverrides | null;
   tierOverridesDefense?: BattleTierOverrides | null;
+  offenseWeights?: BattleTroopWeights;
+  defenseWeights?: BattleTroopWeights;
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -61,6 +68,7 @@ interface BattleBulkEditProps {
 const BattleBulkEdit: React.FC<BattleBulkEditProps> = ({
   existingPlayers, onSave, onClose, isMobile,
   tierOverridesOffense, tierOverridesDefense,
+  offenseWeights, defenseWeights,
 }) => {
   const { t } = useTranslation();
 
@@ -175,19 +183,29 @@ const BattleBulkEdit: React.FC<BattleBulkEditProps> = ({
       };
 
       const complete = hasAnyData(r);
+      const hasCustomWeights = (offenseWeights && !isTroopWeightsDefault(offenseWeights)) || (defenseWeights && !isTroopWeightsDefault(defenseWeights));
       return {
         id: r.id,
         playerName: r.playerName.trim(),
         ...playerData,
-        offenseScore: complete ? calculateOffenseScore(playerData) : 0,
-        defenseScore: complete ? calculateDefenseScore(playerData) : 0,
+        offenseScore: complete
+          ? (hasCustomWeights && offenseWeights ? calculateWeightedOffenseScore(playerData, offenseWeights) : calculateOffenseScore(playerData))
+          : 0,
+        defenseScore: complete
+          ? (hasCustomWeights && defenseWeights ? calculateWeightedDefenseScore(playerData, defenseWeights) : calculateDefenseScore(playerData))
+          : 0,
         offenseTier: 'D' as const,
         defenseTier: 'D' as const,
       };
     });
 
-    onSave(recalculateAll(entries, tierOverridesOffense, tierOverridesDefense));
-  }, [rows, onSave, t, tierOverridesOffense, tierOverridesDefense]);
+    const hasCustomWeights = (offenseWeights && !isTroopWeightsDefault(offenseWeights)) || (defenseWeights && !isTroopWeightsDefault(defenseWeights));
+    if (hasCustomWeights && offenseWeights && defenseWeights) {
+      onSave(recalculateAllWeighted(entries, tierOverridesOffense, tierOverridesDefense, offenseWeights, defenseWeights));
+    } else {
+      onSave(recalculateAll(entries, tierOverridesOffense, tierOverridesDefense));
+    }
+  }, [rows, onSave, t, tierOverridesOffense, tierOverridesDefense, offenseWeights, defenseWeights]);
 
   // ── Shared styles ──
   const cellInput: React.CSSProperties = {
@@ -255,7 +273,7 @@ const BattleBulkEdit: React.FC<BattleBulkEditProps> = ({
             </div>
             {/* Heroes & Gear */}
             <div style={{ fontSize: '0.6rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
-              ① Heroes & EG
+              ① {t('battleTier.bulkHeroesEG', 'Heroes & EG')}
             </div>
             {([
               ['infantry', '🛡️', infantryHeroes, 'infantryHero', 'infantryEGLevel'] as const,
@@ -278,7 +296,7 @@ const BattleBulkEdit: React.FC<BattleBulkEditProps> = ({
             ))}
             {/* Stats */}
             <div style={{ fontSize: '0.6rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginTop: '0.4rem', marginBottom: '0.25rem' }}>
-              ② Troop Stats
+              ② {t('battleTier.bulkTroopStatsShort', 'Troop Stats')}
             </div>
             {([
               ['infantry', '🛡️', 'infantryAttack', 'infantryLethality', 'infantryDefense', 'infantryHealth'] as const,
@@ -342,17 +360,17 @@ const BattleBulkEdit: React.FC<BattleBulkEditProps> = ({
             <tr style={{ borderBottom: '1px solid #2a2a2a' }}>
               <th colSpan={2} style={{ padding: 0 }} />
               <th colSpan={6} style={{ ...headerCell, textAlign: 'center', color: '#9ca3af', fontSize: '0.5rem', padding: '0.25rem 0', borderBottom: '1px solid #9ca3af20' }}>
-                Heroes & Gear
+                {t('battleTier.bulkHeroesGear', 'Heroes & Gear')}
               </th>
               <th colSpan={12} style={{ ...headerCell, textAlign: 'center', color: '#9ca3af', fontSize: '0.5rem', padding: '0.25rem 0', borderBottom: '1px solid #9ca3af20' }}>
-                Troop Stats (ATK / LTH / DEF / HP)
+                {t('battleTier.bulkTroopStats', 'Troop Stats (ATK / LTH / DEF / HP)')}
               </th>
               <th style={{ padding: 0 }} />
             </tr>
             {/* Column header row */}
             <tr style={{ borderBottom: '2px solid #2a2a2a' }}>
               <th style={{ ...headerCell, width: '24px' }}>#</th>
-              <th style={{ ...headerCell, minWidth: '100px' }}>Player</th>
+              <th style={{ ...headerCell, minWidth: '100px' }}>{t('battleTier.player', 'Player')}</th>
               {/* Heroes & Gear */}
               <th style={{ ...headerCell, minWidth: '72px', color: '#3b82f6' }}>🛡️ Hero</th>
               <th style={{ ...headerCell, minWidth: '52px', color: '#3b82f6' }}>🛡️ EG</th>
