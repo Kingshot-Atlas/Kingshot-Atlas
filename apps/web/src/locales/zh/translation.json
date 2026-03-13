@@ -55,7 +55,9 @@
     "rankings_1": "王国",
     "rankings_2": "排行榜",
     "calculators_1": "游戏",
-    "calculators_2": "计算器"
+    "calculators_2": "计算器",
+    "eventCalendar_1": "活动",
+    "eventCalendar_2": "日历"
   },
   "kvkTools": {
     "pageTitle": "KvK 工具 — Kingshot Atlas",
@@ -1492,8 +1494,28 @@
     "noResults": "没有王国匹配\"{{query}}\""
   },
   "eventCalendar": {
-    "title": "📅 活动日历",
-    "upcoming": "即将到来的活动"
+    "pageTitle": "活动日历",
+    "title": "活动日历",
+    "subtitle": "在多个活动重叠时，找到使用材料的最佳日期。",
+    "upcoming": "即将到来的活动",
+    "selectMaterial": "选择材料",
+    "bestDay": "{{material}}的最佳日期",
+    "overlappingEvents": "重叠活动",
+    "overlapHeatmap": "重叠热力图",
+    "activeWindows": "活跃窗口",
+    "noEventsOnDay": "今天没有活跃活动。",
+    "clearSelection": "清除选择",
+    "upcomingOpportunities": "即将到来的机会",
+    "eventFilters": "活动筛选",
+    "toggleEvents": "切换你可以参加的活动",
+    "resetAll": "全部重置",
+    "selectMaterialPrompt": "在上方选择一种材料以查看最佳重叠机会。",
+    "noEvents": "尚未配置任何活动。请稍后再来！",
+    "today": "今天",
+    "noEventsInRange": "此时间范围内没有活动。",
+    "materialOverlaps": "材料重叠 — 未来7天",
+    "noOverlaps": "没有材料重叠",
+    "nextDate": "下次: {{date}}"
   },
   "similarKingdoms": {
     "title": "附近相似王国",

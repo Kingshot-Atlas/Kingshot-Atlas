@@ -55,7 +55,9 @@
     "rankings_1": "تصنيف",
     "rankings_2": "الممالك",
     "calculators_1": "حاسبات",
-    "calculators_2": "اللعبة"
+    "calculators_2": "اللعبة",
+    "eventCalendar_1": "تقويم",
+    "eventCalendar_2": "الأحداث"
   },
   "kvkTools": {
     "pageTitle": "أدوات KvK — Kingshot Atlas",
@@ -1492,8 +1494,28 @@
     "noResults": "لا ممالك تطابق \"{{query}}\""
   },
   "eventCalendar": {
-    "title": "📅 تقويم الأحداث",
-    "upcoming": "الأحداث القادمة"
+    "pageTitle": "تقويم الأحداث",
+    "title": "تقويم الأحداث",
+    "subtitle": "اعثر على أفضل يوم لإنفاق موادك عندما تتداخل عدة أحداث.",
+    "upcoming": "الأحداث القادمة",
+    "selectMaterial": "اختر المادة",
+    "bestDay": "أفضل يوم لـ {{material}}",
+    "overlappingEvents": "أحداث متداخلة",
+    "overlapHeatmap": "خريطة التداخل",
+    "activeWindows": "نوافذ نشطة",
+    "noEventsOnDay": "لا توجد أحداث نشطة في هذا اليوم.",
+    "clearSelection": "مسح الاختيار",
+    "upcomingOpportunities": "الفرص القادمة",
+    "eventFilters": "فلاتر الأحداث",
+    "toggleEvents": "تبديل الأحداث التي لديك وصول إليها",
+    "resetAll": "إعادة تعيين الكل",
+    "selectMaterialPrompt": "اختر مادة أعلاه لرؤية أفضل فرص التداخل.",
+    "noEvents": "لم يتم تكوين أي أحداث بعد. تحقق مرة أخرى قريباً!",
+    "today": "اليوم",
+    "noEventsInRange": "لا توجد أحداث في هذا النطاق الزمني.",
+    "materialOverlaps": "تداخلات المواد — الأيام السبعة القادمة",
+    "noOverlaps": "لا تداخلات في المواد",
+    "nextDate": "التالي: {{date}}"
   },
   "similarKingdoms": {
     "title": "ممالك مشابهة قريبة",

@@ -336,6 +336,9 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isActive, user, profile, isAdmi
               <Link to="/gift-codes" style={{ color: isActive('/gift-codes') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ color: '#22d3ee', fontSize: '0.7rem' }}>●</span> {t('nav.giftCodes', 'Gift Codes')}
               </Link>
+              <Link to="/tools/event-calendar" onClick={onClose} style={{ color: isActive('/tools/event-calendar') ? '#22d3ee' : '#6b7280', textDecoration: 'none', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: '#22d3ee', fontSize: '0.7rem' }}>●</span> {t('nav.eventCalendar', 'Event Calendar')}
+              </Link>
               <div style={{ color: '#4b5563', fontSize: '0.85rem', padding: '0.4rem 1rem 0.4rem 2.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ color: '#22d3ee', fontSize: '0.7rem', opacity: 0.5 }}>●</span> {t('nav.gamingCalculators')}
                 <span style={{ fontSize: '0.55rem', backgroundColor: '#22d3ee20', color: '#22d3ee', padding: '0.1rem 0.3rem', borderRadius: '4px' }}>{t('common.soon')}</span>

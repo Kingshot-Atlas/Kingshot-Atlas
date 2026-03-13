@@ -55,7 +55,9 @@
     "rankings_1": "Königreich",
     "rankings_2": "Rangliste",
     "calculators_1": "Spiel",
-    "calculators_2": "Rechner"
+    "calculators_2": "Rechner",
+    "eventCalendar_1": "Event-",
+    "eventCalendar_2": "Kalender"
   },
   "kvkTools": {
     "pageTitle": "KvK-Werkzeuge — Kingshot Atlas",
@@ -1492,8 +1494,28 @@
     "noResults": "Keine Königreiche für \"{{query}}\" gefunden"
   },
   "eventCalendar": {
-    "title": "📅 Event-Kalender",
-    "upcoming": "Kommende Events"
+    "pageTitle": "Event-Kalender",
+    "title": "Event-Kalender",
+    "subtitle": "Finde den besten Tag, um deine Materialien auszugeben, wenn sich mehrere Events überschneiden.",
+    "upcoming": "Kommende Events",
+    "selectMaterial": "Material auswählen",
+    "bestDay": "Bester Tag für {{material}}",
+    "overlappingEvents": "überlappende(s) Event(s)",
+    "overlapHeatmap": "Überlappungs-Heatmap",
+    "activeWindows": "aktive(s) Fenster",
+    "noEventsOnDay": "Keine aktiven Events an diesem Tag.",
+    "clearSelection": "Auswahl löschen",
+    "upcomingOpportunities": "Kommende Gelegenheiten",
+    "eventFilters": "Event-Filter",
+    "toggleEvents": "Schalte Events ein, auf die du Zugriff hast",
+    "resetAll": "Alles Zurücksetzen",
+    "selectMaterialPrompt": "Wähle oben ein Material aus, um die besten Überlappungsmöglichkeiten zu sehen.",
+    "noEvents": "Noch keine Events konfiguriert. Schau bald wieder vorbei!",
+    "today": "Heute",
+    "noEventsInRange": "Keine Events in diesem Zeitraum.",
+    "materialOverlaps": "Material-Überlappungen — Nächste 7 Tage",
+    "noOverlaps": "Keine Material-Überlappungen",
+    "nextDate": "Nächstes: {{date}}"
   },
   "similarKingdoms": {
     "title": "Ähnliche Königreiche in der Nähe",

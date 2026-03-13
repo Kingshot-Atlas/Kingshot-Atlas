@@ -55,7 +55,9 @@
     "rankings_1": "Classement",
     "rankings_2": "des Royaumes",
     "calculators_1": "Calculatrices",
-    "calculators_2": "de Jeu"
+    "calculators_2": "de Jeu",
+    "eventCalendar_1": "Calendrier",
+    "eventCalendar_2": "d'Événements"
   },
   "kvkTools": {
     "pageTitle": "Outils KvK — Kingshot Atlas",
@@ -1492,8 +1494,28 @@
     "noResults": "Aucun royaume ne correspond à \"{{query}}\""
   },
   "eventCalendar": {
-    "title": "📅 Calendrier des Événements",
-    "upcoming": "Événements à Venir"
+    "pageTitle": "Calendrier des Événements",
+    "title": "Calendrier des Événements",
+    "subtitle": "Trouvez le meilleur jour pour dépenser vos matériaux quand plusieurs événements se chevauchent.",
+    "upcoming": "Événements à Venir",
+    "selectMaterial": "Sélectionner un Matériau",
+    "bestDay": "Meilleur jour pour {{material}}",
+    "overlappingEvents": "événement(s) simultané(s)",
+    "overlapHeatmap": "Carte des Chevauchements",
+    "activeWindows": "fenêtre(s) active(s)",
+    "noEventsOnDay": "Aucun événement actif ce jour.",
+    "clearSelection": "Effacer la sélection",
+    "upcomingOpportunities": "Opportunités à Venir",
+    "eventFilters": "Filtres d'Événements",
+    "toggleEvents": "Activez les événements auxquels vous avez accès",
+    "resetAll": "Tout Réinitialiser",
+    "selectMaterialPrompt": "Sélectionnez un matériau ci-dessus pour voir les meilleures opportunités de chevauchement.",
+    "noEvents": "Aucun événement configuré pour l'instant. Revenez bientôt !",
+    "today": "Aujourd'hui",
+    "noEventsInRange": "Aucun événement dans cette période.",
+    "materialOverlaps": "Chevauchements de Matériaux — 7 Prochains Jours",
+    "noOverlaps": "Aucun chevauchement de matériaux",
+    "nextDate": "Prochain : {{date}}"
   },
   "similarKingdoms": {
     "title": "Royaumes Similaires Proches",

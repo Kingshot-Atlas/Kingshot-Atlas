@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { getAuthHeaders } from '../../services/authHeaders';
 import { colors } from '../../utils/styles';
 import { logger } from '../../utils/logger';
+import { useToast } from '../Toast';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -73,6 +74,7 @@ interface CannedResponse {
 
 export const EmailTab: React.FC = () => {
   const { t } = useTranslation();
+  const { showToast } = useToast();
   const [emails, setEmails] = useState<SupportEmail[]>([]);
   const [stats, setStats] = useState<EmailStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -215,7 +217,7 @@ export const EmailTab: React.FC = () => {
           fetchEmails();
           fetchStats();
         } else {
-          alert(`Send failed: ${data.error || 'Unknown error'}`);
+          showToast(`Send failed: ${data.error || 'Unknown error'}`, 'error', 5000);
         }
       }
     } catch (err) {

@@ -55,7 +55,9 @@
     "rankings_1": "王国",
     "rankings_2": "ランキング",
     "calculators_1": "ゲーム",
-    "calculators_2": "計算機"
+    "calculators_2": "計算機",
+    "eventCalendar_1": "イベント",
+    "eventCalendar_2": "カレンダー"
   },
   "kvkTools": {
     "pageTitle": "KvKツール — Kingshot Atlas",
@@ -1492,8 +1494,28 @@
     "noResults": "「{{query}}」に一致する王国はありません"
   },
   "eventCalendar": {
-    "title": "📅 イベントカレンダー",
-    "upcoming": "今後のイベント"
+    "pageTitle": "イベントカレンダー",
+    "title": "イベントカレンダー",
+    "subtitle": "複数のイベントが重なる時、素材を使うのに最適な日を見つけましょう。",
+    "upcoming": "今後のイベント",
+    "selectMaterial": "素材を選択",
+    "bestDay": "{{material}}の最適な日",
+    "overlappingEvents": "重複イベント",
+    "overlapHeatmap": "重複ヒートマップ",
+    "activeWindows": "アクティブウィンドウ",
+    "noEventsOnDay": "この日にアクティブなイベントはありません。",
+    "clearSelection": "選択をクリア",
+    "upcomingOpportunities": "今後の機会",
+    "eventFilters": "イベントフィルター",
+    "toggleEvents": "アクセス可能なイベントを切り替え",
+    "resetAll": "すべてリセット",
+    "selectMaterialPrompt": "上で素材を選択すると、最適な重複機会が表示されます。",
+    "noEvents": "まだイベントが設定されていません。すぐにまたご確認ください！",
+    "today": "今日",
+    "noEventsInRange": "この期間にイベントはありません。",
+    "materialOverlaps": "素材の重複 — 今後7日間",
+    "noOverlaps": "素材の重複なし",
+    "nextDate": "次回: {{date}}"
   },
   "similarKingdoms": {
     "title": "近くの類似王国",

@@ -150,7 +150,8 @@ export type AdminTab =
   | 'notifications'
   | 'access-viewer'
   | 'page-analytics'
-  | 'kingdom-transfers';
+  | 'kingdom-transfers'
+  | 'event-calendar';
 
 export type AdminCategory = 'overview' | 'review' | 'transfer' | 'finance' | 'operations';
 

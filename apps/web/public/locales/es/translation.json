@@ -55,7 +55,9 @@
     "rankings_1": "Ranking",
     "rankings_2": "de Reinos",
     "calculators_1": "Calculadoras",
-    "calculators_2": "de Juego"
+    "calculators_2": "de Juego",
+    "eventCalendar_1": "Calendario",
+    "eventCalendar_2": "de Eventos"
   },
   "kvkTools": {
     "pageTitle": "Herramientas KvK — Kingshot Atlas",
@@ -1491,8 +1493,28 @@
     "noResults": "Ningún reino coincide con \"{{query}}\""
   },
   "eventCalendar": {
-    "title": "📅 Calendario de Eventos",
-    "upcoming": "Próximos Eventos"
+    "pageTitle": "Calendario de Eventos",
+    "title": "Calendario de Eventos",
+    "subtitle": "Encuentra el mejor día para gastar tus materiales cuando varios eventos se superponen.",
+    "upcoming": "Próximos Eventos",
+    "selectMaterial": "Seleccionar Material",
+    "bestDay": "Mejor día para {{material}}",
+    "overlappingEvents": "evento(s) superpuestos",
+    "overlapHeatmap": "Mapa de Superposiciones",
+    "activeWindows": "ventana(s) activa(s)",
+    "noEventsOnDay": "No hay eventos activos este día.",
+    "clearSelection": "Limpiar selección",
+    "upcomingOpportunities": "Próximas Oportunidades",
+    "eventFilters": "Filtros de Eventos",
+    "toggleEvents": "Activa los eventos a los que tienes acceso",
+    "resetAll": "Restablecer Todo",
+    "selectMaterialPrompt": "Selecciona un material arriba para ver las mejores oportunidades de superposición.",
+    "noEvents": "No hay eventos configurados aún. ¡Vuelve pronto!",
+    "today": "Hoy",
+    "noEventsInRange": "No hay eventos en este rango de tiempo.",
+    "materialOverlaps": "Superposiciones de Materiales — Próximos 7 Días",
+    "noOverlaps": "Sin superposiciones de materiales",
+    "nextDate": "Próximo: {{date}}"
   },
   "similarKingdoms": {
     "title": "Reinos Similares Cercanos",

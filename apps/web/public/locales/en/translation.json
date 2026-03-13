@@ -55,7 +55,9 @@
     "rankings_1": "Kingdom",
     "rankings_2": "Rankings",
     "calculators_1": "Gaming",
-    "calculators_2": "Calculators"
+    "calculators_2": "Calculators",
+    "eventCalendar_1": "Event",
+    "eventCalendar_2": "Calendar"
   },
   "kvkTools": {
     "pageTitle": "KvK Tools — Kingshot Atlas",
@@ -133,6 +135,7 @@
     "kingdomComparison": "Kingdom Comparison",
     "giftCodeRedeemer": "Gift Code Redeemer",
     "giftCodes": "Gift Codes",
+    "eventCalendar": "Event Calendar",
     "gamingCalculators": "Gaming Calculators",
     "appointmentScheduler": "Appointment Scheduler",
     "kvkPrepScheduler": "KvK Prep Scheduler",
@@ -421,6 +424,9 @@
     "giftTitle": "Gift Codes",
     "giftDesc": "Every active Kingshot gift code in one place. Copy codes and redeem them in-game — never miss free rewards again.",
     "giftTagline": "Never miss a code. Ever.",
+    "eventCalendarTitle": "Event Calendar",
+    "eventCalendarDesc": "Find the best day to spend materials when multiple in-game events overlap. Heatmap view, overlap ranking, and smart recommendations.",
+    "eventCalendarTagline": "Maximize every material.",
     "transferTitle": "Transfer Hub",
     "transferDesc": "Find your next kingdom — or find the right players. Browse listings, create a transfer profile, and apply directly. No more blind transfers.",
     "transferTagline": "Real data. Real applications. Zero guesswork.",
@@ -1520,8 +1526,28 @@
     "noResults": "No kingdoms match \"{{query}}\""
   },
   "eventCalendar": {
-    "title": "📅 Event Calendar",
-    "upcoming": "Upcoming Events"
+    "pageTitle": "Event Calendar",
+    "title": "Event Calendar",
+    "subtitle": "Find the best day to spend your materials when multiple events overlap.",
+    "upcoming": "Upcoming Events",
+    "selectMaterial": "Select Material",
+    "bestDay": "Best day for {{material}}",
+    "overlappingEvents": "overlapping event(s)",
+    "overlapHeatmap": "Overlap Heatmap",
+    "activeWindows": "active window(s)",
+    "noEventsOnDay": "No active events on this day.",
+    "clearSelection": "Clear selection",
+    "upcomingOpportunities": "Upcoming Opportunities",
+    "eventFilters": "Event Filters",
+    "toggleEvents": "Toggle events you have access to",
+    "resetAll": "Reset All",
+    "selectMaterialPrompt": "Select a material above to see the best overlap opportunities.",
+    "noEvents": "No events are configured yet. Check back soon!",
+    "today": "Today",
+    "noEventsInRange": "No events in this time range.",
+    "materialOverlaps": "Material Overlaps — Next 7 Days",
+    "noOverlaps": "No material overlaps",
+    "nextDate": "Next: {{date}}"
   },
   "similarKingdoms": {
     "title": "Nearby Similar Kingdoms",

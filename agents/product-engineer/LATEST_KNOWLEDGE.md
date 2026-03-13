@@ -28,6 +28,33 @@ CREATE POLICY "Authenticated users can read" ON table_name
 -- Keep strict write policies using auth.uid()
 ```
 
+### Admin Write Persistence — Silent RLS Failures (2026-03)
+**Problem:** Supabase PostgREST returns `{ data: null, error: null }` for UPDATE/DELETE when RLS blocks the operation (0 rows affected, no SQL error). Admin CRUD operations appeared to succeed but never persisted.
+
+**Root Cause (actual):** RLS policies on `game_events`, `event_materials`, `game_event_windows`, `game_event_window_materials` hardcoded usernames `'giovanniatlante'`/`'giovannidev'` — but the actual admin profile username is `gatreno`. No profile matched, so every write was denied silently.
+
+**DB Fix (migration `fix_event_rls_use_is_admin`):** Replaced all 12 write policies (INSERT/UPDATE/DELETE × 4 tables) to use `profiles.is_admin = true` instead of hardcoded usernames. This is future-proof — adding new admins only requires setting `is_admin = true`.
+
+**Frontend hardening (applied to `EventCalendarTab.tsx`):**
+1. **Pre-write session validation:** `ensureAdminSession()` checks `getSession()` + token expiry before every write. If token expires within 30s, force `refreshSession()`.
+2. **`.select('id')` on all mutations:** Appending `.select()` to UPDATE/INSERT returns the affected rows. Empty result with no error = RLS blocked it.
+3. **Explicit error surfacing:** Check `data.length === 0` after every mutation and alert the admin with a clear "RLS blocked" message.
+4. **Query invalidation after success only:** `invalidateQueries()` is called only after confirming the write succeeded.
+
+**Lesson learned:** Always check RLS policies against *actual* profile data, not just the policy structure. Use `is_admin` boolean for admin checks, never hardcode usernames.
+
+**Pattern:**
+```typescript
+const { data, error } = await supabase
+  .from('table')
+  .update({ field: value })
+  .eq('id', id)
+  .select('id'); // ← CRITICAL: detect silent RLS failures
+if (error) { alert(`Failed: ${error.message}`); return; }
+if (!data || data.length === 0) { alert('Blocked by RLS. Re-login.'); return; }
+invalidateQueries(); // only after confirmed success
+```
+
 ---
 
 ## React Best Practices (2026)

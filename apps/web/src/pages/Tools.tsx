@@ -404,6 +404,22 @@ const Tools: React.FC = () => {
       accentColor: '#22d3ee'
     },
     {
+      title: t('tools.eventCalendarTitle', 'Event Calendar'),
+      description: t('tools.eventCalendarDesc', 'Find the best day to spend materials when multiple in-game events overlap. Heatmap view, overlap ranking, and smart recommendations.'),
+      tagline: t('tools.eventCalendarTagline', 'Maximize every material.'),
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      ),
+      ctaLabel: t('tools.learnMore', 'Learn More'),
+      href: '/tools/event-calendar',
+      accentColor: '#22d3ee'
+    },
+    {
       title: t('tools.calcTitle', 'Gaming Calculators'),
       description: t('tools.calcDesc', 'Resource planners, upgrade costs, speedup estimates. Math so you don\'t have to.'),
       tagline: t('tools.calcTagline', 'Calculate smarter. Grow faster.'),

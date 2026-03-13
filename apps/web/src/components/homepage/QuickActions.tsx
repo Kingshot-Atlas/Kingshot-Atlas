@@ -59,18 +59,13 @@ const RankingsIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
   </svg>
 );
 
-const CalculatorIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="4" y="2" width="16" height="20" rx="2" stroke="currentColor" strokeWidth="2" />
-    <line x1="8" y1="6" x2="16" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    <circle cx="8" cy="10" r="0.5" fill="currentColor" stroke="currentColor" />
-    <circle cx="12" cy="10" r="0.5" fill="currentColor" stroke="currentColor" />
-    <circle cx="16" cy="10" r="0.5" fill="currentColor" stroke="currentColor" />
-    <circle cx="8" cy="14" r="0.5" fill="currentColor" stroke="currentColor" />
-    <circle cx="12" cy="14" r="0.5" fill="currentColor" stroke="currentColor" />
-    <circle cx="16" cy="14" r="0.5" fill="currentColor" stroke="currentColor" />
-    <circle cx="8" cy="18" r="0.5" fill="currentColor" stroke="currentColor" />
-    <line x1="12" y1="18" x2="16" y2="18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+const CalendarIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+    <rect x="8" y="14" width="3" height="3" rx="0.5" fill="currentColor" stroke="none" />
   </svg>
 );
 
@@ -84,12 +79,12 @@ const QuickActions: React.FC = () => {
   const iconSize = isMobile ? 16 : 20;
 
   const ACTIONS: QuickAction[] = [
+    { label: 'Event Calendar', line1: t('quickAction.eventCalendar_1', 'Event'), line2: t('quickAction.eventCalendar_2', 'Calendar'), path: '/tools/event-calendar', color: '#22d3ee', icon: <CalendarIcon size={iconSize} /> },
     { label: 'Alliance Center', line1: t('quickAction.allianceCenter_1', 'Alliance'), line2: t('quickAction.allianceCenter_2', 'Center'), path: '/alliance-center/about', color: '#3b82f6', icon: <AllianceCenterIcon size={iconSize} /> },
-    { label: 'KvK Tools', line1: t('quickAction.kvkTools_1', 'KvK Tools'), line2: t('quickAction.kvkTools_2', 'Discovery'), path: '/tools/kvk-tools', color: '#22d3ee', icon: <KvKToolsIcon size={iconSize} /> },
+    { label: 'KvK Tools', line1: t('quickAction.kvkTools_1', 'KvK Tools'), line2: t('quickAction.kvkTools_2', 'Discovery'), path: '/tools/kvk-tools', color: '#f97316', icon: <KvKToolsIcon size={iconSize} /> },
     { label: 'Transfer Hub', line1: t('quickAction.transferHub_1', 'Transfer'), line2: t('quickAction.transferHub_2', 'Hub'), path: '/transfer-hub/about', color: '#22c55e', icon: <TransferHubIcon size={iconSize} /> },
-    { label: 'Atlas Discord Bot', line1: t('quickAction.atlasBot_1', 'Atlas'), line2: t('quickAction.atlasBot_2', 'Discord Bot'), path: '/atlas-bot', color: '#5865F2', icon: <AtlasBotIcon size={iconSize} /> },
-    { label: 'Kingdom Rankings', line1: t('quickAction.rankings_1', 'Kingdom'), line2: t('quickAction.rankings_2', 'Rankings'), path: '/rankings', color: '#a855f7', icon: <RankingsIcon size={iconSize} /> },
-    { label: 'Gaming Calculators', line1: t('quickAction.calculators_1', 'Gaming'), line2: t('quickAction.calculators_2', 'Calculators'), path: '/tools', color: '#6b7280', icon: <CalculatorIcon size={iconSize} />, comingSoon: true },
+    { label: 'Kingdom Rankings', line1: t('quickAction.rankings_1', 'Kingdom'), line2: t('quickAction.rankings_2', 'Rankings'), path: '/rankings', color: '#22d3ee', icon: <RankingsIcon size={iconSize} /> },
+    { label: 'Atlas Discord Bot', line1: t('quickAction.atlasBot_1', 'Discord'), line2: t('quickAction.atlasBot_2', 'Bot Atlas'), path: '/atlas-bot', color: '#7c3aed', icon: <AtlasBotIcon size={iconSize} /> },
   ];
 
   return (

@@ -19,7 +19,7 @@ const BotDashboard = lazy(() => import('../components/BotDashboard').then(m => (
 const DiscordRolesDashboard = lazy(() => import('../components/DiscordRolesDashboard').then(m => ({ default: m.DiscordRolesDashboard })));
 const ReferralIntelligence = lazy(() => import('../components/ReferralIntelligence'));
 const UserHeatmap = lazy(() => import('../components/admin/UserHeatmap').then(m => ({ default: m.UserHeatmap })));
-import { ADMIN_USERNAMES } from '../utils/constants';
+import { useAdminGuard } from '../hooks/useAdminGuard';
 import { supabase } from '../lib/supabase';
 import { logger } from '../utils/logger';
 import { getAuthHeaders } from '../services/authHeaders';
@@ -65,17 +65,16 @@ const GiftCodeAnalyticsTab = lazy(() => import('../components/admin/GiftCodeAnal
 const NotificationSenderTab = lazy(() => import('../components/admin/NotificationSenderTab'));
 const PageAnalyticsTab = lazy(() => import('../components/admin/PageAnalyticsTab'));
 const KingdomTransfersTab = lazy(() => import('../components/admin/KingdomTransfersTab').then(m => ({ default: m.KingdomTransfersTab })));
+const EventCalendarTab = lazy(() => import('../components/admin/EventCalendarTab').then(m => ({ default: m.EventCalendarTab })));
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 const ADMIN_LOG_KEY = 'kingshot_admin_log';
 
 const AdminDashboard: React.FC = () => {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
+  const { isAdmin, profile } = useAdminGuard();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
-
-  // Check if user is admin (must be declared before React Query hooks that depend on it)
-  const isAdmin = profile?.username && ADMIN_USERNAMES.includes(profile.username.toLowerCase());
 
   const [activeTab, setActiveTab] = useState<AdminTab>('analytics');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -966,6 +965,8 @@ const AdminDashboard: React.FC = () => {
         <GiftCodeAnalyticsTab />
       ) : activeTab === 'notifications' ? (
         <NotificationSenderTab />
+      ) : activeTab === 'event-calendar' ? (
+        <EventCalendarTab />
       ) : null}
       </Suspense>
       </div>

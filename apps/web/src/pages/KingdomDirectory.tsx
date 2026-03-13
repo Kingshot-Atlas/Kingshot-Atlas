@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { SortOptions } from '../types';
 import { dataLoadError } from '../services/api';
 import { DataLoadError } from '../components/DataLoadError';
@@ -10,7 +10,6 @@ import { useToast } from '../components/Toast';
 import SkeletonCard from '../components/SkeletonCard';
 import KingdomTable from '../components/KingdomTable';
 import SearchAutocomplete from '../components/SearchAutocomplete';
-import EventCalendar from '../components/EventCalendar';
 import PostKvKSubmission from '../components/PostKvKSubmission';
 import StatusSubmission from '../components/StatusSubmission';
 import { statusService } from '../services/statusService';
@@ -978,7 +977,31 @@ const KingdomDirectory: React.FC = () => {
           overflowY: 'auto',
           zIndex: 80
         }}>
-          <EventCalendar />
+          <Link
+            to="/tools/event-calendar"
+            style={{
+              display: 'block',
+              backgroundColor: '#131318',
+              borderRadius: '16px',
+              border: '1px solid #2a2a2a',
+              padding: '1.25rem',
+              textDecoration: 'none',
+              transition: 'border-color 0.2s',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#22d3ee40')}
+            onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#2a2a2a')}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <span style={{ fontSize: '1.1rem' }}>📅</span>
+              <span style={{ color: '#fff', fontSize: '1rem', fontWeight: 600 }}>Event Calendar</span>
+            </div>
+            <p style={{ color: '#9ca3af', fontSize: '0.8rem', lineHeight: 1.5, margin: 0 }}>
+              Find the best day to spend materials when events overlap.
+            </p>
+            <span style={{ display: 'inline-block', marginTop: '0.6rem', color: '#22d3ee', fontSize: '0.8rem', fontWeight: 500 }}>
+              Open Calendar →
+            </span>
+          </Link>
           
           <button
             onClick={handleSubmitKvKClick}

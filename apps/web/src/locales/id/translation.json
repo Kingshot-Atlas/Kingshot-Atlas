@@ -55,7 +55,9 @@
     "rankings_1": "Peringkat",
     "rankings_2": "Kerajaan",
     "calculators_1": "Kalkulator",
-    "calculators_2": "Game"
+    "calculators_2": "Game",
+    "eventCalendar_1": "Kalender",
+    "eventCalendar_2": "Acara"
   },
   "kvkTools": {
     "pageTitle": "Alat KvK — Kingshot Atlas",
@@ -1400,8 +1402,28 @@
     "noResults": "Tidak ada kingdom yang cocok \"{{query}}\""
   },
   "eventCalendar": {
-    "title": "📅 Kalender Event",
-    "upcoming": "Upcoming Events"
+    "pageTitle": "Kalender Event",
+    "title": "Kalender Event",
+    "subtitle": "Temukan hari terbaik untuk menggunakan material saat beberapa event tumpang tindih.",
+    "upcoming": "Event Mendatang",
+    "selectMaterial": "Pilih Material",
+    "bestDay": "Hari terbaik untuk {{material}}",
+    "overlappingEvents": "event tumpang tindih",
+    "overlapHeatmap": "Peta Tumpang Tindih",
+    "activeWindows": "jendela aktif",
+    "noEventsOnDay": "Tidak ada event aktif hari ini.",
+    "clearSelection": "Hapus pilihan",
+    "upcomingOpportunities": "Peluang Mendatang",
+    "eventFilters": "Filter Event",
+    "toggleEvents": "Aktifkan event yang kamu punya akses",
+    "resetAll": "Reset Semua",
+    "selectMaterialPrompt": "Pilih material di atas untuk melihat peluang tumpang tindih terbaik.",
+    "noEvents": "Belum ada event yang dikonfigurasi. Cek kembali nanti!",
+    "today": "Hari Ini",
+    "noEventsInRange": "Tidak ada event dalam rentang waktu ini.",
+    "materialOverlaps": "Tumpang Tindih Material — 7 Hari Ke Depan",
+    "noOverlaps": "Tidak ada tumpang tindih material",
+    "nextDate": "Berikutnya: {{date}}"
   },
   "similarKingdoms": {
     "title": "Kingdom Serupa Terdekat",

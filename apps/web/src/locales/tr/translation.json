@@ -55,7 +55,9 @@
     "rankings_1": "Krallık",
     "rankings_2": "Sıralaması",
     "calculators_1": "Oyun",
-    "calculators_2": "Hesaplayıcı"
+    "calculators_2": "Hesaplayıcı",
+    "eventCalendar_1": "Etkinlik",
+    "eventCalendar_2": "Takvimi"
   },
   "kvkTools": {
     "pageTitle": "KvK Araçları — Kingshot Atlas",
@@ -1492,8 +1494,28 @@
     "noResults": "\"{{query}}\" ile eşleşen krallık yok"
   },
   "eventCalendar": {
-    "title": "📅 Etkinlik Takvimi",
-    "upcoming": "Yaklaşan Etkinlikler"
+    "pageTitle": "Etkinlik Takvimi",
+    "title": "Etkinlik Takvimi",
+    "subtitle": "Birden fazla etkinlik çakıştığında malzemelerinizi harcamak için en iyi günü bulun.",
+    "upcoming": "Yaklaşan Etkinlikler",
+    "selectMaterial": "Malzeme Seç",
+    "bestDay": "{{material}} için en iyi gün",
+    "overlappingEvents": "çakışan etkinlik(ler)",
+    "overlapHeatmap": "Çakışma Haritası",
+    "activeWindows": "aktif pencere(ler)",
+    "noEventsOnDay": "Bu gün aktif etkinlik yok.",
+    "clearSelection": "Seçimi temizle",
+    "upcomingOpportunities": "Yaklaşan Fırsatlar",
+    "eventFilters": "Etkinlik Filtreleri",
+    "toggleEvents": "Erişiminiz olan etkinlikleri açın/kapatın",
+    "resetAll": "Tümünü Sıfırla",
+    "selectMaterialPrompt": "En iyi çakışma fırsatlarını görmek için yukarıdan bir malzeme seçin.",
+    "noEvents": "Henüz yapılandırılmış etkinlik yok. Yakında tekrar kontrol edin!",
+    "today": "Bugün",
+    "noEventsInRange": "Bu zaman aralığında etkinlik yok.",
+    "materialOverlaps": "Malzeme Çakışmaları — Önümüzdeki 7 Gün",
+    "noOverlaps": "Malzeme çakışması yok",
+    "nextDate": "Sonraki: {{date}}"
   },
   "similarKingdoms": {
     "title": "Yakın Benzer Krallıklar",

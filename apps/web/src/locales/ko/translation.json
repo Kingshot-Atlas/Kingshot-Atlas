@@ -55,7 +55,9 @@
     "rankings_1": "왕국",
     "rankings_2": "랭킹",
     "calculators_1": "게임",
-    "calculators_2": "계산기"
+    "calculators_2": "계산기",
+    "eventCalendar_1": "이벤트",
+    "eventCalendar_2": "캘린더"
   },
   "kvkTools": {
     "pageTitle": "KvK 도구 — Kingshot Atlas",
@@ -1489,8 +1491,28 @@
     "noResults": "\"{{query}}\"에 일치하는 왕국 없음"
   },
   "eventCalendar": {
-    "title": "📅 이벤트 캘린더",
-    "upcoming": "예정된 이벤트"
+    "pageTitle": "이벤트 캘린더",
+    "title": "이벤트 캘린더",
+    "subtitle": "여러 이벤트가 겹칠 때 재료를 사용하기 가장 좋은 날을 찾으세요.",
+    "upcoming": "예정된 이벤트",
+    "selectMaterial": "재료 선택",
+    "bestDay": "{{material}} 최적의 날",
+    "overlappingEvents": "겹치는 이벤트",
+    "overlapHeatmap": "겹침 히트맵",
+    "activeWindows": "활성 창",
+    "noEventsOnDay": "이 날에는 활성 이벤트가 없습니다.",
+    "clearSelection": "선택 해제",
+    "upcomingOpportunities": "다가오는 기회",
+    "eventFilters": "이벤트 필터",
+    "toggleEvents": "접근 가능한 이벤트를 전환하세요",
+    "resetAll": "모두 초기화",
+    "selectMaterialPrompt": "위에서 재료를 선택하면 최적의 겹침 기회를 볼 수 있습니다.",
+    "noEvents": "아직 설정된 이벤트가 없습니다. 곧 다시 확인해주세요!",
+    "today": "오늘",
+    "noEventsInRange": "이 기간에 이벤트가 없습니다.",
+    "materialOverlaps": "재료 겹침 — 향후 7일",
+    "noOverlaps": "재료 겹침 없음",
+    "nextDate": "다음: {{date}}"
   },
   "similarKingdoms": {
     "title": "근처 유사 왕국",

@@ -3,6 +3,51 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-13 04:00 | Product Engineer | COMPLETED
+Task: KvK Preparation not showing on calendar + Live preview in admin
+Files: apps/web/src/data/eventCalendarProjection.ts, apps/web/src/pages/EventCalendar.tsx, apps/web/src/components/admin/EventCalendarTab.tsx, 11 locale files
+Changes:
+- **Root cause:** KvK Preparation anchor_start_at (Mar 23) is outside the 7-day view (Mar 13-19). Event was projected but had no occurrence in visible range. Filter list showed it checked but grid had no row — confusing UX.
+- **Backward projection fix:** Added negative cycleOffset calculation for cyclical events with future anchors. Ensures past cycles of future-anchored events are projected if they overlap the view range.
+- **"Next: MM/DD" filter badge:** Events enabled in the filter but with no occurrences in the current view now show an amber "Next: 03/23" badge. Uses `eventsWithOccurrences` (toggle-independent) to avoid false positives on disabled events.
+- **Live calendar preview in EventEditor:** Admin mini-calendar showing 14 days (anchor - 2 days) with colored window bars. Updates live as anchor/offsets change — prevents anchor misconfiguration.
+- **i18n:** Added `eventCalendar.nextDate` key to all 11 locales.
+- **/review:** Fixed bug where disabled (unchecked) events would incorrectly show "Next" badge.
+Result: Build passes. Dev server running on localhost:3000.
+
+## 2026-03-13 03:00 | Product Engineer | COMPLETED
+Task: Event Calendar guard rails + cache invalidation fix
+Files: apps/web/src/components/admin/EventCalendarTab.tsx
+Changes:
+- **Cache invalidation fix:** Replaced `resetQueries` with `removeQueries` for public caches (`game-events`, `event-materials`). Ensures Event Calendar page always fetches fresh data after admin mutations — fixes duplicated events not appearing.
+- **duplicateEvent partial failure fix:** Moved `invalidate()` to `finally` block with `created` flag so cache is always refreshed even if window/material copy partially fails.
+- **Undo toast for deletes:** Replaced `window.confirm` with optimistic UI removal + 5s undo toast for both `deleteEvent` and `deleteMaterial`. Actual DB delete is deferred via `setTimeout`; clicking "Undo" cancels the timer and restores the cache.
+- **Window offset validation:** Added `validateWindows()` in EventEditor that checks: each window's start < end, first window starts at 0, no gaps or overlaps between consecutive windows. Blocks save with error toast on failure.
+- Security audit: All Event Calendar tables have proper RLS (admin-only writes, public reads). No new vulnerabilities.
+Result: Build passes. Dev server running on localhost:3000.
+
+## 2026-03-12 22:15 | Product Engineer | COMPLETED
+Task: Event Calendar off-by-one fix + Admin CRUD enhancements
+Files: apps/web/src/pages/EventCalendar.tsx, apps/web/src/data/eventCalendarProjection.ts, apps/web/src/components/admin/EventCalendarTab.tsx
+Changes:
+- **Off-by-one bug fix:** Events showed 1 day longer than they should. Root cause: `end_offset_minutes` lands on exact day boundaries (e.g., 2880min = 48h → midnight of next day). `utcDateStr(endUtc)` included that day. Fix: added `utcEndDateStr()` that subtracts 1 minute before converting to date string. Applied in 5 locations across EventCalendar.tsx and eventCalendarProjection.ts.
+- **Delete events:** Added `deleteEvent()` with confirmation dialog. FK cascade handles windows + window_materials.
+- **Delete materials:** Added `deleteMaterial()` with confirmation dialog. FK cascade removes from window_materials.
+- **Duplicate events:** Added `duplicateEvent()` — copies event + all windows + material assignments, appends "(copy)" to name, created as inactive.
+- **Duplicate scoring windows:** Added `duplicateWindow()` in EventEditor — copies window with same duration and materials, offsets continue from last window's end.
+- **Material sorting:** Added `moveMaterial()` with ▲/▼ arrows that swap `sort_order` values in DB.
+- All admin actions include audit logging and session validation.
+Result: Build passes. Dev server running on localhost:3000.
+
+## 2026-03-12 21:15 | Product Engineer | COMPLETED
+Task: Fix admin Event Calendar tab — writes blocked by RLS
+Files: Supabase migration `fix_event_rls_use_is_admin`, LATEST_KNOWLEDGE.md
+Changes:
+- Root cause: RLS policies on game_events, event_materials, game_event_windows, game_event_window_materials hardcoded usernames 'giovanniatlante'/'giovannidev' — no profile matched (actual admin = 'gatreno')
+- Fixed: Replaced all 12 write policies (INSERT/UPDATE/DELETE × 4 tables) to use `profiles.is_admin = true`
+- No other tables had stale hardcoded username patterns
+Result: Build passes. Admin can now edit events and materials in the Event Calendar tab.
+
 ## 2026-03-12 17:30 | Product Engineer + Platform Engineer | COMPLETED
 Task: Mobile SOON tag → toast notification + fix stale cache auto-reload
 Files: apps/web/src/components/homepage/QuickActions.tsx, apps/web/src/main.tsx, apps/web/public/_headers
