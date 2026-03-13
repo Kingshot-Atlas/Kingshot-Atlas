@@ -4,6 +4,7 @@ import BackLink from '../components/shared/BackLink';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 import { usePremium } from '../contexts/PremiumContext';
@@ -17,6 +18,7 @@ const BattleRegistryLanding: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle(t('battleRegistryLanding.pageTitle', 'KvK Battle Registry'));
   useMetaTags(PAGE_META_TAGS.battleRegistry);
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.battleRegistry });
   const isMobile = useIsMobile();
   const { isAdmin } = usePremium();
   const { profile, user } = useAuth();

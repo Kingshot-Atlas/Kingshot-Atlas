@@ -4,6 +4,7 @@ import BackLink from '../components/shared/BackLink';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 import { usePremium } from '../contexts/PremiumContext';
@@ -18,6 +19,7 @@ const BattlePlannerLanding: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle(t('battlePlanner.pageTitle', 'KvK Battle Planner'));
   useMetaTags(PAGE_META_TAGS.battlePlanner);
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.battlePlanner });
   const isMobile = useIsMobile();
   const { isAdmin } = usePremium();
   const { profile, user } = useAuth();

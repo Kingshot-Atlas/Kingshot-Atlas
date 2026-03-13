@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
 import { useAnalytics } from '../../hooks/useAnalytics';
@@ -8,7 +8,6 @@ const DISMISS_KEY = 'kingshot_alliance_banner_dismissed';
 const DISMISS_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // Re-show after 7 days
 
 const AllianceCenterBanner: React.FC = () => {
-  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { trackFeature } = useAnalytics();
   const { t } = useTranslation();
@@ -111,11 +110,9 @@ const AllianceCenterBanner: React.FC = () => {
           zIndex: 1,
           width: isMobile ? '100%' : 'auto',
         }}>
-          <button
-            onClick={() => {
-              trackFeature('Alliance Banner CTA Clicked');
-              navigate('/alliance-center');
-            }}
+          <Link
+            to="/alliance-center"
+            onClick={() => trackFeature('Alliance Banner CTA Clicked')}
             style={{
               padding: isMobile ? '0.6rem 1rem' : '0.65rem 1.25rem',
               background: '#3b82f6',
@@ -135,6 +132,7 @@ const AllianceCenterBanner: React.FC = () => {
               textAlign: 'center',
               lineHeight: 1.3,
               transition: 'all 0.2s ease',
+              textDecoration: 'none',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.boxShadow = '0 0 30px rgba(59, 130, 246, 0.4)';
@@ -146,7 +144,7 @@ const AllianceCenterBanner: React.FC = () => {
             }}
           >
             {t('allianceBanner.cta', 'Open Alliance Center →')}
-          </button>
+          </Link>
         </div>
       </div>
     </div>

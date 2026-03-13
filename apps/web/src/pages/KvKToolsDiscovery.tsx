@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import BackLink from '../components/shared/BackLink';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS, KVK_TOOLS_FAQ_DATA } from '../hooks/useStructuredData';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 import { usePremium } from '../contexts/PremiumContext';
@@ -29,6 +31,9 @@ interface ToolSection {
 const KvKToolsDiscovery: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle(t('kvkTools.pageTitle', 'KvK Tools — Kingshot Atlas'));
+  useMetaTags(PAGE_META_TAGS.kvkTools);
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.kvkTools });
+  useStructuredData({ type: 'FAQPage', data: KVK_TOOLS_FAQ_DATA });
   const isMobile = useIsMobile();
   const { isAdmin } = usePremium();
   const { profile } = useAuth();

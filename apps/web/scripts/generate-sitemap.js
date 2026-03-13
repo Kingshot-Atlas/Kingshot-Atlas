@@ -26,7 +26,7 @@ const DOMAIN = 'https://ks-atlas.com';
 const PUBLIC_DIR = path.join(__dirname, '../public');
 
 // Fallback values if Supabase query fails (updated 2026-02-22)
-const FALLBACK_MAX_KINGDOM = 1260;
+const FALLBACK_MAX_KINGDOM = 1403;
 const FALLBACK_MAX_KVK = 11;
 
 // Define all public static routes with their metadata
@@ -49,6 +49,18 @@ const staticRoutes = [
   { path: '/kingdoms/communities', changefreq: 'weekly', priority: 0.7 },
   { path: '/terms', changefreq: 'yearly', priority: 0.3, lastmod: '2025-12-01' },
   { path: '/privacy', changefreq: 'yearly', priority: 0.3, lastmod: '2025-12-01' },
+  { path: '/tools/battle-planner', changefreq: 'monthly', priority: 0.6 },
+  { path: '/tools/battle-registry-info', changefreq: 'monthly', priority: 0.6 },
+  { path: '/tools/prep-scheduler-info', changefreq: 'monthly', priority: 0.6 },
+  { path: '/tools/battle-layout/about', changefreq: 'monthly', priority: 0.6 },
+  { path: '/tools/battle-tier-list/about', changefreq: 'monthly', priority: 0.6 },
+  { path: '/tools/bear-rally-tier-list/about', changefreq: 'monthly', priority: 0.6 },
+  { path: '/tools/base-designer/about', changefreq: 'monthly', priority: 0.6 },
+  { path: '/tools/event-coordinator/about', changefreq: 'monthly', priority: 0.6 },
+  { path: '/alliance-center/about', changefreq: 'monthly', priority: 0.6 },
+  { path: '/tools/kvk-tools', changefreq: 'monthly', priority: 0.5 },
+  { path: '/tools/event-calendar', changefreq: 'weekly', priority: 0.6 },
+  { path: '/campaigns/kingdom-settlers', changefreq: 'monthly', priority: 0.5 },
 ];
 
 function generateUrlEntry(urlPath, changefreq, priority, lastmod) {

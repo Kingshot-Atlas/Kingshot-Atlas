@@ -1,7 +1,35 @@
 # Ops Lead — Latest Knowledge
 
-**Last Updated:** 2026-02-12  
+**Last Updated:** 2026-03-13  
 **Purpose:** Current best practices for DevOps, deployment, SEO, and analytics
+
+---
+
+## SEO Comprehensive Audit (2026-03-13)
+
+### Critical Fix: Hardcoded Canonical
+- `index.html` had `<link rel="canonical" href="https://ks-atlas.com/" />` — caused ALL pages to canonicalize to homepage
+- **REMOVED** — `useDefaultMetaTags` hook and `_middleware.ts` handle per-page canonicals dynamically
+- **Rule:** NEVER add a static canonical to index.html
+
+### Hreflang Now Covers 12 Languages
+- Updated in 3 files: `useMetaTags.ts`, `useDefaultMetaTags.ts`, `_middleware.ts`
+- Languages: en, es, fr, zh, de, ko, ja, ar, tr, **id, ru, pt** (last 3 were missing)
+- When adding new languages to `i18n.ts`, ALSO update `HREFLANG_LANGS` in all 3 files
+
+### New Page SEO Checklist
+When adding a new public page, update ALL of these:
+1. `useMetaTags.ts` → Add to `PAGE_META_TAGS` constant
+2. `useStructuredData.ts` → Add to `PAGE_BREADCRUMBS` constant
+3. `functions/_middleware.ts` → Add to `STATIC_META` object
+4. `scripts/generate-sitemap.js` → Add to `staticRoutes` array
+5. Page component → Call `useMetaTags(PAGE_META_TAGS.yourPage)` + `useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.yourPage })`
+
+### Sitemap Stats (as of 2026-03-13)
+- 30 static pages in `staticRoutes`
+- ~1400 kingdom profile pages (live from Supabase)
+- 12 KvK season pages
+- `FALLBACK_MAX_KINGDOM = 1403` (updated from 1260)
 
 ---
 

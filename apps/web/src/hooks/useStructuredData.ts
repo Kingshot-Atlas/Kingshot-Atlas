@@ -260,6 +260,79 @@ export const TRANSFER_HUB_FAQ_DATA: FAQItem[] = [
 ];
 
 /**
+ * Pre-defined FAQ data for KvK Tools page — targets featured snippets
+ * for "kingshot kvk tools", "kvk battle planner", "kvk prep" queries.
+ */
+export const KVK_TOOLS_FAQ_DATA: FAQItem[] = [
+  {
+    question: 'What KvK tools does Kingshot Atlas offer?',
+    answer: 'Kingshot Atlas offers five KvK tools: Prep Scheduler for organizing buff slot assignments during Prep Phase, Battle Registry for tracking player availability and troop tiers, Battle Tier List for ranking players by combat power, Battle Layout for planning alliance teleport positions, and Battle Planner for synchronizing multi-rally castle hits.',
+  },
+  {
+    question: 'How does the KvK Prep Scheduler work?',
+    answer: 'The Prep Scheduler collects player availability and speedup data, then auto-assigns optimal 30-minute buff slots for Construction, Research, and Training days. Share the link with your kingdom — players submit before the deadline, and the scheduler ensures every slot goes to the player who brings the most value.',
+  },
+  {
+    question: 'How do I plan synchronized rallies in Kingshot KvK?',
+    answer: 'Use the Battle Planner tool on Kingshot Atlas. Set march times per building, create rally queues with precise timing, and view Gantt timelines showing exactly when each rally hits. This ensures your waves land within seconds of each other during Castle Battle.',
+  },
+  {
+    question: 'How do I rank my kingdom\'s players for Castle Battle?',
+    answer: 'Use the Battle Tier List tool. Input scouted stats per player — Attack, Lethality, Defense, Health across Infantry, Cavalry, and Archer — with hero EG adjustments. The tool generates separate offense and defense tier rankings from SS to D tier.',
+  },
+  {
+    question: 'Are KvK tools free on Kingshot Atlas?',
+    answer: 'The Prep Scheduler is available for Silver Tier kingdoms ($50+ in Kingdom Fund contributions). Gold Tier kingdoms ($100+) unlock all five KvK tools including Battle Registry, Battle Tier List, Battle Layout, and Battle Planner. Contributions from alliance members add up collectively.',
+  },
+];
+
+/**
+ * Pre-defined FAQ data for Event Calendar page — targets featured snippets
+ * for "kingshot event calendar", "kingshot kvk schedule", "when is next kvk" queries.
+ */
+export const EVENT_CALENDAR_FAQ_DATA: FAQItem[] = [
+  {
+    question: 'When is the next Kingshot KvK event?',
+    answer: 'KvK events happen every 4 weeks. Check the Event Calendar on Kingshot Atlas for the exact date and countdown timer. The calendar shows all upcoming KvK phases including Prep Phase (Monday–Saturday) and Castle Battle (Saturday).',
+  },
+  {
+    question: 'When is the next Kingshot Transfer Event?',
+    answer: 'Transfer Events happen every 8 weeks with three phases: Pre-Transfer (browse and prepare), Invitational (top kingdoms recruit first), and Open Transfer (all players can move). The Kingshot Atlas Event Calendar shows exact dates for all three phases.',
+  },
+  {
+    question: 'What is the Kingshot event calendar?',
+    answer: 'The Kingshot Atlas Event Calendar is a free tool that shows all upcoming in-game events with their exact dates and material overlaps. It tracks KvK events, Transfer Events, and recurring in-game events so you can plan when to spend your materials for maximum value.',
+  },
+  {
+    question: 'How do material overlaps work in Kingshot events?',
+    answer: 'Some in-game events share the same materials (e.g., speedups, gold). When multiple events run simultaneously, spending materials counts toward all overlapping events. The Event Calendar highlights these overlaps so you can time your spending for maximum rewards.',
+  },
+];
+
+/**
+ * Pre-defined FAQ data for Gift Codes page — targets featured snippets
+ * for "kingshot gift codes", "kingshot redeem codes", "kingshot free rewards" queries.
+ */
+export const GIFT_CODES_FAQ_DATA: FAQItem[] = [
+  {
+    question: 'Where do I find active Kingshot gift codes?',
+    answer: 'Kingshot Atlas aggregates all active Kingshot gift codes in one place. Visit the Gift Codes page to see every current code, copy them instantly, and never miss free rewards. Codes are updated automatically from official sources.',
+  },
+  {
+    question: 'How do I redeem Kingshot gift codes?',
+    answer: 'On Android: Open Kingshot, go to Settings (gear icon), tap "Gift Code", paste the code, and tap Redeem. On iOS: Visit the official Kingshot Gift Code website (ks-giftcode.centurygame.com), log in with your account, and paste the code. Rewards appear in your mailbox.',
+  },
+  {
+    question: 'Why can\'t I redeem Kingshot gift codes on iOS?',
+    answer: 'Apple\'s App Store policies prevent in-app code redemption. iOS players must use the official Kingshot Gift Code website (ks-giftcode.centurygame.com) to redeem codes. Log in with your account credentials and paste the code there.',
+  },
+  {
+    question: 'How often are new Kingshot gift codes released?',
+    answer: 'Century Games releases new gift codes through social media, community events, partnerships, and milestones. There is no fixed schedule, but new codes typically appear every few weeks. Kingshot Atlas checks for new codes automatically so you never miss one.',
+  },
+];
+
+/**
  * Pre-defined breadcrumb data for key pages.
  * Google displays breadcrumbs in search results, improving CTR.
  */
@@ -280,6 +353,19 @@ export const PAGE_BREADCRUMBS = {
   ambassadors: [HOME_CRUMB, { name: 'Ambassador Network', url: 'https://ks-atlas.com/ambassadors' }],
   transferHubLanding: [HOME_CRUMB, { name: 'Transfer Hub', url: 'https://ks-atlas.com/transfer-hub' }, { name: 'About', url: 'https://ks-atlas.com/transfer-hub/about' }],
   kingdomCommunities: [HOME_CRUMB, { name: 'Kingdom Colonies', url: 'https://ks-atlas.com/kingdoms/communities' }],
+  battlePlanner: [HOME_CRUMB, { name: 'Tools', url: 'https://ks-atlas.com/tools' }, { name: 'Battle Planner', url: 'https://ks-atlas.com/tools/battle-planner' }],
+  battleRegistry: [HOME_CRUMB, { name: 'Tools', url: 'https://ks-atlas.com/tools' }, { name: 'Battle Registry', url: 'https://ks-atlas.com/tools/battle-registry-info' }],
+  prepScheduler: [HOME_CRUMB, { name: 'Tools', url: 'https://ks-atlas.com/tools' }, { name: 'Prep Scheduler', url: 'https://ks-atlas.com/tools/prep-scheduler-info' }],
+  battleLayout: [HOME_CRUMB, { name: 'Tools', url: 'https://ks-atlas.com/tools' }, { name: 'Battle Layout', url: 'https://ks-atlas.com/tools/battle-layout/about' }],
+  battleTierList: [HOME_CRUMB, { name: 'Tools', url: 'https://ks-atlas.com/tools' }, { name: 'Battle Tier List', url: 'https://ks-atlas.com/tools/battle-tier-list/about' }],
+  bearRallyTierList: [HOME_CRUMB, { name: 'Tools', url: 'https://ks-atlas.com/tools' }, { name: 'Bear Rally Tier List', url: 'https://ks-atlas.com/tools/bear-rally-tier-list/about' }],
+  baseDesigner: [HOME_CRUMB, { name: 'Tools', url: 'https://ks-atlas.com/tools' }, { name: 'Base Designer', url: 'https://ks-atlas.com/tools/base-designer/about' }],
+  eventCoordinator: [HOME_CRUMB, { name: 'Tools', url: 'https://ks-atlas.com/tools' }, { name: 'Event Coordinator', url: 'https://ks-atlas.com/tools/event-coordinator/about' }],
+  allianceCenter: [HOME_CRUMB, { name: 'Alliance Center', url: 'https://ks-atlas.com/alliance-center/about' }],
+  kvkTools: [HOME_CRUMB, { name: 'Tools', url: 'https://ks-atlas.com/tools' }, { name: 'KvK Tools', url: 'https://ks-atlas.com/tools/kvk-tools' }],
+  eventCalendar: [HOME_CRUMB, { name: 'Tools', url: 'https://ks-atlas.com/tools' }, { name: 'Event Calendar', url: 'https://ks-atlas.com/tools/event-calendar' }],
+  giftCodes: [HOME_CRUMB, { name: 'Tools', url: 'https://ks-atlas.com/tools' }, { name: 'Gift Codes', url: 'https://ks-atlas.com/tools/gift-codes' }],
+  kingdomSettlers: [HOME_CRUMB, { name: 'Campaigns', url: 'https://ks-atlas.com/campaigns/kingdom-settlers' }, { name: 'Kingdom Settlers', url: 'https://ks-atlas.com/campaigns/kingdom-settlers' }],
 };
 
 /**

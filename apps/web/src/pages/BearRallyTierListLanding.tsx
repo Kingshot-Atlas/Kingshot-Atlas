@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import BackLink from '../components/shared/BackLink';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { useMetaTags } from '../hooks/useMetaTags';
+import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 
@@ -12,10 +13,8 @@ const ACCENT = '#3b82f6';
 const BearRallyTierListLanding: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle(t('bearRallyLanding.pageTitle', 'Bear Rally Tier List'));
-  useMetaTags({
-    title: 'Bear Rally Tier List — Kingshot Atlas',
-    description: 'Rank your alliance members by Bear Hunt rally power. Scout, input stats, and see who hits the hardest.',
-  });
+  useMetaTags(PAGE_META_TAGS.bearRallyTierList);
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.bearRallyTierList });
   const isMobile = useIsMobile();
 
   const features = [

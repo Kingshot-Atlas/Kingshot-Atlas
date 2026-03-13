@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { usePremium } from '../contexts/PremiumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -16,10 +17,8 @@ import { supabase } from '../lib/supabase';
 const KvKBattleLayoutLanding: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle(t('battleLayoutLanding.pageTitle', 'KvK Battle Layout'));
-  useMetaTags(PAGE_META_TAGS.battleLayout || {
-    title: 'KvK Battle Layout — Plan Alliance Teleport Positions | Kingshot Atlas',
-    description: 'Plan your alliance positioning around the castle and turrets for KvK Castle Battle. Visual map tool for coordinating teleport positions.',
-  });
+  useMetaTags(PAGE_META_TAGS.battleLayout);
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.battleLayout });
   const isMobile = useIsMobile();
   const { isAdmin } = usePremium();
   const { profile, user } = useAuth();

@@ -4,6 +4,7 @@ import BackLink from '../components/shared/BackLink';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 
@@ -11,6 +12,7 @@ const PrepSchedulerLanding: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle(t('prepScheduler.pageTitle', 'KvK Prep Scheduler'));
   useMetaTags(PAGE_META_TAGS.prepScheduler);
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.prepScheduler });
   const isMobile = useIsMobile();
 
   const features = [

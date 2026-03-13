@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS, EVENT_CALENDAR_FAQ_DATA } from '../hooks/useStructuredData';
 import { useEventCalendar } from '../hooks/useEventCalendar';
 import { colors } from '../utils/styles';
 import PageTitle from '../components/PageTitle';
@@ -57,7 +59,7 @@ interface DayConcurrency {
   dateStr: string;
   label: string;
   isToday: boolean;
-  materials: { material: EventMaterial; eventCount: number; eventNames: string[] }[];
+  materials: { material: EventMaterial; eventCount: number; eventNames: string[]; events: { eventId: string; eventName: string; eventColor: string; eventEmoji: string }[] }[];
 }
 
 /* ─── Main Component ─── */
@@ -65,6 +67,9 @@ interface DayConcurrency {
 const EventCalendar: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle(t('eventCalendar.pageTitle', 'Event Calendar'));
+  useMetaTags(PAGE_META_TAGS.eventCalendar);
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.eventCalendar });
+  useStructuredData({ type: 'FAQPage', data: EVENT_CALENDAR_FAQ_DATA });
   const isMobile = useIsMobile();
 
   const {
@@ -81,6 +86,7 @@ const EventCalendar: React.FC = () => {
   const [forecastDays, setForecastDays] = useState<7 | 14 | 28>(7);
   const [showFilters, setShowFilters] = useState(false);
   const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
+  const [expandedMaterials, setExpandedMaterials] = useState<Set<string>>(new Set());
 
   const todayStr = useMemo(() => utcDateStr(new Date()), []);
   const dateRange = useMemo(() => getDateRange(forecastDays), [forecastDays]);
@@ -165,11 +171,21 @@ const EventCalendar: React.FC = () => {
       // Group by material → unique events
       const materialEventMap = new Map<string, Set<string>>();
       const materialEventNames = new Map<string, Set<string>>();
+      const materialEventDetails = new Map<string, { eventId: string; eventName: string; eventColor: string; eventEmoji: string }[]>();
       for (const w of activeWindows) {
         for (const matId of w.materialIds) {
           if (!materialEventMap.has(matId)) {
             materialEventMap.set(matId, new Set());
             materialEventNames.set(matId, new Set());
+            materialEventDetails.set(matId, []);
+          }
+          if (!materialEventMap.get(matId)!.has(w.eventId)) {
+            materialEventDetails.get(matId)!.push({
+              eventId: w.eventId,
+              eventName: w.eventName,
+              eventColor: w.eventColor,
+              eventEmoji: w.eventEmoji,
+            });
           }
           materialEventMap.get(matId)!.add(w.eventId);
           materialEventNames.get(matId)!.add(w.eventName);
@@ -186,6 +202,7 @@ const EventCalendar: React.FC = () => {
               material: mat,
               eventCount: eventIds.size,
               eventNames: Array.from(materialEventNames.get(matId) || []),
+              events: materialEventDetails.get(matId) || [],
             });
           }
         }
@@ -370,13 +387,13 @@ const EventCalendar: React.FC = () => {
           return (
           <React.Fragment key={row.eventId}>
           <div
-            onClick={isMobile ? () => setExpandedEventId(isExpanded ? null : row.eventId) : undefined}
+            onClick={() => setExpandedEventId(isExpanded ? null : row.eventId)}
             style={{
               display: 'grid',
               gridTemplateColumns: gridCols,
               borderBottom: `1px solid ${colors.borderSubtle}`,
               minHeight: isMobile ? '44px' : '42px',
-              cursor: isMobile ? 'pointer' : 'default',
+              cursor: 'pointer',
               ...(minTableWidth ? { minWidth: minTableWidth } : {}),
             }}
           >
@@ -406,11 +423,9 @@ const EventCalendar: React.FC = () => {
               }}>
                 {row.eventName}
               </span>
-              {isMobile && (
-                <span style={{ marginLeft: 'auto', fontSize: '0.5rem', color: colors.textMuted, flexShrink: 0 }}>
-                  {isExpanded ? '▲' : '▼'}
-                </span>
-              )}
+              <span style={{ marginLeft: 'auto', fontSize: '0.5rem', color: colors.textMuted, flexShrink: 0 }}>
+                {isExpanded ? '▲' : '▼'}
+              </span>
             </div>
             {/* Day cells */}
             {dateRange.map(dateStr => {
@@ -459,7 +474,7 @@ const EventCalendar: React.FC = () => {
             })}
           </div>
           {/* ─── Expanded detail panel (mobile tap-to-expand) ─── */}
-          {isMobile && isExpanded && windowPhases.length > 0 && (
+          {isExpanded && windowPhases.length > 0 && (
             <div style={{
               backgroundColor: `${row.eventColor}08`,
               borderBottom: `1px solid ${colors.borderSubtle}`,
@@ -697,45 +712,93 @@ const EventCalendar: React.FC = () => {
               {/* Concurrent materials */}
               {day.materials.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                  {day.materials.map(({ material, eventCount, eventNames }) => (
-                    <div key={material.id} style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
-                      padding: '0.35rem 0.5rem',
-                      backgroundColor: colors.bg,
-                      borderRadius: '6px',
-                      border: `1px solid ${colors.borderSubtle}`,
-                    }}>
-                      <span style={{ fontSize: '0.85rem' }}>{material.emoji}</span>
-                      <span style={{ color: colors.text, fontSize: '0.8rem', fontWeight: 500 }}>
-                        {material.name}
-                      </span>
-                      <span style={{
-                        backgroundColor: `${CYAN}15`,
-                        color: CYAN,
-                        fontSize: '0.6rem',
-                        fontWeight: 700,
-                        padding: '0.1rem 0.35rem',
-                        borderRadius: '4px',
-                        flexShrink: 0,
-                      }}>
-                        {eventCount}x
-                      </span>
-                      <span style={{
-                        color: colors.textMuted,
-                        fontSize: '0.65rem',
-                        marginLeft: 'auto',
-                        textAlign: 'right',
+                  {day.materials.map(({ material, eventCount, events: matEvents }) => {
+                    const matKey = `${day.dateStr}-${material.id}`;
+                    const isMatExpanded = expandedMaterials.has(matKey);
+                    return (
+                      <div key={material.id} style={{
+                        backgroundColor: colors.bg,
+                        borderRadius: '6px',
+                        border: `1px solid ${isMatExpanded ? `${CYAN}30` : colors.borderSubtle}`,
                         overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        maxWidth: isMobile ? '120px' : '250px',
                       }}>
-                        {eventNames.join(', ')}
-                      </span>
-                    </div>
-                  ))}
+                        {/* Collapsed row — always visible */}
+                        <button
+                          onClick={() => {
+                            setExpandedMaterials(prev => {
+                              const next = new Set(prev);
+                              if (next.has(matKey)) next.delete(matKey);
+                              else next.add(matKey);
+                              return next;
+                            });
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            padding: '0.35rem 0.5rem',
+                            width: '100%',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            minHeight: isMobile ? '44px' : '36px',
+                          }}
+                        >
+                          <span style={{ fontSize: '0.85rem' }}>{material.emoji}</span>
+                          <span style={{ color: colors.text, fontSize: '0.8rem', fontWeight: 500 }}>
+                            {material.name}
+                          </span>
+                          <span style={{
+                            backgroundColor: `${CYAN}15`,
+                            color: CYAN,
+                            fontSize: '0.6rem',
+                            fontWeight: 700,
+                            padding: '0.1rem 0.35rem',
+                            borderRadius: '4px',
+                            flexShrink: 0,
+                            marginLeft: 'auto',
+                          }}>
+                            {eventCount}x
+                          </span>
+                          <span style={{
+                            color: colors.textMuted,
+                            fontSize: '0.6rem',
+                            flexShrink: 0,
+                            transition: 'transform 0.15s ease',
+                            transform: isMatExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                          }}>
+                            ▸
+                          </span>
+                        </button>
+                        {/* Expanded: show overlapping events */}
+                        {isMatExpanded && (
+                          <div style={{
+                            padding: '0.25rem 0.5rem 0.4rem',
+                            borderTop: `1px solid ${colors.borderSubtle}`,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.2rem',
+                          }}>
+                            {matEvents.map(ev => (
+                              <div key={ev.eventId} style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.3rem',
+                                padding: '0.2rem 0.35rem',
+                                borderRadius: '4px',
+                                backgroundColor: `${ev.eventColor}08`,
+                              }}>
+                                <span style={{ fontSize: '0.75rem' }}>{ev.eventEmoji}</span>
+                                <span style={{ color: ev.eventColor, fontSize: '0.7rem', fontWeight: 500 }}>
+                                  {ev.eventName}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <div style={{

@@ -6,7 +6,7 @@ const DEFAULT_TITLE = 'Kingshot Atlas - Kingdom Rankings, KvK Results & Scouting
 const DEFAULT_DESCRIPTION = 'The #1 Kingshot kingdom database. Scout opponents, find the best kingdoms, compare rankings, track KvK history. Recruit or transfer with real data.';
 
 // All supported languages — mirrors SUPPORTED_LANGUAGES in i18n.ts
-const HREFLANG_LANGS = ['en', 'es', 'fr', 'zh', 'de', 'ko', 'ja', 'ar', 'tr'] as const;
+const HREFLANG_LANGS = ['en', 'es', 'fr', 'zh', 'de', 'ko', 'ja', 'ar', 'tr', 'id', 'ru', 'pt'] as const;
 
 /**
  * Sets baseline meta tags (canonical, description, hreflang) on every route change.

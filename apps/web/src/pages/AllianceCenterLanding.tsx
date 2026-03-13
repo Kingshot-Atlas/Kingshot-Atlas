@@ -5,12 +5,14 @@ import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 
 const AllianceCenterLanding: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle(t('allianceCenterLanding.pageTitle', 'Alliance Center'));
   useMetaTags(PAGE_META_TAGS.allianceCenter);
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.allianceCenter });
   const isMobile = useIsMobile();
 
   const features = [

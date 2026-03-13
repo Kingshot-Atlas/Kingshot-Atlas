@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { usePremium } from '../contexts/PremiumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -15,10 +16,8 @@ import { supabase } from '../lib/supabase';
 const KvKBattleTierListLanding: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle(t('battleTierLanding.pageTitle', 'KvK Battle Tier List'));
-  useMetaTags(PAGE_META_TAGS.battleTierList || {
-    title: 'KvK Battle Tier List — Rank Your Kingdom for Castle Battle | Kingshot Atlas',
-    description: 'Rank your kingdom\'s players by offensive and defensive power for KvK Castle Battles. Scout-based stats, EG adjustments, smart tier classification.',
-  });
+  useMetaTags(PAGE_META_TAGS.battleTierList);
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.battleTierList });
   const isMobile = useIsMobile();
   const { isAdmin } = usePremium();
   const { profile, user } = useAuth();

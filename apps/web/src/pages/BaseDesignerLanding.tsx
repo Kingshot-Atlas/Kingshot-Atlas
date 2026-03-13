@@ -4,6 +4,7 @@ import BackLink from '../components/shared/BackLink';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 import { useToolAccess } from '../hooks/useToolAccess';
@@ -16,6 +17,7 @@ const BaseDesignerLanding: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle(t('baseDesigner.pageTitle', 'Alliance Base Designer'));
   useMetaTags(PAGE_META_TAGS.baseDesigner);
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.baseDesigner });
   const isMobile = useIsMobile();
   const { hasAccess, reason, grantedBy } = useToolAccess();
 

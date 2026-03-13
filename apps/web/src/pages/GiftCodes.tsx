@@ -3,7 +3,7 @@ import BackLink from '../components/shared/BackLink';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
-import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
+import { useStructuredData, PAGE_BREADCRUMBS, GIFT_CODES_FAQ_DATA } from '../hooks/useStructuredData';
 import { neonGlow, FONT_DISPLAY, colors } from '../utils/styles';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../components/Toast';
@@ -41,7 +41,8 @@ const GiftCodes: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle(t('giftCodes.pageTitle', 'Gift Codes'));
   useMetaTags(PAGE_META_TAGS.giftCodes);
-  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.tools });
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.giftCodes });
+  useStructuredData({ type: 'FAQPage', data: GIFT_CODES_FAQ_DATA });
   const isMobile = useIsMobile();
   const { showToast } = useToast();
   const { user, profile } = useAuth();

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
 import { useAnalytics } from '../../hooks/useAnalytics';
@@ -70,7 +70,6 @@ const CalendarIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
 );
 
 const QuickActions: React.FC = () => {
-  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { trackFeature } = useAnalytics();
   const { t } = useTranslation();
@@ -99,15 +98,16 @@ const QuickActions: React.FC = () => {
         gap: isMobile ? '0.4rem' : '0.6rem',
       }}>
         {ACTIONS.map((action) => (
-          <button
+          <Link
             key={action.label}
-            onClick={() => {
+            to={action.comingSoon ? '#' : action.path}
+            onClick={(e) => {
               if (action.comingSoon) {
+                e.preventDefault();
                 if (isMobile) showToast(t('common.comingSoon', 'This feature is coming soon!'), 'info', 2500);
                 return;
               }
               trackFeature('QuickAction Clicked', { tile: action.label });
-              navigate(action.path);
             }}
             style={{
               display: 'flex',
@@ -122,6 +122,7 @@ const QuickActions: React.FC = () => {
               transition: 'all 0.2s ease',
               color: action.color,
               opacity: action.comingSoon ? 0.7 : 1,
+              textDecoration: 'none',
             }}
             onMouseEnter={(e) => {
               if (action.comingSoon) return;
@@ -191,7 +192,7 @@ const QuickActions: React.FC = () => {
                 )}
               </div>
             </div>
-          </button>
+          </Link>
         ))}
       </div>
     </div>

@@ -266,6 +266,48 @@ const STATIC_META: Record<string, PageMeta> = {
     url: 'https://ks-atlas.com/campaigns/kingdom-settlers',
     type: 'website',
   },
+  '/tools/battle-layout/about': {
+    title: 'KvK Battle Layout - Plan Alliance Teleport Positions | Kingshot Atlas',
+    description: 'Plan your alliance positioning around the castle and turrets for KvK Castle Battle. Visual map tool for coordinating teleport positions.',
+    url: 'https://ks-atlas.com/tools/battle-layout/about',
+    type: 'website',
+  },
+  '/tools/battle-tier-list/about': {
+    title: 'KvK Battle Tier List - Rank Players for Castle Battle | Kingshot Atlas',
+    description: 'Rank your kingdom\'s players by offensive and defensive power for KvK Castle Battles. Scout-based stats, EG adjustments, smart tier classification.',
+    url: 'https://ks-atlas.com/tools/battle-tier-list/about',
+    type: 'website',
+  },
+  '/tools/bear-rally-tier-list/about': {
+    title: 'Bear Rally Tier List - Rank Alliance Members by Rally Power | Kingshot Atlas',
+    description: 'Rank your alliance members by Bear Hunt rally power. Input scouted stats, auto-calculate Bear Scores with EG adjustments, and assign tiers from SS to D.',
+    url: 'https://ks-atlas.com/tools/bear-rally-tier-list/about',
+    type: 'website',
+  },
+  '/alliance-center/about': {
+    title: 'Alliance Center - Your Alliance Command Hub | Kingshot Atlas',
+    description: 'One hub for your entire alliance. Design your base, coordinate events, and manage your team. Built for Supporters, Ambassadors, and Boosters.',
+    url: 'https://ks-atlas.com/alliance-center/about',
+    type: 'website',
+  },
+  '/tools/event-coordinator/about': {
+    title: 'Alliance Event Coordinator - Find Best Event Times | Kingshot Atlas',
+    description: 'Find the best times for alliance events. Members submit available play times — managers see the most active 30-minute slots at a glance.',
+    url: 'https://ks-atlas.com/tools/event-coordinator/about',
+    type: 'website',
+  },
+  '/tools/kvk-tools': {
+    title: 'KvK Tools - Battle Planner, Registry & More | Kingshot Atlas',
+    description: 'All KvK tools in one place: Battle Planner for synchronized rallies, Battle Registry for player availability, Prep Scheduler for buff slots, and more.',
+    url: 'https://ks-atlas.com/tools/kvk-tools',
+    type: 'website',
+  },
+  '/tools/event-calendar': {
+    title: 'Kingshot Event Calendar - KvK & Transfer Event Dates | Kingshot Atlas',
+    description: 'Never miss a Kingshot event. Full calendar of KvK dates, Transfer Events, and in-game events. Plan your strategy with exact dates and countdowns.',
+    url: 'https://ks-atlas.com/tools/event-calendar',
+    type: 'website',
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -432,7 +474,7 @@ class MetaContentRewriter {
 }
 
 // All supported languages — mirrors SUPPORTED_LANGUAGES in i18n.ts
-const SUPPORTED_LANGS = ['en', 'es', 'fr', 'zh', 'de', 'ko', 'ja', 'ar', 'tr'];
+const SUPPORTED_LANGS = ['en', 'es', 'fr', 'zh', 'de', 'ko', 'ja', 'ar', 'tr', 'id', 'ru', 'pt'];
 
 class HeadInjector {
   private html: string;

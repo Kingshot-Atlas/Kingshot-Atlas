@@ -3,6 +3,22 @@
 **Purpose:** Real-time record of all agent actions. Append-only.  
 **Format:** `## YYYY-MM-DD HH:MM | Agent | STATUS`
 
+## 2026-03-13 11:17 | Ops Lead | COMPLETED
+Task: Comprehensive SEO audit and improvements across the entire website
+Files: index.html, useMetaTags.ts, useDefaultMetaTags.ts, useStructuredData.ts, _middleware.ts, generate-sitemap.js, BearRallyTierListLanding.tsx, AllianceEventCoordinatorLanding.tsx, BattlePlannerLanding.tsx, BattleRegistryLanding.tsx, PrepSchedulerLanding.tsx, KvKBattleLayoutLanding.tsx, KvKBattleTierListLanding.tsx, BaseDesignerLanding.tsx, AllianceCenterLanding.tsx, KvKToolsDiscovery.tsx, EventCalendar.tsx, GiftCodes.tsx
+Changes:
+- **CRITICAL FIX:** Removed hardcoded `<link rel="canonical" href="https://ks-atlas.com/">` from index.html — was causing all pages to canonicalize to homepage
+- **Hreflang:** Updated from 9 to 12 languages (added id, ru, pt) in useMetaTags.ts, useDefaultMetaTags.ts, _middleware.ts
+- **Sitemap:** Added 12 missing public pages to staticRoutes (all tool landings, event calendar, kvk tools, campaigns)
+- **Sitemap fallback:** Updated FALLBACK_MAX_KINGDOM from 1260 to 1403
+- **Middleware:** Added 7 missing pages to STATIC_META for edge-side bot meta injection
+- **PAGE_META_TAGS:** Added 6 new entries (bearRallyTierList, battleTierList, eventCoordinator, kvkTools, eventCalendar)
+- **Breadcrumbs:** Added 14 new PAGE_BREADCRUMBS entries + wired BreadcrumbList JSON-LD into 10 landing pages
+- **Meta coverage:** Added useMetaTags to KvKToolsDiscovery.tsx and EventCalendar.tsx (had zero SEO meta)
+- **Centralized meta:** Migrated BearRallyTierListLanding and AllianceEventCoordinatorLanding from inline meta to PAGE_META_TAGS
+- **GiftCodes breadcrumb:** Fixed from generic `tools` to specific `giftCodes` breadcrumb path
+Result: All 30+ public pages now have proper canonical URLs, meta tags, OG tags, hreflang for 12 languages, BreadcrumbList structured data, sitemap coverage, and edge-side bot injection. Build passes.
+
 ## 2026-03-13 04:00 | Product Engineer | COMPLETED
 Task: KvK Preparation not showing on calendar + Live preview in admin
 Files: apps/web/src/data/eventCalendarProjection.ts, apps/web/src/pages/EventCalendar.tsx, apps/web/src/components/admin/EventCalendarTab.tsx, 11 locale files

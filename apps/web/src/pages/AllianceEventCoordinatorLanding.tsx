@@ -4,16 +4,15 @@ import BackLink from '../components/shared/BackLink';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { useMetaTags } from '../hooks/useMetaTags';
+import { useMetaTags, PAGE_META_TAGS } from '../hooks/useMetaTags';
+import { useStructuredData, PAGE_BREADCRUMBS } from '../hooks/useStructuredData';
 import { neonGlow, FONT_DISPLAY } from '../utils/styles';
 
 const AllianceEventCoordinatorLanding: React.FC = () => {
   const { t } = useTranslation();
   useDocumentTitle(t('eventCoordinatorLanding.pageTitle', 'Alliance Event Coordinator — Kingshot Atlas'));
-  useMetaTags({
-    title: t('eventCoordinatorLanding.pageTitle', 'Alliance Event Coordinator — Kingshot Atlas'),
-    description: t('eventCoordinatorLanding.metaDesc', 'Find the best times for alliance events. Members submit available play times — managers see the most active 30-minute slots at a glance.'),
-  });
+  useMetaTags(PAGE_META_TAGS.eventCoordinator);
+  useStructuredData({ type: 'BreadcrumbList', data: PAGE_BREADCRUMBS.eventCoordinator });
   const isMobile = useIsMobile();
 
   const features = [
