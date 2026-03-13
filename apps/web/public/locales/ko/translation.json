@@ -1512,7 +1512,8 @@
     "noEventsInRange": "이 기간에 이벤트가 없습니다.",
     "materialOverlaps": "재료 겹침 — 향후 7일",
     "noOverlaps": "재료 겹침 없음",
-    "nextDate": "다음: {{date}}"
+    "nextDate": "다음: {{date}}",
+    "eventHeader": "이벤트"
   },
   "similarKingdoms": {
     "title": "근처 유사 왕국",

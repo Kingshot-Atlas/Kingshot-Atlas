@@ -1515,7 +1515,8 @@
     "noEventsInRange": "Bu zaman aralığında etkinlik yok.",
     "materialOverlaps": "Malzeme Çakışmaları — Önümüzdeki 7 Gün",
     "noOverlaps": "Malzeme çakışması yok",
-    "nextDate": "Sonraki: {{date}}"
+    "nextDate": "Sonraki: {{date}}",
+    "eventHeader": "Etkinlik"
   },
   "similarKingdoms": {
     "title": "Yakın Benzer Krallıklar",

@@ -1515,7 +1515,8 @@
     "noEventsInRange": "Keine Events in diesem Zeitraum.",
     "materialOverlaps": "Material-Überlappungen — Nächste 7 Tage",
     "noOverlaps": "Keine Material-Überlappungen",
-    "nextDate": "Nächstes: {{date}}"
+    "nextDate": "Nächstes: {{date}}",
+    "eventHeader": "Event"
   },
   "similarKingdoms": {
     "title": "Ähnliche Königreiche in der Nähe",

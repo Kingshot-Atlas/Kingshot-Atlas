@@ -1547,7 +1547,8 @@
     "noEventsInRange": "No events in this time range.",
     "materialOverlaps": "Material Overlaps — Next 7 Days",
     "noOverlaps": "No material overlaps",
-    "nextDate": "Next: {{date}}"
+    "nextDate": "Next: {{date}}",
+    "eventHeader": "Event"
   },
   "similarKingdoms": {
     "title": "Nearby Similar Kingdoms",

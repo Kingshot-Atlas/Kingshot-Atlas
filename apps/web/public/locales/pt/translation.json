@@ -1421,7 +1421,8 @@
     "noEventsInRange": "Nenhum evento neste período.",
     "materialOverlaps": "Sobreposições de Materiais — Próximos 7 Dias",
     "noOverlaps": "Sem sobreposições de materiais",
-    "nextDate": "Próximo: {{date}}"
+    "nextDate": "Próximo: {{date}}",
+    "eventHeader": "Evento"
   },
   "similarKingdoms": {
     "title": "Reinos Similares Próximos",

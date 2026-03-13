@@ -1515,7 +1515,8 @@
     "noEventsInRange": "此时间范围内没有活动。",
     "materialOverlaps": "材料重叠 — 未来7天",
     "noOverlaps": "没有材料重叠",
-    "nextDate": "下次: {{date}}"
+    "nextDate": "下次: {{date}}",
+    "eventHeader": "活动"
   },
   "similarKingdoms": {
     "title": "附近相似王国",

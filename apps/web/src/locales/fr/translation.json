@@ -1515,7 +1515,8 @@
     "noEventsInRange": "Aucun événement dans cette période.",
     "materialOverlaps": "Chevauchements de Matériaux — 7 Prochains Jours",
     "noOverlaps": "Aucun chevauchement de matériaux",
-    "nextDate": "Prochain : {{date}}"
+    "nextDate": "Prochain : {{date}}",
+    "eventHeader": "Événement"
   },
   "similarKingdoms": {
     "title": "Royaumes Similaires Proches",

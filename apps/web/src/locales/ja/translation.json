@@ -1515,7 +1515,8 @@
     "noEventsInRange": "この期間にイベントはありません。",
     "materialOverlaps": "素材の重複 — 今後7日間",
     "noOverlaps": "素材の重複なし",
-    "nextDate": "次回: {{date}}"
+    "nextDate": "次回: {{date}}",
+    "eventHeader": "イベント"
   },
   "similarKingdoms": {
     "title": "近くの類似王国",

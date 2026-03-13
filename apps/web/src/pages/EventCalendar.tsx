@@ -31,14 +31,10 @@ function getDateRange(days: number): string[] {
   return result;
 }
 
-function formatDayHeader(dateStr: string, compact?: boolean): { dow: string; date: string } {
+function formatDayHeader(dateStr: string): { dow: string; date: string } {
   const d = new Date(dateStr + 'T12:00:00Z');
-  const dow = compact
-    ? d.toLocaleDateString('en-US', { weekday: 'narrow', timeZone: 'UTC' })
-    : d.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
-  const date = compact
-    ? String(d.getUTCDate())
-    : `${String(d.getUTCMonth() + 1).padStart(2, '0')}/${String(d.getUTCDate()).padStart(2, '0')}`;
+  const dow = d.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
+  const date = `${String(d.getUTCMonth() + 1).padStart(2, '0')}/${String(d.getUTCDate()).padStart(2, '0')}`;
   return { dow, date };
 }
 
@@ -231,7 +227,7 @@ const EventCalendar: React.FC = () => {
   const is28 = forecastDays === 28;
   const scrollable = is28 || (isMobile && forecastDays > 7);
   const eventColWidth = isMobile ? 80 : (is28 ? 120 : 140);
-  const dayColWidth = isMobile ? (forecastDays > 7 ? 38 : undefined) : (is28 ? 40 : undefined);
+  const dayColWidth = isMobile ? (forecastDays > 7 ? 38 : undefined) : (is28 ? 52 : undefined);
   const gridCols = dayColWidth
     ? `${eventColWidth}px repeat(${colCount}, ${dayColWidth}px)`
     : `${eventColWidth}px repeat(${colCount}, 1fr)`;
@@ -291,7 +287,7 @@ const EventCalendar: React.FC = () => {
           borderBottom: `1px solid ${colors.border}`,
           ...(minTableWidth ? { minWidth: minTableWidth } : {}),
         }}>
-          {/* Empty corner cell — sticky on scroll */}
+          {/* Event column header — sticky on scroll */}
           <div style={{
             padding: isMobile ? '0.4rem 0.25rem' : '0.5rem 0.5rem',
             borderRight: `1px solid ${colors.border}`,
@@ -299,20 +295,30 @@ const EventCalendar: React.FC = () => {
             left: 0,
             zIndex: 2,
             backgroundColor: colors.card,
-          }} />
+            display: 'flex',
+            alignItems: 'center',
+          }}>
+            <span style={{
+              fontSize: isMobile ? '0.6rem' : '0.7rem',
+              fontWeight: 600,
+              color: colors.textSecondary,
+            }}>
+              {t('eventCalendar.eventHeader', 'Event')}
+            </span>
+          </div>
           {dateRange.map(dateStr => {
             const isToday = dateStr === todayStr;
-            const { dow, date } = formatDayHeader(dateStr, is28);
+            const { dow, date } = formatDayHeader(dateStr);
             return (
               <div key={dateStr} style={{
-                padding: isMobile ? '0.35rem 0.1rem' : (is28 ? '0.4rem 0.1rem' : '0.5rem 0.25rem'),
+                padding: isMobile ? '0.35rem 0.1rem' : '0.5rem 0.25rem',
                 textAlign: 'center',
                 backgroundColor: isToday ? `${CYAN}10` : 'transparent',
                 borderRight: `1px solid ${colors.borderSubtle}`,
                 position: 'relative',
               }}>
                 <div style={{
-                  fontSize: isMobile ? '0.55rem' : (is28 ? '0.6rem' : '0.7rem'),
+                  fontSize: isMobile ? '0.55rem' : '0.7rem',
                   fontWeight: isToday ? 700 : 500,
                   color: isToday ? CYAN : colors.textSecondary,
                   lineHeight: 1.2,
@@ -320,7 +326,7 @@ const EventCalendar: React.FC = () => {
                   {dow}
                 </div>
                 <div style={{
-                  fontSize: isMobile ? '0.5rem' : (is28 ? '0.55rem' : '0.6rem'),
+                  fontSize: isMobile ? '0.5rem' : '0.6rem',
                   color: isToday ? CYAN : colors.textMuted,
                   marginTop: '1px',
                 }}>
@@ -376,9 +382,9 @@ const EventCalendar: React.FC = () => {
           >
             {/* Event label — sticky on horizontal scroll */}
             <div style={{
-              padding: isMobile ? '0.3rem 0.25rem' : (is28 ? '0.3rem 0.35rem' : '0.4rem 0.5rem'),
+              padding: isMobile ? '0.3rem 0.25rem' : '0.4rem 0.5rem',
               display: 'flex',
-              alignItems: is28 ? 'flex-start' : 'center',
+              alignItems: 'center',
               gap: '0.25rem',
               borderRight: `1px solid ${colors.border}`,
               overflow: 'hidden',
@@ -387,22 +393,16 @@ const EventCalendar: React.FC = () => {
               zIndex: 1,
               backgroundColor: colors.card,
             }}>
-              <span style={{ fontSize: isMobile ? '0.75rem' : (is28 ? '0.75rem' : '0.85rem'), flexShrink: 0, lineHeight: 1.3 }}>{row.eventEmoji}</span>
+              <span style={{ fontSize: isMobile ? '0.75rem' : '0.85rem', flexShrink: 0, lineHeight: 1.3 }}>{row.eventEmoji}</span>
               <span style={{
                 color: row.eventColor,
-                fontSize: isMobile ? '0.6rem' : (is28 ? '0.65rem' : '0.75rem'),
+                fontSize: isMobile ? '0.6rem' : '0.75rem',
                 fontWeight: 600,
                 lineHeight: 1.3,
-                ...(is28 ? {
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical' as const,
-                  overflow: 'hidden',
-                } : {
-                  whiteSpace: 'nowrap' as const,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }),
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical' as const,
+                overflow: 'hidden',
               }}>
                 {row.eventName}
               </span>

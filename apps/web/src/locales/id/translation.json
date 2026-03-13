@@ -1423,7 +1423,8 @@
     "noEventsInRange": "Tidak ada event dalam rentang waktu ini.",
     "materialOverlaps": "Tumpang Tindih Material — 7 Hari Ke Depan",
     "noOverlaps": "Tidak ada tumpang tindih material",
-    "nextDate": "Berikutnya: {{date}}"
+    "nextDate": "Berikutnya: {{date}}",
+    "eventHeader": "Event"
   },
   "similarKingdoms": {
     "title": "Kingdom Serupa Terdekat",

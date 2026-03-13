@@ -1515,7 +1515,8 @@
     "noEventsInRange": "لا توجد أحداث في هذا النطاق الزمني.",
     "materialOverlaps": "تداخلات المواد — الأيام السبعة القادمة",
     "noOverlaps": "لا تداخلات في المواد",
-    "nextDate": "التالي: {{date}}"
+    "nextDate": "التالي: {{date}}",
+    "eventHeader": "حدث"
   },
   "similarKingdoms": {
     "title": "ممالك مشابهة قريبة",
