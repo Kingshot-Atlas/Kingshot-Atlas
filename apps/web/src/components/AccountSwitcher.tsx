@@ -62,6 +62,8 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
         .eq('id', account.id);
 
       // Update profile linked fields (use ?? to preserve falsy-but-valid values like 0)
+      // IMPORTANT: Also update home_kingdom so refreshLinkedPlayer() doesn't
+      // falsely detect a kingdom transfer when the user is just switching accounts.
       const result = await updateProfile({
         linked_player_id: account.player_id,
         linked_username: account.username ?? undefined,
@@ -69,6 +71,7 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ onSwitch }) => {
         linked_kingdom: account.kingdom ?? undefined,
         linked_tc_level: account.tc_level ?? undefined,
         linked_last_synced: account.last_synced ?? undefined,
+        ...(account.kingdom ? { home_kingdom: account.kingdom } : {}),
       });
 
       if (!result.success) {

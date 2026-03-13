@@ -160,27 +160,49 @@ export const DiscordRolesDashboard: React.FC = () => {
   const [transferLoading, setTransferLoading] = useState(false);
 
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [syncingUser, setSyncingUser] = useState<string | null>(null);
 
-  // Load data
+  // Load data — fetch each endpoint independently so one failure doesn't block others
   const loadData = useCallback(async () => {
     setLoading(true);
-    try {
-      const [linkedRes, supporterRes, gildedRes, referralRes] = await Promise.all([
-        fetch(`${API_URL}/api/v1/bot/linked-users`, { headers: await botHeaders() }).then(r => r.ok ? r.json() : { users: [] }),
-        fetch(`${API_URL}/api/v1/bot/supporter-users`, { headers: await botHeaders() }).then(r => r.ok ? r.json() : { users: [] }),
-        fetch(`${API_URL}/api/v1/bot/gilded-users`, { headers: await botHeaders() }).then(r => r.ok ? r.json() : { users: [] }),
-        fetch(`${API_URL}/api/v1/bot/referral-users`, { headers: await botHeaders() }).then(r => r.ok ? r.json() : { users: [] }),
-      ]);
-      setLinkedUsers(linkedRes.users || []);
-      setSupporterUsers(supporterRes.users || []);
-      setGildedUsers(gildedRes.users || []);
-      setReferralUsers(referralRes.users || []);
-    } catch (error) {
-      logger.error('Failed to load role data:', error);
-    } finally {
-      setLoading(false);
+    setFetchError(null);
+    const headers = await botHeaders();
+    const hasAuth = !!headers['Authorization'];
+    if (!hasAuth) {
+      logger.warn('[DiscordRoles] No auth headers — API calls will likely return 401');
     }
+    const errors: string[] = [];
+    async function safeFetch(endpoint: string): Promise<{ users: RoleUser[] }> {
+      try {
+        const res = await fetch(`${API_URL}/api/v1/bot/${endpoint}`, { headers });
+        if (!res.ok) {
+          const detail = res.status === 401 ? 'unauthorized' : res.status === 429 ? 'rate limited' : `status ${res.status}`;
+          errors.push(`${endpoint}: ${detail}`);
+          logger.error(`[DiscordRoles] ${endpoint} failed: ${res.status}`);
+          return { users: [] };
+        }
+        return await res.json();
+      } catch (err) {
+        errors.push(`${endpoint}: network error`);
+        logger.error(`[DiscordRoles] ${endpoint} error:`, err);
+        return { users: [] };
+      }
+    }
+    const [linkedRes, supporterRes, gildedRes, referralRes] = await Promise.all([
+      safeFetch('linked-users'),
+      safeFetch('supporter-users'),
+      safeFetch('gilded-users'),
+      safeFetch('referral-users'),
+    ]);
+    setLinkedUsers(linkedRes.users || []);
+    setSupporterUsers(supporterRes.users || []);
+    setGildedUsers(gildedRes.users || []);
+    setReferralUsers(referralRes.users || []);
+    if (errors.length > 0) {
+      setFetchError(`Failed to load: ${errors.join(', ')}`);
+    }
+    setLoading(false);
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
@@ -237,6 +259,14 @@ export const DiscordRolesDashboard: React.FC = () => {
         <h2 style={{ margin: 0, color: '#fff', fontSize: '1.25rem' }}>Discord Role Management</h2>
         <p style={{ margin: '0.25rem 0 0', color: C.muted, fontSize: '0.85rem' }}>Manage role assignments for linked users</p>
       </div>
+
+      {/* Error banner */}
+      {fetchError && (
+        <div style={{ padding: '0.75rem 1rem', marginBottom: '1rem', backgroundColor: '#ef444412', border: '1px solid #ef444435', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ color: C.danger, fontSize: '0.85rem' }}>⚠️ {fetchError}</span>
+          <button onClick={loadData} style={{ padding: '0.3rem 0.75rem', backgroundColor: `${C.danger}20`, color: C.danger, border: `1px solid ${C.danger}40`, borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>Retry</button>
+        </div>
+      )}
 
       {/* Section Tabs */}
       <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
