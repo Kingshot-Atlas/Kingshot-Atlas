@@ -17,7 +17,7 @@ const AllianceChartsSection: React.FC<{
   isMobile: boolean;
   t: (key: string, fallback: string, opts?: Record<string, unknown>) => string;
 }> = ({ members, profilesMap, apiPlayerData, registryTroopData, allianceId, isMobile, t }) => {
-  const [expanded, setExpanded] = useState(members.length >= 5);
+  const [expanded, setExpanded] = useState(false);
 
   // ── Bear Rally Tier Distribution (from Supabase bear_rally_lists) ──
   const { data: bearTierDist = [] } = useQuery<[string, number][]>({

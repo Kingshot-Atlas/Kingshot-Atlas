@@ -204,6 +204,12 @@ export function useBearRallyState() {
   const allianceId = ac.alliance?.id;
   const supabaseSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cloudUpdatedAt = useRef<string | null>(null);
+  const pendingSaveDataRef = useRef<{
+    players: BearPlayerEntry[];
+    tierOverrides: BearTierOverrides | null;
+    listId: string;
+    userId: string | undefined;
+  } | null>(null);
   const [lastEditedBy, setLastEditedBy] = useState<string | null>(null);
   const undoStack = useRef<BearPlayerEntry[][]>([]);
   const MAX_UNDO = 20;
@@ -423,7 +429,9 @@ export function useBearRallyState() {
       const sb = supabase!;
       const lid = activeListId;
       const uid = user?.id;
+      pendingSaveDataRef.current = { players, tierOverrides, listId: lid, userId: uid };
       supabaseSaveTimer.current = setTimeout(async () => {
+        pendingSaveDataRef.current = null;
         const validationErr = validateBearPlayers(players);
         if (validationErr) {
           logger.error('Bear rally validation failed (skipping save):', validationErr);
@@ -465,10 +473,26 @@ export function useBearRallyState() {
     }
   }, [players, activeListId, supabaseSync, user, tierOverrides]);
 
-  // Cleanup debounce timer on unmount
+  // Flush pending Supabase save on unmount (instead of discarding it)
   useEffect(() => {
     return () => {
       if (supabaseSaveTimer.current) clearTimeout(supabaseSaveTimer.current);
+      const pending = pendingSaveDataRef.current;
+      if (pending && isSupabaseConfigured && supabase) {
+        const validationErr = validateBearPlayers(pending.players);
+        if (!validationErr) {
+          supabase
+            .from('bear_rally_lists')
+            .update({
+              players: pending.players,
+              tier_overrides: pending.tierOverrides,
+              updated_by: pending.userId,
+            })
+            .eq('id', pending.listId)
+            .then(() => {}, () => {});
+        }
+        pendingSaveDataRef.current = null;
+      }
     };
   }, []);
 
